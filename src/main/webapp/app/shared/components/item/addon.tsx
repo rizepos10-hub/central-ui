@@ -1,10 +1,8 @@
-import { Button, Col, Row, Table } from 'reactstrap';
 import { getSortState, translate, Translate } from 'react-jhipster';
 import Select, { ActionMeta, MultiValue } from 'react-select';
 import React, { useEffect, useState } from 'react';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import AddonImportModal from 'app/shared/components/item/addon-import-modal';
-import { Checkbox } from 'primereact/checkbox';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { cloneDeep } from 'lodash';
@@ -18,9 +16,13 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
 import { OrderList } from 'primereact/orderlist';
 import { Dropdown } from 'primereact/dropdown';
-import { InputNumber } from 'primereact/inputnumber';
 import { IAddonPriceOverride } from 'app/shared/model/ADDON/addon-price-override';
-import { InputText } from 'primereact/inputtext';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -46,12 +48,9 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
   const dispatch = useAppDispatch();
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
-  // const [filterAddonState, setFilterAddonState] = useState(initialState);
 
   const addonOptions = useAppSelector(state => state.addon.entities);
-  // const loadingAddonOptions = useAppSelector(state => state.addon.loading);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
-  // const loadingAddonGroupsOptions = useAppSelector(state => state.addonGroups.loading);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -59,96 +58,16 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
   const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
 
-
-  // const handleAddonGroupFilterChange = (selectedGroup: IAddonGroup) => {
-  //   setFilterAddonState(prevState => ({
-  //     ...prevState,
-  //     filters: {
-  //       ...prevState.filters,
-  //       groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
-  //     }
-  //   }))
-  // }
-
   const openImportAddonModal = () => {
     setOpenedAddonModal(true);
   };
-
-  // const handleImportAddonModalClose = () => {
-  //   setOpenedAddonModal(false);
-  // };
-
-
-  // const handleImportAddonModalSave = (option: IItem) => {
-  //   const extraAddons = option.addons;
-  //   const uniqueAddonIds = Array.from(new Set([...(addons || []), ...extraAddons].map(addon => addon.id)));
-  //   const mergedAddons = uniqueAddonIds.map(id => [...(addons || []), ...extraAddons].find(addon => addon.id === id));
-
-  //   const extraAddonGroups = option.addonGroups;
-  //   const uniqueAddonGroupIds = Array.from(
-  //     new Set([...addonGroups.map(group => group.addonGroup.id), ...extraAddonGroups.map(group => group.addonGroup.id)])
-  //   );
-  //   const mergedAddonGroups = uniqueAddonGroupIds.map(id =>
-  //     [...addonGroups, ...extraAddonGroups].find(addonGroup => addonGroup.addonGroup.id === id)
-  //   );
-
-  //   onFieldChange('addonGroups', mergedAddonGroups);
-  //   onFieldChange('addons', mergedAddons);
-  // };
-
-  // const getAddons = () => {
-  //   const updatedQuery = applyMatchModeMap(filterAddonState);
-  //   dispatch(
-  //     filterEntities({
-  //       query: updatedQuery,
-  //     })
-  //   );
-  // };
-
-  // useEffect(() => {
-  //   getAddons();
-  // }, [filterAddonState?.filters?.groupId?.value]);
-
-
-
-  // const handleAddonChange = (selectedAddon: IAddon) => {
-  //   onFieldChange('addons', [...addons, selectedAddon]);
-  // };
-
-  // const handleRemoveAddon = (addon: string) => {
-  //   const updatedAddons = addons.filter(a => a.id !== addon);
-  //   onFieldChange('addons', updatedAddons);
-  // };
-
-  // const handleAddonOverridedPriceChange = (addonId, price) => {
-  //   const updatedAddonPriceOverrides = [...addonPriceOverrides];
-  //   const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
-  //   if (price !== null && price !== undefined && price !== '') {
-  //     if (index >= 0) {
-  //       // Update existing price override
-  //       updatedAddonPriceOverrides[index].price = price;
-  //     } else {
-  //       // Add new price override
-  //       updatedAddonPriceOverrides.push({ id: addonId, price });
-  //     }
-  //   } else {
-  //     // Remove price override if price is empty or null
-  //     if (index >= 0) {
-  //       updatedAddonPriceOverrides.splice(index, 1);
-  //     }
-  //   }
-
-
-
-  // const handleAddonReorder = (event) => {
-  //   onFieldChange('addons', event.value);
-  // };
 
   const handleCheckboxChange = (addonGroupIndex: number) => {
     const updatedAddonGroups = cloneDeep([...addonGroups]);
     updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
     onFieldChange('addonGroups', updatedAddonGroups);
   };
+
   const handleAddonGroupChange = (
     selectedAddonGroup: IAddonGroup,
     actionMeta: ActionMeta<{ id: string; name: string }>
@@ -164,10 +83,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
       name: null,
     };
 
-    // Ensure addonGroups is an array
     const updatedAddonGroups = Array.isArray(addonGroups) ? addonGroups : [];
-
-    // Add the new group
     onFieldChange('addonGroups', [...updatedAddonGroups, newGroup]);
   };
 
@@ -200,7 +116,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   useEffect(() => {
     const updatedAddonGroups = addonGroups?.map(addonGroup => {
       const isRequired = addonGroup.minQuantity > 0;
-      // Only update if 'required' has changed
       if (addonGroup.required !== isRequired) {
         return {
           ...addonGroup,
@@ -210,7 +125,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
       return addonGroup;
     });
 
-    // Check if any changes were made
     const hasChanged = updatedAddonGroups.some((group, index) => group !== addonGroups[index]);
 
     if (hasChanged) {
@@ -218,7 +132,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     }
   }, [addonGroups]);
 
-  // Keep selectedAddonGroup in sync with addonGroups updates
   useEffect(() => {
     if (selectedAddonGroup && addonGroups) {
       const updatedSelectedGroup = addonGroups.find(
@@ -230,9 +143,8 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     }
   }, [addonGroups, selectedAddonGroup]);
 
-
   const handleAddonGroupExcludedChange = (
-    e,
+    checked,
     addonGroupIndex: number,
     value: IAddon,
   ) => {
@@ -240,7 +152,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
     const updatedItem: IAddonGroups = {
       ...updatedAddonGroups[addonGroupIndex],
-      excluded: !e.checked
+      excluded: !checked
         ? [...updatedAddonGroups[addonGroupIndex].excluded, value]
         : updatedAddonGroups[addonGroupIndex].excluded.filter(
           item => item.id !== value.id
@@ -251,15 +163,15 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-  const handleSelectAllAddons = (e, addonGroupIndex: number) => {
+  const handleSelectAllAddons = (checked, addonGroupIndex: number) => {
     const updatedAddonGroups = [...addonGroups];
     const currentAddonGroup = updatedAddonGroups[addonGroupIndex];
-    
+
     const updatedItem: IAddonGroups = {
       ...currentAddonGroup,
-      excluded: e.checked ? [] : [...currentAddonGroup.addonGroup.addons],
+      excluded: checked ? [] : [...currentAddonGroup.addonGroup.addons],
     };
-    
+
     updatedAddonGroups[addonGroupIndex] = updatedItem;
     onFieldChange('addonGroups', updatedAddonGroups);
   };
@@ -272,14 +184,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
     if (price !== null && price !== undefined) {
       if (index >= 0) {
-        // Update existing price override without mutating the original object
         updatedAddonPriceOverrides[index] = { ...updatedAddonPriceOverrides[index], price };
       } else {
-        // Add new price override
         updatedAddonPriceOverrides.push({ id: addonId, price });
       }
     } else {
-      // Remove price override if price is empty or null
       if (index >= 0) {
         updatedAddonPriceOverrides.splice(index, 1);
       }
@@ -307,7 +216,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   ) => {
     const [selected, setSelected] = useState(null);
     return (
-      <div className='d-flex gap-2 align-items-center'>
+      <div className='flex gap-2 items-center'>
         <Dropdown
           value={selected}
           onChange={e => setSelected(e.value)}
@@ -325,18 +234,14 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
             onChange(options?.find(g => g?.id === selected))
             setSelected(null)
           }}
-          color="primary"
-          className='p-1 mr-2'
+          size="sm"
+          className='h-7 text-xs'
         >
           Assign
         </Button>
-        <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
-          <div>
-            <Button type="button" onClick={openImportAddonModal}>
-              <Translate contentKey={'items.update.importAddons'}>Import</Translate>
-            </Button>
-          </div>
-        </div>
+        <Button type="button" size="sm" className="h-7 text-xs" onClick={openImportAddonModal}>
+          <Translate contentKey={'items.update.importAddons'}>Import</Translate>
+        </Button>
       </div>
     )
   }
@@ -347,7 +252,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
   const filteredAddonGroupsOptions = addonGroupsOptions;
 
-
   const handleImportAddonModalSave = (groups: IAddonGroups[]) => {
     const newAddonGroups = [...groups];
 
@@ -357,11 +261,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
   return (
     <>
-      <Row>
-        <Col md={6}>
-          <label className={'font-semibold'}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">
             <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
-          </label>
+          </Label>
           <div>
             <OrderList
               value={addonGroups?.map(group => group.addonGroup) || []}
@@ -373,15 +277,15 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
 
                 return (
                   <div
-                    className="p-orderlist-item d-flex gap-2 align-items-end p-0"
+                    className="p-orderlist-item flex gap-2 items-end p-0"
                     onClick={() => setSelectedAddonGroup(addonGroups[index])}
                   >
-                    <span className='d-flex flex-column gap-1'>
-                      <label>{addonGroup?.name}</label>
-                      <InputText
+                    <span className='flex flex-col gap-1'>
+                      <Label className="text-xs">{addonGroup?.name}</Label>
+                      <Input
                         value={addonGroups[index]?.name ?? addonGroup?.name}
                         onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
-                        style={{ width: '120px' }}
+                        className="w-[120px] h-7 text-xs"
                         onKeyDown={(e) => {
                           if (e.key === ' ') {
                             e.stopPropagation();
@@ -389,43 +293,43 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                         }}
                       />
                     </span>
-                    <span className='d-flex gap-1'>
-                      <span className='d-flex flex-column gap-1'>
-                        <label>{translate('items.update.min')}</label>
-                        <InputNumber
-                          value={addonGroups[index]?.minQuantity}
+                    <span className='flex gap-1'>
+                      <span className='flex flex-col gap-1'>
+                        <Label className="text-xs">{translate('items.update.min')}</Label>
+                        <Input
+                          type="number"
+                          value={addonGroups[index]?.minQuantity ?? ''}
                           onChange={e => {
-                            handleAddonGroupFieldChange(index, 'minQuantity', e.value)
+                            handleAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) || null)
                           }}
                           max={addonGroups?.[index]?.addonGroup?.addons?.length}
-                          inputStyle={{ width: '40px' }}
+                          className="w-[40px] h-7 text-xs"
                         />
                       </span>
-                      <span className='d-flex flex-column gap-1'>
-                        <label>{translate('items.update.max')}</label>
-                        <InputNumber
-                          value={addonGroups[index]?.maxQuantity}
-                          onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.value)}
+                      <span className='flex flex-col gap-1'>
+                        <Label className="text-xs">{translate('items.update.max')}</Label>
+                        <Input
+                          type="number"
+                          value={addonGroups[index]?.maxQuantity ?? ''}
+                          onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) || null)}
                           max={addonGroups?.[index]?.addonGroup?.addons?.length}
-                          inputStyle={{ width: '40px' }}
+                          className="w-[40px] h-7 text-xs"
                         />
                       </span>
                     </span>
-                    {/* <span className='d-flex flex-column gap-1'>
-                      <label>{translate('items.update.required')}</label>
-                      <Checkbox
-                        checked={addonGroups[index]?.required}
-                        onChange={e => handleAddonGroupFieldChange(index, 'required', e.checked)}
-                      />
-                    </span> */}
-                    <span className='d-flex flex-column gap-1'>
-                      <label>{translate('items.update.addAutomatically')}</label>
+                    <span className='flex flex-col gap-1'>
+                      <Label className="text-xs">{translate('items.update.addAutomatically')}</Label>
                       <Checkbox
                         checked={addonGroups[index]?.addAutomatically}
-                        onChange={e => handleAddonGroupFieldChange(index, 'addAutomatically', e.checked)}
+                        onCheckedChange={checked => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
                       />
                     </span>
-                    <Button color="danger" size="sm" onClick={(e) => handleRemoveAddonGroup(e, addonGroup.id)}>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={(e) => handleRemoveAddonGroup(e, addonGroup.id)}
+                    >
                       X
                     </Button>
                   </div>
@@ -453,72 +357,60 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
               dataKey="id"
             />
           </div>
-        </Col>
+        </div>
+
         {selectedAddonGroup && (
-          <Col md={6}>
-            <label className={'font-semibold d-flex justify-content-between'}>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold flex justify-between">
               <span>
                 <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
               </span>
-              <span className='d-flex flex-column gap-2'>
-                <div className='d-flex gap-2 align-items-center'>
-                  <div style={{
-                    height: '12px',
-                    width: '12px',
-                    backgroundColor: 'red'
-                  }} />
-                  <div>
-                    Price Modified
-                  </div>
+              <span className='flex flex-col gap-2'>
+                <div className='flex gap-2 items-center text-xs font-normal'>
+                  <div className='h-3 w-3 bg-destructive' />
+                  <div>Price Modified</div>
                 </div>
-                <div className='d-flex gap-2 align-items-center'>
-                  <div style={{
-                    height: '12px',
-                    width: '12px',
-                    backgroundColor: 'black'
-                  }} />
-                  <div>
-                    Default Price
-                  </div>
+                <div className='flex gap-2 items-center text-xs font-normal'>
+                  <div className='h-3 w-3 bg-black' />
+                  <div>Default Price</div>
                 </div>
-                <div className='d-flex gap-2 align-items-center'>
+                <div className='flex gap-2 items-center text-xs font-normal'>
                   <Checkbox
                     checked={(() => {
                       const isChecked = selectedAddonGroup?.excluded?.length === 0;
                       return isChecked;
                     })()}
-                    onChange={e => handleSelectAllAddons(
-                      e,
+                    onCheckedChange={checked => handleSelectAllAddons(
+                      checked,
                       addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)
                     )}
                   />
-                  <div>
-                    Select All
-                  </div>
+                  <div>Select All</div>
                 </div>
               </span>
-            </label>
-            <div className='border'>
+            </Label>
+            <div className='border rounded'>
               <Table>
-                <thead>
-                  <tr>
-                    <th>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">
                       <Translate contentKey={'items.update.name'}>Name</Translate>
-                    </th>
-                    <th>
+                    </TableHead>
+                    <TableHead className="text-xs">
                       <Translate contentKey={'items.update.price'}>Price</Translate>
-                    </th>
-                    <th>
+                    </TableHead>
+                    <TableHead className="text-xs">
                       <Translate contentKey={'items.update.include'}>Include</Translate>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {selectedAddonGroup?.addonGroup.addons?.map((addon, index) => (
-                    <tr key={index}>
-                      <td className='align-content-center'>{addon.name}</td>
-                      <td className='align-content-center'>
-                        <InputNumber
+                    <TableRow key={index}>
+                      <TableCell className='text-xs'>{addon.name}</TableCell>
+                      <TableCell className='text-xs'>
+                        <Input
+                          type="number"
                           value={
                             selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price != null
                               ? selectedAddonGroup.addonPriceOverrides.find(override => override.id === addon.id).price
@@ -527,35 +419,30 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                           onChange={e => handleAddonGroupOverridedPriceChange(
                             addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                             addon.id,
-                            e.value
+                            parseFloat(e.target.value) || null
                           )}
-                          inputStyle={{
-                            width: '50px',
-                            color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'red' : 'black'
-                          }}
-                          mode="decimal"
-                          minFractionDigits={2}
-                          maxFractionDigits={2}
+                          className={`w-[50px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}
+                          step={0.01}
                         />
-                      </td>
-                      <td className='align-content-center'>
+                      </TableCell>
+                      <TableCell className='text-xs'>
                         <Checkbox
                           checked={!addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(excluded => excluded.id).includes(addon.id)}
-                          onChange={e => handleAddonGroupExcludedChange(
-                            e,
+                          onCheckedChange={checked => handleAddonGroupExcludedChange(
+                            checked,
                             addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                             addon
                           )}
                         />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
+                </TableBody>
               </Table>
             </div>
-          </Col>
+          </div>
         )}
-      </Row>
+      </div>
 
       {openedAddonModal && (
         <AddonImportModal

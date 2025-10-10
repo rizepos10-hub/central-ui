@@ -1,9 +1,12 @@
 import React from 'react';
-import { Table } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { Checkbox } from 'primereact/checkbox';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle } from 'lucide-react';
 
 interface EBTEligibleBranchesProps {
   item: IItem; // Can be IRegularItem, IComboItem, IPizzaItem, or IProduct
@@ -12,12 +15,12 @@ interface EBTEligibleBranchesProps {
 }
 
 const EBTEligibleBranches: React.FC<EBTEligibleBranchesProps> = ({ item, setItem, branchList }) => {
-  
+
   // Handler for EBT branch selection/deselection
   const handleEBTEligibleBranchChange = (branchId: string, isSelected: boolean) => {
     setItem(prev => {
       const currentEbtBranches = prev.ebtEligibleByBranch || [];
-      
+
       if (isSelected) {
         // Add branch if not already in the set
         const branch = getEBTEligibleBranches().find(b => b.id === branchId);
@@ -40,7 +43,7 @@ const EBTEligibleBranches: React.FC<EBTEligibleBranchesProps> = ({ item, setItem
           ebtEligibleByBranch: currentEbtBranches.filter(eb => eb.branch.id !== branchId)
         };
       }
-      
+
       return prev;
     });
   };
@@ -56,61 +59,66 @@ const EBTEligibleBranches: React.FC<EBTEligibleBranchesProps> = ({ item, setItem
   };
 
   return (
-    <div className="w-100">
-      <div className="text-xl font-semibold mb-3">
+    <div className="w-full">
+      <div className="text-base font-semibold mb-3">
         <Translate contentKey="items.update.tabs.ebtEligibleBranches.title">EBT Eligible Branches</Translate>
       </div>
-      
+
       {getEBTEligibleBranches().length === 0 ? (
-        <div className="alert alert-warning">
-          <Translate contentKey="items.update.tabs.ebtEligibleBranches.noBranches">
-            No branches are configured as EBT eligible. Please configure branches in Business Details first.
-          </Translate>
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+          <div className="text-xs text-yellow-800">
+            <Translate contentKey="items.update.tabs.ebtEligibleBranches.noBranches">
+              No branches are configured as EBT eligible. Please configure branches in Business Details first.
+            </Translate>
+          </div>
         </div>
       ) : (
-        <div className="d-flex flex-column gap-3">
-          <div className="text-sm text-muted">
+        <div className="space-y-3">
+          <div className="text-xs text-muted-foreground">
             <Translate contentKey="items.update.tabs.ebtEligibleBranches.description">
               Select the branches where this item is eligible for EBT payment.
             </Translate>
           </div>
-          
-          <Table responsive>
-            <thead>
-              <tr>
-                <th>
-                  <Translate contentKey="items.update.tabs.ebtEligibleBranches.branchName">Branch Name</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="items.update.tabs.ebtEligibleBranches.eligible">EBT Eligible</Translate>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {getEBTEligibleBranches().map((branch) => (
-                <tr key={branch.id}>
-                  <td>{branch.name}</td>
-                  <td>
-                    <Checkbox
-                      checked={isEBTBranchSelected(branch.id)}
-                      onChange={(e) => handleEBTEligibleBranchChange(branch.id, e.checked)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          
+
+          <div className="border rounded">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-xs h-8 font-semibold p-2">
+                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.branchName">Branch Name</Translate>
+                  </TableHead>
+                  <TableHead className="text-xs h-8 font-semibold p-2">
+                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.eligible">EBT Eligible</Translate>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {getEBTEligibleBranches().map((branch) => (
+                  <TableRow key={branch.id}>
+                    <TableCell className="text-xs p-2">{branch.name}</TableCell>
+                    <TableCell className="text-xs p-2">
+                      <Checkbox
+                        checked={isEBTBranchSelected(branch.id)}
+                        onCheckedChange={(checked) => handleEBTEligibleBranchChange(branch.id, checked as boolean)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
           {item.ebtEligibleByBranch && item.ebtEligibleByBranch.length > 0 && (
-            <div className="mt-3">
-              <div className="text-sm font-semibold mb-2">
+            <div className="mt-3 space-y-2">
+              <Label className="text-xs font-semibold">
                 <Translate contentKey="items.update.tabs.ebtEligibleBranches.selectedBranches">Selected Branches:</Translate>
-              </div>
-              <div className="d-flex flex-wrap gap-2">
+              </Label>
+              <div className="flex flex-wrap gap-2">
                 {item.ebtEligibleByBranch.map((ebtBranch) => (
-                  <span key={ebtBranch.branch.id} className="badge bg-primary">
+                  <Badge key={ebtBranch.branch.id} variant="default" className="text-xs">
                     {ebtBranch.branch.name}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -121,4 +129,4 @@ const EBTEligibleBranches: React.FC<EBTEligibleBranchesProps> = ({ item, setItem
   );
 };
 
-export default EBTEligibleBranches; 
+export default EBTEligibleBranches;

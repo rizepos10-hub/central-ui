@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { Translate } from 'react-jhipster';
 import Select from 'react-select/dist/declarations/src/Select';
-import { Button, Label } from 'reactstrap';
 import { filterEntities } from 'app/entities/item/retail/product/product.reducer';
 import { applyMatchModeMap } from './util/filter-match-model-util';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { FilterMatchMode } from 'primereact/api';
 import { useAppDispatch } from 'app/config/store';
 import AsyncSelect from 'react-select/async';
-import { InputNumber } from 'primereact/inputnumber';
 import { IIngredient } from './model/ingredient';
 import { ISimpleItemVariant } from './model/ITEM/retail/simple-item.model';
 import { IItem } from './model/ITEM/item.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Trash2 } from 'lucide-react';
 
 const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient[]; onChange: (ingredients: IIngredient[]) => void }) => {
   const dispatch = useAppDispatch();
@@ -65,11 +67,11 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
         quantity,
         variantId: selectedItemWithVariant.variant.id,
       };
-      
+
       const existingIndex = ingredients?.findIndex(
         ing => ing.variantId === newIngredient.variantId
       );
-      
+
       let newIngredients;
       if (existingIndex !== undefined && existingIndex !== -1) {
         newIngredients = ingredients.map((ing, idx) =>
@@ -78,7 +80,7 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
       } else {
         newIngredients = [...(ingredients || []), newIngredient];
       }
-      
+
       onChange(newIngredients);
       setSelectedItemWithVariant(null);
       setQuantity(1);
@@ -100,61 +102,82 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
   console.log(ingredients, 'ingredients');
 
   return (
-    <div className="d-flex flex-column gap-2">
-      <Label for="ingredients">
+    <div className="space-y-3">
+      <Label htmlFor="ingredients" className="text-xs font-semibold">
         <Translate contentKey={'common.ingredients'}>ingredients</Translate>
       </Label>
-      <div className="d-flex gap-2">
+      <div className="flex gap-2">
         <AsyncSelect
           value={selectedItemWithVariant}
           defaultOptions
           getOptionLabel={option => `(${option?.item?.name}) ${option?.variant?.name}`}
           getOptionValue={option => option?.variant?.id}
           loadOptions={loadVariantOptions}
-          className="w-100"
+          className="flex-1"
           cacheOptions
           onChange={setSelectedItemWithVariant}
           placeholder="Search to add a product"
-        />
-        <InputNumber
-          value={quantity}
-          onChange={e => {
-            setQuantity(e.value);
+          styles={{
+            control: (base) => ({
+              ...base,
+              minHeight: '32px',
+              fontSize: '0.75rem',
+            }),
+            menu: (base) => ({
+              ...base,
+              fontSize: '0.75rem',
+            }),
           }}
         />
+        <Input
+          type="number"
+          value={quantity}
+          onChange={e => {
+            setQuantity(parseFloat(e.target.value) || 1);
+          }}
+          min={1}
+          step={1}
+          className="w-24 h-8 text-xs"
+        />
         <Button
-          color="primary"
           type="button"
           onClick={addIngredient}
+          size="sm"
+          className="h-8 text-xs"
         >
           <Translate contentKey={'common.add'}>Add</Translate>
         </Button>
       </div>
-      <div>
-        <div className="d-flex flex-column gap-2">
-          {ingredients?.map((ingredient, index) => (
-            <div key={index} className="grid">
-              <div className="col-8">{ingredient.item?.name}</div>
-              <div className="col-3">
-                <InputNumber
-                  value={ingredient.quantity}
-                  onChange={e => {
-                    updateIngredientQuantity(ingredient, e.value);
-                  }}
-                />
-              </div>
-              <div className="col-1">
-                <Button
-                  color="danger"
-                  type="button"
-                  onClick={() => removeIngredient(ingredient)}
-                >
-                  <Translate contentKey={'common.remove'}>Remove</Translate>
-                </Button>
-              </div>
+      <div className="space-y-2">
+        {ingredients?.map((ingredient, index) => (
+          <div key={index} className="grid grid-cols-12 gap-2 items-center">
+            <div className="col-span-7 text-xs">{ingredient.item?.name}</div>
+            <div className="col-span-3">
+              <Input
+                type="number"
+                value={ingredient.quantity}
+                onChange={e => {
+                  updateIngredientQuantity(ingredient, parseFloat(e.target.value) || 1);
+                }}
+                min={1}
+                step={1}
+                className="h-7 text-xs"
+              />
             </div>
-          ))}
-        </div>
+            <div className="col-span-2">
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={() => removeIngredient(ingredient)}
+                size="sm"
+                className="h-7 text-xs"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                <Translate contentKey={'common.remove'}>Remove</Translate>
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
