@@ -14,8 +14,6 @@ import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-g
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
-import { OrderList } from 'primereact/orderlist';
-import { Dropdown } from 'primereact/dropdown';
 import { IAddonPriceOverride } from 'app/shared/model/ADDON/addon-price-override';
 
 import { Button } from '@/components/ui/button';
@@ -23,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -217,16 +216,27 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     const [selected, setSelected] = useState(null);
     return (
       <div className='flex gap-2 items-center'>
-        <Dropdown
-          value={selected}
-          onChange={e => setSelected(e.value)}
+        <Select
+          value={selected ? data.find(item => item.id === selected) : null}
+          onChange={selectedOption => setSelected(selectedOption?.id || null)}
           options={data}
           placeholder=""
-          className="w-full md:w-14rem"
           onFocus={onFocus}
-          optionLabel={'name'}
-          optionValue={'id'}
-          filter
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          isClearable
+          styles={{
+            control: (base) => ({
+              ...base,
+              minHeight: '32px',
+              fontSize: '0.75rem',
+              width: '14rem',
+            }),
+            menu: (base) => ({
+              ...base,
+              fontSize: '0.75rem',
+            }),
+          }}
         />
         <Button
           disabled={!selected}
@@ -267,17 +277,15 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
             <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
           </Label>
           <div>
-            <OrderList
+            <DraggableList
               value={addonGroups?.map(group => group.addonGroup) || []}
               onChange={handleAddonGroupReorder}
-              style={{ padding: '0px' }}
-              listStyle={{ padding: '0px' }}
-              itemTemplate={(addonGroup: IAddonGroup) => {
+              itemTemplate={(addonGroup: IAddonGroup, idx: number) => {
                 const index = addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
 
                 return (
                   <div
-                    className="p-orderlist-item flex gap-2 items-end p-0"
+                    className="flex gap-2 items-end w-full"
                     onClick={() => setSelectedAddonGroup(addonGroups[index])}
                   >
                     <span className='flex flex-col gap-1'>
@@ -353,7 +361,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                   }
                 )
               }
-              dragdrop
               dataKey="id"
             />
           </div>

@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import Select from "react-select";
 import { Translate } from "react-jhipster";
@@ -13,8 +12,13 @@ import { IPizzaItem } from 'app/shared/model/ITEM/restaurant/pizza-item.model';
 import { IPizzaSettings } from 'app/shared/model/PIZZA/pizza-settings.model';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { IBranch } from 'app/shared/model/branch.model';
-import { TabPanel, TabView } from 'primereact/tabview';
-import { Checkbox } from 'primereact/checkbox';
+
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const PizzaSettings = () => {
     const dispatch = useAppDispatch();
@@ -125,89 +129,109 @@ export const PizzaSettings = () => {
         dispatch(changeEntityField({ name: 'pizzaSettingsByBranch', value: newSettings }));
     };
 
+    const [activeTab, setActiveTab] = useState(branchList[0]?.id || '0');
+
     return (
-        <div>
-            <Row>
-                <Col md="8">
-                    <h2>Pizza Settings</h2>
-                </Col>
-            </Row>
-            <Row>
-                <Col md="8" className="d-flex flex-column p-3 bg-white">
-                    <form>
-                        <FormGroup>
-                            <div className="d-flex flex-column">
-                                <Label for="basePizza">Select a base pizza</Label>
-                                <Select
-                                    options={basePizzaOptions}
-                                    onChange={option => {
-                                        const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
-                                        dispatch(changeEntityField({ name: 'basePizza', value: selectedPizza }));
-                                    }}
-                                    value={selectedBasePizzaOption}
-                                    placeholder="Select a base pizza"
-                                />
+        <PageWrapper>
+            <div className="mb-4">
+                <h2 className="text-lg font-semibold">Pizza Settings</h2>
+            </div>
+            <div className="max-w-4xl">
+                <Card>
+                    <CardContent className="p-4">
+                        <form>
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="basePizza" className="text-xs">Select a base pizza</Label>
+                                    <Select
+                                        options={basePizzaOptions}
+                                        onChange={option => {
+                                            const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
+                                            dispatch(changeEntityField({ name: 'basePizza', value: selectedPizza }));
+                                        }}
+                                        value={selectedBasePizzaOption}
+                                        placeholder="Select a base pizza"
+                                        styles={{
+                                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="makeYourOwnPizza" className="text-xs">Select a Make Your Own pizza</Label>
+                                    <Select
+                                        options={makeYourOwnPizzaOptions}
+                                        onChange={option => {
+                                            const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
+                                            dispatch(changeEntityField({ name: 'makeYourOwnPizza', value: selectedPizza }));
+                                        }}
+                                        value={selectedMakeYourOwnPizzaOption}
+                                        placeholder="Select a make your own pizza"
+                                        styles={{
+                                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs">Branch Settings</Label>
+                                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                        <TabsList className="w-full justify-start overflow-x-auto">
+                                            {branchList.map((branch) => (
+                                                <TabsTrigger key={branch.id} value={branch.id} className="text-xs">
+                                                    {branch.name}
+                                                </TabsTrigger>
+                                            ))}
+                                        </TabsList>
+                                        {branchList.map((branch) => {
+                                            const branchSetting = pizzaSettings.pizzaSettingsByBranch
+                                                ? pizzaSettings.pizzaSettingsByBranch.find(b => b.branch.id === branch.id)
+                                                : null;
+                                            const selectedFallback = branchSetting
+                                                ? fallbackOptions.find(opt => opt.value === branchSetting.selectedPizzaFallbackOption)
+                                                : null;
+                                            return (
+                                                <TabsContent key={branch.id} value={branch.id} className="space-y-4 mt-4">
+                                                    <div className="flex flex-col gap-2">
+                                                        <Label htmlFor={`fallback-${branch.id}`} className="text-xs">Default fallback to</Label>
+                                                        <Select
+                                                            options={fallbackOptions}
+                                                            onChange={option => handleBranchSettingChange(branch, 'selectedPizzaFallbackOption', option.value)}
+                                                            value={selectedFallback}
+                                                            placeholder="Select fallback default"
+                                                            styles={{
+                                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Checkbox
+                                                            id={`toppings-${branch.id}`}
+                                                            checked={branchSetting?.showToppingsOnPredefinedPizza === true}
+                                                            onCheckedChange={(checked) => handleBranchSettingChange(branch, 'showToppingsOnPredefinedPizza', checked === true)}
+                                                        />
+                                                        <Label htmlFor={`toppings-${branch.id}`} className="text-xs cursor-pointer">
+                                                            Show Toppings on predefined pizza
+                                                        </Label>
+                                                    </div>
+                                                </TabsContent>
+                                            );
+                                        })}
+                                    </Tabs>
+                                </div>
                             </div>
-                        </FormGroup>
-                        <FormGroup>
-                            <div className="d-flex flex-column">
-                                <Label for="makeYourOwnPizza">Select a Make Your Own pizza</Label>
-                                <Select
-                                    options={makeYourOwnPizzaOptions}
-                                    onChange={option => {
-                                        const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
-                                        dispatch(changeEntityField({ name: 'makeYourOwnPizza', value: selectedPizza }));
-                                    }}
-                                    value={selectedMakeYourOwnPizzaOption}
-                                    placeholder="Select a make your own pizza"
-                                />
+                            <div className="mt-4">
+                                <Button onClick={saveEntity} id="save-entity" data-cy="entityCreateSaveButton" type="submit" className="h-8 text-xs">
+                                    <Save className="h-4 w-4" />
+                                    <Translate contentKey="entity.action.save">Save</Translate>
+                                </Button>
                             </div>
-                        </FormGroup>
-                        <FormGroup>
-                            <div className="d-flex flex-column">
-                                <TabView scrollable>
-                                    {branchList.map((branch, idx) => {
-                                        const branchSetting = pizzaSettings.pizzaSettingsByBranch
-                                            ? pizzaSettings.pizzaSettingsByBranch.find(b => b.branch.id === branch.id)
-                                            : null;
-                                        const selectedFallback = branchSetting
-                                            ? fallbackOptions.find(opt => opt.value === branchSetting.selectedPizzaFallbackOption)
-                                            : null;
-                                        return (
-                                            <TabPanel header={branch.name} key={idx} className='d-flex flex-column gap-2'>
-                                                <div>
-                                                    <Label for="pizzaSettingsByBranch">Default fallback to</Label>
-                                                    <Select
-                                                        options={fallbackOptions}
-                                                        onChange={option => handleBranchSettingChange(branch, 'selectedPizzaFallbackOption', option.value)}
-                                                        value={selectedFallback}
-                                                        placeholder="Select fallback default"
-                                                    />
-                                                </div>
-                                                <div className='d-flex flex-column'>
-                                                    <Label for="showToppingsOnPredefinedPizza">Show Toppings on predefined pizza</Label>
-                                                    <Checkbox 
-                                                        checked={branchSetting?.showToppingsOnPredefinedPizza || false}
-                                                        value={branchSetting?.showToppingsOnPredefinedPizza || false}
-                                                        onChange={e => handleBranchSettingChange(branch, 'showToppingsOnPredefinedPizza', e.checked)}
-                                                    />
-                                                </div>
-                                            </TabPanel>
-                                        );
-                                    })}
-                                </TabView>
-                            </div>
-                        </FormGroup>
-                        &nbsp;
-                        <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
-                            <FontAwesomeIcon icon="save" />
-                            &nbsp;
-                            <Translate contentKey="entity.action.save">Save</Translate>
-                        </Button>
-                    </form>
-                </Col>
-            </Row>
-        </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </PageWrapper>
     );
 };
 

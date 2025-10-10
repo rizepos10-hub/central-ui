@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {Button as PrimeButton } from 'primereact/button';
-import {Button} from "reactstrap";
-import {  getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Save, Pencil, Trash2 } from 'lucide-react';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {getEntities, reset, updateAllEntities} from './pizza-size.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaSize = () => {
   const dispatch = useAppDispatch();
@@ -28,12 +29,9 @@ export const PizzaSize = () => {
   const [sizeList, setSizeList] = useState([]);
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const totalItems = useAppSelector(state => state.pizzaSize.totalItems);
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
+  const [nameFilter, setNameFilter] = useState('');
 
   const getAllEntities = () => {
-
       dispatch(
         getEntities({
           page: paginationState.activePage - 1,
@@ -42,9 +40,6 @@ export const PizzaSize = () => {
         })
       );
   };
-
-
-
 
   useEffect(() => {
     getAllEntities();
@@ -58,106 +53,107 @@ export const PizzaSize = () => {
       const sortedSizes = pizzaSizesList?.slice()?.sort((size1, size2) => size1.order - size2.order)
       setSizeList(sortedSizes);
     }
-
   }, [ pizzaSizesList?.length])
-
-
-
-
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
-
   const handleSave = () => {
     const newSizesList = sizeList?.map((size, index) => ({...size, order: index}))
-    console.log(newSizesList, 'newSizesList')
     dispatch(updateAllEntities(newSizesList))
   }
 
-
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/pizza-size/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-size/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-size/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
     navigate(`/pizza-size/new?order=${totalItems + 1}`)
   }
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Pizza Sizes</span>
-      <div className="ms-auto">
-        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </PrimeButton>
-        <PrimeButton label="Add New Size" className={"me-5"} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </PrimeButton>
 
-        <Button className={"btn btn-primary"} onClick={handleSave} disabled={loading} >
-          Save
-        </Button>
-
-      </div>
-    </div>
+  const filteredList = sizeList.filter(size =>
+    size.name?.toLowerCase().includes(nameFilter.toLowerCase())
   );
 
-
-
-
   return (
-    <div>
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Pizza Sizes</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                Refresh List
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New Size
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSave}
+                disabled={loading}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                Save
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="mb-4">
+            <Input
+              placeholder="Search by name..."
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              className="max-w-sm h-8 text-xs"
+            />
+          </div>
 
-        <DataTable
-          value={sizeList}
-          editMode="row"
-          header={header}
-          removableSort
-          reorderableRows
-          onRowReorder={(e) => setSizeList(e.value)}
-          filters={filters}
-          filterDisplay="row"
-          paginator
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column rowReorder />
-          <Column field="name"  header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <DraggableList
+            value={filteredList}
+            onChange={(e) => setSizeList(e.value)}
+            dataKey="id"
+            dragdrop
+            showArrows
+            itemTemplate={(size) => {
+              const editUrl = `/pizza-size/${size.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+              const deleteUrl = `/pizza-size/${size.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-      </div>
+              return (
+                <div className="flex items-center justify-between w-full" onClick={(e) => e.stopPropagation()}>
+                  <Link to={editUrl} className="text-xs hover:underline">
+                    {size.name}
+                  </Link>
+                  <div className="flex gap-2">
+                    <Link to={editUrl}>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </Link>
+                    <Link to={deleteUrl}>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            }}
+          />
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

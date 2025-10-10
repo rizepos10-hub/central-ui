@@ -1,26 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody, CardHeader } from 'reactstrap';
 import { getSortState, translate, Translate, ValidatedField } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
-import { Steps } from "primereact/steps";
-import { MenuItem } from "primereact/menuitem";
 import Select from "react-select";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { InputNumber } from "primereact/inputnumber";
-import { Checkbox } from "primereact/checkbox";
 import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-item-selection";
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
-import { TabPanel, TabView } from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
@@ -31,11 +23,19 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
-import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
-import { OrderList } from 'primereact/orderlist';
+import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Save, PlusCircle, Loader2, Trash2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 
 export const ComboItemUpdate = () => {
@@ -386,26 +386,36 @@ export const ComboItemUpdate = () => {
 
 
   if (loading) {
-    return <Spinner />
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
-    <form onKeyDown={preventEnterSubmit}>
-      <div className={"d-flex row"}>
-        <Col md={9}>
-          <Card>
-            <TabView>
-              <TabPanel header={translate('items.update.tabs.details.label')}>
-                <div className='w-100'>
-                  <div className='text-xl font-semibold'>
-                    {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <span>Edit {comboItem.name}</span>}
-                  </div>
-                </div>
-                <Row>
-                  <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
+    <PageWrapper>
+      <form onKeyDown={preventEnterSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-9">
+            <Card>
+              <CardContent className="p-4">
+                <Tabs defaultValue="details">
+                  <TabsList className="grid w-full grid-cols-6 h-auto">
+                    <TabsTrigger value="details" className="text-xs">{translate('items.update.tabs.details.label')}</TabsTrigger>
+                    <TabsTrigger value="addons" className="text-xs">{translate('items.update.tabs.addons.label')}</TabsTrigger>
+                    <TabsTrigger value="visibility" className="text-xs">{translate('items.update.tabs.visibility.label')}</TabsTrigger>
+                    <TabsTrigger value="loyalty" className="text-xs">{translate('items.update.tabs.excludedFromLoyaltyPoints.label')}</TabsTrigger>
+                    <TabsTrigger value="seo" className="text-xs">{translate('items.update.tabs.seo.label')}</TabsTrigger>
+                    <TabsTrigger value="ebt" className="text-xs">{translate('items.update.tabs.ebtEligibleBranches.label')}</TabsTrigger>
+                  </TabsList>
 
-                    <div className={`d-flex flex-column p-3  bg-white w-100`} >
+                  <TabsContent value="details" className="space-y-4 mt-4">
+                    <div className="text-lg font-semibold">
+                      {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <span>Edit {comboItem.name}</span>}
+                    </div>
 
+                    <div className="bg-white p-3 space-y-4">
                       {isModalOpen ?
                         <ComboItemSelection
                           isOpen={isModalOpen}
@@ -420,89 +430,99 @@ export const ComboItemUpdate = () => {
                         onFieldChange={handleFieldChange}
                       />
 
-                      <Row>
-                        <Col md="12">
-                          <div className={'d-flex flex-column gap-1'}>
-                            <label className={'font-semibold'}>
-                              <Translate contentKey={'items.update.description'}>Description</Translate>
-                            </label>
-                            <InputTextarea
-                              name="desc"
-                              id="desc"
-                              placeholder={translate('items.update.description')}
-                              value={comboItem?.variants?.[0]?.description || ''}
-                              onChange={e => setComboItem(prev => {
-                                return {
-                                  ...prev, variants: prev.variants.map(variant => {
-                                    return { ...variant, description: e.target.value }
-                                  })
-                                }
-                              })}
-                            />
-                          </div>
-                          <DiscountDropdown
-                            discounts={comboItem?.variants?.[0]?.discounts}
-                            handleChange={handleComboVariantChange}
-                          />
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">
+                          <Translate contentKey={'items.update.description'}>Description</Translate>
+                        </Label>
+                        <Textarea
+                          name="desc"
+                          id="desc"
+                          placeholder={translate('items.update.description')}
+                          value={comboItem?.variants?.[0]?.description || ''}
+                          onChange={e => setComboItem(prev => {
+                            return {
+                              ...prev, variants: prev.variants.map(variant => {
+                                return { ...variant, description: e.target.value }
+                              })
+                            }
+                          })}
+                          className="text-xs"
+                        />
+                      </div>
 
-                          <div className={"d-flex flex-column gap-2"}>
-                            <label className={"font-semibold"}>
-                              <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                            </label>
-                            <Select
-                              isClearable
-                              value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
-                              options={mixAndMatchRuleList}
-                              getOptionLabel={option => option.name}
-                              getOptionValue={option => option.id}
-                              onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
-                              onMenuOpen={() => {
-                                dispatch(getMixAndMatchRules({
-                                  page: paginationState.activePage - 1,
-                                  size: paginationState.itemsPerPage,
-                                  sort: `${paginationState.sort},${paginationState.order}`,
-                                }));
-                              }}
-                            />
-                          </div>
-                        </Col>
-                      </Row>
+                      <DiscountDropdown
+                        discounts={comboItem?.variants?.[0]?.discounts}
+                        handleChange={handleComboVariantChange}
+                      />
 
-                      <Col md="4">
-                        <div className={"d-flex flex-column gap-2 mt-3"}>
-                          <label className={"font-semibold"}>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">
+                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                        </Label>
+                        <Select
+                          isClearable
+                          value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
+                          options={mixAndMatchRuleList}
+                          getOptionLabel={option => option.name}
+                          getOptionValue={option => option.id}
+                          onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                          onMenuOpen={() => {
+                            dispatch(getMixAndMatchRules({
+                              page: paginationState.activePage - 1,
+                              size: paginationState.itemsPerPage,
+                              sort: `${paginationState.sort},${paginationState.order}`,
+                            }));
+                          }}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '32px',
+                              fontSize: '0.75rem',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              fontSize: '0.75rem',
+                            }),
+                          }}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">
                             <Translate contentKey={'items.update.price'}>Price</Translate>
-                          </label>
-                          <InputNumber
+                          </Label>
+                          <Input
+                            type="number"
                             name="price"
                             id="price"
-                            required={true}
+                            required
                             min={0}
-                            maxFractionDigits={2}
+                            step={0.01}
                             placeholder={translate('items.update.placeholders.itemPrice')}
-                            value={comboItem?.variants?.[0]?.price || null}
-                            onChange={(e) => handleComboVariantChange("price", e.value)}
+                            value={comboItem?.variants?.[0]?.price || ''}
+                            onChange={(e) => handleComboVariantChange("price", parseFloat(e.target.value) || null)}
+                            className="h-8 text-xs"
                           />
                         </div>
-                      </Col>
 
-                      <Col md="4">
-                        <div className={"d-flex flex-column gap-2 mt-2"}>
-                          <label className={"font-semibold"}>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">
                             <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                          </label>
-                          <InputNumber
+                          </Label>
+                          <Input
+                            type="number"
                             name="sale-price"
                             id="sale-price"
                             placeholder="Variant Sale Price"
                             min={0}
-                            size={6}
-                            maxFractionDigits={2}
-                            value={comboItem?.variants?.[0]?.salePrice || null}
-                            onChange={(e) => handleComboVariantChange('salePrice', e.value)}
+                            step={0.01}
+                            value={comboItem?.variants?.[0]?.salePrice || ''}
+                            onChange={(e) => handleComboVariantChange('salePrice', parseFloat(e.target.value) || null)}
+                            className="h-8 text-xs"
                           />
                         </div>
-                      </Col>
+                      </div>
 
                       <VariantBranchPrice
                         branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
@@ -515,184 +535,205 @@ export const ComboItemUpdate = () => {
                         setItem={setComboItem}
                       />
 
-                      <Row>
-                        <FormGroup>
-                          <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
-                          <div className="d-flex justify-content-end mr-4">
-                            <PrimeButton type={"button"} color="primary" onClick={toggleModal}>
-                              <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
-                            </PrimeButton>
-                          </div>
-                          <OrderList
-                            value={comboItem?.variants?.[0]?.comboPackages || []}
-                            onChange={e => {
-                              setComboItem(prev => ({
-                                ...prev,
-                                variants: [
-                                  {
-                                    ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
-                                    comboPackages: e.value,
-                                  },
-                                ],
-                              }));
-                            }}
-                            itemTemplate={(comboPackage: any) => {
-                              const comboPackages = comboItem?.variants?.[0]?.comboPackages || [];
-                              const index = comboPackages.indexOf(comboPackage);
-                              return (
-                                <div className="d-flex align-items-center w-100 gap-2 p-2 border-bottom">
-                                  <div style={{ flex: 2 }}>
-                                    <p className="mb-0">{comboPackage.item?.name}
-                                      {comboPackage?.pizzaPackage ? (
-                                        <div className={"d-flex"}>
-                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
-                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
-                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustThickness?.name}</span>
-                                        </div>
-                                      ) : null}
-                                    </p>
-                                  </div>
-                                  <div style={{ flex: 1 }}>{comboPackage?.variant?.name}</div>
-                                  <div style={{ flex: 1 }}>
-                                    <InputNumber
-                                      name={`quantity_${comboPackage?.variant?.id}`}
-                                      placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
-                                      value={comboPackage.amount || null}
-                                      min={0}
-                                      onChange={e => handleComboAmountChange(index, e.value)}
-                                    />
-                                  </div>
-                                  <div style={{ flex: 2 }}>
-                                    <ComboItemAddonDropDown
-                                      itemAddons={comboPackage.item?.addons}
-                                      variantAddons={comboPackage?.variant?.addons}
-                                      selectedComboAddons={comboPackage?.addons}
-                                      onIncrement={addonIndex => handleAddonAmountChange(index, addonIndex, "increment")}
-                                      onDecrement={addonIndex => handleAddonAmountChange(index, addonIndex, "decrement")}
-                                      onAddAddon={addon => handleAddComboAddon(index, addon)}
-                                      onDeleteAddon={addonIndex => handleDeleteComboAddon(index, addonIndex)}
-                                    />
-                                  </div>
-                                  <div style={{ flex: 1 }}>
-                                    <PrimeButton
-                                      type={"button"}
-                                      severity='danger'
-                                      onClick={() => handleDeleteComboPackage(index)}
-                                    >
-                                      <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
-                                    </PrimeButton>
-                                  </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-semibold">
+                            <Translate contentKey={'items.update.combo.title'}>Combo</Translate>
+                          </h3>
+                          <Button type="button" size="sm" className="h-8 text-xs" onClick={toggleModal}>
+                            <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
+                          </Button>
+                        </div>
+
+                        <DraggableList
+                          value={comboItem?.variants?.[0]?.comboPackages || []}
+                          onChange={e => {
+                            setComboItem(prev => ({
+                              ...prev,
+                              variants: [
+                                {
+                                  ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+                                  comboPackages: e.value,
+                                },
+                              ],
+                            }));
+                          }}
+                          itemTemplate={(comboPackage: any, idx: number) => {
+                            const comboPackages = comboItem?.variants?.[0]?.comboPackages || [];
+                            const index = comboPackages.indexOf(comboPackage);
+                            return (
+                              <div className="flex items-center w-full gap-2">
+                                <div className="flex-[2]">
+                                  <p className="text-xs mb-0">{comboPackage.item?.name}
+                                    {comboPackage?.pizzaPackage ? (
+                                      <div className="flex gap-1">
+                                        <span className="text-xs">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
+                                        <span className="text-xs">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
+                                        <span className="text-xs">{comboPackage?.pizzaPackage?.crustThickness?.name}</span>
+                                      </div>
+                                    ) : null}
+                                  </p>
                                 </div>
-                              );
-                            }}
-                            dragdrop
-                            dataKey="id"
-                            header={
-                              <div className="d-flex w-100">
-                                <div style={{ flex: 2 }}><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></div>
-                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></div>
-                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.quantity'}>Quantity</Translate></div>
-                                <div style={{ flex: 2 }}><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></div>
-                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></div>
+                                <div className="flex-1 text-xs">{comboPackage?.variant?.name}</div>
+                                <div className="flex-1">
+                                  <Input
+                                    type="number"
+                                    name={`quantity_${comboPackage?.variant?.id}`}
+                                    placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
+                                    value={comboPackage.amount || ''}
+                                    min={0}
+                                    onChange={e => {
+                                      e.stopPropagation();
+                                      handleComboAmountChange(index, parseFloat(e.target.value) || null);
+                                    }}
+                                    onClick={e => e.stopPropagation()}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
+                                <div className="flex-[2]" onClick={e => e.stopPropagation()}>
+                                  <ComboItemAddonDropDown
+                                    itemAddons={comboPackage.item?.addons}
+                                    variantAddons={comboPackage?.variant?.addons}
+                                    selectedComboAddons={comboPackage?.addons}
+                                    onIncrement={addonIndex => handleAddonAmountChange(index, addonIndex, "increment")}
+                                    onDecrement={addonIndex => handleAddonAmountChange(index, addonIndex, "decrement")}
+                                    onAddAddon={addon => handleAddComboAddon(index, addon)}
+                                    onDeleteAddon={addonIndex => handleDeleteComboAddon(index, addonIndex)}
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteComboPackage(index);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
+                                  </Button>
+                                </div>
                               </div>
-                            }
+                            );
+                          }}
+                          dragdrop
+                          dataKey="id"
+                          header={
+                            <div className="flex w-full text-xs font-semibold">
+                              <div className="flex-[2]"><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></div>
+                              <div className="flex-1"><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></div>
+                              <div className="flex-1"><Translate contentKey={'items.update.combo.quantity'}>Quantity</Translate></div>
+                              <div className="flex-[2]"><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></div>
+                              <div className="flex-1"><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></div>
+                            </div>
+                          }
+                        />
+
+                        <div>
+                          <CustomDefinitionValuesWrapper
+                            entityId={comboItem.id}
+                            entityType={CustomDefinitionEntityType.ITEM}
                           />
-                          <Row>
-                            <Col>
-                              <CustomDefinitionValuesWrapper
-                                entityId={comboItem.id}
-                                entityType={CustomDefinitionEntityType.ITEM}
-                              />
-                            </Col>
-                          </Row>
-                        </FormGroup>
-                      </Row>
+                        </div>
+                      </div>
                     </div>
-                  </FormGroup>
-                </Row>
-              </TabPanel>
-              <TabPanel header={translate('items.update.tabs.addons.label')}>
-                {comboItem ? <SharedAddon onFieldChange={handleFieldChange} addons={comboItem.addons || []} addonGroups={comboItem.addonGroups || []} item={comboItem} /> : null}
-              </TabPanel>
-              <TabPanel header={translate('items.update.tabs.visibility.label')}>
-                <Visibility
-                  initialState={comboItem.visibility}
-                  title={translate('items.update.tabs.visibility.titles.combo')}
-                  onStateChanged={(visibility) => setComboItem(prev => {
-                    return { ...prev, visibility }
-                  })}
-                />
-              </TabPanel>
+                  </TabsContent>
 
-              <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
-              </TabPanel>
+                  <TabsContent value="addons" className="mt-4">
+                    {comboItem ? <SharedAddon onFieldChange={handleFieldChange} addons={comboItem.addons || []} addonGroups={comboItem.addonGroups || []} item={comboItem} /> : null}
+                  </TabsContent>
 
-              <TabPanel header={translate('items.update.tabs.seo.label')}>
-                <SeoTags
-                  field={comboItem?.seo}
-                  onFieldChange={updateSeoTags}
-                />
-              </TabPanel>
+                  <TabsContent value="visibility" className="mt-4">
+                    <Visibility
+                      initialState={comboItem.visibility}
+                      title={translate('items.update.tabs.visibility.titles.combo')}
+                      onStateChanged={(visibility) => setComboItem(prev => {
+                        return { ...prev, visibility }
+                      })}
+                    />
+                  </TabsContent>
 
-              <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
-                <EBTEligibleBranches 
-                  item={comboItem}
-                  setItem={setComboItem}
-                  branchList={branchList}
-                />
-              </TabPanel>
+                  <TabsContent value="loyalty" className="mt-4">
+                    <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+                  </TabsContent>
 
-            </TabView>
-          </Card>
-        </Col>
-        <Col md={3} style={{
-          position: 'sticky',
-          top: '0',
-          height: '90vh',
-        }}>
-          <Card>
-            <CardHeader>Actions</CardHeader>
-            <Row>
-              <Row>
-                <Col>
-                  <PrimeButton
-                    className='p-1 fs-6 w-100'
+                  <TabsContent value="seo" className="mt-4">
+                    <SeoTags
+                      field={comboItem?.seo}
+                      onFieldChange={updateSeoTags}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="ebt" className="mt-4">
+                    <EBTEligibleBranches
+                      item={comboItem}
+                      setItem={setComboItem}
+                      branchList={branchList}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-3">
+            <div className="sticky top-4 space-y-4">
+              <Card>
+                <CardHeader className="p-3">
+                  <CardTitle className="text-sm">Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 space-y-2">
+                  <Button
+                    className="text-xs h-8 w-full"
                     onClick={handleBackClick}
-                    type={'button'}
-                    id="cancel-save"
-                    data-cy="entityCreateCancelButton"
-                    severity="secondary"
+                    type="button"
+                    variant="secondary"
                   >
-                    <span className="d-none d-md-inline">
-                      <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
-                  </PrimeButton>
-                </Col>
-                <Col>
-                  <PrimeButton className='p-1 fs-6 w-100' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <ArrowLeft className="h-3 w-3 mr-2" />
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </Button>
+
+                  <Button
+                    className="text-xs h-8 w-full"
+                    onClick={saveEntity}
+                    type="submit"
+                    disabled={updating}
+                  >
+                    {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <Save className="h-3 w-3 mr-2" />}
                     <Translate contentKey="entity.action.save">Save</Translate>
-                  </PrimeButton>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  </Button>
+
+                  <Button
+                    className="text-xs h-8 w-full"
+                    onClick={(e) => saveEntity(e, true)}
+                    type="submit"
+                    disabled={updating}
+                  >
+                    <PlusCircle className="h-3 w-3 mr-2" />
                     <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
-                  </PrimeButton>
-                </Col>
-                <Col>
-                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, false, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  </Button>
+
+                  <Button
+                    className="text-xs h-8 w-full"
+                    onClick={(e) => saveEntity(e, false, true)}
+                    type="submit"
+                    disabled={updating}
+                  >
+                    <PlusCircle className="h-3 w-3 mr-2" />
                     <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
-                  </PrimeButton>
-                </Col>
-              </Row>
-            </Row>
-          </Card>
-          {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}
-        </Col>
-      </div>
-    </form>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}
+            </div>
+          </div>
+        </div>
+      </form>
+    </PageWrapper>
   );
 };
 

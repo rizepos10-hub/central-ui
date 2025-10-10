@@ -1,20 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { getEntity, updateEntity, createEntity, reset } from './pizza-pricing-class.reducer';
-
 import { getEntities as getSizes } from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 
-import { InputText } from 'primereact/inputtext';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getSortState, isNumber, Translate } from 'react-jhipster';
+import { getSortState, isNumber } from 'react-jhipster';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IPizzaPricingClass } from 'app/shared/model/PIZZA/pizza-pricing-class.model';
-import { InputNumber } from 'primereact/inputnumber';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaPricingClassTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -179,58 +181,60 @@ export const PizzaPricingClassTypeUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPricingClass.name}`}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className={`d-flex flex-column p-3 bg-white`}>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <FormGroup>
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label for="pizza-pricing-class-name">
-                    Name <span style={{ color: 'red' }}>*</span>
-                  </Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="pizza-pricing-class-name"
-                    value={pizzaPricingClass.name || ''}
-                    onChange={handleChange}
-                  />
-                </div>
+    <PageWrapper>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPricingClass.name}`}</h2>
+      </div>
+      <div className="max-w-2xl">
+        <Card>
+          <CardContent className="p-4">
+            {loading ? (
+              <p className="text-xs">Loading...</p>
+            ) : (
+              <form>
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="pizza-pricing-class-name" className="text-xs">
+                      Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      name="name"
+                      required={true}
+                      id="pizza-pricing-class-name"
+                      value={pizzaPricingClass.name || ''}
+                      onChange={handleChange}
+                      className="h-8 text-xs"
+                    />
+                  </div>
 
-                <div className={'d-flex flex-column mb-3'}>
                   {pizzaPricingClass?.prices &&
                     Object.entries(pizzaPricingClass.prices)
                       .sort(([sizeId1], [sizeId2]) => (sizesMap[sizeId1]?.order || 0) - (sizesMap[sizeId2]?.order || 0))
                       .map(([sizeId, value], index) => {
                         const validation = fieldValidation.prices[sizeId];
                         return (
-                          <div key={index} className={'d-flex flex-column my-3'}>
-                            <Label for={`${sizesMap[sizeId]?.name}`}>
-                              {sizesMap[sizeId]?.name} <span style={{ color: 'red' }}>*</span>
+                          <div key={index} className="flex flex-col gap-2">
+                            <Label htmlFor={`${sizesMap[sizeId]?.name}`} className="text-xs">
+                              {sizesMap[sizeId]?.name} <span className="text-red-500">*</span>
                             </Label>
-                            <InputNumber
+                            <Input
+                              type="number"
                               id={sizesMap[sizeId]?.name}
-                              value={value}
+                              value={value ?? ''}
                               required
-                              maxFractionDigits={2}
+                              step="0.01"
                               onChange={e => {
+                                const numValue = e.target.value === '' ? null : parseFloat(e.target.value);
                                 setPizzaPricingClass(prevState => ({
                                   ...prevState,
                                   prices: {
                                     ...prevState.prices,
-                                    [sizeId]: e.value,
+                                    [sizeId]: numValue,
                                   },
                                 }));
                               }}
+                              className="h-8 text-xs"
                             />
                           </div>
                         );
@@ -238,17 +242,9 @@ export const PizzaPricingClassTypeUpdate = () => {
 
                   {/* Summary validation message */}
                   {!isFormValid && (
-                    <div
-                      style={{
-                        backgroundColor: '#fff5f5',
-                        border: '1px solid #fed7d7',
-                        borderRadius: '4px',
-                        padding: '12px',
-                        marginTop: '16px',
-                      }}
-                    >
-                      <small style={{ color: '#e74c3c', fontWeight: 'bold' }}>Please complete all required fields:</small>
-                      <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', color: '#e74c3c' }}>
+                    <div className="bg-red-50 border border-red-200 rounded p-3 mt-4">
+                      <small className="text-red-600 font-bold">Please complete all required fields:</small>
+                      <ul className="mt-2 pl-5 text-red-600 list-disc">
                         {fieldValidation.name.isEmpty && (
                           <li>
                             <small>Enter a name for the pricing class</small>
@@ -266,45 +262,46 @@ export const PizzaPricingClassTypeUpdate = () => {
                     </div>
                   )}
                 </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate('/pizza-pricing-class')} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button
-                onClick={saveEntity}
-                color="primary"
-                id="save-entity"
-                data-cy="entityCreateSaveButton"
-                type="submit"
-                disabled={updating || !isFormValid}
-              >
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button
-                onClick={e => saveEntity(e, true)}
-                color="primary"
-                id="save-entity"
-                data-cy="entityCreateSaveButton"
-                type="submit"
-                disabled={updating || !isFormValid}
-              >
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    onClick={() => navigate('/pizza-pricing-class')}
+                    variant="outline"
+                    className="h-8 text-xs"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </Button>
+                  <Button
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating || !isFormValid}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-4 w-4" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    onClick={e => saveEntity(e, true)}
+                    id="save-entity-new"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating || !isFormValid}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-4 w-4" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

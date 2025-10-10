@@ -1,24 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getToppingGroups } from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import { filterEntities } from './pizza-topping.reducer';
-import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { ITopping } from 'app/shared/model/PIZZA/topping.model';
 import { ITerm } from 'app/shared/model/term.model';
-import { Dropdown } from 'primereact/dropdown';
 import _ from 'lodash';
-import { InputText } from 'primereact/inputtext';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import Select from 'react-select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaTopping = () => {
   const dispatch = useAppDispatch();
@@ -55,10 +56,6 @@ export const PizzaTopping = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   }, 300)).current
 
-  const onFilter = (event: DataTableFilterEvent) => {
-    debouncedFilter(event);
-  };
-
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
     dispatch(filterEntities({ query: updatedQuery }));
@@ -72,186 +69,258 @@ export const PizzaTopping = () => {
     getAllEntities();
   }, [searchParams]);
 
+  useEffect(() => {
+    if (importSuccess) {
+      getAllEntities();
+    }
+  }, [importSuccess]);
+
   const handleSyncList = () => {
     getAllEntities();
-  };
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/pizza-topping/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-topping/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-topping/${rowData.id}/delete`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
   };
 
   const handleCreate = () => {
     navigate('/pizza-topping/new')
   }
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Pizza Toppings</span>
-      <div className="ms-auto">
-        <ImportButton type={"TOPPING"} />
-        &nbsp;
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Add New Topping" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
-
-  const groupFilterTemplate = (event) => {
-    return (
-      <Dropdown
-        options={pizzaToppingGroups}
-        showClear
-        optionLabel='name'
-        optionValue='id'
-        value={query?.filters?.["group.id"]?.value}
-        onChange={(e) => {
-          const newQuery = {
-            ...query,
-            filters: {
-              ...query.filters,
-              "group.id": { value: e.value, matchMode: FilterMatchMode.EQUALS }
-            }
-          };
-          setSearchParams({ query: JSON.stringify(newQuery) }, { replace: true })
-        }}
-      />
-    );
-  }
-
-  const onPage = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
+  const handlePageChange = (newPage: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      first: newPage * query.rows,
+      page: newPage
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
-  const onSort = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
+  const handleRowsPerPageChange = (newRows: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      rows: newRows,
+      first: 0,
+      page: 0
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
-  const nameFilterTemplate = () => {
-    return (
-      <InputText
-        type="text"
-        value={localNameFilter}
-        onChange={(e) => {
-          setLocalNameFilter(e.target.value);
-          const newQuery = {
-            ...query,
-            filters: {
-              ...query.filters,
-              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
-            }
-          };
-          debouncedFilter(newQuery);
-        }}
-        className="p-inputtext-sm"
-        placeholder="Search by Name"
-      />
-    );
-  };
+  const filteredList = pizzaToppingList;
 
   return (
-    <div>
-      <DataTable
-        value={pizzaToppingList}
-        loading={loading}
-        editMode="row"
-        header={header}
-        removableSort
-        filters={query.filters}
-        filterDisplay="row"
-        paginator
-        totalRecords={totalItems}
-        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        rows={query?.rows}
-        lazy
-        first={query.first}
-        onPage={onPage}
-        onFilter={onFilter}
-        onSort={onSort}
-        sortField={query.sortField}
-        sortOrder={query.sortOrder}
-      >
-        <Column
-          field="name"
-          header="Name"
-          filter
-          filterField="name"
-          filterElement={nameFilterTemplate}
-          body={nameColumnTemplate}
-          filterPlaceholder={"Search by name"}
-          sortable
-        />
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Pizza Toppings</h2>
+            <div className="flex gap-2">
+              <ImportButton type={"TOPPING"} />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                Refresh List
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add New Topping
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs h-8 font-semibold p-2">Name</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Image</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Icon</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Weight</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Group</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Edit</TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">Delete</TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="p-1">
+                  <Input
+                    placeholder="Search by name..."
+                    value={localNameFilter}
+                    onChange={(e) => {
+                      setLocalNameFilter(e.target.value);
+                      const newQuery = {
+                        ...query,
+                        filters: {
+                          ...query.filters,
+                          name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+                        }
+                      };
+                      debouncedFilter(newQuery);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1">
+                  <Select
+                    value={query?.filters?.["group.id"]?.value ?
+                      pizzaToppingGroups.find(g => g.id === query.filters["group.id"].value) : null}
+                    onChange={(option) => {
+                      const newQuery = {
+                        ...query,
+                        filters: {
+                          ...query.filters,
+                          "group.id": { value: option?.id || null, matchMode: FilterMatchMode.EQUALS }
+                        }
+                      };
+                      setSearchParams({ query: JSON.stringify(newQuery) }, { replace: true });
+                    }}
+                    options={pizzaToppingGroups}
+                    getOptionLabel={(option) => option.name}
+                    getOptionValue={(option) => option.id}
+                    isClearable
+                    placeholder="Filter by group"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '32px',
+                        fontSize: '0.75rem',
+                      }),
+                      option: (base) => ({
+                        ...base,
+                        fontSize: '0.75rem',
+                      }),
+                    }}
+                  />
+                </TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center p-4">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center p-4 text-xs text-muted-foreground">
+                    No toppings found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredList.map((topping, idx) => {
+                  const editUrl = `/pizza-topping/${topping.id}/edit`;
+                  const deleteUrl = `/pizza-topping/${topping.id}/delete`;
 
-        <Column
-          header="Image"
-          body={(rowData) => rowData.image?.url ? <img src={rowData.image?.url}
-            alt={rowData.name + "image"}
-            className="w-6rem shadow-2 border-round" /> : ""}
-        />
+                  return (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs p-2">
+                        <Link to={editUrl} className="text-primary hover:underline">
+                          {topping.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {topping.image?.url ? (
+                          <img
+                            src={topping.image.url}
+                            alt={topping.name + " image"}
+                            className="h-12 w-12 object-cover rounded"
+                          />
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {topping.icon?.url ? (
+                          <img
+                            src={topping.icon.url}
+                            alt={topping.name + " icon"}
+                            className="h-12 w-12 object-cover rounded"
+                          />
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {topping.weight}
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {topping.group?.name}
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        <Link to={editUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        <Link to={deleteUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
 
-        <Column
-          header="Icon"
-          body={(rowData) => rowData.icon?.url ? <img src={rowData.icon?.url}
-            alt={rowData.name + "icon"}
-            className="w-6rem shadow-2 border-round" /> : ""}
-        />
-
-        <Column
-          header="Weight"
-          body={(rowData) => rowData.weight}
-        />
-
-        <Column
-          header="Group"
-          body={(rowData) => rowData.group?.name}
-          filter
-          filterElement={groupFilterTemplate}
-        />
-
-        <Column
-          header="Edit"
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-
-        <Column
-          header="Delete"
-          body={deleteColumnTemplate}
-          headerStyle={{ width: '1%', }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-      </DataTable>
-    </div>
+          <div className="flex items-center justify-between p-2 border-t mt-4">
+            <div className="text-xs text-muted-foreground">
+              Showing {query.first + 1} to {Math.min(query.first + query.rows, totalItems)} of {totalItems} entries
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={{ label: query.rows.toString(), value: query.rows }}
+                onChange={(option) => handleRowsPerPageChange(option.value)}
+                options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '32px',
+                    fontSize: '0.75rem',
+                    minWidth: '70px',
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    fontSize: '0.75rem',
+                  }),
+                }}
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => handlePageChange(query.page - 1)}
+                  disabled={query.page === 0}
+                >
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => handlePageChange(query.page + 1)}
+                  disabled={query.first + query.rows >= totalItems}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 
