@@ -101,17 +101,15 @@ export const BranchUpdate = () => {
 
                 <div className="flex gap-2 pt-2">
                   <Button
-                    tag={Link}
-                    id="cancel-save"
-                    data-cy="entityCreateCancelButton"
-                    to="/branch"
-                    type="button"
+                    asChild
                     variant="outline"
                     size="sm"
                     className="h-8 text-xs"
                   >
-                    <ArrowLeft className="h-4 w-4 mr-1" />
-                    <Translate contentKey="entity.action.back">Back</Translate>
+                    <Link to="/branch" id="cancel-save" data-cy="entityCreateCancelButton">
+                      <ArrowLeft className="h-4 w-4 mr-1" />
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </Link>
                   </Button>
                   <Button
                     id="save-entity"

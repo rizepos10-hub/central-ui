@@ -556,7 +556,6 @@ export const CustomerUpdate = ({
               </TabsContent>
 
               <TabsContent value="orders" className="space-y-3">
-                <h4 className="text-sm font-semibold">{translate('tempApp.customerOrders')}</h4>
                 {customerEntity?.id && (
                   <div>
                     <Order customer={customerEntity?.id} />

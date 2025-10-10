@@ -1,27 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar } from 'primereact/calendar';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities, filterOrders, getOrderSources, getOrderStatuses, reset } from './order.reducer';
 import { getEntities as getBranches } from '../branch/branch.reducer';
-import { endOfDay, startOfDay } from "date-fns";
-import { DataTable, } from "primereact/datatable";
-import { Column, ColumnProps } from "primereact/column";
+import { endOfDay, startOfDay, format } from "date-fns";
 import { debounce } from "lodash";
-import { Dropdown } from "primereact/dropdown";
-import { InputText } from "primereact/inputtext";
 import { translate } from "react-jhipster";
 import { toLocalISOString } from "app/shared/util/date-utils";
-import { Toast } from "primereact/toast";
-import { Checkbox } from 'primereact/checkbox';
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
-import {  Label } from 'reactstrap';
-import { Button } from 'primereact/button';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
-import { FaCog, FaCopy } from 'react-icons/fa';
-import { Menu } from 'primereact/menu';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { toast } from 'react-toastify';
+import Select from 'react-select';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
+import { cn } from '@/src/main/webapp/app/lib/utils';
+import type { DateRange } from 'react-day-picker';
 
 interface LazyTableState {
   first?: number;
@@ -41,10 +42,8 @@ type OrderProps = {
 export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const toast = useRef(null);
-  const menu = useRef(null);
   const LOCAL_STORAGE_KEY = "order-history-columns";
-  const [dates, setDates] = useState<string | Date | Date[] | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [orderStatuses, setOrderStatuses]: any = useState([]);
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
@@ -54,8 +53,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
     sortOrder: "asc",
     filters: {
       createdDate: {
-        from: dates ? dates[0]?.toISOString() : '',
-        to: dates ? dates[1]?.toISOString() : ''
+        from: '',
+        to: ''
       },
       id: { value: '', matchMode: 'contains' },
       byClient: { value: '', matchMode: 'contains' },
@@ -89,37 +88,13 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
 
 
 
-  const onFilter = (event) => {
-    const newDates = event.filters.createdDate || null;
-    setDates(newDates);
-
-    event['first'] = 0;
-    setLazyState(event);
-  };
-
-
-  const onSort = (event) => {
-    const sortField = event.sortField === "id" ? "_id" : event.sortField;
-    const sortOrder = event.sortOrder;
-    console.log(event)
-    console.log(event.sortField)
-    setLazyState((prev) => ({
-      ...prev,
-      sortField,
-      sortOrder,
-    }));
-  };
-  const onPage = (event) => {
-    setLazyState(event);
-  };
-
-  const handleSelect = (e) => {
-    if (e?.value?.items?.length > 0) {
-      navigate(`/order/${e.value.id}`)
+  const handleRowClick = (orderId: string, items: any[], sequenceNumber: string) => {
+    if (items?.length > 0) {
+      navigate(`/order/${orderId}`);
     } else {
-      toast.current.show({ severity: 'warn', summary: 'No Order Items', detail: `Order ID: ${e.value.sequenceNumber}`, life: 3000 });
+      toast.warn(`No Order Items - Order ID: ${sequenceNumber}`, { autoClose: 3000 });
     }
-  }
+  };
 
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -186,14 +161,15 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
         lazyState.filters.createdDate?.to ||
         lazyState.filters.byClient?.value ||
         lazyState.filters.status?.value ||
-        lazyState.filters.customer?.phone?.value ||
-        lazyState.filters.customer?.email?.value ||
+        lazyState.filters['customer.phone']?.value ||
+        lazyState.filters['customer.email']?.value ||
         lazyState.filters.branchId?.value ||
         lazyState.filters.id?.value ||
         lazyState.filters.tables?.value ||
         lazyState.filters.orderSource?.value ||
         lazyState.filters.status?.value ||
-        dates
+        dateRange?.from ||
+        dateRange?.to
       ) {
         const queryParams = {
           id: lazyState.filters._id?.value || '',
@@ -208,8 +184,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
           branchId: lazyState.filters.branchId?.value || '',
           tables: lazyState.filters.tables?.value || '',
           size: lazyState.rows,
-          fromDate: dates && dates[0] ? toLocalISOString(startOfDay(new Date(dates[0]))) : '',
-          toDate: dates && dates[1] ? toLocalISOString(endOfDay(new Date(dates[1]))) : '',
+          fromDate: dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '',
+          toDate: dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '',
           sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
         };
 
@@ -230,7 +206,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
     return () => {
       handleFilterOrders.cancel();
     };
-  }, [lazyState, dates]);
+  }, [lazyState, dateRange]);
 
 
 
@@ -244,302 +220,437 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
       })
   }, []);
 
-  const header = () => {
-    return (
-      <div className="p-2 d-flex justify-content-between">
-        <span className='d-flex align-items-center'>
-          Order History
-        </span>
-        {UiSettingsEntity.orderConfirmation && (
-          <span className='d-flex gap-2 d-flex align-items-center'>
-            <Label>
-              Filter By Awaiting Confirmation
-            </Label>
-            <Checkbox
-              checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
-              onChange={(e) => {
-                if (e.checked) {
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
-                      status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
-                    },
-                  }))
-                } else {
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      orderSource: { value: null, matchMode: 'equals' },
-                      status: { value: null, matchMode: 'equals' },
-                    },
-                  }))
-                }
-              }}
-            />
-          </span>
-        )}
-        
-        <div className="flex justify-between items-center">
-          <div className="relative d-flex justify-end mr-auto">
-            <Menu
-              model={[
-                {
-                  label: "Select Columns",
-                  items: columnOptions.map((col) => ({
-                    template: () => (
-                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          inputId={col.field}
-                          checked={visibleColumns[col.field]}
-                          onChange={() => onColumnToggle(col.field)}
-                        />
-                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                      </div>
-                    ),
-                  })),
-                },
-              ]}
-              popup
-              ref={menu}
-            />
-            <Button
-                data-pr-position="top" 
-                icon={<FaCog className="text-xl" />}
-                tooltip='Select Columns'
-                className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
-                onClick={(event) => menu.current.toggle(event)}
-              />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Ultra-compact react-select styles
+  const selectStyles = {
+    control: (base: any) => ({
+      ...base,
+      minHeight: '28px',
+      height: '28px',
+      fontSize: '0.75rem',
+      borderRadius: '0.375rem',
+    }),
+    valueContainer: (base: any) => ({
+      ...base,
+      height: '28px',
+      padding: '0 6px',
+    }),
+    input: (base: any) => ({
+      ...base,
+      margin: '0px',
+      padding: '0px',
+    }),
+    indicatorSeparator: () => ({
+      display: 'none',
+    }),
+    indicatorsContainer: (base: any) => ({
+      ...base,
+      height: '28px',
+    }),
+    option: (base: any) => ({
+      ...base,
+      fontSize: '0.75rem',
+      padding: '4px 8px',
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      fontSize: '0.75rem',
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      fontSize: '0.75rem',
+    }),
+  };
 
   return (
-    <div>
-      <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px' }}>
-        <Toast ref={toast} />
-
-        <DataTable
-          showGridlines
-          value={orderList}
-          lazy
-          filterDisplay="row"
-          dataKey="id"
-          paginator
-          first={lazyState.first}
-          rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-          rows={lazyState.rows}
-          totalRecords={totalOrders}
-          emptyMessage={translate('orders.view.table.emptyMessage')}
-          onPage={onPage}
-          onSort={onSort}
-          sortOrder={lazyState.sortOrder}
-          sortField={lazyState.sortField}
-          filters={lazyState.filters}
-          onFilter={onFilter}
-          header={header}
-          removableSort
-          loading={loading}
-          style={{ background: 'var(--surface-card)', borderRadius: '10px' }}
-          selectionMode="single"
-          onSelectionChange={handleSelect}
-        >
-          {visibleColumns.orderId && <Column
-            field="_id"
-            header={translate('orders.view.table.fields.id')}
-            sortable
-            filter
-            body={(rowData): any => (
-              <Link to={`/order/${rowData.id}`}>
-                {rowData.sequenceNumber}
-              </Link>
+    <Card className="p-4">
+      <CardHeader className="pb-4">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">Order History</CardTitle>
+          <div className="flex items-center gap-4">
+            {UiSettingsEntity.orderConfirmation && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs">Filter By Awaiting Confirmation</Label>
+                <Checkbox
+                  checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
+                  onCheckedChange={(checked) => {
+                    if (checked === true) {
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
+                          status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
+                        },
+                      }));
+                    } else {
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          orderSource: { value: null, matchMode: 'equals' },
+                          status: { value: null, matchMode: 'equals' },
+                        },
+                      }));
+                    }
+                  }}
+                />
+              </div>
             )}
-            filterElement={
-              <InputText
-                style={{ width: '5rem' }}
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      _id: { value: e.target.value, matchMode: 'equals' },
-                    },
-                  }))
-                }
-                placeholder={translate('orders.view.table.filters.id')}
-              />
-            }
-          />}
-          {visibleColumns.orderBranch && <Column
-            field="branchId"
-            sortable
-            filter
-            header={translate('orders.view.table.fields.branch')}
-            body={(data) => getBranchName(data.branchId)}
-            filterElement={
-              <Dropdown
-                value={lazyState.filters.branchId?.value || ''}
-                options={filteredBranchOptions}
-                showClear
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      branchId: { value: e.value, matchMode: 'equals' },
-                    },
-                  }))
-                }
-                placeholder={translate('orders.view.table.filters.branch')}
-              />
-            }
-          />}
-          { visibleColumns.OrderDate && <Column
-            field="createdDate"
-            filter
-            sortable
-            header={translate('orders.view.table.fields.date')}
-            body={(rowData) => (
-              <span>
-                {rowData.createdDate &&
-                  `${new Date(rowData.createdDate).toLocaleString()} `}
-              </span>
-            )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm mb-3">Select Columns</h4>
+                  {columnOptions.map((col) => (
+                    <div key={col.field} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={col.field}
+                        checked={visibleColumns[col.field] === true}
+                        onCheckedChange={() => onColumnToggle(col.field)}
+                      />
+                      <label
+                        htmlFor={col.field}
+                        className="text-xs cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {col.header}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      </CardHeader>
 
-            filterElement={
-              <Calendar
-                style={{ width: '12rem' }}
-                value={dates as any}
-                onChange={(e: any) => setDates(e.value)}
-                selectionMode="range"
-                placeholder={translate('orders.view.table.filters.date')}
-              />
-            }
-          />}
+      <CardContent>
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {visibleColumns.orderId && (
+                  <TableHead className="w-24">
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.id')}</div>
+                      <Input
+                        className="h-7 text-xs"
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              _id: { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.id')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderBranch && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.branch')}</div>
+                      <Select
+                        styles={selectStyles}
+                        value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
+                        options={filteredBranchOptions}
+                        isClearable
+                        onChange={(option) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              branchId: { value: option?.value || '', matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.branch')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.OrderDate && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.date')}</div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="h-7 text-xs w-full justify-start">
+                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
+                                </>
+                              ) : (
+                                format(dateRange.from, "PP")
+                              )
+                            ) : (
+                              <span>{translate('orders.view.table.filters.date')}</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="range"
+                            selected={dateRange}
+                            onSelect={(range) => setDateRange(range)}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderStatus && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.status')}</div>
+                      <Select
+                        styles={selectStyles}
+                        value={orderStatuses.find((opt: any) => opt.value === lazyState.filters.status?.value) || null}
+                        options={orderStatuses}
+                        isClearable
+                        onChange={(option) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              status: { value: option?.value || '', matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.status')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderSource && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.source')}</div>
+                      {!appSourceProp && (
+                        <Select
+                          styles={selectStyles}
+                          value={orderSources?.map((source) => ({ label: source, value: source }))?.find((opt: any) => opt.value === lazyState.filters.orderSource?.value) || null}
+                          options={orderSources?.map((source) => ({ label: source, value: source }))}
+                          isClearable
+                          onChange={(option) =>
+                            setLazyState((prevState) => ({
+                              ...prevState,
+                              filters: {
+                                ...prevState.filters,
+                                orderSource: { value: option?.value || '', matchMode: 'equals' },
+                              },
+                            }))
+                          }
+                          placeholder={translate('orders.view.table.filters.source')}
+                        />
+                      )}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderTable && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.tables')}</div>
+                      <Input
+                        className="h-7 text-xs"
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              tables: { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.tables')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {!customer && visibleColumns.customerEmail && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.customerEmail')}</div>
+                      <Input
+                        className="h-7 text-xs"
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              "customer.email": { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.customerEmail')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {!customer && visibleColumns.customerPhone && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.customerPhone')}</div>
+                      <Input
+                        className="h-7 text-xs"
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.customerPhone')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderDiscount && (
+                  <TableHead>
+                    <div className="text-xs font-medium">{translate('orders.view.table.fields.discount')}</div>
+                  </TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : orderList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
+                    {translate('orders.view.table.emptyMessage')}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                orderList.map((order) => (
+                  <TableRow
+                    key={order.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleRowClick(order.id, order.items, order.sequenceNumber)}
+                  >
+                    {visibleColumns.orderId && (
+                      <TableCell className="text-xs">
+                        <Link to={`/order/${order.id}`} className="text-blue-600 hover:underline">
+                          {order.sequenceNumber}
+                        </Link>
+                      </TableCell>
+                    )}
+                    {visibleColumns.orderBranch && (
+                      <TableCell className="text-xs">{getBranchName(order.branchId)}</TableCell>
+                    )}
+                    {visibleColumns.OrderDate && (
+                      <TableCell className="text-xs">
+                        {order.createdDate && new Date(order.createdDate).toLocaleString()}
+                      </TableCell>
+                    )}
+                    {visibleColumns.orderStatus && (
+                      <TableCell className="text-xs">{order.processingStatus}</TableCell>
+                    )}
+                    {visibleColumns.orderSource && (
+                      <TableCell className="text-xs">{order.sourceApp?.type}</TableCell>
+                    )}
+                    {visibleColumns.orderTable && (
+                      <TableCell className="text-xs">{order.tables}</TableCell>
+                    )}
+                    {!customer && visibleColumns.customerEmail && (
+                      <TableCell className="text-xs">{order.customer?.email}</TableCell>
+                    )}
+                    {!customer && visibleColumns.customerPhone && (
+                      <TableCell className="text-xs">{order.customer?.phone}</TableCell>
+                    )}
+                    {visibleColumns.orderDiscount && (
+                      <TableCell className="text-xs text-center">
+                        {order.discount ? (
+                          <Check className="h-4 w-4 text-green-600 inline" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600 inline" />
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-          {visibleColumns.orderStatus && <Column
-            field="processingStatus"
-            header={translate('orders.view.table.fields.status')}
-            filter
-            filterElement={
-              <Dropdown
-                value={lazyState.filters.status?.value || ''}
-                options={orderStatuses}
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      status: { value: e.value, matchMode: 'equals' },
-                    },
-                  }))
-                }
-                showClear
-                placeholder={translate('orders.view.table.filters.status')}
-              />
-            }
-          />}
-
-          {visibleColumns.orderSource && <Column
-            header={translate('orders.view.table.fields.source')}
-            field="orderSource" body={(rowData) => rowData.sourceApp?.type} filter={!appSourceProp}
-            filterElement={!appSourceProp ?
-              <Dropdown
-                value={lazyState.filters.orderSource?.value || ''}
-                placeholder={translate('orders.view.table.filters.source')}
-                options={orderSources?.map((source) => ({ label: source, value: source }))}
-                showClear
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      orderSource: { value: e.value, matchMode: 'equals' },
-                    },
-                  }))
-                }
-              /> : null}
-          />}
-
-
-          {visibleColumns.orderTable && <Column field="tables" sortable filter header={translate('orders.view.table.fields.tables')} filterElement={
-            <InputText
-              style={{ width: '6rem' }}
-              onChange={(e) =>
-                setLazyState((prevState) => ({
-                  ...prevState,
-                  filters: {
-                    ...prevState.filters,
-                    tables: { value: e.target.value, matchMode: 'equals' },
-                  },
+        {/* Custom Pagination */}
+        <div className="flex items-center justify-between px-2 py-4">
+          <div className="flex items-center space-x-2">
+            <Label className="text-xs">Rows per page:</Label>
+            <Select
+              styles={{
+                ...selectStyles,
+                control: (base: any) => ({ ...base, minHeight: '28px', width: '80px', fontSize: '0.75rem' }),
+              }}
+              value={{ label: String(lazyState.rows), value: lazyState.rows }}
+              options={[10, 20, 30, 40, 50, 100, 200].map((size) => ({ label: String(size), value: size }))}
+              onChange={(option) =>
+                setLazyState((prev) => ({
+                  ...prev,
+                  rows: option?.value || 10,
+                  first: 0,
+                  page: 0,
                 }))
               }
-              placeholder={translate('orders.view.table.filters.tables')}
             />
-          }
-          />}
+          </div>
 
-
-          {!customer && visibleColumns.customerEmail ? <Column
-            field="customer.email"
-            filter
-            filterField="customer.email"
-            sortable
-            header={translate('orders.view.table.fields.customerEmail')}
-            filterElement={
-              <InputText
-                style={{ width: '11rem' }}
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      "customer.email": { value: e.target.value, matchMode: 'equals' },
-                    },
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-muted-foreground">
+              {lazyState.first + 1}-{Math.min(lazyState.first + lazyState.rows, totalOrders)} of {totalOrders}
+            </span>
+            <div className="flex space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() =>
+                  setLazyState((prev) => ({
+                    ...prev,
+                    first: Math.max(0, prev.first - prev.rows),
+                    page: Math.max(0, prev.page - 1),
                   }))
                 }
-                placeholder={translate('orders.view.table.filters.customerEmail')}
-              />
-            }
-          />
-            : null}
-
-          {!customer && visibleColumns.customerPhone ? <Column
-            field="customer.phone"
-            filter
-            sortable
-            filterField="customer.phone"
-            header={translate('orders.view.table.fields.customerPhone')}
-            filterElement={
-              <InputText
-                style={{ width: '11rem' }}
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      "customer.phone": { value: e.target.value, matchMode: 'equals' },
-                    },
+                disabled={lazyState.first === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() =>
+                  setLazyState((prev) => ({
+                    ...prev,
+                    first: prev.first + prev.rows,
+                    page: prev.page + 1,
                   }))
                 }
-                placeholder={translate('orders.view.table.filters.customerPhone')}
-              />
-            }
-          /> : null}
-
-
-          {visibleColumns.orderDiscount && <Column field="discount" sortable
-            header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount ? <p className="text-success text-center ">&#10004;</p> :
-              <p className="text-danger text-center ">&#10006;</p>}
-          />}
-
-        </DataTable>
-      </div>
-    </div>
+                disabled={lazyState.first + lazyState.rows >= totalOrders}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
