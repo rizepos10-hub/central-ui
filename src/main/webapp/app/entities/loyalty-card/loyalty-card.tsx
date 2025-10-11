@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, ArrowLeftRight, Pencil, DollarSign } from 'lucide-react';
 
 import { SORT } from 'app/shared/util/pagination.constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities } from './loyalty-card.reducer';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
-import { InputText } from 'primereact/inputtext';
-import { GiPayMoney } from 'react-icons/gi';
 import AddBalance from './add-balance';
 import TransferFunds from './transfer-funds';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 export const GiftCard = () => {
   const dispatch = useAppDispatch();
@@ -94,199 +109,266 @@ export const GiftCard = () => {
     getAllEntities();
   };
 
-  const addBalanceTemplate = rowData => {
-    return (
-      <>
-        <GiPayMoney
-          size={20}
-          style={{ cursor: 'pointer' }}
-          onClick={() =>
-            setAddBalanceDialog({
-              entity: rowData,
-              visible: true,
-            })
-          }
-        />
-      </>
-    );
-  };
-
   const handleCreate = () => {
     navigate('/loyalty-cards/new');
   };
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'loyaltycard.view.table.title'}>Loyalty Cards</Translate>
-      </span>
-      <div className="ms-auto">
-        <Button
-          label={translate('loyaltycard.view.table.buttons.transfer')}
-          severity="info"
-          raised
-          className="me-5"
-          color="info"
-          onClick={() => {
-            setTransferDialogVisible(true);
-          }}
-          disabled={loading}
-        >
-          &nbsp;
-        </Button>
-        <Button
-          label={translate('loyaltycard.view.table.buttons.refreshList')}
-          severity="secondary"
-          raised
-          className="me-5"
-          color="info"
-          onClick={handleSyncList}
-          disabled={loading}
-        >
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button
-          label={translate('loyaltycard.view.table.buttons.create')}
-          raised
-          onClick={handleCreate}
-          disabled={loading}
-        >
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Handle pagination and rows per page changes
-  const onPage = event => {
-    setPaginationState({
-      ...paginationState,
-      activePage: event.page + 1,
-      itemsPerPage: event.rows,
-    });
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/loyalty-cards/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
   const onTransferFundsCloseHandle = () => {
-    setTransferDialogVisible(false)
-    getAllEntities()
-  }
+    setTransferDialogVisible(false);
+    getAllEntities();
+  };
+
+  // Generate page numbers with ellipsis
+  const generatePageNumbers = () => {
+    const totalPages = Math.ceil(totalItems / paginationState.itemsPerPage);
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (paginationState.activePage <= 3) {
+        for (let i = 1; i <= maxVisible; i++) pages.push(i);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (paginationState.activePage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = paginationState.activePage - 1; i <= paginationState.activePage + 1; i++) pages.push(i);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const totalPages = Math.ceil(totalItems / paginationState.itemsPerPage);
 
   return (
-    <div>
-      <TransferFunds
-        transferDialogVisibile={transferDialogVisibile}
-        onCloseHandle={onTransferFundsCloseHandle}
-      />
+    <PageWrapper>
+      <TransferFunds transferDialogVisibile={transferDialogVisibile} onCloseHandle={onTransferFundsCloseHandle} />
 
       <AddBalance addBalanceDialog={addBalanceDialog} setAddBalanceDialog={setAddBalanceDialog} />
 
-      <DataTable
-        value={loyaltyCardList}
-        header={header}
-        paginator
-        showGridlines
-        filters={filters}
-        filterDisplay="row"
-        totalRecords={totalItems}
-        rows={paginationState.itemsPerPage}
-        first={(paginationState.activePage - 1) * paginationState.itemsPerPage}
-        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        lazy
-        onPage={onPage}
-        loading={loading}
-      >
-        <Column
-          field="cardHolderName"
-          header={translate('common.cardHolderName')}
-          filter
-          filterField="cardHolderName"
-          filterElement={
-            <InputText
-              placeholder={translate('common.cardHolderName')}
-              onChange={e =>
-                setFilters(prev => ({
-                  ...prev,
-                  cardHolderName: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                }))
-              }
-            />
-          }
-        />
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-semibold">
+          <Translate contentKey={'loyaltycard.view.table.title'}>Loyalty Cards</Translate>
+        </h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="h-8 text-xs"
+            onClick={() => {
+              setTransferDialogVisible(true);
+            }}
+            disabled={loading}
+          >
+            <ArrowLeftRight className="h-3 w-3" />
+            {translate('loyaltycard.view.table.buttons.transfer')}
+          </Button>
+          <Button variant="outline" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            {translate('loyaltycard.view.table.buttons.refreshList')}
+          </Button>
+          <Button className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
+            <Plus className="h-3 w-3" />
+            {translate('loyaltycard.view.table.buttons.create')}
+          </Button>
+        </div>
+      </div>
 
-        <Column
-          field="referenceNumber"
-          header={translate('common.referenceNumber')}
-          filter
-          filterField="referenceNumber"
-          filterElement={
-            <InputText
-              placeholder={translate('common.referenceNumber')}
-              onChange={e =>
-                setFilters(prev => ({
-                  ...prev,
-                  referenceNumber: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                }))
-              }
-            />
-          }
-          filterPlaceholder={translate('common.referenceNumber')}
-        />
-        <Column
-          field="code"
-          header={translate('common.code')}
-          filter
-          filterField="code"
-          filterElement={
-            <InputText
-              placeholder={translate('common.code')}
-              onChange={e =>
-                setFilters(prev => ({
-                  ...prev,
-                  code: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                }))
-              }
-            />
-          }
-          filterPlaceholder={translate('common.code')}
-        />
-        <Column
-          field="wallet.balance"
-          header={translate('common.walletBalance')}
-          body={rowData => rowData?.wallet?.balance}
-        />
-        <Column field="printed" header={translate('common.printed')} />
-        <Column field="active" header={translate('common.active')} />
-        <Column
-          header={translate('common.expiryDate')}
-          body={rowData => (rowData?.expiryDate ? new Date(rowData?.expiryDate).toDateString() : null)}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-        <Column
-          header={translate('common.addBalance')}
-          body={addBalanceTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-        <Column
-          header={translate('common.edit')}
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
+      {/* Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            {/* Header Row */}
+            <TableRow>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.cardHolderName">Card Holder Name</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.referenceNumber">Reference Number</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.code">Code</Translate>
+              </TableHead>
+              <TableHead className="text-xs text-right">
+                <Translate contentKey="common.walletBalance">Wallet Balance</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.printed">Printed</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.active">Active</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey="common.expiryDate">Expiry Date</Translate>
+              </TableHead>
+              <TableHead className="text-xs text-center w-12">
+                <Translate contentKey="common.addBalance">Add Balance</Translate>
+              </TableHead>
+              <TableHead className="text-xs text-center w-12">
+                <Translate contentKey="common.edit">Edit</Translate>
+              </TableHead>
+            </TableRow>
+            {/* Filter Row */}
+            <TableRow>
+              <TableHead>
+                <Input
+                  placeholder={translate('common.cardHolderName')}
+                  className="h-7 text-xs"
+                  onChange={e =>
+                    setFilters(prev => ({
+                      ...prev,
+                      cardHolderName: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                    }))
+                  }
+                />
+              </TableHead>
+              <TableHead>
+                <Input
+                  placeholder={translate('common.referenceNumber')}
+                  className="h-7 text-xs"
+                  onChange={e =>
+                    setFilters(prev => ({
+                      ...prev,
+                      referenceNumber: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                    }))
+                  }
+                />
+              </TableHead>
+              <TableHead>
+                <Input
+                  placeholder={translate('common.code')}
+                  className="h-7 text-xs"
+                  onChange={e =>
+                    setFilters(prev => ({
+                      ...prev,
+                      code: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                    }))
+                  }
+                />
+              </TableHead>
+              <TableHead />
+              <TableHead />
+              <TableHead />
+              <TableHead />
+              <TableHead />
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading && loyaltyCardList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-xs py-4">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : loyaltyCardList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-xs py-4">
+                  No records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              loyaltyCardList.map(card => (
+                <TableRow key={card.id}>
+                  <TableCell className="text-xs">{card.cardHolderName}</TableCell>
+                  <TableCell className="text-xs">{card.referenceNumber}</TableCell>
+                  <TableCell className="text-xs">{card.code}</TableCell>
+                  <TableCell className="text-xs text-right">{card?.wallet?.balance}</TableCell>
+                  <TableCell className="text-xs">{card.printed?.toString()}</TableCell>
+                  <TableCell className="text-xs">{card.active?.toString()}</TableCell>
+                  <TableCell className="text-xs">{card?.expiryDate ? new Date(card.expiryDate).toDateString() : null}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() =>
+                        setAddBalanceDialog({
+                          entity: card,
+                          visible: true,
+                        })
+                      }
+                    >
+                      <DollarSign className="h-3 w-3" />
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Link
+                      to={`/loyalty-cards/${card.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    >
+                      <Button variant="ghost" className="h-6 w-6 p-0">
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-      </DataTable>
-    </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => {
+                    if (paginationState.activePage > 1) {
+                      setPaginationState({ ...paginationState, activePage: paginationState.activePage - 1 });
+                    }
+                  }}
+                  className={`h-8 text-xs ${paginationState.activePage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                />
+              </PaginationItem>
+
+              {generatePageNumbers().map((page, idx) =>
+                page === 'ellipsis' ? (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setPaginationState({ ...paginationState, activePage: page as number })}
+                      isActive={paginationState.activePage === page}
+                      className="h-8 w-8 text-xs cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => {
+                    if (paginationState.activePage < totalPages) {
+                      setPaginationState({ ...paginationState, activePage: paginationState.activePage + 1 });
+                    }
+                  }}
+                  className={`h-8 text-xs ${
+                    paginationState.activePage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+                  }`}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </PageWrapper>
   );
 };
 
