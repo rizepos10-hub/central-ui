@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { searchEntities, getEntities } from 'app/entities/inventory/stock-config/inventory-items.reducer';
-import { DataTable, DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { Chip } from "primereact/chip";
 import { FilterMatchMode } from "primereact/api";
-import { Card as PrimeCard } from 'primereact/card'
 import { IQueryParams } from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
 import { formatVariant } from 'app/shared/util/variant-utils';
-import { Dialog } from 'primereact/dialog';
-import { confirmDialog } from 'primereact/confirmdialog';
 import { exportEntities } from "app/entities/item/retail/product/product.reducer";
+import { PageWrapper } from "app/shared/layout/page-wrapper";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { RefreshCw, FileDown, ChevronDown, ChevronRight, Settings, Loader2 } from "lucide-react";
 
 export const InventoryReport = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
+
   const [selectedStockQuantities, setSelectedStockQuantities] = useState([]);
   const [stockDialogVisible, setStockDialogVisible] = useState(false);
   const [queryParams, setQueryParams] = useState({
@@ -43,8 +38,9 @@ export const InventoryReport = () => {
     desc: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 
-  const [expandedRows, setExpandedRows] = useState(null);
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [isLoadingAction, setIsLoadingAction] = useState(false);
+
   const handleOpenStockDialog = (variant) => {
     setSelectedStockQuantities(variant.stockQuantities || []);
     setStockDialogVisible(true);
@@ -64,186 +60,251 @@ export const InventoryReport = () => {
 
   const expandAll = () => {
     const _expandedRows = {};
-
     inventoryItemList.forEach((p) => (_expandedRows[`${p.id}`] = true));
-
     setExpandedRows(_expandedRows);
   };
 
   const collapseAll = () => {
-    setExpandedRows(null);
+    setExpandedRows({});
   };
 
-
-  const onPage = (event: DataTablePageEvent) => {
-    const { page, first } = event;
-
-    setQueryParams(prevState => ({
-      ...prevState,
-      first,
-      page
-    }));
-  };
-
-
-  const onSort = (event: DataTableSortEvent) => {
-    // setQueryParams();
-  };
-
-  const onFilter = _.debounce((event) => {
-    const keys: any = Object.keys(event.filters);
-    const newQuery = keys
-      .map((key) => event.filters[key].value ? `${key}=${event.filters[key].value}` : null)
-      .filter((queryPart) => queryPart !== null)
-      .join('&');
-
+  const onFilter = _.debounce((field, value) => {
+    const newQuery = `${field}=${value}`;
     setQueryParams((prevState) => ({
       ...prevState,
       query: newQuery
     }));
   }, 200);
 
-
   const handleSyncList = () => {
     getAllEntities();
-  };
-
-
-  const quantityConfigBodyTemplate = (rowData) => {
-    console.log(rowData);
-    return (
-        null
-    );
-  };
-
-  const purchaseConfigBodyTemplate = (rowData) => {
-    const { itemPurchasingConfig: config } = rowData;
-
-    const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
-    const editUrl = `/inventory/stock/purchase-config/${config?.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
-
-    const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
-
-    const handleClick = () => {
-      if (!config) {
-        navigate(createUrl);
-      } else {
-        navigate(editUrl)
-      }
-    }
-
-    return <Button icon={icon} onClick={handleClick} />;
-  };
-
-  const rowExpansionTemplate = (data, idx) => {
-    const variantsWithItemId = data.variants.map(variant => ({
-      ...variant,
-      itemId: data.id
-    }));
-
-    return (
-      <div className="p-3 bg-light">
-        <h4>{data.name} Variants</h4>
-        <DataTable value={variantsWithItemId} showGridlines>
-          <Column className={'bg-light'} body={data => formatVariant(data?.name, data?.attributeValues)} header={translate("common.variantName")} sortable />
-          <Column className={'bg-light'} field="price" header={translate("common.price")} sortable />
-
-          <Column
-            className="bg-light"
-            header={translate("tempApp.stockConfig.title")}
-            headerStyle={{ width: '6rem' }}
-            body={(rowData) => (
-                <Button
-                label="View Stocks"
-                onClick={() => handleOpenStockDialog(rowData)}
-                size="small"
-                />
-            )}
-            />
-
-        </DataTable>
-
-        <Dialog
-            header="Stock Quantities"
-            visible={stockDialogVisible}
-            style={{ width: '50vw' }}
-            onHide={() => setStockDialogVisible(false)}
-            >
-            <DataTable value={selectedStockQuantities} showGridlines>
-                <Column field="location.name" header="Location" />
-                <Column field="location.type" header="Type" />
-                <Column field="quantity" header="Quantity" />
-                <Column field="unitCost" header="Unit Cost" />
-            </DataTable>
-        </Dialog>
-
-      </div>
-    );
-  };
-
-  const confirm2 = () => {
-    confirmDialog({
-    message: 'Are you sure you want to proceed?',
-    header: 'Confirmation',
-    icon: 'pi pi-exclamation-triangle',
-    accept: () => handleExportItems(),
-    reject: () => setSelectedActionOption(null)
-    });
   };
 
   const handleExportItems = async () => {
     setIsLoadingAction(true);
     await dispatch(exportEntities([])).finally(() => setIsLoadingAction(false));
   };
-  const header = (
-        <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
-          <span className="text-xl d-flex align-items-center">
-            <div className="ms-auto">
-                <div className="flex flex-wrap justify-content-end gap-2">
-                <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-                    &nbsp;
-                    <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-                </Button>
 
-                <Button icon="pi pi-plus" label={translate("common.expandAll")} onClick={expandAll} text />
-                <Button icon="pi pi-minus" label={translate("common.collapseAll")} onClick={collapseAll} text />
-                </div>
-            </div>
-          </span>
-            <div className="flex align-items-center justify-content-end gap-3">
-              <Button
-                icon="pi pi-sync"
-                raised severity="info"
-                onClick={handleSyncList}
-                disabled={loading}
-                loading={loading}
-                data-pr-position="top"
-                tooltip={translate('items.view.actions.refreshList')}
-              />
-              <Button
-                icon="pi pi-file-export"
-                raised
-                onClick={confirm2}
-                tooltip="Export All"
-                data-pr-position="top"
-              />
-             
-            </div>
-        </div>
-  );
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   return (
-    <div >
-      <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator showGridlines
-        rowExpansionTemplate={rowExpansionTemplate} onRowToggle={(e) => setExpandedRows(e.data)}
-        expandedRows={expandedRows} onSort={onSort} header={header}
-        first={queryParams.first} rows={10} totalRecords={totalItems} onPage={onPage}
-        onFilter={onFilter} filters={filters} loading={loading} tableStyle={{ minWidth: '75rem' }} >
-        <Column expander style={{ width: '5rem' }} />
-        <Column field="name" header="Item Name" sortable filter filterPlaceholder="Search" />
-        {/* <Column field="desc" header="Description"  /> */}
-      </DataTable>
-    </div>
+    <PageWrapper>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-lg font-semibold">Inventory Report</h1>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 w-7 p-0"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 w-7 p-0"
+            onClick={handleExportItems}
+            disabled={isLoadingAction}
+          >
+            {isLoadingAction ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <FileDown className="h-3 w-3" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          onClick={expandAll}
+        >
+          Expand All
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          onClick={collapseAll}
+        >
+          Collapse All
+        </Button>
+      </div>
+
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs w-12"></TableHead>
+              <TableHead className="text-xs">
+                <div className="flex flex-col gap-1">
+                  <span>Item Name</span>
+                  <Input
+                    type="text"
+                    placeholder="Search"
+                    className="h-6 text-xs"
+                    onChange={(e) => onFilter('name', e.target.value)}
+                  />
+                </div>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : inventoryItemList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center text-xs py-8 text-muted-foreground">
+                  No items found
+                </TableCell>
+              </TableRow>
+            ) : (
+              inventoryItemList.map((item) => (
+                <React.Fragment key={item.id}>
+                  <TableRow>
+                    <TableCell className="text-xs">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={() => toggleRow(item.id)}
+                      >
+                        {expandedRows[item.id] ? (
+                          <ChevronDown className="h-3 w-3" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-xs">{item.name}</TableCell>
+                  </TableRow>
+                  {expandedRows[item.id] && (
+                    <TableRow>
+                      <TableCell colSpan={2} className="bg-muted/30 p-3">
+                        <div className="mb-2 font-semibold text-xs">{item.name} Variants</div>
+                        <div className="rounded-lg border bg-background">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-xs">Variant Name</TableHead>
+                                <TableHead className="text-xs text-right">Price</TableHead>
+                                <TableHead className="text-xs w-32">Stock Config</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {item.variants?.map((variant) => (
+                                <TableRow key={variant.id}>
+                                  <TableCell className="text-xs">
+                                    {formatVariant(variant?.name, variant?.attributeValues)}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-right">
+                                    {variant.price}
+                                  </TableCell>
+                                  <TableCell className="text-xs">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-6 text-xs"
+                                      onClick={() => handleOpenStockDialog(variant)}
+                                    >
+                                      View Stocks
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-2 text-xs">
+        <div className="text-muted-foreground">
+          Showing {Math.min((queryParams.page * queryParams.size) + 1, totalItems)} to {Math.min((queryParams.page + 1) * queryParams.size, totalItems)} of {totalItems} items
+        </div>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => setQueryParams(prev => ({ ...prev, page: prev.page - 1, first: (prev.page - 1) * prev.size }))}
+            disabled={queryParams.page === 0}
+          >
+            Previous
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => setQueryParams(prev => ({ ...prev, page: prev.page + 1, first: (prev.page + 1) * prev.size }))}
+            disabled={(queryParams.page + 1) * queryParams.size >= totalItems}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+
+      {/* Stock Dialog */}
+      <Dialog open={stockDialogVisible} onOpenChange={setStockDialogVisible}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Stock Quantities</DialogTitle>
+          </DialogHeader>
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Location</TableHead>
+                  <TableHead className="text-xs">Type</TableHead>
+                  <TableHead className="text-xs text-right">Quantity</TableHead>
+                  <TableHead className="text-xs text-right">Unit Cost</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedStockQuantities.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-xs py-4 text-muted-foreground">
+                      No stock quantities available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  selectedStockQuantities.map((stock, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs">{stock.location?.name}</TableCell>
+                      <TableCell className="text-xs">{stock.location?.type}</TableCell>
+                      <TableCell className="text-xs text-right">{stock.quantity}</TableCell>
+                      <TableCell className="text-xs text-right">{stock.unitCost}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </PageWrapper>
   );
 };
 

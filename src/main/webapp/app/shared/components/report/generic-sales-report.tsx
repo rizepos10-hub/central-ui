@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Col, Container, Row, Table } from 'reactstrap';
 import { ISummaryReport } from "app/shared/model/report-summary.model";
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const GenericSalesReport = ({ title, report, payments }: { title: string; report: ISummaryReport["totalSales"], payments?: ISummaryReport["totalReceived"] }) => {
-  if (!report) return;
+  if (!report) return null;
 
   const { orders, subTotal, discount, appliedCoupon, deliveryCharge, deliveryTAX,
     refunds, netSales, totalTAX, grossSales, walletCredits, totalTip, taxes } = report;
@@ -15,98 +16,98 @@ const GenericSalesReport = ({ title, report, payments }: { title: string; report
   }
 
   return (
-    <Col className="p-0">
-      <h4>{title}</h4>
-      <div className="table-responsive">
-        <table className="table table-sm" id="sales_summary">
-          <tbody>
-            <tr>
-              <th colSpan={2}>New sales (orders)</th>
-              <th colSpan={2} className="col-4 text-right">
+    <div className="p-0">
+      <h4 className="text-sm font-semibold mb-2">{title}</h4>
+      <div className="border rounded-md overflow-hidden">
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={2} className="text-xs font-semibold">New sales (orders)</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 {orders}
-              </th>
-            </tr>
-            <tr>
-              <th colSpan={2}>Gross Sales</th>
-              <th colSpan={2} className="text-right">
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={2} className="text-xs font-semibold">Gross Sales</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 {(grossSales + refunds).toFixed(2)}
-              </th>
-              <th colSpan={2} className="text-right">
+              </TableCell>
+              <TableCell colSpan={2} className="text-xs text-right text-muted-foreground">
                 Sales include refunds
-              </th>
-            </tr>
-            <tr>
-              <th colSpan={2}>Refunds</th>
-              <th colSpan={2} className="text-right text-danger">
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={2} className="text-xs font-semibold">Refunds</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right text-destructive font-semibold">
                 {refunds || 0}
-              </th>
-            </tr>
-            <tr>
-              <th colSpan={2}>Gross Sales</th>
-              <th colSpan={2} className="text-right">
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={2} className="text-xs font-semibold">Gross Sales</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 {grossSales}
-              </th>
-            </tr>
-            <tr>
-              <th colSpan={2}>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={2} className="text-xs">
                 <span
                   onClick={handleClick}
-                  className="text-primary cursor-pointer"
-                  title="No Tax ($0.00) + Hst ($5.68)"
+                  className="text-primary cursor-pointer inline-flex items-center gap-1 hover:underline"
+                  title={`Tax breakdown (${Object.keys(taxes || {})?.length} types)`}
                 >
                   Tax ({Object.keys(taxes || {})?.length})
-                  <i className="pi pi-angle-up"></i>
+                  {show ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </span>
-              </th>
-              <th colSpan={2} className="text-right text-danger">
+              </TableCell>
+              <TableCell colSpan={2} className="text-xs text-right text-destructive font-semibold">
                 {totalTAX}
-              </th>
-            </tr>
+              </TableCell>
+            </TableRow>
             {Object?.entries(taxes || {})?.map(([taxType, amount]) => (
-              <tr key={taxType} className={`${!show && 'hidden'}`}>
-                <th colSpan={3}>{taxType}</th>
-                <th className="text-right">{amount}</th>
-              </tr>
+              <TableRow key={taxType} className={`${!show && 'hidden'}`}>
+                <TableCell colSpan={3} className="text-xs pl-6">{taxType}</TableCell>
+                <TableCell className="text-xs text-right">{amount}</TableCell>
+              </TableRow>
             ))}
-            <tr>
-              <td colSpan={4}>&nbsp;</td>
-            </tr>
-            <tr>
-              <th>Net Sales</th>
-              <th colSpan={2} className="text-right">
+            <TableRow>
+              <TableCell colSpan={4} className="h-4">&nbsp;</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="text-xs font-semibold">Net Sales</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 <span>${netSales}</span>
-              </th>
-            </tr>
-            <tr>
-              <th>Discounts</th>
-              <th colSpan={2} className="text-right">
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="text-xs font-semibold">Discounts</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 <span>${discount}</span>
-              </th>
-            </tr>
-            <tr>
-              <th>Tip</th>
-              <th colSpan={2} className="text-right">
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="text-xs font-semibold">Tip</TableCell>
+              <TableCell colSpan={2} className="text-xs text-right font-semibold">
                 {totalTip}
-              </th>
-            </tr>
+              </TableCell>
+            </TableRow>
             {payments && (
               <>
-                <tr>
-                  <td colSpan={4}>&nbsp;</td>
-                </tr>
-                <tr>
-                  <th>Collected</th>
-                  <th colSpan={2} className="text-right">
+                <TableRow>
+                  <TableCell colSpan={4} className="h-4">&nbsp;</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-xs font-semibold">Collected</TableCell>
+                  <TableCell colSpan={2} className="text-xs text-right font-semibold">
                     {payments.reduce((sum, payment) => sum + (payment.received || 0), 0).toFixed(2)}
-                  </th>
-                </tr>
+                  </TableCell>
+                </TableRow>
               </>
             )}
-          </tbody>
-        </table>
-
+          </TableBody>
+        </Table>
       </div>
-    </Col>
+    </div>
   );
 }
+
 export default GenericSalesReport;

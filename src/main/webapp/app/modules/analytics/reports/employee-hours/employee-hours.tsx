@@ -1,28 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-
-import { Spinner } from "reactstrap";
-
 import { FilterMatchMode } from "primereact/api";
-import { Calendar } from "primereact/calendar";
 import { translate } from "react-jhipster";
-import { Dropdown } from "primereact/dropdown";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import userClock, { filterEntities, getEntityReport } from "app/modules/analytics/user-clock/user-clock.reducer";
+import { filterEntities } from "app/modules/analytics/user-clock/user-clock.reducer";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { convertDateTimeFromServer, convertDateTimeFromServerTimeOnly } from "app/shared/util/date-utils";
-import GenericSalesReport from "app/shared/components/report/generic-sales-report";
-import SummaryReportTotalReceived from "app/shared/components/report/summary-report-total-received";
-import { Link, useSearchParams } from "react-router-dom";
 import { IUserClock } from "app/shared/model/user-clock.model";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { format, intervalToDuration } from "date-fns";
-import { Button } from "primereact/button";
 import { saveAsExcelFile } from "app/shared/util/excel-utils";
-
+import { PageWrapper } from "app/shared/layout/page-wrapper";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CalendarIcon, FileSpreadsheet, Loader2 } from "lucide-react";
+import { cn } from "@/src/main/webapp/app/lib/utils";
 
 const initialState = {
     first: 0,
@@ -37,20 +31,18 @@ const initialState = {
     }
 };
 
-
-
 const EmployeeHoursReport = () => {
     const dispatch = useAppDispatch();
     const branches = useAppSelector(state => state.branch.entities);
-    const loadingUsers = useAppSelector(state => state.PosBranchUser.loading);
     const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
     const loadingClocks = useAppSelector(state => state.userClock.loading);
     const loadingReport = useAppSelector(state => state.userClock.loadingReport);
 
     const [filterState, setFilterState] = useState(initialState);
-
-    const [searchParams, setSearchParams] = useSearchParams();
-    const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: undefined,
+        to: undefined
+    });
 
     useEffect(() => {
         dispatch(getBranches({}));
@@ -58,17 +50,14 @@ const EmployeeHoursReport = () => {
 
     const getUserClocks = () => {
         const updatedState = applyMatchModeMap(filterState);
-
         dispatch(filterEntities({
             query: updatedState,
         }))
     }
 
-
-    const handleDateChange = (e: any) => {
-        const startDate = e?.value?.[0];
-        let endDate = e?.value?.[1];
-
+    const handleDateChange = (range: { from: Date | undefined; to: Date | undefined }) => {
+        setDateRange(range);
+        let endDate = range.to;
         if (endDate) {
             endDate = new Date(endDate);
             endDate.setHours(23, 59, 59);
@@ -78,51 +67,24 @@ const EmployeeHoursReport = () => {
             ...filterState,
             filters: {
                 ...filterState.filters,
-                instantClockedIn: { value: startDate, matchMode: FilterMatchMode.STARTS_WITH },
+                instantClockedIn: { value: range.from, matchMode: FilterMatchMode.STARTS_WITH },
                 instantClockedOut: { value: endDate, matchMode: FilterMatchMode.ENDS_WITH },
             }
         });
     };
 
-    const calenderValue =
-        filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
-            ?
-            [filterState.filters?.instantClockedIn.value, null]
-            :
-            filterState.filters?.instantClockedIn.value && filterState.filters.instantClockedOut.value
-                ?
-                [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
-                :
-                null;
-
-
-
-    const onPage = (event) => {
-        const queryParams = JSON.stringify(event);
-        setSearchParams({ query: queryParams }, { replace: true })
+    const formatDuration = (start: Date, end: Date) => {
+        const duration = intervalToDuration({ start, end });
+        return `${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`;
     };
 
-    const differenceTemplate = (rowData) => {
-        const start = new Date(rowData?.instantClockedIn);
-        const end = new Date(rowData?.instantClockedOut);
-
-        const duration = intervalToDuration({ start, end });
-
-        const formattedDuration = `${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`;
-
-        return <span>{formattedDuration}</span>;
-    }
-
-    const footerTemplate = (data) => {
-        const user = data.username;
-        const userInstances = userClocks.filter(clock => clock.username === user);
-
+    const calculateTotalHours = (username: string) => {
+        const userInstances = userClocks.filter(clock => clock.username === username);
         let totalSeconds = 0;
 
         userInstances.forEach(clock => {
             const clockIn = new Date(clock.instantClockedIn);
             const clockOut = new Date(clock.instantClockedOut);
-
             const duration = intervalToDuration({ start: clockIn, end: clockOut });
             totalSeconds += duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
         });
@@ -131,21 +93,10 @@ const EmployeeHoursReport = () => {
         const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
         const totalSecs = totalSeconds % 60;
 
-        const formattedTotalTime = `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
-
-        return (
-            <React.Fragment>
-                <td colSpan={5}>
-                    <div className="flex justify-content-end font-bold w-full">
-                        Total Hours : {formattedTotalTime}
-                    </div>
-                </td>
-            </React.Fragment>
-        );
+        return `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
     };
 
     const exportExcel = async () => {
-        // Group userClocks by username
         const clocksByUser = {};
         userClocks.forEach(clock => {
             if (!clocksByUser[clock.username]) {
@@ -154,9 +105,6 @@ const EmployeeHoursReport = () => {
             clocksByUser[clock.username].push(clock);
         });
 
-        // Build an array of rows in the order we want for Excel
-        // We'll also calculate the working hours (HH:MM:SS) for each row
-        // and then a "Total Hours" row per user
         const structuredExcelData = [];
 
         Object.keys(clocksByUser).forEach(username => {
@@ -169,7 +117,6 @@ const EmployeeHoursReport = () => {
                 const secondsThisClock = duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
                 totalSeconds += secondsThisClock;
 
-                // Format single row time
                 const hours = String(duration.hours).padStart(2, '0');
                 const mins = String(duration.minutes).padStart(2, '0');
                 const secs = String(duration.seconds).padStart(2, '0');
@@ -183,28 +130,23 @@ const EmployeeHoursReport = () => {
                 });
             });
 
-            // After we push the user clock rows, push a "Total Hours" row
             const totalHours = Math.floor(totalSeconds / 3600);
             const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
             const totalSecs = totalSeconds % 60;
             const formattedTotal = `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
 
             structuredExcelData.push({
-                Name: '', // empty name cell
+                Name: '',
                 'Clock In': '',
                 'Clock Out': '',
                 'Working Hours': `Total Hours : ${formattedTotal}`
             });
         });
 
-        // Prepare headers
         const headers = ['Name', 'Clock In', 'Clock Out', 'Working Hours'];
-
-        // Use xlsx-js-style to create and style the sheet
         const xlsx = await import('xlsx-js-style');
         const worksheet = xlsx.utils.json_to_sheet(structuredExcelData, { header: headers });
 
-        // Make the first row (headers) bold
         headers.forEach((_, colIndex) => {
             const cellAddress = xlsx.utils.encode_cell({ r: 0, c: colIndex });
             if (worksheet[cellAddress]) {
@@ -214,151 +156,163 @@ const EmployeeHoursReport = () => {
             }
         });
 
-        // Adjust column widths
         worksheet['!cols'] = headers.map(() => ({ wpx: 180 }));
-
-        // Create the workbook and write it
         const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
         const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
         saveAsExcelFile(excelBuffer, 'UserClocks.xlsx');
     };
 
-    const header = (
-        <div className="flex align-items-center justify-content-end gap-2">
-            <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
-            {/* <ReactToPrint
-                trigger={() => (
-                    <Button
-                        type="button"
-                        className="rounded-circle"
-                        icon="pi pi-print"
-                        severity="info"
-                        rounded
-                        data-pr-tooltip="PRINT"
-                    />
-                )}
-                content={() => dtWrapper.current}
-                pageStyle={pageStyle}
-            /> */}
-        </div>
-    );
+    // Group user clocks by username
+    const groupedUserClocks = userClocks.reduce((acc, clock) => {
+        if (!acc[clock.username]) {
+            acc[clock.username] = [];
+        }
+        acc[clock.username].push(clock);
+        return acc;
+    }, {} as Record<string, IUserClock[]>);
 
     return (
-        <div className={'bg-white p-5'}>
-            <h1>Employee Hours Report</h1>
-            <div className={'d-flex flex-column gap-3'}>
-                <div className={'col-8 d-flex gap-3 align-items-center'}>
-                    <label htmlFor="branchId">Branch</label>
-                    <Dropdown
-                        id={'branchId'}
-                        options={branches}
-                        optionLabel={'name'}
-                        loading={loadingUsers}
-                        optionValue={'id'}
-                        value={filterState.filters.branchId.value}
-                        onChange={e =>
-                            setFilterState({
-                                ...filterState,
-                                filters: {
-                                    ...filterState.filters,
-                                    branchId: { value: e.value, matchMode: FilterMatchMode.EQUALS },
-                                },
-                            })
-                        }
-                        placeholder={'Select Branch'}
-                    />
+        <PageWrapper>
+            <h1 className="text-lg font-semibold mb-2">Employee Hours Report</h1>
 
-                    <label htmlFor="date">Date Range</label>
-                    <Calendar
-                        style={{ width: '12rem' }}
-                        disabled={!branches || branches?.length === 0}
-                        value={calenderValue}
-                        id={'date'}
-                        onChange={handleDateChange}
-                        selectionMode="range"
-                        placeholder={translate('orders.view.table.filters.date')}
-                        showButtonBar
-                    />
-
-                    <div>
-                        <Button type='button' onClick={() => getUserClocks()}>Get Report</Button>
+            <div className="flex flex-col gap-2 mb-3">
+                <div className="flex gap-2 items-end">
+                    <div className="flex flex-col gap-1">
+                        <Label htmlFor="branchId" className="text-xs">Branch</Label>
+                        <Select
+                            value={filterState.filters.branchId.value}
+                            onValueChange={(value) =>
+                                setFilterState({
+                                    ...filterState,
+                                    filters: {
+                                        ...filterState.filters,
+                                        branchId: { value, matchMode: FilterMatchMode.EQUALS },
+                                    },
+                                })
+                            }
+                        >
+                            <SelectTrigger id="branchId" className="h-7 text-xs w-[200px]">
+                                <SelectValue placeholder="Select Branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {branches.map(branch => (
+                                    <SelectItem key={branch.id} value={branch.id} className="text-xs">
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
+
+                    <div className="flex flex-col gap-1">
+                        <Label htmlFor="date" className="text-xs">Date Range</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id="date"
+                                    variant="outline"
+                                    className={cn(
+                                        "h-7 text-xs justify-start text-left font-normal w-[240px]",
+                                        !dateRange.from && "text-muted-foreground"
+                                    )}
+                                    disabled={!branches || branches?.length === 0}
+                                >
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
+                                    {dateRange.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                                {format(dateRange.to, "LLL dd, y")}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "LLL dd, y")
+                                        )
+                                    ) : (
+                                        <span>{translate('orders.view.table.filters.date')}</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="range"
+                                    selected={{ from: dateRange.from, to: dateRange.to }}
+                                    onSelect={(range) => handleDateChange(range || { from: undefined, to: undefined })}
+                                    numberOfMonths={2}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <Button size="sm" className="h-7 text-xs" onClick={() => getUserClocks()}>
+                        Get Report
+                    </Button>
                 </div>
             </div>
-            {loadingReport && <Spinner />}
 
-            {userClocks?.length > 0 ?
-                <div className={"mt-3"}>
-                    <DataTable
-                        value={userClocks}
-                        rowGroupMode="subheader"
-                        groupRowsBy="username"
-                        sortMode="single"
-                        sortField="username"
-                        sortOrder={1}
-                        scrollable
-                        scrollHeight="400px"
-                        tableStyle={{ minWidth: '50rem' }}
-                        rowGroupFooterTemplate={footerTemplate}
-                        header={header}
-                    >
-
-                        {/* <DataTable
-                        value={userClocks} 
-                        lazy
-                         filterDisplay="row"
-                          dataKey="id"
-                           paginator
-                        first={query.first}
-                         rows={query?.rows}
-                          totalRecords={50}
-                           onPage={onPage}
-                        sortField={query.sortField}
-                         sortOrder={query.sortOrder}
-                        filters={query.filters}
-                         loading={loadingClocks} 
-                         tableStyle={{ minWidth: '75rem' }}
-                        removableSort
-                        showGridlines
-                        className={"mt-3"}
-                    > */}
-                        <Column
-                            field="username"
-                            header={translate('items.view.fields.name')}
-                            body={rowData => rowData?.username}
-                            filterPlaceholder={translate('items.view.filters.username')}
-                            sortable
-                        />
-
-                        <Column
-                            header="Clock In"
-                            field="instantClockedIn"
-                            body={rowData => format(new Date(rowData?.instantClockedIn), 'yyyy-MM-dd HH:mm:ss')}
-                            sortable
-                            showFilterMatchModes={false}
-                        />
-
-                        <Column
-                            header="Clock Out"
-                            field="instantClockedOut"
-                            body={rowData => format(new Date(rowData?.instantClockedOut), 'yyyy-MM-dd HH:mm:ss')}
-                            sortable
-                            showFilterMatchModes={false}
-                        />
-
-                        <Column
-                            header="Working hours"
-                            field="instantClockedOut"
-                            body={differenceTemplate}
-                            sortable
-                            showFilterMatchModes={false}
-                        />
-                    </DataTable>
+            {loadingReport && (
+                <div className="flex items-center justify-center h-32">
+                    <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
-                : null}
+            )}
 
+            {userClocks?.length > 0 && (
+                <div className="mt-2">
+                    <div className="flex justify-end mb-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs gap-1"
+                            onClick={exportExcel}
+                        >
+                            <FileSpreadsheet className="h-3 w-3" />
+                            Export Excel
+                        </Button>
+                    </div>
 
-        </div>
+                    <div className="rounded-lg border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="text-xs">Name</TableHead>
+                                    <TableHead className="text-xs">Clock In</TableHead>
+                                    <TableHead className="text-xs">Clock Out</TableHead>
+                                    <TableHead className="text-xs text-right">Working Hours</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {Object.entries(groupedUserClocks).map(([username, clocks]) => (
+                                    <React.Fragment key={username}>
+                                        {clocks.map((clock, index) => (
+                                            <TableRow key={clock.id}>
+                                                <TableCell className="text-xs">{index === 0 ? username : ''}</TableCell>
+                                                <TableCell className="text-xs">
+                                                    {format(new Date(clock.instantClockedIn), 'yyyy-MM-dd HH:mm:ss')}
+                                                </TableCell>
+                                                <TableCell className="text-xs">
+                                                    {format(new Date(clock.instantClockedOut), 'yyyy-MM-dd HH:mm:ss')}
+                                                </TableCell>
+                                                <TableCell className="text-xs text-right">
+                                                    {formatDuration(new Date(clock.instantClockedIn), new Date(clock.instantClockedOut))}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        <TableRow className="bg-muted/50 font-semibold">
+                                            <TableCell colSpan={3} className="text-xs text-right">
+                                                Total Hours:
+                                            </TableCell>
+                                            <TableCell className="text-xs text-right">
+                                                {calculateTotalHours(username)}
+                                            </TableCell>
+                                        </TableRow>
+                                    </React.Fragment>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            )}
+        </PageWrapper>
     );
 }
+
 export default EmployeeHoursReport;

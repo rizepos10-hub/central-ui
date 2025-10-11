@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Dropdown } from 'primereact/dropdown';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from 'app/entities/settings/branch-registry/branch-registry.reducer';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { FilterMatchMode } from 'primereact/api';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { searchEntities } from 'app/entities/settings/branch-registry/till/till.reducer';
-import { Column } from 'primereact/column';
-import { Calendar } from 'primereact/calendar';
 import { convertDateTimeFromServer } from 'app/shared/util/date-utils';
-import { DataTable } from 'primereact/datatable';
 import { ITill } from 'app/shared/model/till.model';
 import { useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
 
 type RelatedTillsProps = {
   fromDate: string;
@@ -64,43 +63,87 @@ const RelatedTills = ({ fromDate, toDate }: RelatedTillsProps) => {
   useEffect(() => {
     getRelatedTills();
   }, [fromDate, toDate, selectedRegistry?.id]);
+
+  const handleRowClick = (till: ITill) => {
+    if (selectedRegistry?.id) {
+      navigate(`/analytics/register-closure/${selectedRegistry.id}/edit/${till.id}`);
+    }
+  };
+
   return (
-    <div>
-      <div>
-        <div className="d-flex flex-column gap-1 col-4">
-          <label>Choose Register</label>
-          <Dropdown
-            options={branchRegistries}
-            loading={loadingRegistry}
-            onChange={handleSelectRegistry}
-            value={selectedRegistry}
-            placeholder={'Choose register'}
-            optionLabel={'name'}
-          />
-        </div>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 max-w-xs">
+        <Label htmlFor="registry-select" className="text-xs">Choose Register</Label>
+        <Select
+          value={selectedRegistry?.id || ''}
+          onValueChange={(value) => {
+            const registry = branchRegistries.find(r => r.id === value);
+            setSelectedRegistry(registry || null);
+          }}
+          disabled={loadingRegistry}
+        >
+          <SelectTrigger id="registry-select" className="h-7 text-xs">
+            <SelectValue placeholder="Choose register" />
+          </SelectTrigger>
+          <SelectContent>
+            {branchRegistries.map((registry) => (
+              <SelectItem key={registry.id} value={registry.id} className="text-xs">
+                {registry.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <DataTable
-        value={tillsList}
-        header={'Related Tills'}
-        loading={loadingTills}
-        removableSort
-        emptyMessage={"No Related Tills Found."}
-        paginator
-        tableStyle={{marginBottom: "4rem"}}
-        selectionMode={'single'}
-        onSelectionChange={e => navigate(`/analytics/register-closure/${selectedRegistry?.id}/edit/${e.value.id}`)}
-        totalRecords={totalTills}
-        rows={20}
-        lazy
-        showGridlines
-      >
-        <Column field="status" header="Status" />
-        <Column field="openAmount" header="Open Amount" />
-        <Column field="closeAmount" header="Close Amount" />
-        <Column field="startDate" body={rowData => convertDateTimeFromServer(rowData?.startDate)} header="Start Date" />
-        <Column field="endDate" body={rowData => convertDateTimeFromServer(rowData?.endDate)} header="End Date" />
-      </DataTable>
+      <div className="rounded-md border bg-white">
+        <div className="p-2 border-b">
+          <h4 className="text-sm font-semibold">Related Tills</h4>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Status</TableHead>
+              <TableHead className="text-xs text-right">Open Amount</TableHead>
+              <TableHead className="text-xs text-right">Close Amount</TableHead>
+              <TableHead className="text-xs">Start Date</TableHead>
+              <TableHead className="text-xs">End Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loadingTills ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-xs py-4">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : tillsList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-xs py-4">
+                  No Related Tills Found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              tillsList.map((till) => (
+                <TableRow
+                  key={till.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(till)}
+                >
+                  <TableCell className="text-xs">{till.status}</TableCell>
+                  <TableCell className="text-xs text-right">{till.openAmount}</TableCell>
+                  <TableCell className="text-xs text-right">{till.closeAmount}</TableCell>
+                  <TableCell className="text-xs">
+                    {convertDateTimeFromServer(till?.startDate)}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {convertDateTimeFromServer(till?.endDate)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
