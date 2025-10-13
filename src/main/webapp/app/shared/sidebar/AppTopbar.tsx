@@ -63,7 +63,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                 <div className="ml-auto flex items-center gap-2">
                     <TopBarSearch />
                     <NotificationsButton notificationsCount={notificationsCount} />
-                    <ThemeToggle />
+                    {/* <ThemeToggle /> */}
                     <ProfileButton isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} />
                 </div>
             </header>
