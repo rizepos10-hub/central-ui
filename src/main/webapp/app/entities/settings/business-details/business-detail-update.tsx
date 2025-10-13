@@ -92,9 +92,7 @@ export const BusinessDetailUpdate = () => {
 
 
 
-  const saveEntity = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
       ...businessDetailsState,
@@ -148,22 +146,18 @@ export const BusinessDetailUpdate = () => {
   }
 
   return (
-    <PageWrapper className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
-        <div className="md:col-span-8">
-          <h2 id="tempApp.businessDetail.home.createOrEditLabel" data-cy="DetailCreateUpdateHeading" className="text-2xl font-bold">
-            {isNew ? 'Create Business Details' : "Edit Business Details"}
-          </h2>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-4">
-        <div className="md:col-span-8">
-          <Card>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 id="tempApp.businessDetail.home.createOrEditLabel" data-cy="DetailCreateUpdateHeading" className="text-2xl font-bold">
+          {isNew ? 'Create Business Details' : "Edit Business Details"}
+        </h2>
+
+        <Card>
             <CardContent className="pt-6">
               {loading ? (
                 <p>Loading...</p>
               ) : (
-                <form onSubmit={saveEntity} className="space-y-4">
+                <div className="space-y-4">
                 {!isNew ? (
                   <div className="space-y-2">
                     <Label htmlFor="details-id" className="text-xs font-semibold">
@@ -325,7 +319,7 @@ export const BusinessDetailUpdate = () => {
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
                     data-tour="business-save-button"
-                    type="submit"
+                    onClick={saveEntity}
                     disabled={updating}
                     className="h-8 text-xs"
                   >
@@ -335,7 +329,6 @@ export const BusinessDetailUpdate = () => {
 
                   <Button
                     variant="secondary"
-                    type="button"
                     onClick={handleResetTour}
                     disabled={guidedTourUpdating}
                     title="Reset the guided tour to start from the beginning"
@@ -345,11 +338,10 @@ export const BusinessDetailUpdate = () => {
                     Reset Tour
                   </Button>
                 </div>
-              </form>
+              </div>
             )}
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </PageWrapper>
   );

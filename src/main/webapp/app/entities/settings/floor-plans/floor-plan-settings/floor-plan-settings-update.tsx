@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, reset } from './floor-plan-settings.reducer';
-import {InputText} from "primereact/inputtext";
 import {IFloorPlanSettings} from "app/shared/model/FLOOR-PLAN/floor-plan-settings.model";
-import {InputNumber} from "primereact/inputnumber";
 import {Translate} from "react-jhipster";
-import Attachment from "app/shared/components/attachment/attachment";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Save } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const FloorPlanSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -31,8 +31,6 @@ export const FloorPlanSettingsUpdate = () => {
   const updating = useAppSelector(state => state.floorPlanSettings.updating);
   const updateSuccess = useAppSelector(state => state.floorPlanSettings.updateSuccess);
 
-
-
   useEffect(() => {
     dispatch(getEntity());
     return () => {
@@ -46,35 +44,20 @@ export const FloorPlanSettingsUpdate = () => {
     }
   }, [updateSuccess,loading]);
 
-  const handleChange = (e,name) => {
-    const value = e.value
+  const handleChange = (value, name) => {
     const [property, subProperty] = name.split('-');
-
-    console.log('Property:', property);
-    console.log('Subproperty:', subProperty);
 
     setFloorPlanSettings((prevState) => {
       const newState = { ...prevState };
       if (subProperty) {
         newState[property] = {
           ...newState[property],
-          [subProperty]: value,
+          [subProperty]: parseFloat(value) || 0,
         };
       }
       return newState;
     });
   };
-
-
-
-
-  const removeImage = (type) => {
-    setFloorPlanSettings(prev => ({
-      ...prev,
-      [type]: null
-    }))
-  }
-
 
   const addTableImage = (imageInfo) => {
     setFloorPlanSettings(prev => ({
@@ -89,134 +72,147 @@ export const FloorPlanSettingsUpdate = () => {
     }))
   }
 
-
-  const saveEntity = (e) => {
-    e.preventDefault()
+  const saveEntity = () => {
     const entity = {
       ...floorPlanSettings,
     };
-    console.log(floorPlanSettings, 'floorPlanSettings')
     dispatch(updateEntity(entity));
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>Edit Floor Plan Settings</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+    <PageWrapper>
+      <div className="max-w-2xl">
+        <h2 className="text-2xl font-bold mb-6">Edit Floor Plan Settings</h2>
+      </div>
+      <div className="max-w-2xl">
+        <div className="bg-white p-6 rounded-lg shadow space-y-6">
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
-              <FormGroup>
-                <div className="d-flex flex-column">
-                  <h5>Section Dimensions</h5>
-                  <div className={"d-flex gap-3 mb-2"}>
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
-                          width
-                   </span>
-                    <InputNumber
-                      size={3}
-                      maxFractionDigits={2}
-                      name="sectionDimensions-width"
-                      required={true}
-                      value={floorPlanSettings?.sectionDimensions?.width || 0}
-                      onChange={ (e) => handleChange(e,"sectionDimensions-width")}
-
-                    />
-                      <span className="p-inputgroup-addon">px</span>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                  <h5 className="text-lg font-semibold">Section Dimensions</h5>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
+                        width
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        name="sectionDimensions-width"
+                        required={true}
+                        value={floorPlanSettings?.sectionDimensions?.width || ''}
+                        onChange={(e) => handleChange(e.target.value, "sectionDimensions-width")}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
+                      />
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
                     </div>
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
                         height
                       </span>
-                    <InputNumber
-                      size={3}
-                      maxFractionDigits={2}
-                      name="sectionDimensions-height"
-                      required={true}
-                      value={floorPlanSettings?.sectionDimensions?.height || 0}
-                      onChange={ (e) => handleChange(e,"sectionDimensions-height")}
-                    />
-                      <span className="p-inputgroup-addon">px</span>
-                  </div>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        name="sectionDimensions-height"
+                        required={true}
+                        value={floorPlanSettings?.sectionDimensions?.height || ''}
+                        onChange={(e) => handleChange(e.target.value, "sectionDimensions-height")}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
+                      />
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="d-flex flex-column mt-3">
-                  <h5>Table Dimensions</h5>
-                  <div className={"d-flex gap-3 mb-2"}>
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
-                          width
-                   </span>
-                      <InputNumber
-                        size={3}
-                        maxFractionDigits={2}
+                <div className="space-y-4">
+                  <h5 className="text-lg font-semibold">Table Dimensions</h5>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
+                        width
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.01"
                         name="tableDimensions-width"
                         required={true}
-                        value={floorPlanSettings?.tableDimensions?.width || 0}
-                        onChange={ (e) => handleChange(e,"tableDimensions-width")}
-
+                        value={floorPlanSettings?.tableDimensions?.width || ''}
+                        onChange={(e) => handleChange(e.target.value, "tableDimensions-width")}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
-                      <span className="p-inputgroup-addon">px</span>
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
                     </div>
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
                         height
                       </span>
-                      <InputNumber
-                        size={3}
-                        maxFractionDigits={2}
+                      <Input
+                        type="number"
+                        step="0.01"
                         name="tableDimensions-height"
                         required={true}
-                        value={floorPlanSettings?.tableDimensions?.height || 0}
-                        onChange={ (e) => handleChange(e,"tableDimensions-height")}
-
+                        value={floorPlanSettings?.tableDimensions?.height || ''}
+                        onChange={(e) => handleChange(e.target.value, "tableDimensions-height")}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
-                      <span className="p-inputgroup-addon">px</span>
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
                     </div>
                   </div>
                 </div>
-                <div className={"d-flex flex-column"}>
-                  <label  className={"mt-2"}>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">
                     <Translate contentKey={"tempApp.floorPlanSettings.tableImage"}>Table Image</Translate>
-                  </label>
+                  </Label>
                   <MediaLibrary
                     handleFilesSelectCallback={(files) => addTableImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
                     defaultValues={transformAttachmentStructure(floorPlanSettings.tableImage ? [floorPlanSettings.tableImage] : [], 'toFileLibraryListItem')}
-                />
+                  />
                 </div>
 
-                <div className={"d-flex flex-column"}>
-                  <label  className={"mt-2"}>
+                <div className="space-y-2">
+                  <Label className="text-xs">
                     <Translate contentKey={"tempApp.floorPlanSettings.sectionBackground"}>Section Background Image</Translate>
-                  </label>
+                  </Label>
                   <MediaLibrary
                     handleFilesSelectCallback={(files) => addSectionBackgroundImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
                     defaultValues={transformAttachmentStructure(floorPlanSettings.sectionBackground ? [floorPlanSettings.sectionBackground] : [], 'toFileLibraryListItem')}
                   />
                 </div>
-              </FormGroup>
-              <Button tag={Link} to="/pizza-size" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
-              </Button>
-              &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;Save
-              </Button>
-            </form>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => navigate(-1)}
+                  variant="secondary"
+                  className="h-8 text-xs"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  onClick={saveEntity}
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+              </div>
+            </div>
           )}
-        </Col>
-      </Row>
-    </div>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 
