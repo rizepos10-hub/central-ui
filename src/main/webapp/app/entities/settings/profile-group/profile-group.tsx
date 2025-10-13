@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil } from 'lucide-react';
 
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {  getEntities } from './profile-group.reducer';
-
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
+import { getEntities } from './profile-group.reducer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ProfileGroup = () => {
   const dispatch = useAppDispatch();
@@ -28,11 +26,8 @@ export const ProfileGroup = () => {
   const loading = useAppSelector(state => state.profileGroup.loading);
   const totalItems = useAppSelector(state => state.profileGroup.totalItems);
 
-  const [filters, setFilters] :any = useState({
-    accountingId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    profiles: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
+  const [filters, setFilters] = useState({
+    name: '',
   });
 
   const handleCreate = () => {
@@ -55,75 +50,98 @@ export const ProfileGroup = () => {
 
 
 
-  const nameColumnTemplate = (rowData) => {
-    const editUrl = `/profile-groups/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
+  const handleFilterChange = (value: string) => {
+    setFilters({ name: value });
   };
 
-  const handleNameFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/profile-groups/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
+  const filteredProfileGroupsList = profileGroupsList.filter((group) => {
+    const matchName = !filters.name || group.name?.toLowerCase().includes(filters.name.toLowerCase());
+    return matchName;
+  });
 
-
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Profile Groups</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getProfileGroups} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create New Profile Group" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
   return (
-    <div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-xs">Profile Groups</h1>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={getProfileGroups}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Profile Group
+            </Button>
+          </div>
+        </div>
 
-        <DataTable  loading={loading} value={profileGroupsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-          <Column
-            field="name" header="Name" filter
-            body={nameColumnTemplate}
-            filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
-            filterField="name"  sortable
-          />
-          <Column field="accountingId" header="Accounting Id" filter filterPlaceholder="Search by accounting id"  sortable   />
-
-          <Column field="profiles" header="Profiles" body={(rowData) => rowData.profiles.map((profile) => profile.name).join(' | ')}   sortable   />
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
-          {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
-        </DataTable>
-    </div>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="h-8">
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold">Name</div>
+                    <Input
+                      placeholder="Search by Name"
+                      value={filters.name || ''}
+                      onChange={(e) => handleFilterChange(e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Accounting Id</TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Profiles</TableHead>
+                <TableHead className="h-8 w-16 text-xs font-semibold">Edit</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProfileGroupsList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-4">
+                    No profile groups found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredProfileGroupsList.map((group) => (
+                  <TableRow key={group.id}>
+                    <TableCell className="text-xs">
+                      <Link
+                        to={`/profile-groups/${group.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        className="text-primary hover:underline"
+                      >
+                        {group.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">{group.accountingId}</TableCell>
+                    <TableCell className="text-xs">
+                      {group.profiles?.map((profile) => profile.name).join(' | ') || ''}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        to={`/profile-groups/${group.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

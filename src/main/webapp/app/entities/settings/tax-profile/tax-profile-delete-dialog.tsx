@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './tax-profile.reducer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const TaxProfileDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,8 +29,8 @@ export const TaxProfileDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const taxEntity = useAppSelector(state => state.tax.entity);
-  const updateSuccess = useAppSelector(state => state.tax.updateSuccess);
+  const taxProfileEntity = useAppSelector(state => state.taxProfiles.entity);
+  const updateSuccess = useAppSelector(state => state.taxProfiles.updateSuccess);
 
   const handleClose = () => {
     navigate(-1);
@@ -36,32 +44,37 @@ export const TaxProfileDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(taxEntity.id));
+    dispatch(deleteEntity(taxProfileEntity.id));
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="taxDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.tax.delete.question">
-        <Translate contentKey="tempApp.tax.delete.question" interpolate={{ id: taxEntity.id }}>
-          Are you sure you want to delete this Tax?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-tax" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={true} onOpenChange={(open) => !open && handleClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle data-cy="taxDeleteDialogHeading" className="text-base">
+            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription id="tempApp.tax.delete.question" className="text-xs">
+            <Translate contentKey="tempApp.tax.delete.question" interpolate={{ id: taxProfileEntity.id }}>
+              Are you sure you want to delete this Tax Profile?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            id="jhi-confirm-delete-tax"
+            data-cy="entityConfirmDeleteButton"
+            onClick={confirmDelete}
+            className="h-8 text-xs bg-destructive hover:bg-destructive/90"
+          >
+            <Translate contentKey="entity.action.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
