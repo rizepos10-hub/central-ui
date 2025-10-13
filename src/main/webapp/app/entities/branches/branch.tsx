@@ -1,31 +1,37 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import React, { useEffect, useState } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
-import { TabPanel, TabView } from 'primereact/tabview';
-import { InputText } from 'primereact/inputtext';
-import { Checkbox } from 'primereact/checkbox';
 import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
-import { Alert, Card, Col, FormGroup, Label, ListGroup, Row } from 'reactstrap';
-import { Button } from 'primereact/button';
-import { InputNumber } from 'primereact/inputnumber';
-import { RadioButton } from 'primereact/radiobutton';
-import { InputSwitch } from 'primereact/inputswitch';
 import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails, DeliveryTaggingModeEnum } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
 import { CustomMapControl, autocompleteModes } from 'app/shared/components/google/map-control';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Save, AlertTriangle } from 'lucide-react';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
-import { Dialog } from 'primereact/dialog';
 import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
-import { Dropdown } from 'primereact/dropdown';
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select as ShadSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export enum AddressTypesEnum {
   "premise" = "premise",
@@ -398,127 +404,173 @@ export const Branches = () => {
   }
 
   const dialogFooterTemplate = () => {
-    return <Button label="Save" type={"submit"} icon="pi pi-check" onClick={() => handleSavePayments()} />;
+    return (
+      <Button type="submit" onClick={() => handleSavePayments()} className="h-7 text-xs">
+        <Save className="h-3 w-3 mr-1" />
+        Save
+      </Button>
+    );
   };
 
   return (
-    <form className="d-flex align-items-start w-100">
-      <div className="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        {businessDetailsState?.branchDetails?.map((branch, index) => (
-          <button
-            key={index}
-            className={`nav-link ${activeIndex === index ? 'fw-bolder text-decoration-underline' : 'opacity-75'} fs-6`}
-            id={`v-pills-${index}-tab`}
-            data-bs-toggle="pill"
-            data-bs-target={`#v-pills-${index}`}
-            type="button"
-            role="tab"
-            aria-controls={`v-pills-${index}`}
-            aria-selected="true"
-            onClick={() => {
-              setActiveIndex(index)
-              // Update payment configurations when switching branches
-              const paymentConfigs = branch.paymentConfigurations || [];
-              setEditingBranchPayments(paymentConfigs)
-              setEditingPaymentIndex(index)
-              
-              // Initialize paymentConfigurations array if it doesn't exist
-              if (!branch.paymentConfigurations) {
-                const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-                newData[index].paymentConfigurations = [];
-                setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
-              }
-            }}
-            style={{
-              width: '160px',
-            }}
-          >
-            {branch.name}
-          </button>
-        ))}
-      </div>
-      <div className="tab-content w-100" id="v-pills-tabContent">
-        {businessDetailsState?.branchDetails?.map((branch, branchIndex) => (
-          <div
-            key={branchIndex}
-            className={`tab-pane fade ${activeIndex === branchIndex ? 'show active' : ''}`}
-            id={`v-pills-${branchIndex}`}
-            role="tabpanel"
-            aria-labelledby={`v-pills-${branchIndex}-tab`}
-          >
-            <TabView className='w-100' activeIndex={activeBranchIndex} onTabChange={(e: any) => handleDetailsChange(e.index, branch, branchIndex)}>
-              <TabPanel header="Details">
-                <div className="d-flex flex-column">
-                  <label className="font-bold">Branch Name</label>
-                  <InputText
-                    type="text"
-                    value={branch.name}
-                    onChange={(e) => handleBranchNameChange(branchIndex, e.target.value)}
-                  />
-                  <label className="font-bold mt-3">Image</label>
-                  <MediaLibrary
-                    handleFilesSelectCallback={files =>
-                      handleImageChange(
-                        branchIndex,
-                        transformAttachmentStructure(files, 'toIAttachment')
-                      )
-                    }
-                    defaultValues={transformAttachmentStructure(branch.logo ? [branch.logo] : [], 'toFileLibraryListItem')}
-                  />
-                  <label className="font-bold mt-3">Is Wholesale</label>
-                  <Checkbox
-                    checked={branch.wholesale}
-                    onChange={(e) => handleWholesaleFlag(branchIndex, e.checked)}
-                  />
+    <PageWrapper>
+      <Tabs
+        value={String(activeIndex)}
+        onValueChange={(v) => {
+          const index = Number(v);
+          setActiveIndex(index);
+          const branch = businessDetailsState?.branchDetails?.[index];
+          if (branch) {
+            // Update payment configurations when switching branches
+            const paymentConfigs = branch.paymentConfigurations || [];
+            setEditingBranchPayments(paymentConfigs);
+            setEditingPaymentIndex(index);
 
-                  <label className="font-bold mt-3">Is EBT Eligible</label>
-                  <Checkbox
-                    checked={branch.ebteligible}
-                    onChange={(e) => handleEBTEligibleFlag(branchIndex, e.checked)}
-                  />
+            // Initialize paymentConfigurations array if it doesn't exist
+            if (!branch.paymentConfigurations) {
+              const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+              newData[index].paymentConfigurations = [];
+              setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+            }
+          }
+        }}
+        className="flex gap-4"
+        orientation="vertical"
+      >
+        <TabsList className="h-auto flex-col items-stretch w-48 bg-muted/30">
+          {businessDetailsState?.branchDetails?.map((branch, index) => (
+            <TabsTrigger
+              key={index}
+              value={String(index)}
+              className="justify-start text-xs h-9 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              {branch.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-                  <label className="font-bold mt-3">Ending Type</label>
-                  <Select
-                    value={{ label: branch.endingType, value: branch.endingType }}
-                    options={Object.values(EndingType).map(type => ({ label: type, value: type }))}
-                    getOptionLabel={option => option.label}
-                    getOptionValue={option => option.value}
-                    onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
-                    placeholder="Select Ending Type.."
-                  />
+        <div className="flex-1">
+          {businessDetailsState?.branchDetails?.map((branch, branchIndex) => (
+            <TabsContent
+              key={branchIndex}
+              value={String(branchIndex)}
+              className="mt-0"
+            >
+            <Tabs value={String(activeBranchIndex)} onValueChange={(v) => handleDetailsChange(Number(v), branch, branchIndex)} className='w-100'>
+              <TabsList className="h-9 w-full justify-start">
+                <TabsTrigger value="0" className="text-xs h-7">Details</TabsTrigger>
+                <TabsTrigger value="1" className="text-xs h-7">Address</TabsTrigger>
+                <TabsTrigger value="2" className="text-xs h-7">Delivery Configuration</TabsTrigger>
+                <TabsTrigger value="3" className="text-xs h-7">Opening Hours</TabsTrigger>
+                <TabsTrigger value="4" className="text-xs h-7">Inventory Settings</TabsTrigger>
+                <TabsTrigger value="5" className="text-xs h-7">Payment Configuration</TabsTrigger>
+              </TabsList>
+              <TabsContent value="0">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Branch Name</Label>
+                    <Input
+                      type="text"
+                      value={branch.name || ''}
+                      onChange={(e) => handleBranchNameChange(branchIndex, e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Image</Label>
+                    <MediaLibrary
+                      handleFilesSelectCallback={files =>
+                        handleImageChange(
+                          branchIndex,
+                          transformAttachmentStructure(files, 'toIAttachment')
+                        )
+                      }
+                      defaultValues={transformAttachmentStructure(branch.logo ? [branch.logo] : [], 'toFileLibraryListItem')}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.wholesale}
+                      onCheckedChange={(checked) => handleWholesaleFlag(branchIndex, checked)}
+                      id={`wholesale-${branchIndex}`}
+                    />
+                    <Label htmlFor={`wholesale-${branchIndex}`} className="font-bold text-xs cursor-pointer">Is Wholesale</Label>
+                  </div>
 
-                  <label className="font-bold mt-3">Show End Of Day Report Section</label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.ebteligible}
+                      onCheckedChange={(checked) => handleEBTEligibleFlag(branchIndex, checked)}
+                      id={`ebt-${branchIndex}`}
+                    />
+                    <Label htmlFor={`ebt-${branchIndex}`} className="font-bold text-xs cursor-pointer">Is EBT Eligible</Label>
+                  </div>
 
-                  <Select
-                    isMulti
-                    value={branch.endOfDayReportSection?.map(section => ({ value: section, label: section }))}
-                    onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
-                    options={endOfDayReportSectionOptions}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Ending Type</Label>
+                    <Select
+                      value={{ label: branch.endingType, value: branch.endingType }}
+                      options={Object.values(EndingType).map(type => ({ label: type, value: type }))}
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                      onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
+                      placeholder="Select Ending Type.."
+                      className="text-xs"
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
 
-                  <label className="font-bold mt-3">Should token expire?</label>
-                  <Checkbox
-                    checked={branch.tokenExpired}
-                    onChange={(e) => handleTokenExpiredFlag(branchIndex, e.checked)}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Show End Of Day Report Section</Label>
+                    <Select
+                      isMulti
+                      value={branch.endOfDayReportSection?.map(section => ({ value: section, label: section }))}
+                      onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
+                      options={endOfDayReportSectionOptions}
+                      className="text-xs"
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
 
-                  <label className="font-bold mt-3">Zones</label>
-                  <Select
-                    value={branch.zones}
-                    isMulti={true}
-                    options={zones}
-                    getOptionLabel={option => option.name}
-                    getOptionValue={option => option.id}
-                    onChange={(e) => handleZoneChange(e, activeIndex)}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.tokenExpired}
+                      onCheckedChange={(checked) => handleTokenExpiredFlag(branchIndex, checked)}
+                      id={`token-${branchIndex}`}
+                    />
+                    <Label htmlFor={`token-${branchIndex}`} className="font-bold text-xs cursor-pointer">Should token expire?</Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Zones</Label>
+                    <Select
+                      value={branch.zones}
+                      isMulti={true}
+                      options={zones}
+                      getOptionLabel={option => option.name}
+                      getOptionValue={option => option.id}
+                      onChange={(e) => handleZoneChange(e, activeIndex)}
+                      className="text-xs"
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
 
                 </div>
-              </TabPanel>
-              <TabPanel header="Address">
-                <div className='d-flex gap-5'>
+              </TabsContent>
+              <TabsContent value="1">
+                <div className='flex gap-5'>
                   <div>
-                    <label className="font-bold my-2">Branch Address</label>
-                    <div className='d-flex flex-column'>
+                    <Label className="font-bold text-xs my-2">Branch Address</Label>
+                    <div className='flex flex-col'>
                       <MapComponent
                         branch={branch}
                         branchIndex={branchIndex}
@@ -527,397 +579,443 @@ export const Branches = () => {
                       />
                     </div>
                   </div>
-                  <div className='d-flex flex-column gap-2 w-100'>
-                    <label className="font-bold">Street</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter Street"
-                      value={branch.address?.street}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
-                    />
-                    <label className="font-bold">City</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter City"
-                      value={branch.address?.city}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'city', e.target.value)}
-                    />
-                    <label className="font-bold">State</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter State"
-                      value={branch.address?.state}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'state', e.target.value)}
-                    />
-                    <label className="font-bold">Postal Code</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter Postal Code"
-                      value={branch.address?.postalCode}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
-                    />
-                    <label className="font-bold">Email</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter Email"
-                      value={branch.address?.email}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'email', e.target.value)}
-                    />
-                    <label className="font-bold">Phone Number</label>
-                    <InputText
-                      type="text"
-                      placeholder="Enter Phone Number"
-                      value={branch.address?.phoneNumber}
-                      onChange={(e) => handleAddressFieldChange(branchIndex, 'phoneNumber', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </TabPanel>
-              <TabPanel header="Delivery Configuration">
-                <>
-                  <div>
-                    <Col>
-                      <div className='p-2'>
-                        <Row>
-                          <label className="font-bold">
-                            Charge Per Distance
-                          </label>
-                        </Row>
-                        <div className='p-2'>
-                          <div className="flex flex-wrap gap-3">
-                            <div className='flex flex-column gap-1'>
-                              <label className='font-bold'>Distance</label>
-                              <InputNumber
-                                placeholder="Distance Value"
-                                value={branch.deliveryConfiguration?.chargePerDistance.distance.value}
-                                onChange={(e) =>
-                                  handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', e.value)
-                                }
-                              />
-                            </div>
-
-                            {metrics.map((metric, idx) => (
-                              <div className="flex align-items-center" key={idx}>
-                                <RadioButton
-                                  inputId={`charge-metric-${idx}`}
-                                  name={`charge-metric-${branchIndex}`}
-                                  value={metric}
-                                  checked={branch.deliveryConfiguration?.chargePerDistance?.distance?.metric === metric}
-                                  onClick={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.metric', metric)}
-                                />
-                                <label htmlFor={`charge-metric-${idx}`} className="ml-2">{metric}</label>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className='flex flex-column gap-1'>
-                            <label className='font-bold'>Charge</label>
-                            <InputNumber
-                              placeholder="Charge"
-                              value={branch.deliveryConfiguration?.chargePerDistance.charge}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', e.value)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className='p-2'>
-                        <Row>
-                          <label className="font-bold">
-                            Shipment Range
-                          </label>
-                        </Row>
-
-                        <div className="flex flex-wrap gap-3 p-2">
-                          <div className='flex flex-column gap-1'>
-                            <label className='font-bold'>Distance</label>
-                            <InputNumber
-                              placeholder="Distance Value"
-                              value={branch.deliveryConfiguration?.shipmentRange.value}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', e.value)}
-                            />
-                          </div>
-
-                          {metrics.map((metric, idx) => (
-                            <div className="flex align-items-center" key={idx}>
-                              <RadioButton
-                                inputId={`shipment-metric-${idx}`}
-                                name={`shipment-metric-${branchIndex}`}
-                                value={metric}
-                                checked={branch.deliveryConfiguration?.shipmentRange?.metric === metric}
-                                onClick={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.metric', metric)}
-                              />
-                              <label htmlFor={`shipment-metric-${idx}`} className="ml-2">{metric}</label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className='p-2'>
-                        <Row>
-                          <label className="font-bold">
-                            Minimum Charge
-                          </label>
-                        </Row>
-
-                        <InputNumber
-                          placeholder="Distance Value"
-                          value={branch.deliveryConfiguration?.minCharge}
-                          onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', e.value)}
-                        />
-                      </div>
-                    </Col>
-
-                    <div className='p-2'>
-                      <Row>
-                        <label className="font-bold">
-                          Cash on Delivery
-                        </label>
-                      </Row>
-                      <InputSwitch
-                        checked={branch?.activeCOD}
-                        onChange={(e) => handleCODChange(branchIndex, e.value)}
+                  <div className='flex flex-col gap-2 w-100'>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">Street</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Street"
+                        value={branch.address?.street || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">City</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter City"
+                        value={branch.address?.city || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'city', e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">State</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter State"
+                        value={branch.address?.state || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'state', e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">Postal Code</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Postal Code"
+                        value={branch.address?.postalCode || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">Email</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Email"
+                        value={branch.address?.email || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'email', e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="font-bold text-xs">Phone Number</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter Phone Number"
+                        value={branch.address?.phoneNumber || ''}
+                        onChange={(e) => handleAddressFieldChange(branchIndex, 'phoneNumber', e.target.value)}
+                        className="h-7 text-xs"
                       />
                     </div>
                   </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="2">
+                <>
                   <div>
-                    <Col>
-                      <Row className="mb-2">
-                        <Col>
-                          <Button color="primary" onClick={() => handleAddChargeRule(branchIndex)} type='button'>Add Charge</Button>
-                        </Col>
-                      </Row>
-                      {branch.deliveryConfiguration?.definedChargeRules.map((chargeRule, chargeRuleIndex) => (
-                        <Row className='align-items-center' key={chargeRuleIndex}>
-                          <Col md={2}>
-                            <FormGroup>
-                              <Label for="minDistance">Min Distance</Label>
-                              <InputNumber
-                                type="text"
-                                name="minDistance"
-                                id="minDistance"
-                                placeholder="Enter Min Distance"
-                                value={chargeRule.minDistance.value}
-                                onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.value`, e.value)}
+                    <div className='p-2'>
+                      <div className='mb-4'>
+                        <Label className="font-bold text-xs mb-2 block">
+                          Charge Per Distance
+                        </Label>
+                        <div className='p-2 space-y-3'>
+                          <div className="flex flex-wrap gap-3">
+                            <div className='flex flex-col gap-1'>
+                              <Label className='font-bold text-xs'>Distance</Label>
+                              <Input
+                                type="number"
+                                placeholder="Distance Value"
+                                value={branch.deliveryConfiguration?.chargePerDistance.distance.value || ''}
+                                onChange={(e) =>
+                                  handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', Number(e.target.value))
+                                }
+                                className="h-7 text-xs"
                               />
-                            </FormGroup>
-                          </Col>
-                          <Col md={2}>
-                            <FormGroup>
-                              <Label for="maxDistance">Max Distance</Label>
-                              <InputNumber
-                                type="text"
-                                name="maxDistance"
-                                id="maxDistance"
-                                placeholder="Enter Max Distance"
-                                value={chargeRule.maxDistance.value}
-                                onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.value`, e.value)}
-                              />
-                            </FormGroup>
-                          </Col>
-                          <Col md={2}>
-                            <FormGroup>
-                              <Label for="charge">Charge</Label>
-                              <InputNumber
-                                type="text"
-                                name="charge"
-                                id="charge"
-                                placeholder="Enter Charge"
-                                value={chargeRule.charge}
-                                onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].charge`, e.value)}
-                              />
-                            </FormGroup>
-                          </Col>
-                          <Col md={2}>
-                            <FormGroup>
-                              <Label for="minOrderAmount">Minimum Order Amount</Label>
-                              <InputNumber
-                                type="text"
-                                name="orderAmount"
-                                id="orderAmount"
-                                placeholder="Enter Minimum Order Amount"
-                                value={chargeRule.orderAmount}
-                                onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].orderAmount`, e.value)}
-                              />
-                            </FormGroup>
-                          </Col>
-                          <Col md={2}>
-                            <FormGroup>
-                              <Label for="metric">Metric</Label>
+                            </div>
+
+                            <RadioGroup
+                              value={branch.deliveryConfiguration?.chargePerDistance?.distance?.metric}
+                              onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.metric', value)}
+                              className="flex flex-wrap gap-3"
+                            >
                               {metrics.map((metric, idx) => (
-                                <div className="flex align-items-center" key={idx}>
-                                  <RadioButton
-                                    inputId={`charge-metric-${idx}`}
-                                    name={`charge-metric-${chargeRuleIndex}`}
+                                <div className="flex items-center gap-2" key={idx}>
+                                  <RadioGroupItem
                                     value={metric}
-                                    checked={chargeRule.maxDistance.metric === metric}
-                                    onClick={(e) => {
-                                      handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.metric`, metric)
-                                      handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.metric`, metric)
-                                    }}
+                                    id={`charge-metric-${branchIndex}-${idx}`}
                                   />
-                                  <label htmlFor={`charge-metric-${idx}`} className="ml-2">{metric}</label>
+                                  <Label htmlFor={`charge-metric-${branchIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
                                 </div>
                               ))}
-                            </FormGroup>
-                          </Col>
-                          <Col md={2}>
-                            <Button color="danger" onClick={() => handleDeleteChargeRule(branchIndex, chargeRuleIndex)} type='button'>Delete</Button>
-                          </Col>
-                        </Row>
+                            </RadioGroup>
+                          </div>
+
+                          <div className='flex flex-col gap-1'>
+                            <Label className='font-bold text-xs'>Charge</Label>
+                            <Input
+                              type="number"
+                              placeholder="Charge"
+                              value={branch.deliveryConfiguration?.chargePerDistance.charge || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className='mb-4'>
+                        <Label className="font-bold text-xs mb-2 block">
+                          Shipment Range
+                        </Label>
+
+                        <div className="flex flex-wrap gap-3 p-2">
+                          <div className='flex flex-col gap-1'>
+                            <Label className='font-bold text-xs'>Distance</Label>
+                            <Input
+                              type="number"
+                              placeholder="Distance Value"
+                              value={branch.deliveryConfiguration?.shipmentRange.value || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+
+                          <RadioGroup
+                            value={branch.deliveryConfiguration?.shipmentRange?.metric}
+                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.metric', value)}
+                            className="flex flex-wrap gap-3"
+                          >
+                            {metrics.map((metric, idx) => (
+                              <div className="flex items-center gap-2" key={idx}>
+                                <RadioGroupItem
+                                  value={metric}
+                                  id={`shipment-metric-${branchIndex}-${idx}`}
+                                />
+                                <Label htmlFor={`shipment-metric-${branchIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      </div>
+                      <div className='mb-4'>
+                        <Label className="font-bold text-xs mb-2 block">
+                          Minimum Charge
+                        </Label>
+
+                        <Input
+                          type="number"
+                          placeholder="Distance Value"
+                          value={branch.deliveryConfiguration?.minCharge || ''}
+                          onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className='p-2'>
+                      <div className='mb-4'>
+                        <Label className="font-bold text-xs mb-2 block">
+                          Cash on Delivery
+                        </Label>
+                        <Checkbox
+                          checked={branch?.activeCOD}
+                          onCheckedChange={(checked) => handleCODChange(branchIndex, checked)}
+                          id={`cod-${branchIndex}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className='space-y-4'>
+                      <div className="mb-2">
+                        <Button onClick={() => handleAddChargeRule(branchIndex)} type='button' className="h-7 text-xs">Add Charge</Button>
+                      </div>
+                      {branch.deliveryConfiguration?.definedChargeRules.map((chargeRule, chargeRuleIndex) => (
+                        <div className='grid grid-cols-1 md:grid-cols-6 gap-2 items-end' key={chargeRuleIndex}>
+                          <div>
+                            <Label htmlFor="minDistance" className="text-xs">Min Distance</Label>
+                            <Input
+                              type="number"
+                              name="minDistance"
+                              id="minDistance"
+                              placeholder="Enter Min Distance"
+                              value={chargeRule.minDistance.value || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.value`, Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="maxDistance" className="text-xs">Max Distance</Label>
+                            <Input
+                              type="number"
+                              name="maxDistance"
+                              id="maxDistance"
+                              placeholder="Enter Max Distance"
+                              value={chargeRule.maxDistance.value || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.value`, Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="charge" className="text-xs">Charge</Label>
+                            <Input
+                              type="number"
+                              name="charge"
+                              id="charge"
+                              placeholder="Enter Charge"
+                              value={chargeRule.charge || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].charge`, Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="minOrderAmount" className="text-xs">Min Order Amount</Label>
+                            <Input
+                              type="number"
+                              name="orderAmount"
+                              id="orderAmount"
+                              placeholder="Enter Min Order"
+                              value={chargeRule.orderAmount || ''}
+                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].orderAmount`, Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="metric" className="text-xs">Metric</Label>
+                            <RadioGroup
+                              value={chargeRule.maxDistance.metric}
+                              onValueChange={(value) => {
+                                handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.metric`, value)
+                                handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.metric`, value)
+                              }}
+                              className="flex flex-col gap-2"
+                            >
+                              {metrics.map((metric, idx) => (
+                                <div className="flex items-center gap-2" key={idx}>
+                                  <RadioGroupItem
+                                    value={metric}
+                                    id={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`}
+                                  />
+                                  <Label htmlFor={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+                          <div>
+                            <Button variant="destructive" onClick={() => handleDeleteChargeRule(branchIndex, chargeRuleIndex)} type='button' className="h-7 text-xs">Delete</Button>
+                          </div>
+                        </div>
                       ))}
 
                       <div className='p-2'>
-                          <Row>
-                            <label className="font-bold">
-                              Delivery Tagging Mode
-                            </label>
-                          </Row>
-                          <Dropdown
-                            options={Object.values(DeliveryTaggingModeEnum).map(mode => ({ label: mode, value: mode }))}
-                            value={branch.deliveryConfiguration?.deliveryTaggingMode}
-                            onChange={(e) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', e.target.value)}
-                          />
+                        <Label className="font-bold text-xs mb-2 block">
+                          Delivery Tagging Mode
+                        </Label>
+                        <ShadSelect
+                          value={branch.deliveryConfiguration?.deliveryTaggingMode}
+                          onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
+                        >
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue placeholder="Select mode" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(DeliveryTaggingModeEnum).map(mode => (
+                              <SelectItem key={mode} value={mode} className="text-xs">{mode}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </ShadSelect>
                       </div>
-                    </Col>
+                    </div>
                   </div>
                 </>
-              </TabPanel>
-              <TabPanel header="Opening Hours">
+              </TabsContent>
+              <TabsContent value="3">
                 <div>
                   <h4>Opening Hours By Branch</h4>
-                  <Alert color="warning">Please ensure that opening hours are
-                    provided in the following format: <b>HH:mm:ss</b>
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Please ensure that opening hours are provided in the following format: <b>HH:mm:ss</b>
+                    </AlertDescription>
                   </Alert>
                 </div>
                 <div>
-                  <ListGroup className="d-flex flex-column gap-1">
+                  <div className="flex flex-col gap-2">
                     {branch.days.map((day, dayIndex) => (
-                      <Card key={day.day} className="d-flex flex-column py-0 px-3">
-                        <div className="d-flex flex-row align-items-center justify-content-between">
-                          <strong className="fs-6">{day.day}</strong>
-                          <strong className="fs-6">Opens {day.day} &nbsp; {day.opensToday ? <span>&#10003;</span> : <span>&#10007;</span>}</strong>
-                          <strong className="fs-6"> Status: {day.status}</strong>
+                      <Card key={day.day} className="flex flex-col py-2 px-3">
+                        <div className="flex flex-row items-center justify-between">
+                          <strong className="text-sm">{day.day}</strong>
+                          <strong className="text-sm">Opens {day.day} &nbsp; {day.opensToday ? <span>&#10003;</span> : <span>&#10007;</span>}</strong>
+                          <strong className="text-sm"> Status: {day.status}</strong>
                         </div>
 
-                        <div style={{ border: '1px solid rgba(0, 0, 0, 0.5)', color: 'black' }} className="border border-black my-3" />
+                        <div className="border-t border-gray-300 my-3" />
 
-                        <div className='row'>
-                          <div className='border-end col-5'>
-                            <Button type="button" className="my-2 p-1" onClick={() => handleAddOpeningHour(branchIndex, dayIndex)} >
+                        <div className='grid grid-cols-1 md:grid-cols-12 gap-4'>
+                          <div className='md:col-span-5 border-r pr-4'>
+                            <Button type="button" className="my-2 h-7 text-xs" onClick={() => handleAddOpeningHour(branchIndex, dayIndex)} >
                               Add Opening Hour
                             </Button>
 
                             {day.openingHours.map((openingHour, hourIndex) => (
-                              <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
-
-                                <Dropdown
+                              <div key={hourIndex} className="flex flex-row items-center mb-3 gap-2">
+                                <ShadSelect
                                   value={openingHour.dayType}
-                                  options={Object.values(dayTypeEnum).map(dayType => ({ label: dayType, value: dayType }))}
-                                  onChange={(e) => handleSelectedDayTypeChange(branchIndex, dayIndex, hourIndex, 'dayType', e.target.value)}
-                                  placeholder="Day Type"
-                                  style={{ minWidth: '8rem' }}
-                                  optionValue={'value'}
-                                  optionLabel="label"
-                                  className='w-25 mr-2'
-                                />
+                                  onValueChange={(value) => handleSelectedDayTypeChange(branchIndex, dayIndex, hourIndex, 'dayType', value)}
+                                >
+                                  <SelectTrigger className="h-7 text-xs w-32">
+                                    <SelectValue placeholder="Day Type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.values(dayTypeEnum).map(dayType => (
+                                      <SelectItem key={dayType} value={dayType} className="text-xs">{dayType}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </ShadSelect>
 
-                                <label className="mr-2">From:</label>
-                                <InputText
+                                <Label className="text-xs">From:</Label>
+                                <Input
                                   type="text"
                                   placeholder="HH:mm:ss"
                                   pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                                  value={openingHour.from}
+                                  value={openingHour.from || ''}
                                   onChange={(e) => handleOpeningHourInputChange(branchIndex, dayIndex, hourIndex, 'from', e.target.value)}
-                                  className='w-25'
+                                  className='w-24 h-7 text-xs'
                                 />
 
-                                <label className="mx-2">To:</label>
-                                <InputText
+                                <Label className="text-xs">To:</Label>
+                                <Input
                                   type="text"
                                   placeholder="HH:mm:ss"
                                   pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                                  value={openingHour.to}
+                                  value={openingHour.to || ''}
                                   onChange={(e) => handleOpeningHourInputChange(branchIndex, dayIndex, hourIndex, 'to', e.target.value)}
-                                  className='w-25'
+                                  className='w-24 h-7 text-xs'
                                 />
 
-                                <button
+                                <Button
                                   type="button"
-                                  className="btn btn-danger btn-sm ml-2"
+                                  variant="destructive"
+                                  className="h-7 text-xs"
                                   onClick={() => handleRemoveOpeningHour(branchIndex, dayIndex, hourIndex)}
                                 >
                                   X
-                                </button>
-
+                                </Button>
                               </div>
                             ))}
                           </div>
-                          <div className='col-7'>
-                            <div className="d-flex">
-                              <Button type="button" className="my-2 p-1" onClick={() => handleAddShiftsHour(branchIndex, dayIndex)}>
+                          <div className='md:col-span-7'>
+                            <div className="flex">
+                              <Button type="button" className="my-2 h-7 text-xs" onClick={() => handleAddShiftsHour(branchIndex, dayIndex)}>
                                 Add Shifts
                               </Button>
                             </div>
                             {day.shifts.map((shift, hourIndex) => (
-                              <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
-                                <label className="mr-2">Name:</label>
-                                <InputText
+                              <div key={hourIndex} className="flex flex-row items-center mb-3 gap-2">
+                                <Label className="text-xs">Name:</Label>
+                                <Input
                                   type="text"
                                   placeholder="Enter shift name"
-                                  value={shift.shiftName}
+                                  value={shift.shiftName || ''}
                                   onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'shiftName', e.target.value)}
-                                  className='w-25'
+                                  className='w-32 h-7 text-xs'
                                 />
-                                <label className="mx-2">From:</label>
-                                <InputText
+                                <Label className="text-xs">From:</Label>
+                                <Input
                                   type="text"
                                   placeholder="HH:mm:ss"
                                   pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                                  value={shift.from}
+                                  value={shift.from || ''}
                                   onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'from', e.target.value)}
-                                  className='w-25'
+                                  className='w-24 h-7 text-xs'
                                 />
 
-                                <label className="mx-2">To:</label>
-                                <InputText
+                                <Label className="text-xs">To:</Label>
+                                <Input
                                   type="text"
                                   placeholder="HH:mm:ss"
                                   pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                                  value={shift.to}
+                                  value={shift.to || ''}
                                   onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'to', e.target.value)}
-                                  className='w-25'
+                                  className='w-24 h-7 text-xs'
                                 />
 
-                                <button
+                                <Button
                                   type="button"
-                                  className="btn btn-danger btn-sm ml-2"
+                                  variant="destructive"
+                                  className="h-7 text-xs"
                                   onClick={() => handleRemoveShiftsHour(branchIndex, dayIndex, hourIndex)}
                                 >
                                   X
-                                </button>
+                                </Button>
                               </div>
                             ))}
                           </div>
                         </div>
                       </Card>
                     ))}
-                  </ListGroup>
+                  </div>
                 </div>
-              </TabPanel>
-              <TabPanel header="Inventory Settings">
+              </TabsContent>
+              <TabsContent value="4">
                 <div className='w-100'>
-                  <label className="font-semibold pe-2">
+                  <Label className="font-semibold text-xs mb-2 block">
                     Unit Cost Rule
-                  </label>
-                  <Dropdown
-                    options={Object.values(UnitCostCalculationMode).map(mode => ({ label: mode, value: mode }))}
+                  </Label>
+                  <ShadSelect
                     value={branch?.unitCostCalculationMode}
-                    onChange={(e) => handleUnitCostCalculationModeChange(branchIndex, e.value)}
-                  />
+                    onValueChange={(value) => handleUnitCostCalculationModeChange(branchIndex, value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Select mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(UnitCostCalculationMode).map(mode => (
+                        <SelectItem key={mode} value={mode} className="text-xs">{mode}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </ShadSelect>
                 </div>
-              </TabPanel>
-              <TabPanel header="Payment Configuration" >
-                <TabView className='w-100'>
-                                    <TabPanel header="Converge">
+              </TabsContent>
+              <TabsContent value="5">
+                <Tabs defaultValue="converge" className='w-100'>
+                  <TabsList className="h-9">
+                    <TabsTrigger value="converge" className="text-xs h-7">Converge</TabsTrigger>
+                    <TabsTrigger value="bambora" className="text-xs h-7">Bambora</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="converge">
                     <BranchPaymentConfig
                       editingBranchPayments={editingBranchPayments}
                       setEditingBranchPayments={setEditingBranchPayments}
@@ -925,8 +1023,8 @@ export const Branches = () => {
                       moduleCode="CONVERGE_LIGHTBOX"
                       onPaymentConfigChange={handlePaymentConfigChange}
                     />
-                  </TabPanel>
-                  <TabPanel header="Bambora">
+                  </TabsContent>
+                  <TabsContent value="bambora">
                     <BranchPaymentConfig
                       editingBranchPayments={editingBranchPayments}
                       setEditingBranchPayments={setEditingBranchPayments}
@@ -934,20 +1032,22 @@ export const Branches = () => {
                       moduleCode="BAMBORA"
                       onPaymentConfigChange={handlePaymentConfigChange}
                     />
-                  </TabPanel>
-                </TabView>
-              </TabPanel>
-            </TabView>
-          </div>
-        ))}
+                  </TabsContent>
+                </Tabs>
+              </TabsContent>
+            </Tabs>
+            </TabsContent>
+          ))}
 
-        <Button color="primary" id="save-entity" type='button' data-cy="entityCreateSaveButton" disabled={updating} onClick={saveEntity} className='mt-2'>
-          <FontAwesomeIcon icon="save" />
-          &nbsp;
-          <Translate contentKey="entity.action.save">Save</Translate>
-        </Button>
-      </div>
-    </form>
+          <div className="mt-4">
+            <Button id="save-entity" type='button' data-cy="entityCreateSaveButton" disabled={updating} onClick={saveEntity} className='h-8 text-xs'>
+              <Save className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+          </div>
+        </div>
+      </Tabs>
+    </PageWrapper>
   )
 };
 

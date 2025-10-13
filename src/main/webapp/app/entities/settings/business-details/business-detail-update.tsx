@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Row, Col, Spinner } from "reactstrap";
-import { Card as PrimeCard } from 'primereact/card'
-import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate } from 'react-jhipster';
+import { Loader2, Save, RotateCw } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { updateEntity, createEntity, getEntities, reset } from './business-detail.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { updateSetupStatus } from 'app/entities/settings/guided-tour/guided-tour.reducer';
-import { Button as PrimeButton } from "primereact/button"
 import { IBusinessDetail, Metric } from "app/shared/model/business-detail.model";
 import _ from 'lodash';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -90,11 +92,12 @@ export const BusinessDetailUpdate = () => {
 
 
 
-  const saveEntity = values => {
+  const saveEntity = (e: React.FormEvent) => {
+    e.preventDefault();
 
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
-      ...values,
+      ...businessDetailsState,
       logo: selectedAttachments,
       branchDetails: businessDetailsState?.branchDetails?.map(branch => {
         return {
@@ -137,62 +140,80 @@ export const BusinessDetailUpdate = () => {
   };
 
   if (loading) {
-    return <Spinner />
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="tempApp.businessDetail.home.createOrEditLabel" data-cy="DetailCreateUpdateHeading">
+    <PageWrapper className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        <div className="md:col-span-8">
+          <h2 id="tempApp.businessDetail.home.createOrEditLabel" data-cy="DetailCreateUpdateHeading" className="text-2xl font-bold">
             {isNew ? 'Create Business Details' : "Edit Business Details"}
           </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 ">
-          <PrimeCard>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <ValidatedForm defaultValues={businessDetailsState} onSubmit={saveEntity}>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <div className="md:col-span-8">
+          <Card>
+            <CardContent className="pt-6">
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <form onSubmit={saveEntity} className="space-y-4">
                 {!isNew ? (
-                  <ValidatedField
-                    name="id"
-                    required
-                    readOnly
-                    id="details-id"
-                    label={translate('global.field.id')}
-                    validate={{ required: true }}
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="details-id" className="text-xs font-semibold">
+                      {translate('global.field.id')}
+                    </Label>
+                    <Input
+                      name="id"
+                      id="details-id"
+                      value={businessDetailsState?.id || ''}
+                      readOnly
+                      className="h-7 text-xs bg-muted"
+                    />
+                  </div>
                 ) : null}
-                <ValidatedField
-                  label={'Name'}
-                  name="businessName"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    required: { value: true, message: translate('entity.validation.required') },
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 30 }) },
-                  }}
-                  onChange={handleFieldChange}
-                />
-                <ValidatedField
-                  label={'Slogan'}
-                  id="details-solgan"
-                  name="slogan"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
-                />
-                <div className='d-flex flex-column gap-2'>
-                  <div className='fw-light'>
+                <div className="space-y-2">
+                  <Label htmlFor="businessName" className="text-xs font-semibold">
+                    Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    name="businessName"
+                    id="businessName"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.businessName || ''}
+                    onChange={handleFieldChange}
+                    required
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-solgan" className="text-xs font-semibold">
+                    Slogan
+                  </Label>
+                  <Input
+                    name="slogan"
+                    id="details-solgan"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.slogan || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className='flex flex-col gap-2'>
+                  <div className='font-light text-sm'>
                     Logo
                   </div>
-                  <div className='w-25' data-tour="logo-upload">
+                  <div className='w-1/4' data-tour="logo-upload">
                     {businessDetailsState && (
                       <MediaLibrary
                         sizePerPage={80}
@@ -205,112 +226,132 @@ export const BusinessDetailUpdate = () => {
                     )}
                   </div>
                 </div>
-                <h4>Address Details</h4>
-                <ValidatedField
-                  label={'Street'}
-                  id="details-address-street"
-                  name="address.street"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
+                <h4 className="text-base font-semibold mt-6 mb-4">Address Details</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-street" className="text-xs font-semibold">
+                    Street
+                  </Label>
+                  <Input
+                    id="details-address-street"
+                    name="address.street"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.street || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-city" className="text-xs font-semibold">
+                    City
+                  </Label>
+                  <Input
+                    id="details-address-city"
+                    name="address.city"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.city || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-state" className="text-xs font-semibold">
+                    State
+                  </Label>
+                  <Input
+                    id="details-address-state"
+                    name="address.state"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.state || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-postalCode" className="text-xs font-semibold">
+                    Postal Code
+                  </Label>
+                  <Input
+                    id="details-address-postalCode"
+                    name="address.postalCode"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.postalCode || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
 
-                />
-                <ValidatedField
-                  label={'City'}
-                  id="details-address-city"
-                  name="address.city"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
+                <h4 className="text-base font-semibold mt-6 mb-4">Contact Details</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-email" className="text-xs font-semibold">
+                    Email
+                  </Label>
+                  <Input
+                    id="details-address-email"
+                    name="address.email"
+                    data-cy="value"
+                    type="email"
+                    value={businessDetailsState?.address?.email || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-phone-number" className="text-xs font-semibold">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="details-address-phone-number"
+                    name="address.phoneNumber"
+                    data-cy="value"
+                    type="tel"
+                    value={businessDetailsState?.address?.phoneNumber || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
 
-                />
-                <ValidatedField
-                  label={'State'}
-                  id="details-address-state"
-                  name="address.state"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
-
-                />
-                <ValidatedField
-                  label={'PostalCode'}
-                  id="details-address-postalCode"
-                  name="address.postalCode"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
-
-                />
-
-                <h4>Contact Details</h4>
-                <ValidatedField
-                  label={'Email'}
-                  id="details-address-email"
-                  name="address.email"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
-                />
-                <ValidatedField
-                  label={'Phone Number'}
-                  id="details-address-phone-number"
-                  name="address.phoneNumber"
-                  data-cy="value"
-                  type="text"
-                  validate={{
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  onChange={handleFieldChange}
-                />
-
-                <div className="d-flex gap-2">
-                  <Button 
-                    color="primary" 
-                    id="save-entity" 
-                    data-cy="entityCreateSaveButton" 
+                <div className="flex gap-2 mt-6">
+                  <Button
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
                     data-tour="business-save-button"
-                    type="submit" 
+                    type="submit"
                     disabled={updating}
+                    className="h-8 text-xs"
                   >
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
+                    <Save className="h-4 w-4 mr-2" />
                     <Translate contentKey="entity.action.save">Save</Translate>
                   </Button>
-                  
-                  <Button 
-                    color="secondary" 
+
+                  <Button
+                    variant="secondary"
                     type="button"
                     onClick={handleResetTour}
                     disabled={guidedTourUpdating}
                     title="Reset the guided tour to start from the beginning"
+                    className="h-8 text-xs"
                   >
-                    <FontAwesomeIcon icon="redo" />
-                    &nbsp;
+                    <RotateCw className="h-4 w-4 mr-2" />
                     Reset Tour
                   </Button>
                 </div>
-              </ValidatedForm>
+              </form>
             )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 
