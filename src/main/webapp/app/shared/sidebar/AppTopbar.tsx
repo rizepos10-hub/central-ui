@@ -15,6 +15,7 @@ import { Button } from 'primereact/button';
 import { Spinner } from 'reactstrap';
 import { IOrder } from '../model/ORDER/order.model';
 import { ICustomer } from '../model/CUSTOMER/customer.model';
+import { ThemeToggle } from '../components/theme-toggle';
 import "../components/notifications-center/notifications-center.scss";
 import './AppTopbar.scss';
 
@@ -83,15 +84,17 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                             )}
                             <i className="pi pi-bell"></i>
                         </div>
-                        
+
                         {isNotificationsMenuOpen && (
                             <NotificationsCenter setShowMenu={setIsNotificationsMenuOpen} showMenu={isNotificationsMenuOpen} />
                         )}
                     </div>
-                    
-                    <button 
-                        type="button" 
-                        className="profile-button" 
+
+                    <ThemeToggle />
+
+                    <button
+                        type="button"
+                        className="profile-button"
                         onClick={showProfileSidebar}
                         title="Profile"
                     >
