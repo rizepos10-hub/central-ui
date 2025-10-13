@@ -1,168 +1,142 @@
-import React, { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import AppBreadcrumb from './AppBreadCrumb';
 import { LayoutContext } from './context/layoutcontext';
 import { AppTopbarRef } from "app/shared/sidebar/types/layout";
 import NotificationsCenter from '../components/notifications-center/notifications-center';
-import { InputText } from 'primereact/inputtext';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getItems } from 'app/entities/item/all-items.reducer';
 import { getEntities as getOrders } from 'app/entities/order/order.reducer';
 import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
 import { Link, useNavigate } from 'react-router-dom';
 import { IItem } from '../model/ITEM/item.model';
-import { Button } from 'primereact/button';
-import { Spinner } from 'reactstrap';
 import { IOrder } from '../model/ORDER/order.model';
 import { ICustomer } from '../model/CUSTOMER/customer.model';
 import { ThemeToggle } from '../components/theme-toggle';
+import { cn } from '@/src/main/webapp/app/lib/utils';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Search, Bell, User, Package, ShoppingCart, Users, Loader2, ArrowRight } from 'lucide-react';
+import AppProfileSidebar from './AppProfileSidebar';
 import "../components/notifications-center/notifications-center.scss";
 import './AppTopbar.scss';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-    const { showProfileSidebar, showConfigSidebar, layoutState, isDesktop } = useContext(LayoutContext);
-
-    const giveMargin = layoutState?.staticMenuDesktopInactive === false;
-    const isDesktopEnvironment = isDesktop();
-    const onConfigButtonClick = () => {
-        showConfigSidebar();
-    };
-
-    const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false)
     const [notificationsCount, setNotificationsCount] = useState(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     useEffect(() => {
-        // Event handler to update state when notificationsCount changes
-        const handleNotificationsCountUpdated = (event) => {
+        const handleNotificationsCountUpdated = (event: any) => {
             setNotificationsCount(event.detail);
         };
 
-        // Add event listener for the custom event
         window.addEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
 
         return () => {
-            // Clean up the event listener on unmount
             window.removeEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
         };
     }, []);
 
     useImperativeHandle(ref, () => ({}));
 
-    const logo = "/content/images/rize-pos-align-left.png";
-
     return (
-        <div className="modern-topbar">
-            <div className="topbar-start">
-                {isDesktopEnvironment && (
-                    <div className="topbar-logo-container">
-                        <img src={logo} alt="Rize POS" className="topbar-logo" />
-                    </div>
-                )}
-                
-                <div className="topbar-breadcrumb-container">
-                    <AppBreadcrumb className="modern-breadcrumb"></AppBreadcrumb>
+        <>
+            <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+                {/* Sidebar Trigger (mobile) */}
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+
+                {/* Logo */}
+                <div className="flex items-center gap-2">
+                    <img src="/content/images/rize-pos-high-resolution-logo-white-transparent.png" alt="Logo" className="h-8" />
                 </div>
-            </div>
 
-            <div className="topbar-end">
-                <div className="topbar-actions">
-                    <div className="topbar-search-container">
-                        <TopBarSearch />
-                    </div>
-                    
-                    <div className="topbar-notifications">
-                        <div
-                            className={`notification-button ${isNotificationsMenuOpen ? 'active' : ''}`}
-                            data-cy="notification-icon"
-                            onClick={() => setIsNotificationsMenuOpen(!isNotificationsMenuOpen)}
-                            title="Notifications"
-                        >
-                            {notificationsCount > 0 && (
-                                <span className="notification-badge">
-                                    {notificationsCount > 99 ? '99+' : notificationsCount}
-                                </span>
-                            )}
-                            <i className="pi pi-bell"></i>
-                        </div>
+                {/* Breadcrumb */}
+                <AppBreadcrumb />
 
-                        {isNotificationsMenuOpen && (
-                            <NotificationsCenter setShowMenu={setIsNotificationsMenuOpen} showMenu={isNotificationsMenuOpen} />
-                        )}
-                    </div>
-
+                {/* Right side actions */}
+                <div className="ml-auto flex items-center gap-2">
+                    <TopBarSearch />
+                    <NotificationsButton notificationsCount={notificationsCount} />
                     <ThemeToggle />
-
-                    <button
-                        type="button"
-                        className="profile-button"
-                        onClick={showProfileSidebar}
-                        title="Profile"
-                    >
-                        <i className="pi pi-user"></i>
-                    </button>
+                    <ProfileButton isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} />
                 </div>
-            </div>
-        </div>
+            </header>
+            <AppProfileSidebar isOpen={isProfileOpen} setIsOpen={setIsProfileOpen} />
+        </>
     );
 });
 
 const TopBarSearch = () => {
     const [inputValue, setInputValue] = useState('');
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    const inputRef = useRef(null);
+    const [isOpen, setIsOpen] = useState(false);
 
-    const handleInputChange = (event) => {
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(event.target.value);
     };
 
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
-                inputRef.current !== event.target) {
-                setDropdownOpen(false);
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
     return (
-        <div className="modern-search-wrapper">
-            <div className="search-input-container">
-                <i className="pi pi-search search-icon"></i>
-                <InputText
-                    ref={inputRef}
-                    type="text"
-                    placeholder="Search items, orders, customers..."
-                    className="modern-search-input"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onFocus={() => setDropdownOpen(true)}
-                />
-            </div>
-            
-            {dropdownOpen && (
-                <div ref={dropdownRef} className="search-dropdown">
-                    <TabView className="search-tabs">
-                        <TabPanel header="Items" leftIcon="pi pi-box">
-                            <ItemsSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
-                        </TabPanel>
-                        <TabPanel header="Orders" leftIcon="pi pi-shopping-cart">
-                            <OrdersSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
-                        </TabPanel>
-                        <TabPanel header="Customers" leftIcon="pi pi-users">
-                            <CustomersSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
-                        </TabPanel>
-                    </TabView>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Search className="h-4 w-4" />
+                    <span className="sr-only">Search</span>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[500px] p-0" align="end">
+                <div className="flex items-center border-b px-3">
+                    <Search className="h-4 w-4 shrink-0 opacity-50" />
+                    <Input
+                        type="text"
+                        placeholder="Search items, orders, customers..."
+                        className="h-12 border-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                    />
                 </div>
-            )}
-        </div>
+                <Tabs defaultValue="items" className="w-full">
+                    <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                        <TabsTrigger
+                            value="items"
+                            className="relative rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                        >
+                            <Package className="h-4 w-4 mr-2" />
+                            Items
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="orders"
+                            className="relative rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                        >
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Orders
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="customers"
+                            className="relative rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                        >
+                            <Users className="h-4 w-4 mr-2" />
+                            Customers
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="items" className="m-0 max-h-[400px] overflow-y-auto">
+                        <ItemsSearch inputValue={inputValue} setDropdownOpen={setIsOpen} />
+                    </TabsContent>
+                    <TabsContent value="orders" className="m-0 max-h-[400px] overflow-y-auto">
+                        <OrdersSearch inputValue={inputValue} setDropdownOpen={setIsOpen} />
+                    </TabsContent>
+                    <TabsContent value="customers" className="m-0 max-h-[400px] overflow-y-auto">
+                        <CustomersSearch inputValue={inputValue} setDropdownOpen={setIsOpen} />
+                    </TabsContent>
+                </Tabs>
+            </PopoverContent>
+        </Popover>
     );
-}
+};
 
 const ItemsSearch = ({
     inputValue,
@@ -185,18 +159,18 @@ const ItemsSearch = ({
                 categoryId: '',
                 unassignedItems: ''
             }));
-        }, 350)
+        }, 350);
         return () => {
             clearTimeout(timeout);
-        }
-    }, [inputValue])
+        };
+    }, [inputValue, dispatch]);
 
     return (
-        <div className="search-results">
+        <div className="p-2">
             {loading ? (
-                <div className="search-loading">
-                    <Spinner size="sm" />
-                    <span>Searching...</span>
+                <div className="flex items-center justify-center gap-2 p-8">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Searching...</span>
                 </div>
             ) : itemList.length > 0 ? (
                 itemList.map((item) => (
@@ -209,20 +183,20 @@ const ItemsSearch = ({
                                         : `/product/${item.id}/edit`
                         }
                         setDropdownOpen={setDropdownOpen}
-                        icon="pi pi-box"
+                        icon={<Package className="h-4 w-4" />}
                     >
                         {item.name}
                     </ClickableLink>
                 ))
             ) : (
-                <div className="search-no-results">
-                    <i className="pi pi-search"></i>
-                    <span>No items found</span>
+                <div className="flex flex-col items-center justify-center gap-2 p-8 text-center">
+                    <Search className="h-8 w-8 text-muted-foreground opacity-50" />
+                    <span className="text-sm text-muted-foreground">No items found</span>
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
 const OrdersSearch = ({
     inputValue,
@@ -243,19 +217,19 @@ const OrdersSearch = ({
                 page: 0,
                 size: 15,
             }));
-        }, 350)
+        }, 350);
 
         return () => {
             clearTimeout(timeout);
-        }
-    }, [inputValue])
+        };
+    }, [inputValue, dispatch]);
 
     return (
-        <div className="search-results">
+        <div className="p-2">
             {loading ? (
-                <div className="search-loading">
-                    <Spinner size="sm" />
-                    <span>Searching...</span>
+                <div className="flex items-center justify-center gap-2 p-8">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Searching...</span>
                 </div>
             ) : orderList.length > 0 ? (
                 orderList.map((order) => (
@@ -263,20 +237,20 @@ const OrdersSearch = ({
                         key={order.id}
                         to={`order/${order.id}`}
                         setDropdownOpen={setDropdownOpen}
-                        icon="pi pi-shopping-cart"
+                        icon={<ShoppingCart className="h-4 w-4" />}
                     >
                         Order #{order.sequenceNumber}
                     </ClickableLink>
                 ))
             ) : (
-                <div className="search-no-results">
-                    <i className="pi pi-search"></i>
-                    <span>No orders found</span>
+                <div className="flex flex-col items-center justify-center gap-2 p-8 text-center">
+                    <Search className="h-8 w-8 text-muted-foreground opacity-50" />
+                    <span className="text-sm text-muted-foreground">No orders found</span>
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
 const CustomersSearch = ({
     inputValue,
@@ -297,19 +271,19 @@ const CustomersSearch = ({
                 page: 0,
                 size: 15,
             }));
-        }, 350)
+        }, 350);
 
         return () => {
             clearTimeout(timeout);
-        }
-    }, [inputValue])
+        };
+    }, [inputValue, dispatch]);
 
     return (
-        <div className="search-results">
+        <div className="p-2">
             {loading ? (
-                <div className="search-loading">
-                    <Spinner size="sm" />
-                    <span>Searching...</span>
+                <div className="flex items-center justify-center gap-2 p-8">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Searching...</span>
                 </div>
             ) : customerList.length > 0 ? (
                 customerList.map((customer) => (
@@ -317,20 +291,20 @@ const CustomersSearch = ({
                         key={customer.id}
                         to={`customer/${customer.id}/edit`}
                         setDropdownOpen={setDropdownOpen}
-                        icon="pi pi-user"
+                        icon={<Users className="h-4 w-4" />}
                     >
                         {customer.firstName} {customer.lastName}
                     </ClickableLink>
                 ))
             ) : (
-                <div className="search-no-results">
-                    <i className="pi pi-search"></i>
-                    <span>No customers found</span>
+                <div className="flex flex-col items-center justify-center gap-2 p-8 text-center">
+                    <Search className="h-8 w-8 text-muted-foreground opacity-50" />
+                    <span className="text-sm text-muted-foreground">No customers found</span>
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
 const ClickableLink = ({
     to,
@@ -339,25 +313,71 @@ const ClickableLink = ({
     icon
 }: {
     to: string;
-    children: any;
+    children: React.ReactNode;
     setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    icon?: string;
+    icon?: React.ReactNode;
 }) => {
     const navigate = useNavigate();
 
     const handleNavigate = () => {
         navigate(to);
         setDropdownOpen(false);
-    }
+    };
 
     return (
-        <div className="search-result-item" onClick={handleNavigate}>
-            {icon && <i className={icon}></i>}
-            <span>{children}</span>
-            <i className="pi pi-arrow-right arrow-icon"></i>
+        <div
+            className="flex items-center gap-3 rounded-md p-3 cursor-pointer transition-colors hover:bg-accent group"
+            onClick={handleNavigate}
+        >
+            {icon && <div className="text-primary">{icon}</div>}
+            <span className="flex-1 text-sm">{children}</span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-    )
-}
+    );
+};
+
+const NotificationsButton = ({ notificationsCount }: { notificationsCount: number }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 relative" data-cy="notification-icon">
+                    <Bell className="h-4 w-4" />
+                    {notificationsCount > 0 && (
+                        <Badge
+                            variant="destructive"
+                            className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center p-0 px-1 text-xs"
+                        >
+                            {notificationsCount > 99 ? '99+' : notificationsCount}
+                        </Badge>
+                    )}
+                    <span className="sr-only">Notifications</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:max-w-md">
+                <SheetHeader className="sr-only">
+                    <SheetTitle>Notifications</SheetTitle>
+                </SheetHeader>
+                <NotificationsCenter setShowMenu={setIsOpen} showMenu={isOpen} />
+            </SheetContent>
+        </Sheet>
+    );
+};
+
+const ProfileButton = ({ isProfileOpen, setIsProfileOpen }: { isProfileOpen: boolean; setIsProfileOpen: (open: boolean) => void }) => {
+    return (
+        <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setIsProfileOpen(true)}
+        >
+            <User className="h-4 w-4" />
+            <span className="sr-only">Profile</span>
+        </Button>
+    );
+};
 
 AppTopbar.displayName = 'AppTopbar';
 
