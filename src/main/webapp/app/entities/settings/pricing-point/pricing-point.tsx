@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button as PrimeButton } from "primereact/button"
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './pricing-point.reducer';
-import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { FilterMatchMode } from 'primereact/api';
 import _ from 'lodash';
-import { InputText } from 'primereact/inputtext';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 export const PricingPoint = () => {
@@ -90,11 +90,6 @@ export const PricingPoint = () => {
     dispatch(getBranches({}));
   }, [])
 
-  const onSort = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
-  };
-
   const debouncedFilter = useRef(_.debounce((event) => {
     event['first'] = 0;
     event['page'] = 0;
@@ -102,125 +97,107 @@ export const PricingPoint = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   }, 300)).current
 
-  const onFilter = (event: DataTableFilterEvent) => {
-    debouncedFilter(event);
-  };
-
-  const onPage = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
-  };
-
-  const nameFilterTemplate = () => {
-    return (
-      <InputText
-        type="text"
-        value={localNameFilter}
-        onChange={(e) => {
-          setLocalNameFilter(e.target.value);
-          const newQuery = {
-            ...query,
-            filters: {
-              ...query.filters,
-              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
-            }
-          };
-          debouncedFilter(newQuery);
-        }}
-        className="p-inputtext-sm"
-        placeholder="Search by Name"
-      />
-    );
-  };
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/pricing-point/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/pricing-point/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pricing-point/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
+  const handleNameFilterChange = (value: string) => {
+    setLocalNameFilter(value);
+    const newQuery = {
+      ...query,
+      filters: {
+        ...query.filters,
+        name: { value, matchMode: FilterMatchMode.CONTAINS }
+      }
+    };
+    debouncedFilter(newQuery);
   };
 
   const handleCreate = () => {
     navigate('/pricing-point/new')
   }
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Pricing Points</span>
-      <div className="ms-auto">
-        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </PrimeButton>
-        <PrimeButton label="Create new Pricing Point" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </PrimeButton>
-      </div>
-    </div>
-  );
+  const handleRefresh = () => {
+    getAllEntities();
+  };
 
   return (
-    <>
-      <div className="table-responsive">
-        <DataTable
-          value={pricingPoints}
-          loading={loading}
-          header={header}
-          filters={query.filters}
-          filterDisplay="row"
-          totalRecords={totalItems}
-          onFilter={onFilter}
-          showGridlines
-          paginator
-          rows={5}
-          rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        >
-          <Column
-            field="name"
-            header="Name"
-            filter
-            filterField="name"
-            filterElement={nameFilterTemplate}
-            body={nameColumnTemplate}
-            filterPlaceholder="Name"
-          />
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Pricing Points</h2>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={handleRefresh} disabled={loading} className="h-8 text-xs">
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button onClick={handleCreate} disabled={loading} className="h-8 text-xs">
+              <Plus className="h-4 w-4 mr-2" />
+              Create new Pricing Point
+            </Button>
+          </div>
+        </div>
 
-          <Column
-            header="Edit"
-            body={editColumnTemplate}
-            headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-            bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-          />
-
-          <Column
-            header="Delete"
-            body={deleteColumnTemplate}
-            headerStyle={{ width: '1%', }}
-            bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-          />
-        </DataTable>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">
+                <div className="space-y-2">
+                  <div>Name</div>
+                  <Input
+                    type="text"
+                    value={localNameFilter || ''}
+                    onChange={(e) => handleNameFilterChange(e.target.value)}
+                    className="h-7 text-xs"
+                    placeholder="Search by Name"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs w-20">Edit</TableHead>
+              <TableHead className="text-xs w-20">Delete</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-xs">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : pricingPoints.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-xs">
+                  No pricing points found
+                </TableCell>
+              </TableRow>
+            ) : (
+              pricingPoints.map((pricingPoint) => (
+                <TableRow key={pricingPoint.id}>
+                  <TableCell className="text-xs">
+                    <Link
+                      to={`/pricing-point/${pricingPoint.id}/edit`}
+                      className="text-primary hover:underline"
+                    >
+                      {pricingPoint.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Link
+                      to={`/pricing-point/${pricingPoint.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    >
+                      <Pencil className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Link
+                      to={`/pricing-point/${pricingPoint.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80 cursor-pointer" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
-    </>
+    </PageWrapper>
   );
 };
 

@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './custom-definitions.reducer';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { initialState } from 'app/shared/reducers/authentication';
-import { Button } from 'primereact/button';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
 export const CustomDefinition = () => {
@@ -28,104 +28,108 @@ export const CustomDefinition = () => {
     }))
   }, []);
 
-  const editColumnTemplate = rowData => {
-    const editUrl = `/custom-definitions/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = rowData => {
-    const deleteUrl = `/custom-definitions/${rowData.id}/delete`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
-
   const handleCreate = () => {
     navigate('/custom-definitions/new')
   }
 
-  const onPage = event => {
-    const queryParams = JSON.stringify({
-      first: event.first,
-      page: event.page,
-      rows: event.rows,
-      sortField: event.sortField,
-      sortOrder: event.sortOrder,
-    });
-    setSearchParams({ query: queryParams }, { replace: true });
-
-    // Dispatch the updated page data
+  const handleRefresh = () => {
     dispatch(getEntities({
-      page: event.page,
+      page: 0,
       size: 10,
-      sort: `${event.sortField},${event.sortOrder === 1 ? 'asc' : 'desc'}`,
-    }));
-  };
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'common.customDefinitions'}>Custom Definitions</Translate>
-      </span>
-      <div className="ms-auto">
-        <Button
-          label={translate('common.create')}
-          raised
-          onClick={handleCreate}
-          disabled={loading}
-        />
-      </div>
-    </div>
-  );
+      sort: 'id,asc',
+    }))
+  }
 
   return (
-    <div>
-      <DataTable
-        value={customDefinitions}
-        editMode="row"
-        removableSort
-        filterDisplay="row"
-        paginator
-        totalRecords={totalItems}
-        rows={10}
-        lazy
-        first={0}
-        onPage={onPage}
-        loading={loading}
-        header={header}
-        sortField={query.sortField}
-        sortOrder={query.sortOrder}
-        showGridlines
-      >
-        <Column
-          field="name"
-          header={translate('common.name')}
-        />
-        <Column field="label" header={translate('common.label')} />
-        <Column field="type" header={translate('common.type')} />
-        <Column field="required" header={translate('common.required')} />
-        <Column field="display" header={translate('common.display')} />
-        <Column
-          header={translate('common.edit')}
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">
+            <Translate contentKey={'common.customDefinitions'}>Custom Definitions</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={handleRefresh} disabled={loading} className="h-8 text-xs">
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <Translate contentKey="common.refresh">Refresh</Translate>
+            </Button>
+            <Button onClick={handleCreate} disabled={loading} className="h-8 text-xs">
+              <Plus className="h-4 w-4 mr-2" />
+              <Translate contentKey={'common.create'}>Create</Translate>
+            </Button>
+          </div>
+        </div>
 
-        <Column
-          header={translate('common.delete')}
-          body={deleteColumnTemplate}
-          headerStyle={{ width: '1%' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-      </DataTable>
-    </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">
+                <Translate contentKey={'common.name'}>Name</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey={'common.label'}>Label</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey={'common.type'}>Type</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey={'common.required'}>Required</Translate>
+              </TableHead>
+              <TableHead className="text-xs">
+                <Translate contentKey={'common.display'}>Display</Translate>
+              </TableHead>
+              <TableHead className="text-xs w-20">
+                <Translate contentKey={'common.edit'}>Edit</Translate>
+              </TableHead>
+              <TableHead className="text-xs w-20">
+                <Translate contentKey={'common.delete'}>Delete</Translate>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-xs">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : customDefinitions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-xs">
+                  No custom definitions found
+                </TableCell>
+              </TableRow>
+            ) : (
+              customDefinitions.map((customDefinition) => (
+                <TableRow key={customDefinition.id}>
+                  <TableCell className="text-xs">
+                    <Link
+                      to={`/custom-definitions/${customDefinition.id}/edit`}
+                      className="text-primary hover:underline"
+                    >
+                      {customDefinition.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">{customDefinition.label}</TableCell>
+                  <TableCell className="text-xs">{customDefinition.type}</TableCell>
+                  <TableCell className="text-xs">{customDefinition.required ? 'Yes' : 'No'}</TableCell>
+                  <TableCell className="text-xs">{customDefinition.display ? 'Yes' : 'No'}</TableCell>
+                  <TableCell className="text-xs">
+                    <Link to={`/custom-definitions/${customDefinition.id}/edit`}>
+                      <Pencil className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" />
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Link to={`/custom-definitions/${customDefinition.id}/delete`}>
+                      <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80 cursor-pointer" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </PageWrapper>
   );
 };
 
