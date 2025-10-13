@@ -22,6 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const StockConfig = () => {
   const dispatch = useAppDispatch();
@@ -175,7 +176,7 @@ export const StockConfig = () => {
   };
 
   return (
-    <div>
+    <PageWrapper>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <span className="text-xl font-bold"><Translate contentKey={'tempApp.stockConfig.title'}>StockConfigs</Translate></span>
         <div className="flex flex-wrap justify-end gap-2">
@@ -315,7 +316,7 @@ export const StockConfig = () => {
           </Pagination>
         </div>
       )}
-    </div>
+    </PageWrapper>
   );
 };
 

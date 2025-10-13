@@ -506,13 +506,22 @@ export default function Home() {
               {loading.chartsData ? (
                 <Skeleton className="h-[350px] w-full" />
               ) : (
-                <ChartContainer config={lineChartConfig} className="h-[350px] w-full">
-                  <LineChart data={lineChartData}>
+                <ChartContainer config={lineChartConfig} className="h-[350px] w-full overflow-hidden">
+                  <LineChart data={lineChartData} margin={{ bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend
+                      content={<ChartLegendContent />}
+                      wrapperStyle={{
+                        paddingTop: '20px',
+                        maxWidth: '100%',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    />
                     {Object.keys(lineChartConfig).map((key) => (
                       <Line
                         key={key}
@@ -537,8 +546,8 @@ export default function Home() {
               {loading.chartsData ? (
                 <Skeleton className="h-[368px] w-full" />
               ) : (
-                <ChartContainer config={pieChartConfig} className="h-[368px] w-full">
-                  <PieChart>
+                <ChartContainer config={pieChartConfig} className="h-[368px] w-full overflow-hidden">
+                  <PieChart margin={{ bottom: 20 }}>
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Pie
                       data={pieChartData}
@@ -553,7 +562,16 @@ export default function Home() {
                         <Cell key={`cell-${index}`} fill={Object.values(pieChartConfig)[index]?.color || '#000'} />
                       ))}
                     </Pie>
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend
+                      content={<ChartLegendContent />}
+                      wrapperStyle={{
+                        paddingTop: '20px',
+                        maxWidth: '100%',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    />
                   </PieChart>
                 </ChartContainer>
               )}

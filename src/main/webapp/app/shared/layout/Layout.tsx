@@ -209,7 +209,7 @@ export const Layout = (props: ChildContainerProps) => {
                 <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
 
                 <ErrorBoundary>
-                  <div className="layout-content px-6">{props.children}</div>
+                  <div className="layout-content">{props.children}</div>
                 </ErrorBoundary>
               </div>
 

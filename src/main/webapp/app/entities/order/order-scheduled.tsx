@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 interface LazyTableState {
   first: number;
@@ -168,8 +169,8 @@ const OrderScheduled = () => {
   const totalPages = Math.ceil(totalOrders / lazyState.rows);
 
   return (
-    <div className="space-y-3">
-      <div className="border rounded-md p-4">
+    <PageWrapper>
+      <div className="border rounded-md">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base font-semibold">Schedule Orders</h2>
@@ -540,7 +541,7 @@ const OrderScheduled = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

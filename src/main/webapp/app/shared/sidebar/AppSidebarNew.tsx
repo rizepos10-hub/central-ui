@@ -292,7 +292,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                 toggleSubmenu(itemKey);
               }}
               className={cn(
-                'justify-between h-9 px-3 hover:bg-sidebar-accent transition-colors',
+                'justify-between h-9 px-3 hover:bg-sidebar-accent transition-colors !text-sidebar-accent-foreground',
                 isExpanded && 'bg-sidebar-accent font-medium'
               )}
             >
@@ -331,7 +331,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                             toggleSubmenu(subItemKey);
                           }}
                           className={cn(
-                            'h-8 px-3 hover:bg-sidebar-accent/70 transition-colors rounded-md justify-between',
+                            'h-8 px-3 hover:bg-sidebar-accent/70 transition-colors rounded-md justify-between !text-sidebar-accent-foreground',
                             subIsExpanded && 'bg-sidebar-accent/70 font-medium'
                           )}
                         >
@@ -351,8 +351,8 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                                   <Link
                                     to={isBlocked ? '#' : nestedItem.to}
                                     className={cn(
-                                      'flex items-center gap-2 h-7 px-3 rounded-md text-sm hover:bg-sidebar-accent/70 transition-colors',
-                                      nestedIsActive && 'bg-primary/10 font-medium text-primary hover:bg-primary/15'
+                                      'flex items-center gap-2 h-7 px-3 rounded-md text-sm hover:bg-sidebar-accent/70 transition-colors !text-sidebar-accent-foreground',
+                                      nestedIsActive && 'bg-primary/10 font-medium hover:bg-primary/15'
                                     )}
                                     onClick={(e) => {
                                       if (isBlocked) {
