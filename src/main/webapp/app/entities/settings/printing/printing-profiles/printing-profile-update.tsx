@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IPrintingProfile } from 'app/shared/model/PRINTER/printing-profile.model';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './printing-profile.reducer';
@@ -9,12 +8,13 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as getPrinters } from 'app/entities/settings/printing/printer/printer.reducer';
 
 import Select from 'react-select';
-import { InputText } from 'primereact/inputtext';
 import { getSortState, Translate } from 'react-jhipster';
-import { Checkbox } from 'primereact/checkbox';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IBranch } from 'app/shared/model/branch.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const PrintingProfileUpdate = () => {
   const dispatch = useAppDispatch();
@@ -32,8 +32,7 @@ export const PrintingProfileUpdate = () => {
   const printingProfile: IPrintingProfile = useAppSelector(state => state.printingProfiles.entity);
   const updating = useAppSelector(state => state.printingProfiles.updating);
 
-  const saveEntity = (e, createNew = false) => {
-    e.preventDefault();
+  const saveEntity = (createNew = false) => {
     const formData = {
       ...printingProfile,
     };
@@ -96,93 +95,103 @@ export const PrintingProfileUpdate = () => {
   };
 
   return (
-    <Row>
-      <h2>{isNew ? `Add New Printing Profile` : `Edit Printing Profile ${printingProfile.name}`}</h2>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">
+        {isNew ? `Add New Printing Profile` : `Edit Printing Profile ${printingProfile.name}`}
+      </h2>
 
-      <Col md="8" className="d-flex flex-column p-3  bg-white">
-        <form>
-          <FormGroup>
-            <div className="d-flex flex-column mb-3">
-              <label htmlFor="name">Name</label>
-              <InputText
-                id="name"
-                value={printingProfile?.name || ''}
-                onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
-                required
-              />
+      <div className="max-w-2xl bg-white p-4 rounded-lg border">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium">Name</label>
+            <Input
+              id="name"
+              value={printingProfile?.name || ''}
+              onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
+              required
+              className="h-7 text-xs"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="text-sm font-bold">Selected Printers</label>
+              {printersList
+                ?.filter(printer => printingProfile?.printers?.some(selectedPrinter => selectedPrinter.id === printer.id))
+                .map(printer => (
+                  <div key={printer.id} className="flex items-center gap-2">
+                    <Checkbox
+                      checked={printingProfile.printers?.some(selectedPrinter => selectedPrinter.id === printer.id)}
+                      onCheckedChange={(checked) => togglePrinterSelection(printer.id)}
+                    />
+                    <label className="text-sm font-bold">{printer.name}</label>
+                  </div>
+                ))}
             </div>
 
-            <div className="d-flex flex-column mb-3 gap-3 justify-content-between">
-              <div className="d-flex flex-column mb-3 mt-3">
-                <label htmlFor="profiles" className="font-bold">
-                  Selected Printers
-                </label>
-                {printersList
-                  ?.filter(printer => printingProfile?.printers?.some(selectedPrinter => selectedPrinter.id === printer.id))
-                  .map(printer => (
-                    <div key={printer.id} className={"d-flex gap-2"}>
-                      <Checkbox
-                        checked={printingProfile.printers?.some(selectedPrinter => selectedPrinter.id === printer.id)}
-                        onChange={() => togglePrinterSelection(printer.id)}
-                      />
-                      <label className="font-bold">{printer.name}</label>
-                    </div>
-                  ))}
-              </div>
-
-              <div className="d-flex flex-column mb-3 mt-3 gap-2">
-                <label htmlFor="profiles" className="font-bold">
-                  Other Printers
-                </label>
-                {printersList
-                  ?.filter(printer => !printingProfile.printers?.some(selectedPrinter => selectedPrinter.id === printer.id))
-                  .map(printer => (
-                    <div key={printer.id} className="d-flex flex-col gap-3">
-                      <Checkbox checked={false} onChange={() => togglePrinterSelection(printer.id)} />
-                      <label className="font-bold">{printer.name}</label>
-                    </div>
-                  ))}
-              </div>
+            <div className="space-y-3">
+              <label className="text-sm font-bold">Other Printers</label>
+              {printersList
+                ?.filter(printer => !printingProfile.printers?.some(selectedPrinter => selectedPrinter.id === printer.id))
+                .map(printer => (
+                  <div key={printer.id} className="flex items-center gap-2">
+                    <Checkbox
+                      checked={false}
+                      onCheckedChange={(checked) => togglePrinterSelection(printer.id)}
+                    />
+                    <label className="text-sm font-bold">{printer.name}</label>
+                  </div>
+                ))}
             </div>
+          </div>
 
-            <div className="d-flex flex-column mb-3">
-              <label htmlFor="accountingId">Branches</label>
-              <Select
-                value={printingProfile.branch || null}
-                options={branchList}
-                getOptionLabel={(option: IBranch) => option.name}
-                getOptionValue={(option: IBranch) => option.id}
-                required
-                onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="accountingId" className="text-sm font-medium">Branches</label>
+            <Select
+              value={printingProfile.branch || null}
+              options={branchList}
+              getOptionLabel={(option: IBranch) => option.name}
+              getOptionValue={(option: IBranch) => option.id}
+              required
+              onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
+              styles={{
+                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+              }}
+            />
+          </div>
 
-            <div className="d-flex justify-content-start align-items-center  mt-7">
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
-              &nbsp;
-            </div>
-          </FormGroup>
-        </form>
-      </Col>
-    </Row>
+          <div className="flex items-center gap-2 mt-6">
+            <Button
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <Translate contentKey="entity.action.back">Back</Translate>
+            </Button>
+            <Button
+              className="h-8 text-xs"
+              onClick={() => saveEntity(false)}
+              disabled={updating}
+            >
+              <Save className="h-4 w-4" />
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+            <Button
+              className="h-8 text-xs"
+              onClick={() => saveEntity(true)}
+              disabled={updating}
+            >
+              <Save className="h-4 w-4" />
+              <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
