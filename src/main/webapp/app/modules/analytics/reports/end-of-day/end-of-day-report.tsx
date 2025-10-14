@@ -1,7 +1,6 @@
 // EndOfDayReportContainer.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { Spinner } from 'reactstrap';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch } from 'app/config/store';
 import DynamicEndOfDayReportUI from './dynamic-end-of-day-report';
@@ -49,7 +48,11 @@ const EndOfDayReportContainer = () => {
   }, [id, dispatch]);
 
   if (loading) {
-    return <Spinner />;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (

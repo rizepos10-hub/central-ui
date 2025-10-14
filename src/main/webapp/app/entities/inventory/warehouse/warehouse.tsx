@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
+import { Button } from '@/components/ui/button';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './warehouse.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column, ColumnFilterElementTemplateOptions} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
-import {classNames} from "primereact/utils";
-import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import {Dropdown} from "primereact/dropdown";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { IWarehouse } from 'app/shared/model/STOCK/warehouse.model';
+import Select from 'react-select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const Warehouse = () => {
   const dispatch = useAppDispatch();
@@ -31,9 +30,9 @@ export const Warehouse = () => {
   const loading = useAppSelector(state => state.warehouse.loading);
   const totalItems = useAppSelector(state => state.warehouse.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    main: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    location: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: '',
+    main: null,
+    location: '',
   });
 
   const getAllEntities = () => {
@@ -80,105 +79,168 @@ export const Warehouse = () => {
     sortEntities();
   };
 
-
-  const verifiedFilterTemplate = () => {
-    const dropdownItems = [
-      { label: 'All', value: null },
-      { label: 'Main', value: true },
-    ];
-
-    const handleDropdownChange = (e) => {
-      setFilters((prev :any) => ({
-        ...prev,
-          main: { value: e.value, matchMode: 'equals' }
-      }));
-    };
-
-    return (
-      <Dropdown
-        options={dropdownItems}
-        value={filters?.main?.value}
-        onChange={handleDropdownChange}
-        placeholder={translate("tempApp.warehouse.search.main")}
-      />
-    );
-  };
-
-
-
-  const verifiedBodyTemplate = (rowData: IWarehouse) => {
-    return <i className={classNames('pi', { 'text-green-500 pi-check-circle': rowData.main, 'text-red-500 pi-times-circle': !rowData.main })}></i>;
-  };
-
-
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/inventory/warehouse/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/warehouse/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/warehouse/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
-
   const handleCreate = () => {
-    navigate('/inventory/warehouse/new')
-  }
+    navigate('/inventory/warehouse/new');
+  };
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.warehouse.title'}>Warehouses</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.warehouse.createNew")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
+  // Filter options for main warehouse dropdown
+  const mainFilterOptions = [
+    { label: 'All', value: null },
+    { label: 'Main', value: true },
+  ];
+
+  // Custom styles for react-select
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      minHeight: '28px',
+      fontSize: '0.75rem',
+    }),
+    option: (base) => ({
+      ...base,
+      fontSize: '0.75rem',
+    }),
+    menu: (base) => ({
+      ...base,
+      fontSize: '0.75rem',
+    }),
+  };
+
+  // Filter the warehouse list based on filter state
+  const filteredWarehouseList = warehouseList.filter((warehouse) => {
+    const nameMatch = !filters.name || warehouse.name?.toLowerCase().includes(filters.name.toLowerCase());
+    const locationMatch = !filters.location || warehouse.location?.toLowerCase().includes(filters.location.toLowerCase());
+    const mainMatch = filters.main === null || warehouse.main === filters.main;
+    return nameMatch && locationMatch && mainMatch;
+  });
 
 
 
 
   return (
+    <PageWrapper>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">
+              <Translate contentKey={'tempApp.warehouse.title'}>Warehouses</Translate>
+            </h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                {translate('common.refreshList')}
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {translate('tempApp.warehouse.createNew')}
+              </Button>
+            </div>
+          </div>
 
-      <div >
-        <DataTable value={warehouseList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20} loading={loading} showGridlines>
-          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')}  sortable  />
-          <Column field="location" header={translate('common.location')} filter  filterPlaceholder={translate('common.search.location')}  sortable  />
-          <Column field="main"  header={translate('tempApp.warehouse.main')}  body={verifiedBodyTemplate} showFilterMatchModes={false}
-                  dataType="boolean" bodyClassName="text-center" style={{width: '10%'}} filter filterElement={verifiedFilterTemplate}  />
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('common.name')}</div>
+                    <Input
+                      className="h-7 text-xs"
+                      placeholder={translate('common.search.name')}
+                      value={filters.name}
+                      onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('common.location')}</div>
+                    <Input
+                      className="h-7 text-xs"
+                      placeholder={translate('common.search.location')}
+                      value={filters.location}
+                      onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="text-xs w-32">
+                  <div className="space-y-1">
+                    <div>{translate('tempApp.warehouse.main')}</div>
+                    <Select
+                      options={mainFilterOptions}
+                      value={mainFilterOptions.find(opt => opt.value === filters.main)}
+                      onChange={(option) => setFilters({ ...filters, main: option?.value })}
+                      styles={selectStyles}
+                      placeholder={translate('tempApp.warehouse.search.main')}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="text-xs w-20 text-center">{translate('common.edit')}</TableHead>
+                <TableHead className="text-xs w-20 text-center">{translate('common.delete')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading && filteredWarehouseList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-xs py-4">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : filteredWarehouseList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-xs py-4">
+                    No warehouses found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredWarehouseList.map((warehouse) => {
+                  const editUrl = `/inventory/warehouse/${warehouse.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                  const deleteUrl = `/inventory/warehouse/${warehouse.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-        </DataTable>
-      </div>
+                  return (
+                    <TableRow key={warehouse.id}>
+                      <TableCell className="text-xs">
+                        <Link to={editUrl} className="hover:underline">
+                          {warehouse.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">{warehouse.location}</TableCell>
+                      <TableCell className="text-xs text-center">
+                        {warehouse.main ? (
+                          <CheckCircle className="h-4 w-4 text-green-600 mx-auto" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600 mx-auto" />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-center">
+                        <Link to={editUrl}>
+                          <Pencil className="h-4 w-4 text-gray-400 hover:text-gray-600 mx-auto cursor-pointer" />
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs text-center">
+                        <Link to={deleteUrl}>
+                          <Trash2 className="h-4 w-4 text-red-600 hover:text-red-800 mx-auto cursor-pointer" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

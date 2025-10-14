@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil, Trash2, Eye, Handshake, CalendarIcon } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, filterEntities } from './purchase-order.reducer';
 import { searchEntities as searchSuppliers, getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { searchEntities as searchWarehouses, getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
-import { DataTable, DataTablePageEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
 
 import { IPurchaseOrder } from "app/shared/model/STOCK/purchase-order.model";
-import { Tag } from "primereact/tag";
-import { Dropdown } from "primereact/dropdown";
 import { FilterMatchMode } from "primereact/api";
 import _ from "lodash";
-import { InputText } from "primereact/inputtext";
 import Select from "react-select";
-import { Calendar } from "primereact/calendar";
 import { toLocalISOString } from "app/shared/util/date-utils";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { Spinner } from "reactstrap";
-import { FaHandshake } from 'react-icons/fa';
+import { Loader2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { format } from 'date-fns';
 
 const initialState = {
   first: 0,
@@ -104,239 +106,373 @@ export const PurchaseOrder = () => {
     getAllEntities();
   };
 
-  const onSort = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const onFilter = (event: any) => {
-    event['first'] = 0;
-    event['page'] = 0;
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const onPage = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const statusBodyTemplate = (item) => {
-    const getSeverity = (order: IPurchaseOrder) => {
-      switch (order.status) {
-        case 'PLACED':
-          return 'warning';
-        case 'RECEIVED':
-          return 'success';
-        default:
-          return null;
+  const onFilter = (field: string, value: any) => {
+    const newQuery = {
+      ...query,
+      first: 0,
+      page: 0,
+      filters: {
+        ...query.filters,
+        [field]: { value, matchMode: 'equals' }
       }
     };
-    return <Tag value={item.status} severity={getSeverity(item)}></Tag>;
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
-  const handleFilterDateChange = (e, field) => {
+  const onPage = (newPage: number) => {
+    const newQuery = {
+      ...query,
+      first: (newPage - 1) * query.rows,
+      page: newPage - 1
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSeverity = (status: string) => {
+    switch (status) {
+      case 'PLACED':
+        return 'default';
+      case 'RECEIVED':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  const handleFilterDateChange = (date: Date, field: string) => {
     const newQueryWithStatus = JSON.stringify({
       ...query,
       filters: {
         ...query.filters,
-        [field]: { value: toLocalISOString(e.value), matchMode: 'startsWith' }
+        [field]: { value: toLocalISOString(date), matchMode: 'startsWith' }
       }
     });
     setSearchParams({ query: newQueryWithStatus }, { replace: true });
   };
 
-  const filterTemplate = (field) => {
-    const statusDropdownItems = [
-      { name: 'All', id: null },
-      { name: 'Placed', id: "PLACED" },
-      { name: 'Received', id: "RECEIVED" },
-    ];
+  const statusDropdownItems = [
+    { name: 'All', id: null },
+    { name: 'Placed', id: "PLACED" },
+    { name: 'Received', id: "RECEIVED" },
+  ];
 
-    const dropDownOptions = {
-      "status": statusDropdownItems,
-      "supplier": supplierList,
-      "warehouse": warehouseList
+  useEffect(() => {
+    const searchAction = () => {
+      if (searchTermSupplier) {
+        dispatch(searchSuppliers({
+          query: searchTermSupplier
+        }));
+      } else {
+        dispatch(getSuppliers({}));
+      }
+
+      if (searchTermWarehouse) {
+        dispatch(searchWarehouses({
+          query: searchTermWarehouse
+        }));
+      } else {
+        dispatch(getWarehouses({}));
+      }
     };
 
-    useEffect(() => {
-      const searchAction = () => {
-        if (searchTermSupplier) {
-          dispatch(searchSuppliers({
-            query: searchTermSupplier
-          }));
-        } else {
-          dispatch(getSuppliers({}));
-        }
+    const debouncedSearchAction = _.debounce(searchAction, 500);
+    debouncedSearchAction();
 
-        if (searchTermWarehouse) {
-          dispatch(searchWarehouses({
-            query: searchTermWarehouse
-          }));
-        } else {
-          dispatch(getWarehouses({}));
-        }
-      };
-
-      const debouncedSearchAction = _.debounce(searchAction, 500);
-      debouncedSearchAction();
-
-      return () => {
-        debouncedSearchAction.cancel();
-      };
-    }, [searchTermSupplier, searchTermWarehouse]);
-
-    const handleDropdownChange = (e) => {
-      const newQueryWithStatus = JSON.stringify({
-        ...query,
-        filters: {
-          ...query.filters,
-          [field !== 'status' ? `${field}.id` : field]: { value: e.target.value, matchMode: 'equals' }
-        }
-      });
-      setSearchParams({ query: newQueryWithStatus }, { replace: true });
+    return () => {
+      debouncedSearchAction.cancel();
     };
-
-    const filterElement = () => (
-      <span className="p-input-icon-right">
-        <InputText
-          placeholder="Search" value={field === 'supplier' ? searchTermSupplier : searchTermWarehouse}
-          onChange={e => field === 'supplier' ? setSearchTermSupplier(e.target.value) : setSearchTermWarehouse(e.target.value)} />
-        <i className="pi pi-search" />
-      </span>
-    );
-
-    return (
-      <Dropdown
-        options={dropDownOptions[field]}
-        filter={field !== 'status'}
-        showFilterClear={true}
-        showClear
-        filterTemplate={filterElement}
-        optionLabel={"name"}
-        optionValue={"id"}
-        value={query?.filters?.[field !== 'status' ? `${field}.id` : field]?.value}
-        onChange={handleDropdownChange}
-        placeholder={translate("common.search.points")}
-      />
-    );
-  };
-
-  const idColumnTemplate = rowData => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.id}
-      </Link>
-    );
-  };
-
-  const actionsColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
-    return (
-      rowData?.status === "RECEIVED" ?
-        <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer', fontSize: '1.25rem', marginLeft: '0.3rem' }} />
-        :
-        <Link to={editUrl}>
-          <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-        </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?&query=${JSON.stringify(query)}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
-
-  const returnColumnTemplate = (rowData) => {
-    const supplierReturnUrl = `/inventory/supplier-return/new?poId=${rowData.id}`;
-    const highlightStyle = flashReturn && flashHighlight
-      ? { backgroundColor: '#ffc107', transition: 'background-color 0.5s ease-in-out', padding: '0.2rem', borderRadius: '0.2rem' }
-      : {};
-    return (
-      <Link to={supplierReturnUrl} style={highlightStyle}>
-        <FaHandshake size={20} />
-      </Link>
-    );
-  };
+  }, [searchTermSupplier, searchTermWarehouse]);
 
   const handleCreate = () => {
     navigate(`/inventory/purchase-order/new?query=${JSON.stringify(query)}`);
   };
 
-  const header = (
-    <div className="d-flex flex-wrap align-items-center justify-content-between">
-      <span className="h4 font-weight-bold"><Translate contentKey={'tempApp.purchaseOrder.title'}>PurchaseOrders</Translate></span>
-      <div className="ml-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="mr-3" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.purchaseOrder.addNew")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
+  const currentPage = query.page + 1;
+  const totalPages = Math.ceil(totalItems / query.rows);
 
-  if (loading) {
-    return <Spinner />;
+  if (loading && !purchaseOrderList?.length) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </PageWrapper>
+    );
   }
 
   return (
-    <div>
-      <DataTable
-        value={purchaseOrderList} editMode="row" header={header} removableSort filters={query.filters} filterDisplay="row"
-        paginator totalRecords={totalItems} rows={20} lazy first={query.first} onPage={onPage} onFilter={onFilter}
-        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
-      >
-        <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.warehouse')} filter showFilterMenu={false}
-          filterElement={() => filterTemplate("warehouse")} filterPlaceholder={translate('tempApp.purchaseOrder.search.warehouse')} />
+    <PageWrapper>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold">
+            <Translate contentKey={'tempApp.purchaseOrder.title'}>Purchase Orders</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              {translate("common.refreshList")}
+            </Button>
+            <Button size="sm" className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
+              <Plus className="h-4 w-4 mr-1" />
+              {translate("tempApp.purchaseOrder.addNew")}
+            </Button>
+          </div>
+        </div>
 
-        <Column field="supplier.name" header={translate('tempApp.purchaseOrder.supplier')} filter showFilterMenu={false}
-          filterElement={() => filterTemplate("supplier")} filterPlaceholder={translate('tempApp.purchaseOrder.search.supplier')} />
+        {/* Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('tempApp.purchaseOrder.warehouse')}</div>
+                    <Select
+                      options={warehouseList}
+                      value={warehouseList.find(w => w.id === query?.filters?.['warehouse.id']?.value) || null}
+                      onChange={selectedWarehouse => onFilter('warehouse.id', selectedWarehouse?.id || null)}
+                      getOptionLabel={(option) => option.name}
+                      getOptionValue={(option) => option.id}
+                      isClearable
+                      placeholder={translate('tempApp.purchaseOrder.search.warehouse')}
+                      onInputChange={(value) => setSearchTermWarehouse(value)}
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
+                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
+                </TableHead>
 
-        <Column field="datePlaced" header={translate('common.datePlaced')} filter
-          body={(rowData) => rowData?.datePlaced?.split("T")?.[0]} showFilterMenu={false}
-          filterElement={<Calendar value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')} />}
-          filterPlaceholder={translate('common.search.datePlaced')} />
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('tempApp.purchaseOrder.supplier')}</div>
+                    <Select
+                      options={supplierList}
+                      value={supplierList.find(s => s.id === query?.filters?.['supplier.id']?.value) || null}
+                      onChange={selectedSupplier => onFilter('supplier.id', selectedSupplier?.id || null)}
+                      getOptionLabel={(option) => option.name}
+                      getOptionValue={(option) => option.id}
+                      isClearable
+                      placeholder={translate('tempApp.purchaseOrder.search.supplier')}
+                      onInputChange={(value) => setSearchTermSupplier(value)}
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
+                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
+                </TableHead>
 
-        <Column field="dateDelivered" header={translate('common.dateDelivered')}
-          body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
-          filterElement={<Calendar value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')} />}
-          filterPlaceholder={translate('common.search.dateDelivered')} />
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('common.datePlaced')}</div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
+                          <CalendarIcon className="h-3 w-3 mr-1" />
+                          {query?.filters?.datePlaced?.value ? format(new Date(query.filters.datePlaced.value), 'PP') : translate('common.search.datePlaced')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={query?.filters?.datePlaced?.value ? new Date(query.filters.datePlaced.value) : undefined}
+                          onSelect={(date) => date && handleFilterDateChange(date, 'datePlaced')}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </TableHead>
 
-        <Column field="status" header={translate('common.status')} filter showFilterMenu={false}
-          filterElement={() => filterTemplate("status")} body={statusBodyTemplate} />
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('common.dateDelivered')}</div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
+                          <CalendarIcon className="h-3 w-3 mr-1" />
+                          {query?.filters?.dateDelivered?.value ? format(new Date(query.filters.dateDelivered.value), 'PP') : translate('common.search.dateDelivered')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={query?.filters?.dateDelivered?.value ? new Date(query.filters.dateDelivered.value) : undefined}
+                          onSelect={(date) => date && handleFilterDateChange(date, 'dateDelivered')}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </TableHead>
 
-        <Column header={'Order Lines Total'} body={(rowData) => rowData?.orderLines?.reduce((acc, line) => acc + line.lineTotal, 0)} /> 
+                <TableHead className="text-xs">
+                  <div className="space-y-1">
+                    <div>{translate('common.status')}</div>
+                    <Select
+                      options={statusDropdownItems}
+                      value={statusDropdownItems.find(s => s.id === query?.filters?.status?.value) || null}
+                      onChange={selectedStatus => onFilter('status', selectedStatus?.id || null)}
+                      getOptionLabel={(option) => option.name}
+                      getOptionValue={(option) => option.id}
+                      isClearable
+                      placeholder={translate("common.search.points")}
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
+                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
+                </TableHead>
 
-        <Column header={'Cost Lines Total'} body={(rowData) => rowData?.costLines?.reduce((acc, line) => acc + line.cost, 0)} /> 
+                <TableHead className="text-xs">Order Lines Total</TableHead>
+                <TableHead className="text-xs">Cost Lines Total</TableHead>
+                <TableHead className="text-xs">Item Name</TableHead>
+                <TableHead className="text-xs w-16 text-center">{translate('common.return')}</TableHead>
+                <TableHead className="text-xs w-16 text-center">{translate('common.view')}</TableHead>
+                <TableHead className="text-xs w-16 text-center">{translate('common.delete')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {purchaseOrderList && purchaseOrderList.length > 0 ? (
+                purchaseOrderList.map((purchaseOrder) => {
+                  const editUrl = `/inventory/purchase-order/${purchaseOrder.id}/edit?&query=${JSON.stringify(query)}`;
+                  const deleteUrl = `/inventory/purchase-order/${purchaseOrder.id}/delete?&query=${JSON.stringify(query)}`;
+                  const supplierReturnUrl = `/inventory/supplier-return/new?poId=${purchaseOrder.id}`;
 
-        <Column
-          header={'Item Name'}
-          body={rowData => {
-            const names = rowData?.orderLines?.map(line => line.item?.name).filter(Boolean) || [];
-            const displayed = names.slice(0, 3).join(', ');
-            return names.length > 3 ? `${displayed}, ...` : displayed;
-          }}
-        />
+                  const highlightStyle = flashReturn && flashHighlight
+                    ? 'bg-yellow-200 transition-colors duration-500'
+                    : '';
 
-        <Column header={translate('common.return')} body={returnColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
-          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
+                  return (
+                    <TableRow key={purchaseOrder.id}>
+                      <TableCell className="text-xs">{purchaseOrder.warehouse?.name}</TableCell>
+                      <TableCell className="text-xs">{purchaseOrder.supplier?.name}</TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder?.datePlaced ? (typeof purchaseOrder.datePlaced === 'string' ? purchaseOrder.datePlaced.split("T")?.[0] : purchaseOrder.datePlaced.toISOString().split("T")?.[0]) : ''}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder?.dateDelivered ? (typeof purchaseOrder.dateDelivered === 'string' ? purchaseOrder.dateDelivered.split("T")?.[0] : purchaseOrder.dateDelivered.toISOString().split("T")?.[0]) : ''}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <Badge variant={getSeverity(purchaseOrder.status)}>{purchaseOrder.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder?.orderLines?.reduce((acc, line) => acc + ((line.quantity || 0) * (line.price || 0)), 0).toFixed(2) || 0}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder?.costLines?.reduce((acc, line) => acc + (line.cost || 0), 0).toFixed(2) || 0}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {(() => {
+                          const names = purchaseOrder?.orderLines?.map(line => line.item?.name).filter(Boolean) || [];
+                          const displayed = names.slice(0, 3).join(', ');
+                          return names.length > 3 ? `${displayed}, ...` : displayed;
+                        })()}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Link to={supplierReturnUrl} className={`inline-block p-1 rounded ${highlightStyle}`}>
+                          <Handshake className="h-5 w-5" />
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {purchaseOrder?.status === "RECEIVED" ? (
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => navigate(editUrl)}>
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
+                            <Link to={editUrl}>
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Link>
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
+                          <Link to={deleteUrl}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={11} className="h-24 text-center text-xs">
+                    <Translate contentKey="entity.noResults" />
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-        <Column header={translate('common.view')} body={actionsColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
-          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
+        {/* Pagination */}
+        {totalItems > 0 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) onPage(currentPage - 1);
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
 
-        <Column header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
-          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
 
-      </DataTable>
-    </div>
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onPage(pageNum);
+                      }}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) onPage(currentPage + 1);
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate, } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tag.reducer';
-import Select from 'react-select';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { Card as PrimeCard } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Save, PlusCircle } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { ITag } from "app/shared/model/TAG/tag.model";
 
 export const TagUpdate = () => {
@@ -20,21 +18,10 @@ export const TagUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-
   const tagEntity: ITag = useAppSelector(state => state.tag.entity);
   const loading = useAppSelector(state => state.tag.loading);
   const updating = useAppSelector(state => state.tag.updating);
   const updateSuccess = useAppSelector(state => state.tag.updateSuccess);
-
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
-
-  const handleClose = () => {
-    navigate(-1);
-  };
-
-
 
   useEffect(() => {
     if (isNew) {
@@ -42,19 +29,13 @@ export const TagUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(
-      getTags({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
   }, []);
 
   const handleChange = e => {
     const { name, value } = e.target;
     dispatch(changeEntityField({ name, value }))
   };
+
   const saveEntity = (e, createNew = false) => {
     e?.preventDefault();
     const entity = {
@@ -85,69 +66,74 @@ export const TagUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="tempApp.tag.home.createOrEditLabel" data-cy="TagCreateUpdateHeading">
-            {isNew ? (
-              <Translate contentKey={'tag.update.create.title'}>Create New tag</Translate>
-            ) : (
-              <Translate contentKey={'tag.update.edit.title'}>Edit tag Group</Translate>
-            )}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <PrimeCard>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          {isNew ? (
+            <Translate contentKey={'tag.update.create.title'}>Create New tag</Translate>
+          ) : (
+            <Translate contentKey={'tag.update.edit.title'}>Edit tag</Translate>
+          )}
+        </h2>
+
+        <Card>
+          <CardContent className="pt-6">
             {loading ? (
-              <p>Loading...</p>
+              <p className="text-xs">Loading...</p>
             ) : (
-              <>
-                <form>
-                  <FormGroup className={"d-flex flex-column gap-3"}>
-                    <div className={'d-flex flex-column'}>
-                      <Label for="tag-group-name">
-                        <Translate contentKey={'tag.update.name'}>tag Name</Translate>
-                      </Label>
-                      <InputText
-                        type="text"
-                        name="name"
-                        required={true}
-                        id="tag-group-name"
-                        value={tagEntity?.name || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
+              <form onSubmit={saveEntity} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tag-name" className="text-xs">
+                    <Translate contentKey={'tag.update.name'}>Tag Name</Translate>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="name"
+                    required={true}
+                    id="tag-name"
+                    value={tagEntity?.name || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
 
-                  </FormGroup>
-
-                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                    <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp;
-                    <span className="d-none d-md-inline">
-                      <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => navigate(-1)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <Translate contentKey="entity.action.back">Back</Translate>
                   </Button>
-                  &nbsp;
-                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="h-8 text-xs"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
                     <Translate contentKey="entity.action.save">Save</Translate>
                   </Button>
-                  &nbsp;
-                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => saveEntity(e, true)}
+                    disabled={updating}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
                     <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                   </Button>
-                </form>
-              </>
+                </div>
+              </form>
             )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

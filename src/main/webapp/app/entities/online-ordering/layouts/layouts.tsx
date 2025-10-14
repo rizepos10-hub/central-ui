@@ -1,16 +1,16 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ICarouselItem, ILayouts, SelectedLayoutEnum } from 'app/shared/model/ONLINE_ORDERING/layouts/layouts.module';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
-import { Checkbox } from 'primereact/checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import React, { useEffect, useMemo, useState } from 'react'
-import { Card, Carousel, CarouselControl, CarouselItem, Col, FormGroup, Input, Label, Row, Spinner } from 'reactstrap'
 import { getEntity, updateEntity, reset, changeEntityField } from 'app/entities/online-ordering/settings/settings.reducer';
-import { InputText } from 'primereact/inputtext';
-import { TabPanel, TabView } from 'primereact/tabview';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ItemSelectionModal from 'app/entities/menu/item-selection-modal';
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { Button } from 'primereact/button';
-import { InputNumber } from 'primereact/inputnumber';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { ColorPicker } from 'primereact/colorpicker';
@@ -23,14 +23,15 @@ import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-setting
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { ISliderSettings } from 'app/shared/model/ONLINE_ORDERING/slider-settings';
 import { buttonSettingsAlignment } from 'app/shared/model/ENUMS/button-settings-alignment';
-import { FaDesktop, FaMobileAlt } from 'react-icons/fa';
+import { Monitor, Smartphone, Trash2, Plus } from 'lucide-react';
 import { debounce } from 'lodash';
 import { searchEntities } from 'app/entities/item/all-items.reducer';
-import { MultiSelect } from 'primereact/multiselect';
 import CategoriesLayout from '../layout-settings/components/categories/categories';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { searchEntities as SearchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import AsyncSelect from 'react-select/async';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Carousel, CarouselItem, CarouselControl } from 'reactstrap';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
@@ -41,17 +42,19 @@ const Layouts = () => {
     }, [])
 
     return (
-        <div className="container-fluid py-4">
-            <div className="mb-4">
-                <h2 className="mb-1">Layout Settings</h2>
-                <p className="text-muted">Choose and configure your online ordering layout</p>
-            </div>
-            
-            <Card className="shadow-sm mb-4">
-                <div className="card-body p-4">
-                    <h5 className="card-title mb-3">Select Layout</h5>
-                    <Row className="g-4">
-                        <Col md={6} lg={4}>
+        <PageWrapper className="max-w-7xl mx-auto">
+            <div className="space-y-4">
+                <div>
+                    <h2 className="text-lg font-semibold mb-1">Layout Settings</h2>
+                    <p className="text-xs text-muted-foreground">Choose and configure your online ordering layout</p>
+                </div>
+
+                <Card>
+                    <CardHeader className="p-3">
+                        <CardTitle className="text-sm">Select Layout</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <LayoutsCard
                                 layouts={uiSettings.layouts}
                                 layoutKey={SelectedLayoutEnum.LAYOUT_DEFAULT}
@@ -59,8 +62,6 @@ const Layouts = () => {
                                 title="Default Layout"
                                 description="Standard layout with slider and categories"
                             />
-                        </Col>
-                        <Col md={6} lg={4}>
                             <LayoutsCard
                                 layouts={uiSettings.layouts}
                                 layoutKey={SelectedLayoutEnum.LAYOUT_ONE}
@@ -68,36 +69,38 @@ const Layouts = () => {
                                 title="Gabriel Pizza Layout"
                                 description="Custom layout with featured sections"
                             />
-                        </Col>
-                    </Row>
-                </div>
-            </Card>
-
-            {uiSettings.layouts?.selectedLayout && (
-                <Card className="shadow-sm mb-4">
-                    <div className="card-body p-0">
-                        {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE && 
-                            <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
-                        {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT && 
-                            <LayoutDefaultForm layouts={uiSettings.layouts} />}
-                    </div>
+                        </div>
+                    </CardContent>
                 </Card>
-            )}
 
-            <div className="d-flex justify-content-end gap-2">
-                <Button 
-                    label="Cancel" 
-                    outlined
-                    className="px-4"
-                />
-                <Button 
-                    label="Save Changes" 
-                    className="px-4"
-                    onClick={() => dispatch(updateEntity(uiSettings))}
-                    disabled={!uiSettings.layouts?.selectedLayout}
-                />
+                {uiSettings.layouts?.selectedLayout && (
+                    <Card>
+                        <CardContent className="p-0">
+                            {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE &&
+                                <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
+                            {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT &&
+                                <LayoutDefaultForm layouts={uiSettings.layouts} />}
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="flex justify-end gap-2">
+                    <Button
+                        variant="outline"
+                        className="h-8 text-xs"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="h-8 text-xs"
+                        onClick={() => dispatch(updateEntity(uiSettings))}
+                        disabled={!uiSettings.layouts?.selectedLayout}
+                    >
+                        Save Changes
+                    </Button>
+                </div>
             </div>
-        </div>
+        </PageWrapper>
     )
 }
 
@@ -118,12 +121,8 @@ const LayoutsCard = ({
     const isSelected = layouts?.selectedLayout === layoutKey;
 
     return (
-        <div 
-            className={`card h-100 cursor-pointer ${isSelected ? 'border-primary shadow-sm' : 'border-light'}`}
-            style={{ 
-                transition: 'all 0.2s ease',
-                cursor: 'pointer'
-            }}
+        <Card
+            className={`h-full cursor-pointer transition-all ${isSelected ? 'border-primary shadow-md' : 'border-border'}`}
             onClick={() => {
                 dispatch(changeEntityField({
                     name: 'layouts.selectedLayout',
@@ -131,45 +130,40 @@ const LayoutsCard = ({
                 }))
             }}
         >
-            <div className="position-relative">
+            <div className="relative">
                 <img
                     src={imageSrc}
-                    className="card-img-top"
+                    className="w-full h-48 object-cover rounded-t-lg"
                     alt={title}
-                    style={{ 
-                        height: '200px', 
-                        objectFit: 'cover',
+                    style={{
                         filter: isSelected ? 'none' : 'grayscale(20%)'
                     }}
                 />
                 {isSelected && (
-                    <div className="position-absolute top-0 end-0 m-2">
-                        <span className="badge bg-primary">
-                            <i className="pi pi-check"></i>
+                    <div className="absolute top-2 right-2">
+                        <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                            &#10004;
                         </span>
                     </div>
                 )}
             </div>
-            <div className="card-body d-flex flex-column">
-                <p className="card-text text-muted small flex-grow-1">{description}</p>
-                <div className="mt-auto">
-                    <Button
-                        label={isSelected ? "Selected" : "Select Layout"}
-                        className="w-100"
-                        severity={isSelected ? "success" : "secondary"}
-                        outlined={!isSelected}
-                        size="small"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            dispatch(changeEntityField({
-                                name: 'layouts.selectedLayout',
-                                value: isSelected ? null : layoutKey
-                            }))
-                        }}
-                    />
-                </div>
-            </div>
-        </div>
+            <CardContent className="p-3 flex flex-col">
+                <p className="text-xs text-muted-foreground flex-grow mb-3">{description}</p>
+                <Button
+                    variant={isSelected ? "default" : "outline"}
+                    className="w-full h-7 text-xs"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(changeEntityField({
+                            name: 'layouts.selectedLayout',
+                            value: isSelected ? null : layoutKey
+                        }))
+                    }}
+                >
+                    {isSelected ? "Selected" : "Select Layout"}
+                </Button>
+            </CardContent>
+        </Card>
     )
 }
 
@@ -243,247 +237,238 @@ const LayoutGabrielPizzaForm = ({
 
     return (
         <div className="p-4">
-            <TabView className="layout-config-tabs">
-                <TabPanel header="Colors">
-                    <div className="mb-4">
-                        <h5 className="mb-2">Color Settings</h5>
-                        <p className="text-muted small">Configure your layout&apos;s color scheme</p>
-                    </div>
-                    
-                    <div className="row g-4">
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="background" className="form-label fw-semibold">Background Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.background || '#ffffff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.background',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.background || '#ffffff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.background',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#ffffff"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="foreground" className="form-label fw-semibold">Foreground Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.foreground || '#000000'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.foreground',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.foreground || '#000000'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.foreground',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#000000"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="primary" className="form-label fw-semibold">Primary Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.primary || '#007bff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.primary',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.primary || '#007bff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.primary',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#007bff"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="primaryForeground" className="form-label fw-semibold">Primary Text Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#ffffff"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="secondary" className="form-label fw-semibold">Secondary Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.secondary || '#6c757d'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.secondary',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.secondary || '#6c757d'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.secondary',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#6c757d"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="muted" className="form-label fw-semibold">Muted Color</Label>
-                                <div className="d-flex align-items-center gap-3">
-                                    <ColorPicker
-                                        value={layoutOne?.colorSettings?.muted || '#868e96'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.muted',
-                                                `#${e.value}`
-                                            )
-                                        }
-                                        format="hex"
-                                    />
-                                    <InputText
-                                        value={layoutOne?.colorSettings?.muted || '#868e96'}
-                                        onChange={e =>
-                                            handleFieldChange(
-                                                'layouts.LAYOUT_ONE.colorSettings.muted',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="#868e96"
-                                        className="flex-grow-1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </TabPanel>
+            <Tabs defaultValue="colors" className="w-full">
+                <TabsList className="h-9">
+                    <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
+                    <TabsTrigger value="header" className="text-xs">Header</TabsTrigger>
+                    <TabsTrigger value="content" className="text-xs">Content</TabsTrigger>
+                    <TabsTrigger value="footer" className="text-xs">Footer</TabsTrigger>
+                </TabsList>
 
-                <TabPanel header="Header">
+                <TabsContent value="colors" className="space-y-3 mt-4">
                     <div className="mb-4">
-                        <h5 className="mb-2">Header Configuration</h5>
-                        <p className="text-muted small">Configure your header content</p>
+                        <h5 className="text-sm font-semibold mb-1">Color Settings</h5>
+                        <p className="text-xs text-muted-foreground">Configure your layout&apos;s color scheme</p>
                     </div>
-                    
-                    <div className="row g-3">
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="headerTitle" className="form-label fw-semibold">Header Title</Label>
-                                <InputText
-                                    id="headerTitle"
-                                    value={layoutOne?.sections?.header?.title || ''}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="background" className="text-xs font-semibold">Background Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.background || '#ffffff'}
                                     onChange={e =>
                                         handleFieldChange(
-                                            'layouts.LAYOUT_ONE.sections.header.title',
+                                            'layouts.LAYOUT_ONE.colorSettings.background',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.background || '#ffffff'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.background',
                                             e.target.value
                                         )
                                     }
-                                    placeholder="Enter header title"
-                                    className="w-100"
+                                    placeholder="#ffffff"
+                                    className="h-7 text-xs flex-1"
                                 />
                             </div>
                         </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="headerCta" className="form-label fw-semibold">Call to Action</Label>
-                                <InputText
-                                    id="headerCta"
-                                    value={layoutOne?.sections?.header?.callToAction || ''}
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="foreground" className="text-xs font-semibold">Foreground Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.foreground || '#000000'}
                                     onChange={e =>
                                         handleFieldChange(
-                                            'layouts.LAYOUT_ONE.sections.header.callToAction',
+                                            'layouts.LAYOUT_ONE.colorSettings.foreground',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.foreground || '#000000'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.foreground',
                                             e.target.value
                                         )
                                     }
-                                    placeholder="Enter call to action text"
-                                    className="w-100"
+                                    placeholder="#000000"
+                                    className="h-7 text-xs flex-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="primary" className="text-xs font-semibold">Primary Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.primary || '#007bff'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.primary',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.primary || '#007bff'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.primary',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="#007bff"
+                                    className="h-7 text-xs flex-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="primaryForeground" className="text-xs font-semibold">Primary Text Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="#ffffff"
+                                    className="h-7 text-xs flex-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="secondary" className="text-xs font-semibold">Secondary Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.secondary || '#6c757d'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.secondary',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.secondary || '#6c757d'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.secondary',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="#6c757d"
+                                    className="h-7 text-xs flex-1"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="muted" className="text-xs font-semibold">Muted Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={layoutOne?.colorSettings?.muted || '#868e96'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.muted',
+                                            `#${e.value}`
+                                        )
+                                    }
+                                    format="hex"
+                                />
+                                <Input
+                                    value={layoutOne?.colorSettings?.muted || '#868e96'}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.colorSettings.muted',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="#868e96"
+                                    className="h-7 text-xs flex-1"
                                 />
                             </div>
                         </div>
                     </div>
-                </TabPanel>
+                </TabsContent>
 
-                <TabPanel header="Content">
-                    <div className="layout-body-sections">
-                        <div className="content-section-card card mb-4">
-                            <div className="card-header bg-light">
-                                <h6 className="mb-0 fw-bold text-primary">🎠 Carousel Section</h6>
-                                <small className="text-muted">Manage rotating banner slides for your homepage</small>
-                            </div>
-                            <div className="card-body">
+                <TabsContent value="header" className="space-y-3 mt-4">
+                    <div className="mb-3">
+                        <h5 className="text-sm font-semibold mb-1">Header Configuration</h5>
+                        <p className="text-xs text-muted-foreground">Configure your header content</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="headerTitle" className="text-xs font-semibold">Header Title</Label>
+                            <Input
+                                id="headerTitle"
+                                value={layoutOne?.sections?.header?.title || ''}
+                                onChange={e =>
+                                    handleFieldChange(
+                                        'layouts.LAYOUT_ONE.sections.header.title',
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Enter header title"
+                                className="h-7 text-xs"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="headerCta" className="text-xs font-semibold">Call to Action</Label>
+                            <Input
+                                id="headerCta"
+                                value={layoutOne?.sections?.header?.callToAction || ''}
+                                onChange={e =>
+                                    handleFieldChange(
+                                        'layouts.LAYOUT_ONE.sections.header.callToAction',
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Enter call to action text"
+                                className="h-7 text-xs"
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="content" className="space-y-3 mt-4">
+                    <div className="space-y-4">
+                        <Card>
+                            <CardHeader className="p-3 bg-muted">
+                                <CardTitle className="text-sm text-primary mb-0">🎠 Carousel Section</CardTitle>
+                                <CardDescription className="text-xs">Manage rotating banner slides for your homepage</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-3">
                                 <LayoutGabrielPizzaCarousel carousel={layoutOne?.sections?.body?.carousel} />
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="content-section-card card mb-4">
-                            <div className="card-header bg-light">
-                                <h6 className="mb-0 fw-bold text-primary">⭐ Featured Items Section</h6>
-                                <small className="text-muted">Highlight specific products on your homepage</small>
-                            </div>
-                            <div className="card-body">
+                        <Card>
+                            <CardHeader className="p-3 bg-muted">
+                                <CardTitle className="text-sm text-primary mb-0">⭐ Featured Items Section</CardTitle>
+                                <CardDescription className="text-xs">Highlight specific products on your homepage</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-3">
                                 <LayoutGabrielPizzaFeaturedItems
                                     layoutOne={layoutOne}
                                     handleFieldChange={handleFieldChange}
@@ -492,69 +477,65 @@ const LayoutGabrielPizzaForm = ({
                                     isModalOpen={isModalOpen}
                                     setIsModalOpen={setIsModalOpen}
                                 />
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="content-section-card card mb-4">
-                            <div className="card-header bg-light">
-                                <h6 className="mb-0 fw-bold text-primary">📂 Featured Categories Section</h6>
-                                <small className="text-muted">Showcase product categories to guide customer navigation</small>
-                            </div>
-                            <div className="card-body">
+                        <Card>
+                            <CardHeader className="p-3 bg-muted">
+                                <CardTitle className="text-sm text-primary mb-0">📂 Featured Categories Section</CardTitle>
+                                <CardDescription className="text-xs">Showcase product categories to guide customer navigation</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-3">
                                 <LayoutGabrielPizzaFeaturedCategories
                                     layoutOne={layoutOne}
                                     handleFieldChange={handleFieldChange}
                                     combinedCategories={combinedCategories}
                                 />
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </div>
-                </TabPanel>
+                </TabsContent>
 
-                <TabPanel header="Footer">
-                    <div className="mb-4">
-                        <h5 className="mb-2">Footer Configuration</h5>
-                        <p className="text-muted small">Configure your footer content</p>
+                <TabsContent value="footer" className="space-y-3 mt-4">
+                    <div className="mb-3">
+                        <h5 className="text-sm font-semibold mb-1">Footer Configuration</h5>
+                        <p className="text-xs text-muted-foreground">Configure your footer content</p>
                     </div>
-                    
-                    <div className="row g-3">
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="footerTitle" className="form-label fw-semibold">Footer Title</Label>
-                                <InputText
-                                    id="footerTitle"
-                                    value={layoutOne?.sections?.footer?.title || ''}
-                                    onChange={e =>
-                                        handleFieldChange(
-                                            'layouts.LAYOUT_ONE.sections.footer.title',
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Enter footer title"
-                                    className="w-100"
-                                />
-                            </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="footerTitle" className="text-xs font-semibold">Footer Title</Label>
+                            <Input
+                                id="footerTitle"
+                                value={layoutOne?.sections?.footer?.title || ''}
+                                onChange={e =>
+                                    handleFieldChange(
+                                        'layouts.LAYOUT_ONE.sections.footer.title',
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Enter footer title"
+                                className="h-7 text-xs"
+                            />
                         </div>
-                        <div className="col-md-6">
-                            <div className="form-group">
-                                <Label htmlFor="footerCta" className="form-label fw-semibold">Call to Action</Label>
-                                <InputText
-                                    id="footerCta"
-                                    value={layoutOne?.sections?.footer?.callToAction || ''}
-                                    onChange={e =>
-                                        handleFieldChange(
-                                            'layouts.LAYOUT_ONE.sections.footer.callToAction',
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Enter call to action text"
-                                    className="w-100"
-                                />
-                            </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="footerCta" className="text-xs font-semibold">Call to Action</Label>
+                            <Input
+                                id="footerCta"
+                                value={layoutOne?.sections?.footer?.callToAction || ''}
+                                onChange={e =>
+                                    handleFieldChange(
+                                        'layouts.LAYOUT_ONE.sections.footer.callToAction',
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Enter call to action text"
+                                className="h-7 text-xs"
+                            />
                         </div>
                     </div>
-                </TabPanel>
-            </TabView>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };
@@ -611,63 +592,53 @@ const LayoutGabrielPizzaCarousel = ({
     return (
         <div>
             {carousel?.length === 0 || !carousel ? (
-                <div className="text-center py-5 border border-dashed rounded bg-light">
+                <div className="text-center py-8 border border-dashed rounded bg-muted/30">
                     <div className="mb-3">
                         <i className="pi pi-image" style={{ fontSize: '3rem', color: '#ccc' }}></i>
                     </div>
-                    <h6 className="text-muted mb-2">No carousel slides yet</h6>
-                    <p className="text-muted mb-3 small">Add engaging slides to showcase your featured content</p>
-                    <Button 
-                        label="Add Your First Slide" 
-                        icon="pi pi-plus" 
+                    <h6 className="text-xs text-muted-foreground mb-2">No carousel slides yet</h6>
+                    <p className="text-xs text-muted-foreground mb-3">Add engaging slides to showcase your featured content</p>
+                    <Button
+                        variant="outline"
+                        className="h-7 text-xs"
                         onClick={handleAddItem}
-                        outlined
-                        size="small"
-                    />
+                    >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Your First Slide
+                    </Button>
                 </div>
             ) : (
                 <div>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <span className="text-muted small">{carousel?.length || 0} slide{(carousel?.length || 0) !== 1 ? 's' : ''} configured</span>
-                        <Button 
-                            label="Add Slide" 
-                            icon="pi pi-plus" 
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-xs text-muted-foreground">{carousel?.length || 0} slide{(carousel?.length || 0) !== 1 ? 's' : ''} configured</span>
+                        <Button
+                            className="h-7 text-xs"
                             onClick={handleAddItem}
-                            size="small"
-                        />
+                        >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Slide
+                        </Button>
                     </div>
                     {carousel?.map((item, index) => (
                     <div
                         key={index}
-                        className="border rounded p-3 mb-2 position-relative"
+                        className="border rounded p-3 mb-2 relative"
                     >
-                        <Button 
-                            icon="pi pi-trash" 
-                            severity="danger" 
-                            text
-                            rounded
-                            size="small"
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7 z-10"
                             onClick={() => handleRemoveItem(index)}
-                            tooltip="Remove slide"
-                            className="position-absolute"
-                            style={{
-                                top: '8px',
-                                right: '8px',
-                                zIndex: 10,
-                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                border: '1px solid rgba(220, 53, 69, 0.3)',
-                                width: '30px',
-                                height: '30px',
-                                minWidth: '30px'
-                            }}
-                        />
+                        >
+                            <Trash2 className="h-3 w-3" />
+                        </Button>
                         <div className="mb-3">
-                            <h6 className="text-primary fw-bold mb-0">Slide {index + 1}</h6>
-                            <small className="text-muted">Configure your carousel slide content</small>
+                            <h6 className="text-sm text-primary font-semibold mb-0">Slide {index + 1}</h6>
+                            <small className="text-xs text-muted-foreground">Configure your carousel slide content</small>
                         </div>
-                        <Row className="mb-2">
-                            <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`src-${index}`} className="form-label fw-semibold">Image</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor={`src-${index}`} className="text-xs font-semibold">Image</Label>
                                 <MediaLibrary
                                     handleFilesSelectCallback={files => handleFieldChange(index,
                                         'image',
@@ -675,74 +646,70 @@ const LayoutGabrielPizzaCarousel = ({
                                     )}
                                     defaultValues={transformAttachmentStructure(item?.image ? [item?.image] : [], 'toFileLibraryListItem')}
                                 />
-                            </Col>
-                            <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`altText-${index}`} className="form-label fw-semibold">Alt Text</Label>
-                                <InputText
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor={`altText-${index}`} className="text-xs font-semibold">Alt Text</Label>
+                                <Input
                                     id={`altText-${index}`}
                                     value={item.altText || ''}
                                     onChange={e =>
                                         handleFieldChange(index, 'altText', e.target.value)
                                     }
                                     placeholder="Image description"
-                                    className="w-100"
+                                    className="h-7 text-xs"
                                 />
-                            </Col>
-                        </Row>
-                        <Row className="mb-2">
-                            <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`primaryTitle-${index}`} className="form-label fw-semibold">Primary Title</Label>
-                                <InputText
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor={`primaryTitle-${index}`} className="text-xs font-semibold">Primary Title</Label>
+                                <Input
                                     id={`primaryTitle-${index}`}
                                     value={item.primaryTitle || ''}
                                     onChange={e =>
                                         handleFieldChange(index, 'primaryTitle', e.target.value)
                                     }
                                     placeholder="Main headline"
-                                    className="w-100"
+                                    className="h-7 text-xs"
                                 />
-                            </Col>
-                            <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`secondaryTitle-${index}`} className="form-label fw-semibold">Secondary Title</Label>
-                                <InputText
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor={`secondaryTitle-${index}`} className="text-xs font-semibold">Secondary Title</Label>
+                                <Input
                                     id={`secondaryTitle-${index}`}
                                     value={item.secondaryTitle || ''}
                                     onChange={e =>
                                         handleFieldChange(index, 'secondaryTitle', e.target.value)
                                     }
                                     placeholder="Subtitle"
-                                    className="w-100"
+                                    className="h-7 text-xs"
                                 />
-                            </Col>
-                        </Row>
-                        <Row className="mb-2">
-                            <Col md={12}>
-                                <Label htmlFor={`description-${index}`} className="form-label fw-semibold">Description</Label>
-                                <InputText
-                                    id={`description-${index}`}
-                                    value={item.description || ''}
-                                    onChange={e =>
-                                        handleFieldChange(index, 'description', e.target.value)
-                                    }
-                                    placeholder="Slide description"
-                                    className="w-100"
-                                />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={12}>
-                                <Label htmlFor={`callToAction-${index}`} className="form-label fw-semibold">Call to Action</Label>
-                                <InputText
-                                    id={`callToAction-${index}`}
-                                    value={item.callToAction || ''}
-                                    onChange={e =>
-                                        handleFieldChange(index, 'callToAction', e.target.value)
-                                    }
-                                    placeholder="Button text"
-                                    className="w-100"
-                                />
-                            </Col>
-                        </Row>
+                            </div>
+                        </div>
+                        <div className="mb-2">
+                            <Label htmlFor={`description-${index}`} className="text-xs font-semibold">Description</Label>
+                            <Input
+                                id={`description-${index}`}
+                                value={item.description || ''}
+                                onChange={e =>
+                                    handleFieldChange(index, 'description', e.target.value)
+                                }
+                                placeholder="Slide description"
+                                className="h-7 text-xs"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor={`callToAction-${index}`} className="text-xs font-semibold">Call to Action</Label>
+                            <Input
+                                id={`callToAction-${index}`}
+                                value={item.callToAction || ''}
+                                onChange={e =>
+                                    handleFieldChange(index, 'callToAction', e.target.value)
+                                }
+                                placeholder="Button text"
+                                className="h-7 text-xs"
+                            />
+                        </div>
                     </div>
                     ))}
                 </div>
@@ -767,44 +734,34 @@ const LayoutGabrielPizzaFeaturedItems = ({
     setIsModalOpen: any
 }) => {
     return (
-        <Row>
-            <Col md={6}>
-                {/* <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyOrder">Order</Label>
-                    <InputNumber
-                        value={layoutOne?.sections?.body?.featuredItems?.order}
-                        onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_ONE.sections.body.featuredItems.order',
-                            e.value
-                        )}
-                        min={1}
-                        max={3}
-                    />
-                </div> */}
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftTitle">Title</Label>
-                    <InputText
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyLeftTitle" className="text-xs font-semibold">Title</Label>
+                    <Input
                         id='bodyLeftTitle'
-                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.title || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.title',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
-                    <InputText
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyLeftSubTitle" className="text-xs font-semibold">SubTitle</Label>
+                    <Input
                         id='bodyLeftSubTitle'
-                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.subtitle}
+                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.subtitle || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.subtitle',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftImage">Image</Label>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyLeftImage" className="text-xs font-semibold">Image</Label>
                     <MediaLibrary
                         handleFilesSelectCallback={files => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.image',
@@ -813,43 +770,46 @@ const LayoutGabrielPizzaFeaturedItems = ({
                         defaultValues={transformAttachmentStructure(layoutOne?.sections?.body?.featuredItems?.leftColumn?.image ? [layoutOne?.sections?.body?.featuredItems?.leftColumn?.image] : [], 'toFileLibraryListItem')}
                     />
                 </div>
-            </Col>
-            <Col md={6}>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftTitle">Title</Label>
-                    <InputText
-                        id='bodyLeftTitle'
-                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.title}
+            </div>
+            <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightTitle" className="text-xs font-semibold">Title</Label>
+                    <Input
+                        id='bodyRightTitle'
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.title || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.title',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
-                    <InputText
-                        id='bodyLeftSubTitle'
-                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.subtitle}
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightSubTitle" className="text-xs font-semibold">SubTitle</Label>
+                    <Input
+                        id='bodyRightSubTitle'
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.subtitle || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.subtitle',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftCta">Call To Action Label</Label>
-                    <InputText
-                        id='bodyLeftCta'
-                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.callToAction}
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightCta" className="text-xs font-semibold">Call To Action Label</Label>
+                    <Input
+                        id='bodyRightCta'
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.callToAction || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.callToAction',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="headerTitle" className="form-label fw-semibold mb-2">Featured Items</Label>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="headerTitle" className="text-xs font-semibold mb-2">Featured Items</Label>
                     <ItemSelectionModal
                         isOpen={isModalOpen}
                         toggle={() => setIsModalOpen(prev => !prev)}
@@ -857,49 +817,51 @@ const LayoutGabrielPizzaFeaturedItems = ({
                         setSelectedItems={() => null}
                         handleToggleSelect={handleToggleSelect}
                     />
-                    
+
                     {selectedItems?.length === 0 ? (
-                        <div className="text-center py-3 border border-dashed rounded bg-light mb-2">
-                            <p className="text-muted mb-2 small">No featured items selected</p>
+                        <div className="text-center py-3 border border-dashed rounded bg-muted/30 mb-2">
+                            <p className="text-muted-foreground mb-2 text-xs">No featured items selected</p>
                             <Button
-                                label="Select Items"
-                                icon="pi pi-plus"
+                                variant="outline"
+                                className="h-7 text-xs"
                                 onClick={() => setIsModalOpen(prev => !prev)}
-                                outlined
-                                size="small"
-                            />
+                            >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Select Items
+                            </Button>
                         </div>
                     ) : (
                         <div className="mb-2">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span className="text-muted small">{selectedItems?.length || 0} item{(selectedItems?.length || 0) !== 1 ? 's' : ''} selected</span>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-muted-foreground text-xs">{selectedItems?.length || 0} item{(selectedItems?.length || 0) !== 1 ? 's' : ''} selected</span>
                                 <Button
-                                    label="Add More"
-                                    icon="pi pi-plus"
+                                    className="h-7 text-xs"
                                     onClick={() => setIsModalOpen(prev => !prev)}
-                                    size="small"
-                                />
+                                >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add More
+                                </Button>
                             </div>
-                            <div className="selected-items-list">
+                            <div className="space-y-1">
                                 {layoutOne?.sections?.body?.featuredItems?.rightColumn?.items?.map((item, idx) => (
-                                    <div key={idx} className="d-flex align-items-center justify-content-between p-2 border rounded mb-1 bg-white">
-                                        <span className="fw-medium">{item.name}</span>
-                                        <Button 
-                                            icon="pi pi-times" 
-                                            severity="danger" 
-                                            text 
-                                            size="small"
+                                    <div key={idx} className="flex items-center justify-between p-2 border rounded bg-background">
+                                        <span className="font-medium text-xs">{item.name}</span>
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="h-7 w-7"
                                             onClick={() => handleToggleSelect([item])}
-                                            tooltip="Remove item"
-                                        />
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
                 </div>
-            </Col>
-        </Row>
+            </div>
+        </div>
     )
 }
 
@@ -914,33 +876,22 @@ const LayoutGabrielPizzaFeaturedCategories = ({
 }) => {
 
     return (
-        <Row>
-            <Col md={6}>
-                {/* <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyOrder">Order</Label>
-                    <InputNumber
-                        value={layoutOne?.sections?.body?.featuredItems?.order}
-                        onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_ONE.sections.body.featuredItems.order',
-                            e.value
-                        )}
-                        min={1}
-                        max={3}
-                    />
-                </div> */}
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftTitle">Title</Label>
-                    <InputText
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyLeftTitle" className="text-xs font-semibold">Title</Label>
+                    <Input
                         id='bodyLeftTitle'
-                        value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.title || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredCategories.leftColumn.title',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftCategories" className="form-label fw-semibold">Categories</Label>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyLeftCategories" className="text-xs font-semibold">Categories</Label>
                     <Select
                         value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories}
                         onChange={(e) => handleFieldChange(
@@ -956,50 +907,51 @@ const LayoutGabrielPizzaFeaturedCategories = ({
                         className="mb-2"
                     />
                     {(!layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories || layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories?.length === 0) && (
-                        <div className="text-center py-2 text-muted small">
+                        <div className="text-center py-2 text-muted-foreground text-xs">
                             No categories selected for this column
                         </div>
                     )}
                 </div>
-            </Col>
-            <Col md={6}>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftTitle">Title</Label>
-                    <InputText
-                        id='bodyLeftTitle'
-                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.title}
+            </div>
+            <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightTitle" className="text-xs font-semibold">Title</Label>
+                    <Input
+                        id='bodyRightTitle'
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.title || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.title',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
-                    <InputText
-                        id='bodyLeftSubTitle'
-                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.subtitle}
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightSubTitle" className="text-xs font-semibold">SubTitle</Label>
+                    <Input
+                        id='bodyRightSubTitle'
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.subtitle || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.subtitle',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftDescription">Description</Label>
-                    <InputText
-                        id='bodyLeftDescription'
-                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.description}
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightDescription" className="text-xs font-semibold">Description</Label>
+                    <Input
+                        id='bodyRightDescription'
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.description || ''}
                         onChange={(e) => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.description',
                             e.target.value
                         )}
+                        className="h-7 text-xs"
                     />
                 </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftImage">Image</Label>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="bodyRightImage" className="text-xs font-semibold">Image</Label>
                     <MediaLibrary
                         handleFilesSelectCallback={files => handleFieldChange(
                             'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.image',
@@ -1008,8 +960,8 @@ const LayoutGabrielPizzaFeaturedCategories = ({
                         defaultValues={transformAttachmentStructure(layoutOne?.sections?.body?.featuredCategories?.rightColumn?.image ? [layoutOne?.sections?.body?.featuredCategories?.rightColumn?.image] : [], 'toFileLibraryListItem')}
                     />
                 </div>
-            </Col>
-        </Row>
+            </div>
+        </div>
     )
 }
 
@@ -1022,25 +974,32 @@ const LayoutDefaultForm = ({
     layouts: ILayouts;
 }) => {
     return (
-        <Card>
-            <TabView>
-                <TabPanel header={translate('tempApp.layoutSettings.tabs.slider.label')}>
+        <div className="p-4">
+            <Tabs defaultValue="slider" className="w-full">
+                <TabsList className="h-9">
+                    <TabsTrigger value="slider" className="text-xs">{translate('tempApp.layoutSettings.tabs.slider.label')}</TabsTrigger>
+                    <TabsTrigger value="products" className="text-xs">{translate('tempApp.layoutSettings.tabs.specialProducts.label')}</TabsTrigger>
+                    <TabsTrigger value="restaurant" className="text-xs">{translate('tempApp.layoutSettings.tabs.restaurantCategories.label')}</TabsTrigger>
+                    <TabsTrigger value="retail" className="text-xs">{translate('tempApp.layoutSettings.tabs.retailCategories.label')}</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="slider" className="space-y-3 mt-4">
                     <LayoutDefaultSlider defaultLayout={layouts.LAYOUT_DEFAULT} />
-                </TabPanel>
+                </TabsContent>
 
-                <TabPanel header={translate('tempApp.layoutSettings.tabs.specialProducts.label')}>
+                <TabsContent value="products" className="space-y-3 mt-4">
                     <LayoutDefaultProductSetting defaultLayout={layouts.LAYOUT_DEFAULT} />
-                </TabPanel>
+                </TabsContent>
 
-                <TabPanel header={translate('tempApp.layoutSettings.tabs.restaurantCategories.label')}>
+                <TabsContent value="restaurant" className="space-y-3 mt-4">
                     <LayoutDefaultRestaurantCategories defaultLayout={layouts.LAYOUT_DEFAULT} />
-                </TabPanel>
+                </TabsContent>
 
-                <TabPanel header={translate('tempApp.layoutSettings.tabs.retailCategories.label')}>
+                <TabsContent value="retail" className="space-y-3 mt-4">
                     <LayoutDefaultRetailCategories defaultLayout={layouts.LAYOUT_DEFAULT} />
-                </TabPanel>
-            </TabView>
-        </Card >
+                </TabsContent>
+            </Tabs>
+        </div>
     )
 }
 
@@ -1103,12 +1062,9 @@ const LayoutDefaultSlider = ({
                 }}
             />
             <Button
-                color="danger"
+                variant="destructive"
                 onClick={() => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.sliderSettings`, value: defaultLayout?.sliderSettings.filter((_, i) => i !== index) }))}
-                style={{
-                    marginTop: '10px',
-                    width: '100%',
-                }}
+                className="mt-2 w-full h-8 text-xs"
             >
                 Remove this slide
             </Button>
@@ -1139,28 +1095,25 @@ const LayoutDefaultSlider = ({
 
     return (
         <div>
-            <FormGroup style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-            }}>
+            <div className="flex flex-col gap-3">
                 <MediaLibrary
                     handleFilesSelectCallback={(files) => setImage(transformAttachmentStructure(files, 'toIAttachment'))}
                     defaultValues={transformAttachmentStructure(image, 'toFileLibraryListItem')}
                 />
-                <InputText
+                <Input
                     placeholder="Enter text"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
+                    className="h-7 text-xs"
                 />
                 <Button
-                    color="primary"
                     onClick={handleImageChange}
                     disabled={!image}
+                    className="h-8 text-xs"
                 >
                     Add Slide
                 </Button>
-            </FormGroup>
+            </div>
 
             {defaultLayout?.sliderSettings && defaultLayout?.sliderSettings.length > 0 && (
                 <>
@@ -1175,18 +1128,20 @@ const LayoutDefaultSlider = ({
                         <h3>
                             {translate('tempApp.layoutSettings.tabs.slider.preview')}
                         </h3>
-                        <div style={{
-                            textAlign: 'center',
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "10px"
-                        }}>
-                            <Button color={isMobileView ? "primary" : "secondary"} onClick={() => setIsMobileView(true)}>
-                                <FaMobileAlt />
+                        <div className="flex gap-2">
+                            <Button
+                                variant={isMobileView ? "default" : "outline"}
+                                onClick={() => setIsMobileView(true)}
+                                className="h-8 text-xs"
+                            >
+                                <Smartphone className="h-3 w-3" />
                             </Button>
-                            <Button color={isMobileView ? "secondary" : "primary"} onClick={() => setIsMobileView(false)}>
-                                <FaDesktop />
+                            <Button
+                                variant={isMobileView ? "outline" : "default"}
+                                onClick={() => setIsMobileView(false)}
+                                className="h-8 text-xs"
+                            >
+                                <Monitor className="h-3 w-3" />
                             </Button>
                         </div>
                     </div>
@@ -1252,52 +1207,13 @@ const LayoutDefaultProductSetting = ({
     }));
 
     return (
-        <div>
-            <Row>
-                <div className="d-flex flex-column mb-3">
-                    <Label htmlFor="featured-title"><strong>Title</strong></Label>
-                    <InputText
-                        id="featured-title"
-                        value={defaultLayout?.productSetting?.FEATURED.title || ''}
-                        onChange={e =>
-                            dispatch(
-                                changeEntityField({
-                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                                    value: {
-                                        ...defaultLayout?.productSetting,
-                                        FEATURED: {
-                                            ...defaultLayout?.productSetting?.FEATURED,
-                                            title: e.target.value,
-                                        },
-                                    },
-                                })
-                            )
-                        }
-                    />
-                </div>
-
-                <div className="d-flex flex-column gap-2">
-                    <h5>Selected Items</h5>
-                    <ol>
-                        {defaultLayout?.productSetting?.FEATURED.items?.map(item => (
-                            <li key={item.id}>{item.name}</li>
-                        ))}
-                    </ol>
-                </div>
-
-                <AsyncSelect
-                    isMulti
-                    cacheOptions
-                    defaultOptions
-                    loadOptions={debouncedLoadOptions}
-                    isLoading={loading}
-                    placeholder="Select Products"
-                    className="w-full md:w-20rem"
-                    value={selectedOptions}
-                    onChange={selected => {
-                        const selectedItems = selected
-                            ? selected?.map(opt => opt.data)
-                            : [];
+        <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+                <Label htmlFor="featured-title" className="text-xs font-semibold">Title</Label>
+                <Input
+                    id="featured-title"
+                    value={defaultLayout?.productSetting?.FEATURED.title || ''}
+                    onChange={e =>
                         dispatch(
                             changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
@@ -1305,37 +1221,73 @@ const LayoutDefaultProductSetting = ({
                                     ...defaultLayout?.productSetting,
                                     FEATURED: {
                                         ...defaultLayout?.productSetting?.FEATURED,
-                                        items: selectedItems,
+                                        title: e.target.value,
                                     },
                                 },
                             })
-                        );
-                    }}
+                        )
+                    }
+                    className="h-7 text-xs"
                 />
-            </Row>
+            </div>
 
-            <Row style={{ marginTop: '1rem' }}>
-                <div className="flex align-items-center">
-                    <Checkbox
-                        checked={defaultLayout?.productSetting?.FEATURED.showImages}
-                        onChange={e =>
-                            dispatch(
-                                changeEntityField({
-                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                                    value: {
-                                        ...defaultLayout?.productSetting,
-                                        FEATURED: {
-                                            ...defaultLayout?.productSetting?.FEATURED,
-                                            showImages: e.checked,
-                                        },
+            <div className="flex flex-col gap-2">
+                <h5 className="text-sm font-semibold">Selected Items</h5>
+                <ol className="text-xs space-y-1">
+                    {defaultLayout?.productSetting?.FEATURED.items?.map(item => (
+                        <li key={item.id}>{item.name}</li>
+                    ))}
+                </ol>
+            </div>
+
+            <AsyncSelect
+                isMulti
+                cacheOptions
+                defaultOptions
+                loadOptions={debouncedLoadOptions}
+                isLoading={loading}
+                placeholder="Select Products"
+                className="w-full md:w-20rem"
+                value={selectedOptions}
+                onChange={selected => {
+                    const selectedItems = selected
+                        ? selected?.map(opt => opt.data)
+                        : [];
+                    dispatch(
+                        changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                            value: {
+                                ...defaultLayout?.productSetting,
+                                FEATURED: {
+                                    ...defaultLayout?.productSetting?.FEATURED,
+                                    items: selectedItems,
+                                },
+                            },
+                        })
+                    );
+                }}
+            />
+
+            <div className="flex items-center gap-2">
+                <Checkbox
+                    checked={defaultLayout?.productSetting?.FEATURED.showImages || false}
+                    onCheckedChange={checked =>
+                        dispatch(
+                            changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                                value: {
+                                    ...defaultLayout?.productSetting,
+                                    FEATURED: {
+                                        ...defaultLayout?.productSetting?.FEATURED,
+                                        showImages: checked,
                                     },
-                                })
-                            )
-                        }
-                    />
-                    <label className="ml-2">Show Images</label>
-                </div>
-            </Row>
+                                },
+                            })
+                        )
+                    }
+                />
+                <Label className="text-xs font-semibold">Show Images</Label>
+            </div>
         </div>
     );
 };
@@ -1395,93 +1347,95 @@ const LayoutDefaultRestaurantCategories = ({
     ]
 
     return (
-        <div>
-            <div>
-                <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="UiSettings-domain">
-                        <strong>title</strong>
-                    </Label>
-                    <InputText
-                        id="UiSettings-domain"
-                        value={defaultLayout?.restuarantCategorySetting?.title || ''}
-                        onChange={e => dispatch(changeEntityField({
-                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                            value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
-                        }))}
-                    />
-                </div>
-
-                <div className='d-flex flex-column gap-2'>
-                    <ol>
-                        {defaultLayout?.restuarantCategorySetting?.categories?.map(category => (
-                            <li key={category.id}>{category.name}</li>
-                        ))}
-                    </ol>
-                </div>
-
-                <AsyncSelect
-                    isMulti
-                    cacheOptions
-                    defaultOptions
-                    loadOptions={debouncedLoadOptions}
-                    isLoading={loading}
-                    placeholder="Select Products"
-                    className="w-full md:w-20rem"
-                    value={selectedOptions}
-                    onChange={selected => {
-                        const selectedItems = selected
-                            ? selected?.map(opt => opt.data)
-                            : [];
-                        dispatch(
-                            changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting.categories`,
-                                value: selectedItems,
-                            })
-                        );
-                    }}
+        <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+                <Label htmlFor="UiSettings-domain" className="text-xs font-semibold">
+                    Title
+                </Label>
+                <Input
+                    id="UiSettings-domain"
+                    value={defaultLayout?.restuarantCategorySetting?.title || ''}
+                    onChange={e => dispatch(changeEntityField({
+                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                        value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
+                    }))}
+                    className="h-7 text-xs"
                 />
+            </div>
 
-                {defaultLayout?.restuarantCategorySetting?.categories?.length > 0 && (
-                    <>
-                        <Row style={{
-                            marginTop: '1rem'
-                        }}>
-                            <div className="flex align-items-center">
-                                <Checkbox
-                                    onChange={e => {
-                                        dispatch(changeEntityField({
-                                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                            value: {
-                                                ...defaultLayout?.restuarantCategorySetting, showImages: e.checked
-                                            }
-                                        }))
-                                    }
-                                    }
-                                    checked={defaultLayout?.restuarantCategorySetting?.showImages}
-                                />
-                                <label htmlFor="ingredient1" className="ml-2">Show Images</label>
-                            </div>
-                        </Row>
-                        <div>
-                            <TabView activeIndex={activeIndex} onTabChange={(e) => {
-                                setActiveIndex(e.index)
+            <div className="flex flex-col gap-2">
+                <ol className="text-xs space-y-1">
+                    {defaultLayout?.restuarantCategorySetting?.categories?.map(category => (
+                        <li key={category.id}>{category.name}</li>
+                    ))}
+                </ol>
+            </div>
+
+            <AsyncSelect
+                isMulti
+                cacheOptions
+                defaultOptions
+                loadOptions={debouncedLoadOptions}
+                isLoading={loading}
+                placeholder="Select Products"
+                className="w-full md:w-20rem"
+                value={selectedOptions}
+                onChange={selected => {
+                    const selectedItems = selected
+                        ? selected?.map(opt => opt.data)
+                        : [];
+                    dispatch(
+                        changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting.categories`,
+                            value: selectedItems,
+                        })
+                    );
+                }}
+            />
+
+            {defaultLayout?.restuarantCategorySetting?.categories?.length > 0 && (
+                <>
+                    <div className="flex items-center gap-2 mt-4">
+                        <Checkbox
+                            onCheckedChange={checked => {
                                 dispatch(changeEntityField({
                                     name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
                                     value: {
-                                        ...defaultLayout?.restuarantCategorySetting, layout: layouts[e.index].value
+                                        ...defaultLayout?.restuarantCategorySetting, showImages: checked
                                     }
                                 }))
-                            }}>
+                            }}
+                            checked={defaultLayout?.restuarantCategorySetting?.showImages}
+                        />
+                        <Label htmlFor="ingredient1" className="text-xs font-semibold">Show Images</Label>
+                    </div>
+                    <div>
+                        <Tabs value={String(activeIndex)} onValueChange={(v) => {
+                            const index = Number(v);
+                            setActiveIndex(index);
+                            dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                value: {
+                                    ...defaultLayout?.restuarantCategorySetting, layout: layouts[index].value
+                                }
+                            }))
+                        }}>
+                            <TabsList className="h-9">
                                 {layouts?.map((layout, index) => (
-                                    <TabPanel key={layout.id} header={layout.name}>
-                                        <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
-                                    </TabPanel>
+                                    <TabsTrigger key={layout.id} value={String(index)} className="text-xs">
+                                        {layout.name}
+                                    </TabsTrigger>
                                 ))}
-                            </TabView>
-                        </div>
-                    </>
-                )}
-            </div>
+                            </TabsList>
+                            {layouts?.map((layout, index) => (
+                                <TabsContent key={layout.id} value={String(index)}>
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
+                                </TabsContent>
+                            ))}
+                        </Tabs>
+                    </div>
+                </>
+            )}
         </div>
     )
 }
@@ -1539,93 +1493,95 @@ const LayoutDefaultRetailCategories = ({
     ]
 
     return (
-        <div>
-            <div>
-                <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="UiSettings-domain">
-                        <strong>title</strong>
-                    </Label>
-                    <InputText
-                        id="UiSettings-domain"
-                        value={defaultLayout?.retailCategorySetting?.title || ''}
-                        onChange={e => dispatch(changeEntityField({
-                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                            value: { ...defaultLayout?.retailCategorySetting, title: e.target.value }
-                        }))}
-                    />
-                </div>
-
-                <div className='d-flex flex-column gap-2'>
-                    <ol>
-                        {defaultLayout?.retailCategorySetting?.categories?.map(category => (
-                            <li key={category.id}>{category.name}</li>
-                        ))}
-                    </ol>
-                </div>
-
-                <AsyncSelect
-                    isMulti
-                    cacheOptions
-                    defaultOptions
-                    loadOptions={debouncedLoadOptions}
-                    isLoading={loading}
-                    placeholder="Select Products"
-                    className="w-full md:w-20rem"
-                    value={selectedOptions}
-                    onChange={selected => {
-                        const selectedItems = selected
-                            ? selected?.map(opt => opt.data)
-                            : [];
-                        dispatch(
-                            changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting.categories`,
-                                value: selectedItems,
-                            })
-                        );
-                    }}
+        <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+                <Label htmlFor="UiSettings-domain" className="text-xs font-semibold">
+                    Title
+                </Label>
+                <Input
+                    id="UiSettings-domain"
+                    value={defaultLayout?.retailCategorySetting?.title || ''}
+                    onChange={e => dispatch(changeEntityField({
+                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                        value: { ...defaultLayout?.retailCategorySetting, title: e.target.value }
+                    }))}
+                    className="h-7 text-xs"
                 />
+            </div>
 
-                {defaultLayout?.retailCategorySetting?.categories?.length > 0 && (
-                    <>
-                        <Row style={{
-                            marginTop: '1rem'
-                        }}>
-                            <div className="flex align-items-center">
-                                <Checkbox
-                                    onChange={e => {
-                                        dispatch(changeEntityField({
-                                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                            value: {
-                                                ...defaultLayout?.retailCategorySetting, showImages: e.checked
-                                            }
-                                        }))
-                                    }
-                                    }
-                                    checked={defaultLayout?.retailCategorySetting?.showImages}
-                                />
-                                <label htmlFor="ingredient1" className="ml-2">Show Images</label>
-                            </div>
-                        </Row>
-                        <div>
-                            <TabView activeIndex={activeIndex} onTabChange={(e) => {
-                                setActiveIndex(e.index)
+            <div className="flex flex-col gap-2">
+                <ol className="text-xs space-y-1">
+                    {defaultLayout?.retailCategorySetting?.categories?.map(category => (
+                        <li key={category.id}>{category.name}</li>
+                    ))}
+                </ol>
+            </div>
+
+            <AsyncSelect
+                isMulti
+                cacheOptions
+                defaultOptions
+                loadOptions={debouncedLoadOptions}
+                isLoading={loading}
+                placeholder="Select Products"
+                className="w-full md:w-20rem"
+                value={selectedOptions}
+                onChange={selected => {
+                    const selectedItems = selected
+                        ? selected?.map(opt => opt.data)
+                        : [];
+                    dispatch(
+                        changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting.categories`,
+                            value: selectedItems,
+                        })
+                    );
+                }}
+            />
+
+            {defaultLayout?.retailCategorySetting?.categories?.length > 0 && (
+                <>
+                    <div className="flex items-center gap-2 mt-4">
+                        <Checkbox
+                            onCheckedChange={checked => {
                                 dispatch(changeEntityField({
                                     name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
                                     value: {
-                                        ...defaultLayout?.retailCategorySetting, layout: layouts[e.index].value
+                                        ...defaultLayout?.retailCategorySetting, showImages: checked
                                     }
                                 }))
-                            }}>
+                            }}
+                            checked={defaultLayout?.retailCategorySetting?.showImages}
+                        />
+                        <Label htmlFor="ingredient1" className="text-xs font-semibold">Show Images</Label>
+                    </div>
+                    <div>
+                        <Tabs value={String(activeIndex)} onValueChange={(v) => {
+                            const index = Number(v);
+                            setActiveIndex(index);
+                            dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                value: {
+                                    ...defaultLayout?.retailCategorySetting, layout: layouts[index].value
+                                }
+                            }))
+                        }}>
+                            <TabsList className="h-9">
                                 {layouts?.map((layout, index) => (
-                                    <TabPanel key={layout.id} header={layout.name}>
-                                        <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
-                                    </TabPanel>
+                                    <TabsTrigger key={layout.id} value={String(index)} className="text-xs">
+                                        {layout.name}
+                                    </TabsTrigger>
                                 ))}
-                            </TabView>
-                        </div>
-                    </>
-                )}
-            </div>
+                            </TabsList>
+                            {layouts?.map((layout, index) => (
+                                <TabsContent key={layout.id} value={String(index)}>
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
+                                </TabsContent>
+                            ))}
+                        </Tabs>
+                    </div>
+                </>
+            )}
         </div>
     )
 }

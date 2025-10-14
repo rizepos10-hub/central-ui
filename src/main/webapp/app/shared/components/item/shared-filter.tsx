@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Label } from 'reactstrap';
 import InputTextFilter from 'app/shared/components/filter/input-text-filter';
 import { IFilters, ILazyState } from 'app/shared/model/filter-state.model';
-import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
-import _ from 'lodash';
 import AttributeFilter from 'app/shared/components/filter/attribute-filter';
-import { Checkbox } from 'primereact/checkbox';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type SharedFilterProps = {
   handleSearch: (query: IFilters) => void;
@@ -20,7 +18,6 @@ type SharedFilterProps = {
 const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, filteredAttributes }: SharedFilterProps) => {
   const [showImagesFilter, setShowImagesFilter] = useState(false);
   const isRetailITem = itemType === 'RETAIL';
-  // const filters: IFilters = query.filters;
 
   const onInputChange = e => {
     const { name, value } = e.target;
@@ -47,15 +44,15 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
   }, [showImagesFilter])
 
   return (
-    <form className='w-100 d-flex flex-column gap-3'>
-      <div className={'row'}>
-        <div className={'col-12 d-flex flex-column gap-1'}>
-          <Label className={'font-semibold'}>Name</Label>
+    <form className='w-full flex flex-col gap-3'>
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">Name</Label>
           <InputTextFilter onKeyDown={handleKeyDown} value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
         </div>
 
-        <div className={'col-12 d-flex flex-column gap-1'}>
-          <Label className={'font-semibold'}>SKU</Label>
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">SKU</Label>
           <InputTextFilter
             onKeyDown={handleKeyDown}
             value={filters?.['variants.sku']?.value}
@@ -64,10 +61,11 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             onChange={onInputChange}
           />
         </div>
-        <div className={'col-12 d-flex flex-column gap-1'}>
-          <Label className={'font-semibold'}>Tax</Label>
+
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">Tax</Label>
           <DropDownFilter
-            classname={'w-100'}
+            classname={'w-full'}
             placeholder={'Select Tax'}
             dropDownOptionType={'PROFILE_GROUP'}
             selectedOption={filters?.['accountingGroups.id']?.value}
@@ -75,10 +73,11 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
-        <div className={'col-12 d-flex flex-column gap-1'}>
-          <Label className={'font-semibold'}>Category</Label>
+
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">Category</Label>
           <DropDownFilter
-            classname={'w-100'}
+            classname={'w-full'}
             placeholder={'Select Category'}
             dropDownOptionType={isRetailITem ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY'}
             selectedOption={filters?.['categories.id']?.value}
@@ -86,10 +85,11 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
-        <div className={'col-12 d-flex flex-column gap-1'}>
-          <Label className={'font-semibold'}>Base Measure</Label>
+
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold">Base Measure</Label>
           <DropDownFilter
-            classname={'w-100'}
+            classname={'w-full'}
             dropDownOptionType={'MEASURE'}
             placeholder={'Select Measure'}
             selectedOption={filters?.['baseMeasure.id']?.value}
@@ -97,16 +97,20 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
-        <div className={'col-12 d-flex gap-1'}>
-          <div className={'d-flex gap-2'}>
-            <Checkbox
-              checked={filters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
-              onChange={(e) => setShowImagesFilter(e.checked)}
-            />
-          </div>
-          <Label className={'font-semibold'}>Show Only Images</Label>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={filters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
+            onCheckedChange={(checked) => setShowImagesFilter(checked === true)}
+            id="show-images"
+            className="h-4 w-4"
+          />
+          <Label htmlFor="show-images" className="text-xs font-semibold cursor-pointer">
+            Show Only Images
+          </Label>
         </div>
       </div>
+
       <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={onFilterValueChange} />
     </form>
   );

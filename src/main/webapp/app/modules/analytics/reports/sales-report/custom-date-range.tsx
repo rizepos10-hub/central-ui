@@ -16,16 +16,16 @@ import {
   subWeeks,
   subYears,
 } from 'date-fns';
-import { InputText } from 'primereact/inputtext';
-import { OverlayPanel } from 'primereact/overlaypanel';
-import { TabMenu } from 'primereact/tabmenu';
-import { SelectButton } from 'primereact/selectbutton';
-import { RadioButton } from 'primereact/radiobutton';
-import { Container } from 'reactstrap';
-import { Calendar } from 'primereact/calendar';
-import { Button } from 'primereact/button';
-import { InputNumber } from 'primereact/inputnumber';
 import { toLocalISOString } from 'app/shared/util/date-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 type dateRange = {
   from: string;
@@ -37,10 +37,11 @@ type dateRange = {
 };
 
 const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('period');
   const [primeDateValue, setPrimeDateValue] = useState({
-    from: '',
-    to: '',
+    from: undefined,
+    to: undefined,
   });
 
   const [slotNumber, setSlotNumber] = useState<number | null>(4);
@@ -49,38 +50,27 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
   const periodOptions = Object.entries(SalesReportsPeriods)
     .map(([key, val]) => ({ label: key, value: val }));
 
-  const op = useRef(null);
-
-  const handleApplyDateRange = e => {
-    op.current.toggle(e);
+  const handleApplyDateRange = () => {
+    setOpen(false);
     onApplyDateRange(dateRange);
   };
 
-  console.log(dateRange, 'dateRange');
-
-  const items = [
-    { label: 'Specify Period', icon: 'pi pi-fw pi-calendar' },
-    { label: 'Specify Date', icon: 'pi pi-fw pi-calendar' },
-  ];
-
-  const handleSlotChange = e => {
-    if (e.value) {
-      setSlotNumber(e.value);
-      calculateDates('last-n-period', e.value);
+  const handleSlotChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue)) {
+      setSlotNumber(numValue);
+      calculateDates('last-n-period', numValue);
     }
   };
 
-  const handlePeriodChange = e => {
-    console.log(e, 'hellowlr');
-    if (e.value) {
-      setDateRange(prevDateRange => ({
-        ...prevDateRange,
-        dateSlot: {
-          ...prevDateRange?.dateSlot,
-          period: e.value,
-        },
-      }));
-    }
+  const handlePeriodChange = (value: string) => {
+    setDateRange(prevDateRange => ({
+      ...prevDateRange,
+      dateSlot: {
+        ...prevDateRange?.dateSlot,
+        period: value,
+      },
+    }));
     calculateDates(selectedPeriodOption);
   };
 
@@ -208,112 +198,133 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
     });
   };
 
+  const dateRangeDisplay = dateRange.from && dateRange.to
+    ? `${format(new Date(dateRange.from), 'yyyy-MM-dd')} - ${format(new Date(dateRange.to), 'yyyy-MM-dd')}`
+    : 'Select date range';
+
   return (
-    <div className=" flex justify-content-center">
-      <InputText
-        style={{ minWidth: '13rem' }}
-        value={
-          dateRange.from && dateRange.to && `${dateRange.from.toString().substring(0, 10)}  -  ${dateRange.to.toString().substring(0, 10)}`
-        }
-        inputMode={'none'}
-        id={'self'}
-        onClick={e => {
-          op.current.toggle(e);
-        }}
-      />
-      <OverlayPanel ref={op} showCloseIcon={true} onHide={() => setActiveIndex(0)}>
-        <div className=" d-flex flex-column gap-3 justify-content-center p-3">
-          <TabMenu model={items} activeIndex={activeIndex} onTabChange={e => setActiveIndex(e.index)} />
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-7 text-xs justify-start text-left font-normal min-w-[208px]",
+            !dateRange.from && !dateRange.to && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3 w-3" />
+          {dateRangeDisplay}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 h-8">
+            <TabsTrigger value="period" className="text-xs h-7">
+              <CalendarIcon className="mr-2 h-3 w-3" />
+              Specify Period
+            </TabsTrigger>
+            <TabsTrigger value="date" className="text-xs h-7">
+              <CalendarIcon className="mr-2 h-3 w-3" />
+              Specify Date
+            </TabsTrigger>
+          </TabsList>
 
-          {activeIndex === 0 ? (
-            <>
-              <SelectButton value={dateRange?.dateSlot?.period} onChange={handlePeriodChange} type="button" options={periodOptions} />
+          <TabsContent value="period" className="p-3 space-y-3">
+            <div className="flex flex-wrap gap-1">
+              {periodOptions.map(option => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  variant={dateRange?.dateSlot?.period === option.value ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs px-2"
+                  onClick={() => handlePeriodChange(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
 
-              <div className="flex flex-column gap-3">
-                <div className="flex align-items-center my-2">
-                  <RadioButton
-                    inputId={'period-to-date'}
-                    name="period-to-date"
-                    onChange={() => {
-                      calculateDates('period-to-date');
-                    }}
-                    checked={selectedPeriodOption === 'period-to-date'}
-                  />
-                  <label htmlFor={'period-to-date'} className="ml-2">{`Current ${toTitleCase(dateRange?.dateSlot?.period)} `}</label>
-                </div>
-
-                <div className="flex align-items-center my-2">
-                  <RadioButton
-                    inputId={'previous-period'}
-                    name="previous-period"
-                    onChange={() => calculateDates('previous-period')}
-                    checked={selectedPeriodOption === 'previous-period'}
-                  />
-                  <label htmlFor={'previous-period'} className="ml-2">{`Previous ${toTitleCase(dateRange?.dateSlot?.period)}`}</label>
-                </div>
-
-                <div className="flex align-items-center my-2">
-                  <RadioButton
-                    inputId={'last-n-period'}
-                    name="last-n-period"
-                    onChange={() => calculateDates('last-n-period')}
-                    checked={selectedPeriodOption === 'last-n-period'}
-                  />
-                  <label htmlFor={'last-n-period'} className="ml-2">
-                    Last <InputNumber inputMode={'numeric'} size={1} value={slotNumber} onChange={handleSlotChange} />{' '}
-                    {toTitleCase(dateRange?.dateSlot?.period)}(s)
-                  </label>
-                </div>
-              </div>
-            </>
-          ) : null}
-
-          {activeIndex === 1 ? (
-            <>
-              <div className={'d-flex justify-content-center'}>
-                <Calendar value={dates} selectionMode="range" disabled={true} readOnlyInput />
+            <RadioGroup value={selectedPeriodOption} onValueChange={(value) => calculateDates(value)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="period-to-date" id="period-to-date" />
+                <Label htmlFor="period-to-date" className="text-xs font-normal cursor-pointer">
+                  {`Current ${toTitleCase(dateRange?.dateSlot?.period)}`}
+                </Label>
               </div>
 
-              <div className="d-flex gap-3 relative">
-                <div className="d-flex flex-column m-3 relative">
-                  <label>From: {dateRange.from.toString().substring(0, 10)}</label>
-                  <Calendar
-                    inline={true}
-                    value={new Date(primeDateValue.from)}
-                    onSelect={(e: any) => {
-                      console.log(e.value, 'e.valuee.value');
-                      const formattedDate = toLocalISOString(e.value);
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="previous-period" id="previous-period" />
+                <Label htmlFor="previous-period" className="text-xs font-normal cursor-pointer">
+                  {`Previous ${toTitleCase(dateRange?.dateSlot?.period)}`}
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="last-n-period" id="last-n-period" />
+                <Label htmlFor="last-n-period" className="text-xs font-normal cursor-pointer flex items-center gap-1">
+                  Last{' '}
+                  <Input
+                    type="number"
+                    className="h-6 w-12 text-xs px-1 py-0"
+                    value={slotNumber || ''}
+                    onChange={(e) => handleSlotChange(e.target.value)}
+                    onClick={() => calculateDates('last-n-period')}
+                  />{' '}
+                  {toTitleCase(dateRange?.dateSlot?.period)}(s)
+                </Label>
+              </div>
+            </RadioGroup>
+          </TabsContent>
+
+          <TabsContent value="date" className="p-3 space-y-3">
+            <div className="flex flex-col gap-3">
+              <div>
+                <Label className="text-xs mb-1 block">From: {format(new Date(dateRange.from), 'yyyy-MM-dd')}</Label>
+                <Calendar
+                  mode="single"
+                  selected={primeDateValue.from}
+                  onSelect={(date) => {
+                    if (date) {
+                      const formattedDate = toLocalISOString(date);
                       setDateRange((prev: any) => ({ ...prev, from: formattedDate }));
-                      setPrimeDateValue((prev: any) => ({ ...prev, from: e.value }));
-                    }}
-                  />
-                </div>
-                <div className="d-flex flex-column m-3 relative">
-                  <label>To: {dateRange.to.toString().substring(0, 10)}</label>
-                  <Calendar
-                    inline={true}
-                    value={new Date(primeDateValue.to)}
-                    onChange={(e: any) => {
-                      const newDate = new Date(e.value);
+                      setPrimeDateValue((prev: any) => ({ ...prev, from: date }));
+                    }
+                  }}
+                  className="rounded-md border"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1 block">To: {format(new Date(dateRange.to), 'yyyy-MM-dd')}</Label>
+                <Calendar
+                  mode="single"
+                  selected={primeDateValue.to}
+                  onSelect={(date) => {
+                    if (date) {
+                      const newDate = new Date(date);
                       newDate.setHours(23, 59, 59);
                       const formattedDate = toLocalISOString(newDate);
                       setDateRange((prev: any) => ({ ...prev, to: formattedDate }));
                       setPrimeDateValue((prev: any) => ({ ...prev, to: newDate }));
-                    }}
-                  />
-                </div>
+                    }
+                  }}
+                  className="rounded-md border"
+                />
               </div>
-            </>
-          ) : null}
-          <div className="flex">
-            <Calendar value={dates} selectionMode={'range'} disabled={true} readOnlyInput />
-            <Button onClick={handleApplyDateRange} className={'ml-auto'}>
-              Apply
-            </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex items-center justify-between p-3 border-t">
+          <div className="text-xs text-muted-foreground">
+            {dateRangeDisplay}
           </div>
+          <Button onClick={handleApplyDateRange} size="sm" className="h-7 text-xs">
+            Apply
+          </Button>
         </div>
-      </OverlayPanel>
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

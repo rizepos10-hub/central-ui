@@ -1,77 +1,80 @@
-import { Button } from "primereact/button";
 import React, { useState } from "react";
-import { MdDeleteOutline } from "react-icons/md";
-import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from "reactstrap";
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Minus, Plus, X } from 'lucide-react';
 
 const ComboItemAddonDropDown = ({ itemAddons = [], variantAddons = [], selectedComboAddons, onAddAddon, onDeleteAddon, onIncrement = null, onDecrement = null }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const allAddons = [...itemAddons, ...variantAddons];
 
-  const toggle = () => setDropdownOpen(!dropdownOpen);
-
   const isAllAddonsSelected = allAddons.every((addon) => selectedComboAddons.some((comboAddon) => comboAddon?.addon?.id === addon?.id));
 
   return (
-    <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-      <DropdownToggle disabled={allAddons.length < 1 || isAllAddonsSelected} caret>
-        Add Addons
-      </DropdownToggle>
-      <DropdownMenu>
-        {allAddons
-          .filter((addon) => !selectedComboAddons.some((comboAddon) => comboAddon.addon?.id === addon?.id))
-          .map((addon) => (
-            <DropdownItem key={addon?.id} onClick={() => onAddAddon(addon)}>
-              {addon.name}
-            </DropdownItem>
-          ))}
+    <div>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            disabled={allAddons.length < 1 || isAllAddonsSelected}
+          >
+            Add Addons
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="max-h-60 overflow-y-auto">
+          {allAddons
+            .filter((addon) => !selectedComboAddons.some((comboAddon) => comboAddon.addon?.id === addon?.id))
+            .map((addon) => (
+              <DropdownMenuItem
+                key={addon?.id}
+                onClick={() => onAddAddon(addon)}
+                className="text-xs"
+              >
+                {addon.name}
+              </DropdownMenuItem>
+            ))}
+        </DropdownMenuContent>
       </DropdownMenu>
-      <div>
+
+      <div className="space-y-2 mt-2">
         {selectedComboAddons.map((comboAddon, index) => (
-          <div key={comboAddon?.addon?.id} className="mt-2 d-flex flex-column gap-2">
-            <div style={{ width: '130px', display: 'inline-block' }}>{comboAddon?.addon?.name}:</div>
-            <div className="d-flex gap-2 align-items-center">
+          <div key={comboAddon?.addon?.id} className="flex items-center gap-2">
+            <div className="w-32 text-xs">{comboAddon?.addon?.name}:</div>
+            <div className="flex gap-1 items-center">
               <Button
-                className="decrement-button p-2"
-                style={{
-                  width: "26px",
-                  height: '26px'
-                }}
-                outlined
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
                 onClick={() => onDecrement(index)}
                 disabled={comboAddon?.addon?.amount <= 0}
               >
-                -
+                <Minus className="h-3 w-3" />
               </Button>
-              <span>
-                {comboAddon?.amount || null}
+              <span className="text-xs w-8 text-center">
+                {comboAddon?.amount || 0}
               </span>
               <Button
-                className="increment-button p-2"
-                style={{
-                  width: "26px",
-                  height: '26px'
-                }}
-                outlined
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
                 onClick={() => onIncrement(index)}
               >
-                +
+                <Plus className="h-3 w-3" />
               </Button>
               <Button
-                className="delete-button p-2"
-                style={{
-                  width: "26px",
-                  height: '26px'
-                }}
-                outlined
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                 onClick={() => onDeleteAddon(index)}
               >
-                X
+                <X className="h-3 w-3" />
               </Button>
             </div>
           </div>
         ))}
       </div>
-    </Dropdown>
+    </div>
   );
 };
 

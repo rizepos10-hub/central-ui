@@ -1,19 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { Translate, translate, ValidatedField, ValidatedForm, isEmail } from 'react-jhipster';
-import { Button, Alert, Col, Row } from 'reactstrap';
+import { Translate, translate, isEmail } from 'react-jhipster';
 import { toast } from 'react-toastify';
+import { useForm } from 'react-hook-form';
 
 import { handlePasswordResetInit, reset } from '../password-reset.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getTenant } from 'app/shared/tenant/TenantContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Mail, AlertCircle } from 'lucide-react';
 
 export const PasswordResetInit = () => {
   const dispatch = useAppDispatch();
   const tenant = useAppSelector(state => state.tenant.tenant);
   const successMessage = useAppSelector(state => state.passwordReset.successMessage);
 
-  // Loading state to track when data is ready
   const [loading, setLoading] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,47 +43,70 @@ export const PasswordResetInit = () => {
     }
   }, [successMessage]);
 
-  const handleValidSubmit = ({ email }) => {
-    dispatch(handlePasswordResetInit({ email, tenant }));
+  const onSubmit = (data) => {
+    dispatch(handlePasswordResetInit({ email: data.email, tenant }));
   };
 
-  // Show a div (or a loader) until everything is loaded
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Row className="justify-content-center">
-        <Col md="8">
-          <h1>
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl">
             <Translate contentKey="reset.request.title">Reset your password</Translate>
-          </h1>
-          <Alert color="warning">
-            <p>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
               <Translate contentKey="reset.request.messages.info">Enter the email address you used to register</Translate>
-            </p>
+            </AlertDescription>
           </Alert>
-          <ValidatedForm onSubmit={handleValidSubmit}>
-            <ValidatedField
-              name="email"
-              label={translate('global.form.email.label')}
-              placeholder={translate('global.form.email.placeholder')}
-              type="email"
-              validate={{
-                required: { value: true, message: translate('global.messages.validate.email.required') },
-                minLength: { value: 5, message: translate('global.messages.validate.email.minlength') },
-                maxLength: { value: 254, message: translate('global.messages.validate.email.maxlength') },
-                validate: v => isEmail(v) || translate('global.messages.validate.email.invalid'),
-              }}
-              data-cy="emailResetPassword"
-            />
-            <Button color="primary" type="submit" data-cy="submit">
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{translate('global.form.email.label')}</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  className="pl-9"
+                  placeholder={translate('global.form.email.placeholder')}
+                  data-cy="emailResetPassword"
+                  {...register('email', {
+                    required: translate('global.messages.validate.email.required'),
+                    minLength: {
+                      value: 5,
+                      message: translate('global.messages.validate.email.minlength'),
+                    },
+                    maxLength: {
+                      value: 254,
+                      message: translate('global.messages.validate.email.maxlength'),
+                    },
+                    validate: v => isEmail(v) || translate('global.messages.validate.email.invalid'),
+                  })}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email.message as string}</p>
+              )}
+            </div>
+
+            <Button onClick={handleSubmit(onSubmit)} className="w-full" data-cy="submit">
               <Translate contentKey="reset.request.form.button">Reset password</Translate>
             </Button>
-          </ValidatedForm>
-        </Col>
-      </Row>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

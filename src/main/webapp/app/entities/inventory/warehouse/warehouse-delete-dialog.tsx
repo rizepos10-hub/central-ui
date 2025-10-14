@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './warehouse.reducer';
@@ -40,28 +48,31 @@ export const WarehouseDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="warehouseDeleteDialogHeading">
-        <Translate contentKey="tempApp.warehouse.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="warehouses.delete.question">
-        <Translate contentKey="tempApp.warehouse.delete.question" interpolate={{ id: warehouseEntity.id }}>
-          Are you sure you want to delete this Warehouse?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="common.buttons.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-warehouse" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="common.buttons.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={loadModal} onOpenChange={handleClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-base">
+            <Translate contentKey="tempApp.warehouse.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            <Translate contentKey="tempApp.warehouse.delete.question" interpolate={{ id: warehouseEntity.id }}>
+              Are you sure you want to delete this Warehouse?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="h-8 text-xs" onClick={handleClose}>
+            <Translate contentKey="common.buttons.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className="h-8 text-xs bg-destructive hover:bg-destructive/90"
+            onClick={confirmDelete}
+          >
+            <Translate contentKey="common.buttons.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

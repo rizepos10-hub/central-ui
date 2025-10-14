@@ -1,8 +1,9 @@
-import { Button } from "primereact/button";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { FileType, importData, importRetailData, importSupplierData, importAddonGroupsData } from "app/shared/reducers/import-data";
-import { Tooltip } from "reactstrap";
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Upload, Download } from 'lucide-react';
 
 type ItemImportProps = {
   type: FileType
@@ -85,28 +86,44 @@ const ImportButton = ({ type }: ItemImportProps) => {
 
 
   return (
-    <>
+    <TooltipProvider>
+      <div className="flex gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={handleImportButtonClick}
+              disabled={loading}
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              Import Data
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Import Data</p>
+          </TooltipContent>
+        </Tooltip>
 
-    <Button 
-      icon="pi pi-upload" 
-      severity="help" 
-      raised 
-      onClick={handleImportButtonClick} 
-      disabled={loading} 
-      tooltip="Import Data"
-      data-pr-position="top"
-    />
-    
-    <Button 
-      icon="pi pi-download" 
-      severity="secondary" 
-      raised 
-      onClick={handleDownloadSampleClick} 
-      tooltip="Download Sample"
-      data-pr-position="top"
-    />
-
-    </>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={handleDownloadSampleClick}
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Download Sample
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Download Sample</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   )
 }
 

@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate, getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil } from 'lucide-react';
 
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './void-reason.reducer';
 
- import { IVoidReason } from 'app/shared/model/void-reason.model';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
+import { IVoidReason } from 'app/shared/model/void-reason.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const VoidReason = () => {
   const dispatch = useAppDispatch();
@@ -29,19 +28,12 @@ export const VoidReason = () => {
   const loading = useAppSelector(state => state.voidReason.loading);
   const totalItems = useAppSelector(state => state.voidReason.totalItems);
 
+  const [codeFilter, setCodeFilter] = useState('');
+  const [reasonFilter, setReasonFilter] = useState('');
 
   const handleCreate = () => {
     navigate('/void-reasons/new')
   };
-
-
-
-  const [filters, setFilters] :any = useState({
-    reason: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    profiles: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
-  });
 
 
 
@@ -58,81 +50,120 @@ export const VoidReason = () => {
     getVoidReasons()
   }, []);
 
+  // Client-side filtering
+  const filteredVoidReasons = voidReasonsList.filter(item => {
+    const matchesCode = !codeFilter || item.code?.toLowerCase().includes(codeFilter.toLowerCase());
+    const matchesReason = !reasonFilter || item.reason?.toLowerCase().includes(reasonFilter.toLowerCase());
+    return matchesCode && matchesReason;
+  });
 
 
 
-
-
-  const codeColumnTemplate = (rowData) => {
-    const editUrl = `/void-reasons/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.code}
-      </Link>
-    );
-  };
-
-  const handleCodeFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        code: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/void-reasons/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-
-
-
-
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Void Reasons</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getVoidReasons} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create new Void Reason" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
   return (
-    <div>
-        <DataTable value={voidReasonsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-          <Column
-            field="code" header="Code" filter
-            body={codeColumnTemplate}
-            filterElement={ <InputText  placeholder="Search by Code" onChange={handleCodeFilterChange}/> }
-            filterField="code"  sortable
-          />
-          <Column field="reason" header="Reason" filter filterPlaceholder="Search by Reason"  sortable   />
+    <PageWrapper>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">
+            <Translate contentKey="tempApp.voidReason.home.title">Void Reasons</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={getVoidReasons}
+              disabled={loading}
+              className="h-8 text-xs"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <Translate contentKey="tempApp.voidReason.home.refreshListLabel">Refresh List</Translate>
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={loading}
+              className="h-8 text-xs"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <Translate contentKey="tempApp.voidReason.home.createLabel">Create new Void Reason</Translate>
+            </Button>
+          </div>
+        </div>
 
-
-
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-        </DataTable>
-    </div>
+        {/* Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">
+                  <Translate contentKey="tempApp.voidReason.code">Code</Translate>
+                </TableHead>
+                <TableHead className="text-xs">
+                  <Translate contentKey="tempApp.voidReason.reason">Reason</Translate>
+                </TableHead>
+                <TableHead className="text-xs w-20">
+                  <Translate contentKey="entity.action.edit">Edit</Translate>
+                </TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead>
+                  <Input
+                    placeholder={translate('tempApp.voidReason.home.search.code', 'Search by Code')}
+                    value={codeFilter || ''}
+                    onChange={(e) => setCodeFilter(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead>
+                  <Input
+                    placeholder={translate('tempApp.voidReason.home.search.reason', 'Search by Reason')}
+                    value={reasonFilter || ''}
+                    onChange={(e) => setReasonFilter(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center text-xs">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredVoidReasons.length > 0 ? (
+                filteredVoidReasons.map((voidReason) => {
+                  const editUrl = `/void-reasons/${voidReason.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                  return (
+                    <TableRow key={voidReason.id}>
+                      <TableCell className="text-xs">
+                        <Link
+                          to={editUrl}
+                          className="text-primary hover:underline"
+                        >
+                          {voidReason.code}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">{voidReason.reason}</TableCell>
+                      <TableCell className="text-xs">
+                        <Link to={editUrl}>
+                          <Pencil className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center text-xs">
+                    <Translate contentKey="entity.noResults">No results found</Translate>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

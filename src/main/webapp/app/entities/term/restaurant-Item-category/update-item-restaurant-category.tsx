@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
-import { getSortState, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './item-restaurant-category.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
-import { uploadImage } from "app/entities/attachment/attachment.reducer";
-import Select from "react-select";
-import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { getEntities } from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
+import { getEntities } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import Select from 'react-select';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { ITerm } from "app/shared/model/term.model";
-import { InputText } from "primereact/inputtext";
+import { ITerm } from 'app/shared/model/term.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Save, PlusCircle } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const UpdateItemRestaurantCategory = () => {
   const dispatch = useAppDispatch();
@@ -29,8 +30,9 @@ export const UpdateItemRestaurantCategory = () => {
   const updating = useAppSelector(state => state.restaurantCategory.updating);
   const updateSuccess = useAppSelector(state => state.restaurantCategory.updateSuccess);
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+
   const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+    overridePaginationStateWithQueryParams({ activePage: 1, itemsPerPage: ITEMS_PER_PAGE, sort: 'id', order: 'asc' }, location.search)
   );
 
   useEffect(() => {
@@ -96,92 +98,135 @@ export const UpdateItemRestaurantCategory = () => {
   };
 
   return (
-    <div>
-      <Row >
-        <Col md="8">
-          <h2 data-cy="TermCreateUpdateHeading">
-            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'} /> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />}
-          </h2>
-        </Col>
-      </Row>
-      <Row >
-        <Col md="8" className="d-flex flex-column p-3  bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <div className="mb-3 d-flex flex-column">
-                <Translate contentKey="itemCategories.update.name">Name</Translate>
-                <InputText
-                  name={"name"}
-                  id={"category-name"}
-                  required
-                  value={categoryEntity.name || ''}
-                  onChange={e => dispatch(changeEntityField({ name: "name", value: e.target.value }))}
-                />
-              </div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'} /> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />}
+        </h2>
 
-              <div className="mb-3">
-                <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
-                <Select
-                  value={categoryEntity.accountingGroups || []}
-                  isClearable
-                  onChange={handleProfileGroupsChange}
-                  options={profileGroupsOptions}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                />
-              </div>
+        <Card>
+          <CardContent className="pt-6">
+            {loading ? (
+              <p className="text-xs">Loading...</p>
+            ) : (
+              <form onSubmit={saveEntity} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category-name" className="text-xs">
+                    <Translate contentKey="itemCategories.update.name">Name</Translate>
+                  </Label>
+                  <Input
+                    name="name"
+                    id="category-name"
+                    required
+                    value={categoryEntity.name || ''}
+                    onChange={e => dispatch(changeEntityField({ name: "name", value: e.target.value }))}
+                    className="h-8 text-xs"
+                  />
+                </div>
 
-              <div className="mb-3">
-                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
-                <Select
-                  value={categoryEntity?.parents || []}
-                  isClearable
-                  onChange={handleParentsChange}
-                  options={categories}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                />
-              </div>
-              <div className="mb-3">
-                <MediaLibrary
-                  handleFilesSelectCallback={(files) => {
-                    const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
-                    dispatch(changeEntityField({
-                      name: 'attachments',
-                      value: newAttachment ? [newAttachment] : []
-                    }));
-                  }}
-                  defaultValues={transformAttachmentStructure(categoryEntity?.attachments || [], 'toFileLibraryListItem')}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+                  </Label>
+                  <Select
+                    value={categoryEntity.accountingGroups || []}
+                    isClearable
+                    onChange={handleProfileGroupsChange}
+                    options={profileGroupsOptions}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    className="text-xs"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '32px',
+                        fontSize: '0.75rem',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        fontSize: '0.75rem',
+                      })
+                    }}
+                  />
+                </div>
 
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    <Translate contentKey="itemCategories.update.parents">Parents</Translate>
+                  </Label>
+                  <Select
+                    value={categoryEntity?.parents || []}
+                    isClearable
+                    onChange={handleParentsChange}
+                    options={categories}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    className="text-xs"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '32px',
+                        fontSize: '0.75rem',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        fontSize: '0.75rem',
+                      })
+                    }}
+                  />
+                </div>
 
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Image</Label>
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => {
+                      const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      dispatch(changeEntityField({
+                        name: 'attachments',
+                        value: newAttachment ? [newAttachment] : []
+                      }));
+                    }}
+                    defaultValues={transformAttachmentStructure(categoryEntity?.attachments || [], 'toFileLibraryListItem')}
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => navigate(-1)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="h-8 text-xs"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => saveEntity(e, true)}
+                    disabled={updating}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

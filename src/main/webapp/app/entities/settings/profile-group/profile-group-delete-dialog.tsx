@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './profile-group.reducer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const ProfileGroupDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -40,28 +48,33 @@ export const ProfileGroupDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="profile-groupsDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.profile-groups.delete.question">
-        <Translate contentKey="tempApp.profile-groups.delete.question" interpolate={{ id: profileGroupsEntity.id }}>
-          Are you sure you want to delete this ProfileGroup?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-profile-groups" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={true} onOpenChange={(open) => !open && handleClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle data-cy="profile-groupsDeleteDialogHeading" className="text-base">
+            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription id="tempApp.profile-groups.delete.question" className="text-xs">
+            <Translate contentKey="tempApp.profile-groups.delete.question" interpolate={{ id: profileGroupsEntity.id }}>
+              Are you sure you want to delete this Profile Group?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            id="jhi-confirm-delete-profile-groups"
+            data-cy="entityConfirmDeleteButton"
+            onClick={confirmDelete}
+            className="h-8 text-xs bg-destructive hover:bg-destructive/90"
+          >
+            <Translate contentKey="entity.action.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

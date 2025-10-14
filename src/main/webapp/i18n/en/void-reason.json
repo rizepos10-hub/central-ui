@@ -1,22 +1,26 @@
 {
     "tempApp": {
-      "void-reason": {
+      "voidReason": {
+        "home": {
+          "title": "Void Reasons",
+          "refreshListLabel": "Refresh List",
+          "createLabel": "Create new Void Reason",
+          "editLabel": "Edit Void Reason",
+          "search": {
+            "code": "Search by Code",
+            "reason": "Search by Reason"
+          }
+        },
         "created": "A new Void Reason is created with identifier {{ param }}",
         "updated": "A Void Reason is updated with identifier {{ param }}",
         "deleted": "A Void Reason is deleted with identifier {{ param }}",
         "delete": {
           "title": "Confirm Delete Void Reason",
-          "question": "Are you sure you want to delete Void Reason {{ param }}"
+          "question": "Are you sure you want to delete Void Reason {{ param }}?"
         },
-        "title": "Void Reasons",
-        "id": "Id",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "phone": "Phone Number",
-        "email": "Email",
-        "createNew": "Create New Void Reason",
-        "edit": "Edit Void Reason"
+        "id": "ID",
+        "code": "Code",
+        "reason": "Reason"
       }
     }
   }
-  

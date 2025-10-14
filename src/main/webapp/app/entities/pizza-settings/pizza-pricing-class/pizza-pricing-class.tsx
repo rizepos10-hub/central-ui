@@ -1,22 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities, reset } from './pizza-pricing-class.reducer';
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { FilterMatchMode } from "primereact/api";
-import { IPredefinedPizza } from "app/shared/model/PIZZA/predefined-pizza.model";
 import { IPizzaPricingClass } from "app/shared/model/PIZZA/pizza-pricing-class.model";
-import { TabPanel, TabView } from "primereact/tabview";
 import { PizzaPricingClassType } from "app/shared/model/ENUMS/pizza-pricing-class-type.model";
-import { TabMenu } from "primereact/tabmenu";
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 const tabItems = Object.keys(PizzaPricingClassType).map(priceType => ({ label: priceType, value: PizzaPricingClassType[priceType] }));
 const reverseMapping: { [key: string]: string } = {};
@@ -43,7 +42,6 @@ const PizzaPricingClass = () => {
     return pizzaPricingClassList.filter(priceClass => priceClass.type === selectedType?.value);
   }, [pizzaPricingClassList?.length, selectedType?.value]);
 
-
   const loading = useAppSelector(state => state.pizzaPricingClass.loading);
   const updateSuccess = useAppSelector(state => state.pizzaPricingClass.updateSuccess);
   const totalItems = useAppSelector(state => state.pizzaPricingClass.totalItems);
@@ -56,12 +54,9 @@ const PizzaPricingClass = () => {
     return selectedIndex >= 0 ? selectedIndex : 0;
   });
 
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
+  const [nameFilter, setNameFilter] = useState('');
 
   const getAllEntities = () => {
-
     dispatch(
       getEntities({
         page: paginationState.activePage - 1,
@@ -83,80 +78,119 @@ const PizzaPricingClass = () => {
     getAllEntities();
   };
 
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/pizza-pricing-class/${rowData.id}/edit?type=${selectedType?.value}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-pricing-class/${rowData.id}/edit?type=${selectedType?.value}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-pricing-class/${rowData.id}/delete?type=${selectedType?.value}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
-
   const handleCreate = () => {
     navigate(`/pizza-pricing-class/new?type=${selectedType?.value}`)
   }
 
-  const header = (
-    <>
-      <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-        <span className="text-xl text-900 font-bold">Pizza Pricing Class</span>
-        <div className="ms-auto">
-          <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-            &nbsp;
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-          </Button>
-          <Button label={`Add New ${selectedType?.label} Price`} raised onClick={handleCreate} disabled={loading}>
-            &nbsp;
-          </Button>
-        </div>
-      </div>
-      <TabMenu className={"mt-2"} model={tabItems} activeIndex={activeIndex} onTabChange={(e: any) => {
-        setActiveIndex(e.index)
-        setSelectedType(e.value)
-      }} />
-    </>
+  const filteredList = filteredPizzaPricingClassList.filter(priceClass =>
+    priceClass.name?.toLowerCase().includes(nameFilter.toLowerCase())
   );
 
-
-
-
   return (
-    <div>
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Pizza Pricing Class</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                Refresh List
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New {selectedType?.label} Price
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <Tabs value={selectedType.value} onValueChange={(value) => {
+            const item = tabItems.find(t => t.value === value);
+            if (item) {
+              setSelectedType(item);
+              const index = tabItems.findIndex(t => t.value === value);
+              setActiveIndex(index);
+            }
+          }}>
+            <TabsList className="w-full justify-start mb-4">
+              {tabItems.map((item) => (
+                <TabsTrigger key={item.value} value={item.value} className="text-xs h-7">
+                  {item.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-      <DataTable loading={loading} value={filteredPizzaPricingClassList} editMode="row" header={header} removableSort filters={filters} filterDisplay="row" paginator totalRecords={totalItems}
-        rows={20}>
-        <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"} sortable />
+            <div className="mb-4">
+              <Input
+                placeholder="Search by name..."
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                className="max-w-sm h-8 text-xs"
+              />
+            </div>
 
+            {tabItems.map((item) => (
+              <TabsContent key={item.value} value={item.value}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs">Type</TableHead>
+                      <TableHead className="text-xs w-20">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredList.map((priceClass) => {
+                      const editUrl = `/pizza-pricing-class/${priceClass.id}/edit?type=${selectedType?.value}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                      const deleteUrl = `/pizza-pricing-class/${priceClass.id}/delete?type=${selectedType?.value}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-        <Column field="type" header="Type" body={(rowData) => reverseMapping[rowData.type]} sortable />
-
-        <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-        <Column header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-      </DataTable>
-    </div>
+                      return (
+                        <TableRow key={priceClass.id}>
+                          <TableCell className="text-xs">
+                            <Link to={editUrl} className="hover:underline">
+                              {priceClass.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {reverseMapping[priceClass.type]}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Link to={editUrl}>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                                </Button>
+                              </Link>
+                              <Link to={deleteUrl}>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

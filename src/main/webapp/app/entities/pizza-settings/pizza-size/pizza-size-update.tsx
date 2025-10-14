@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { getEntity, updateEntity, createEntity, reset } from './pizza-size.reducer';
-import { InputText } from "primereact/inputtext";
 import { IPizzaSize } from "app/shared/model/PIZZA/pizza-size.model";
-import { Card as PrimeCard } from 'primereact/card'
-import { Translate } from 'react-jhipster';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaSizeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -83,57 +85,71 @@ export const PizzaSizeUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? "Add New Size" : "Edit Size"}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 ">
-          <PrimeCard>
+    <PageWrapper>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">{isNew ? "Add New Size" : "Edit Size"}</h2>
+      </div>
+      <div className="max-w-2xl">
+        <Card>
+          <CardContent className="p-4">
             {loading ? (
-              <p>Loading...</p>
+              <p className="text-xs">Loading...</p>
             ) : (
               <form>
-                <FormGroup>
-                  <div className={"d-flex flex-column"}>
-                    <Label for="pizza-size-name">Name</Label>
-                    <InputText
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="pizza-size-name" className="text-xs">Name</Label>
+                    <Input
                       type="text"
                       name="name"
                       required={true}
                       id="pizza-size-name"
                       value={pizzaSize.name || ''}
                       onChange={handleChange}
+                      className="h-8 text-xs"
                     />
                   </div>
-                </FormGroup>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    onClick={() => navigate(-1)}
+                    variant="outline"
+                    className="h-8 text-xs"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
                     <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
-                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-                &nbsp;
-                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                </Button>
+                  </Button>
+                  <Button
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-3 w-3" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    onClick={(e) => saveEntity(e, true)}
+                    id="save-entity-new"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-3 w-3" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
+                </div>
               </form>
             )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

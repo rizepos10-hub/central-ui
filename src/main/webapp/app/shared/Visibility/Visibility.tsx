@@ -1,16 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {IVisibility} from "app/shared/model/visibility.model";
-import {Dropdown} from "primereact/dropdown";
-import {Checkbox} from "primereact/checkbox";
-import {Accordion, AccordionTab} from "primereact/accordion";
 import {SourceType} from "app/shared/model/ENUMS/source-type.model";
 import {DayOfWeek} from "app/shared/model/ENUMS/day-of-week.model";
-import {Button, Button as PrimeButton} from "primereact/button";
-import {InputText} from "primereact/inputtext";
-import {Nullable} from "primereact/ts-helpers";
-import {Calendar} from "primereact/calendar";
-import {Message} from "primereact/message";
 import {Translate, translate} from "react-jhipster";
+
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Plus, X } from 'lucide-react';
 
 
 interface Props {
@@ -18,21 +19,17 @@ interface Props {
   onStateChanged: (state: IVisibility[]) => void;
   title?: string;
 }
-function convertStringToNullableDate (date: string) : Nullable<Date> {
-  const [hours, minutes, seconds] = date ? date.split(':').map(Number) : [undefined, undefined, undefined];
-  return (hours !== undefined && minutes !== undefined && seconds !== undefined)
-    ? new Date(0, 0, 0, hours, minutes, seconds)
-    : null;
+// Convert time string (HH:mm:ss) to HH:mm format for input
+function formatTimeForInput(timeString: string): string {
+  if (!timeString) return '00:00';
+  const [hours, minutes] = timeString.split(':');
+  return `${hours}:${minutes}`;
 }
 
-function convertNullableDateToString (date: Nullable<Date> | Date[] | string) : string {
-  if (date !== null && date instanceof Date) {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
-
-    return `${hours}:${minutes}:${seconds}`;
-  }
+// Convert input time (HH:mm) to time string (HH:mm:ss)
+function formatTimeFromInput(timeString: string): string {
+  if (!timeString) return '00:00:00';
+  return `${timeString}:00`;
 }
 const Visibility = ({ initialState, onStateChanged, title = "Visibility" }:Props) => {
 
@@ -114,97 +111,120 @@ const Visibility = ({ initialState, onStateChanged, title = "Visibility" }:Props
 
   const accordionTabContent = (day: DayOfWeek) => {
     return (
-      <>
-        <div className="d-flex justify-content-end">
-          <PrimeButton type="button" className="" onClick={() => handleAddHourRange(day)}>
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => handleAddHourRange(day)}
+            className="h-7 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
             <Translate contentKey={'visibility.add'}>Add Visibility Hours</Translate>
-          </PrimeButton>
+          </Button>
         </div>
-        { getHourRangesForDay(day) && getHourRangesForDay(day).map((hourRange, rangeIndex) => {
-          const content = (
-            <div className="w-full d-flex flex-row align-items-center justify-content-between">
-              <div className="d-flex flex-row">
-                <div>
-                  <label htmlFor="fromPicker" className="font-bold block mb-2">
+        {getHourRangesForDay(day) && getHourRangesForDay(day).map((hourRange, rangeIndex) => (
+          <Card key={rangeIndex} className="p-2 border-l-4 border-l-primary">
+            <div className="flex items-end justify-between gap-2">
+              <div className="flex gap-2 flex-1">
+                <div className="space-y-1">
+                  <Label htmlFor={`fromPicker-${day}-${rangeIndex}`} className="text-xs font-medium">
                     <Translate contentKey={'visibility.from'}>From</Translate>
-                  </label>
-                  <Calendar
-                    id="fromPicker"
-                    value={convertStringToNullableDate(hourRange.from)}
+                  </Label>
+                  <Input
+                    id={`fromPicker-${day}-${rangeIndex}`}
+                    type="time"
+                    value={formatTimeForInput(hourRange.from)}
                     onChange={(e) =>
-                      handleChangeHourRange(day, rangeIndex, 'from', convertNullableDateToString(e.value))}
-                    timeOnly
-                    className={hourRange.from ? '' : 'p-invalid'}
+                      handleChangeHourRange(day, rangeIndex, 'from', formatTimeFromInput(e.target.value))
+                    }
+                    className="h-8 text-xs w-32"
                   />
                 </div>
 
-                <div className="ml-2">
-                  <label htmlFor="toPicker" className="font-bold block mb-2">
+                <div className="space-y-1">
+                  <Label htmlFor={`toPicker-${day}-${rangeIndex}`} className="text-xs font-medium">
                     <Translate contentKey={'visibility.to'}>To</Translate>
-                  </label>
-                  <Calendar
-                    id="toPicker"
-                    value={convertStringToNullableDate(hourRange.to)}
+                  </Label>
+                  <Input
+                    id={`toPicker-${day}-${rangeIndex}`}
+                    type="time"
+                    value={formatTimeForInput(hourRange.to)}
                     onChange={(e) =>
-                      handleChangeHourRange(day, rangeIndex, 'to', convertNullableDateToString(e.value))}
-                    timeOnly
-                    className={hourRange.to ? '' : 'p-invalid'}
+                      handleChangeHourRange(day, rangeIndex, 'to', formatTimeFromInput(e.target.value))
+                    }
+                    className="h-8 text-xs w-32"
                   />
                 </div>
               </div>
 
-              <div className="ml-2">
-                <label className="font-bold block mb-2"><Translate contentKey={'visibility.remove'}>Remove</Translate></label>
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">
+                  <Translate contentKey={'visibility.remove'}>Remove</Translate>
+                </Label>
                 <Button
-                  type={'button'}
-                  icon="pi pi-times"
-                  rounded
-                  severity="danger"
+                  type="button"
+                  variant="destructive"
+                  size="sm"
                   onClick={() => handleRemoveHourRange(day, rangeIndex)}
-                />
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-
-            </div>);
-          return (<Message
-            key={rangeIndex}
-            style={{
-              border: 'solid #696cff',
-              borderWidth: '0 0 0 6px',
-              color: '#696cff'
-            }}
-            className="border-primary w-full mt-3 justify-content-start"
-            severity="info"
-            content={content}
-          />)
-        })}
-      </>);
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
   }
+
   return (
-    <>
-      <h2>{title}</h2>
-      <div className="d-flex justify-content-between flex-wrap mb-4">
-        <Dropdown value={selectedApplication} onChange={(e) => setSelectedApplication(e.value)} options={applications}
-                  className="w-full md:w-14rem mb-4" />
+    <div className="space-y-2">
+      <h2 className="text-base font-semibold">{title}</h2>
+      <div className="flex justify-between items-center flex-wrap gap-2">
+        <Select value={selectedApplication} onValueChange={(value) => setSelectedApplication(value as SourceType)}>
+          <SelectTrigger className="w-full md:w-64 h-8 text-xs">
+            <SelectValue placeholder="Select Application" />
+          </SelectTrigger>
+          <SelectContent>
+            {applications.map((app) => (
+              <SelectItem key={app} value={app} className="text-xs">
+                {app}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {selectedApplication && (
-          <div className='d-flex mb-4'>
-            <label htmlFor="isVisible" className="font-bold mr-2"><Translate contentKey={'visibility.visible'}>Visible</Translate></label>
-            <Checkbox inputId="isVisible" onChange={e => handleChangeIsVisible(e.checked)}
-                      checked={getIsVisible()}/>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isVisible"
+              checked={getIsVisible()}
+              onCheckedChange={(checked) => handleChangeIsVisible(!!checked)}
+            />
+            <Label htmlFor="isVisible" className="text-xs font-medium cursor-pointer">
+              <Translate contentKey={'visibility.visible'}>Visible</Translate>
+            </Label>
           </div>
         )}
       </div>
 
-      {selectedApplication &&
-        <Accordion>
-          {allDays.map((day, dayIndex)=>{
-            return (
-              <AccordionTab key={dayIndex} header={translate(`daysOfWeek.${day}`)}>
+      {selectedApplication && (
+        <Accordion type="single" collapsible className="w-full">
+          {allDays.map((day, dayIndex) => (
+            <AccordionItem key={dayIndex} value={`day-${dayIndex}`}>
+              <AccordionTrigger className="text-xs font-medium py-2">
+                {translate(`daysOfWeek.${day}`)}
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
                 {accordionTabContent(day)}
-              </AccordionTab>
-            )
-          })}
-        </Accordion>}
-    </>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
+    </div>
   )
 }
 export default Visibility;

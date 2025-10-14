@@ -1,9 +1,7 @@
 import React, { useCallback, useContext, useEffect, useRef } from "react";
 
 import "../sidebar/sidebar.scss";
-import AppSidebar from "app/shared/sidebar/AppSidebar";
-import '../styles/layout/layout.scss';
-import '../styles/demo/Demos.scss';
+import AppMenu from "app/shared/sidebar/AppMenu";
 import { LayoutContext } from "app/shared/sidebar/context/layoutcontext";
 import { classNames, DomHandler } from "primereact/utils";
 import { useEventListener, useMountEffect, useResizeListener } from "primereact/hooks";
@@ -20,10 +18,9 @@ import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
 import Footer from "app/shared/layout/footer/footer";
 import { ConfirmDialog } from "primereact/confirmdialog";
-import GlobalSearch from "../components/global-search/global-search";
-import { model } from "../sidebar/AppMenu";
 import { getTenantFromURL } from "app/app";
 import GuidedTour from "../components/guided-tour/guided-tour";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 
 
@@ -149,10 +146,6 @@ export const Layout = (props: ChildContainerProps) => {
     };
   }, [layoutState.overlayMenuActive, layoutState.staticMenuMobileActive, layoutState.overlaySubmenuActive]);
 
-  let sidebarContent = (<div className="sidebar invisible"></div>);
-  if (props.isAuthenticated) {
-    sidebarContent = <AppSidebar />;
-  }
   const dispatch = useAppDispatch();
 
   const onMouseEnter = () => {
@@ -202,40 +195,39 @@ export const Layout = (props: ChildContainerProps) => {
 
   return (
     <React.Fragment>
+      {isAuthenticated && tenant ? (
+        <SidebarProvider>
+          <div className={classNames('layout-container flex min-h-screen w-full', containerClass)}>
+            <AppMenu />
 
-      <div className={classNames('layout-container', containerClass)}>
-        {isAuthenticated && tenant && <AppSidebar />}
-        {isAuthenticated && tenant && <AppTopbar ref={topbarRef} />}
-        <div className={classNames(isAuthenticated ? 'layout-content-wrapper' : '', 'layout-wrapper')} style={{
-          height: '100%',
-          transition: 'margin-left 0.3s ease'
-        }}>
-          <ConfirmDialog />
-          <GlobalSearch data={model} />
-          <GuidedTour />
-          <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
-          <ErrorBoundary>
-            {/* <Header */}
-            {/*   isAuthenticated={isAuthenticated} */}
-            {/*   isAdmin={isAdmin} */}
-            {/*   currentLocale={currentLocale} */}
-            {/*   ribbonEnv={ribbonEnv} */}
-            {/*   isInProduction={isInProduction} */}
-            {/*   isOpenAPIEnabled={isOpenAPIEnabled} */}
-            {/* /> */}
+            <SidebarInset className="flex-1">
+              <AppTopbar ref={topbarRef} />
 
+              <div className="layout-wrapper">
+                <ConfirmDialog />
+                <GuidedTour />
+                <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
 
-            {isAuthenticated && tenant && isOpenAPIEnabled && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
+                <ErrorBoundary>
+                  <div className="layout-content">{props.children}</div>
+                </ErrorBoundary>
+              </div>
 
-            <div className="layout-content">{props.children}</div>
-          </ErrorBoundary>
+              <Footer />
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+      ) : (
+        <div className={classNames('layout-container', containerClass)}>
+          <div className="layout-wrapper" style={{ height: '100%' }}>
+            <ConfirmDialog />
+            <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
+            <ErrorBoundary>
+              <div className="layout-content">{props.children}</div>
+            </ErrorBoundary>
+          </div>
         </div>
-        {isAuthenticated && tenant && <AppProfileSidebar />}
-
-        <div className="layout-mask"></div>
-      </div>
-      {isAuthenticated && tenant && <Footer />}
-
+      )}
     </React.Fragment>
   );
 };

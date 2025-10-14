@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './profile-group.reducer';
 import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import Select from "react-select";
-import { InputText } from "primereact/inputtext";
-import { Col, FormGroup, Row, Button, Label, Spinner } from "reactstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getSortState, Translate } from "react-jhipster";
+import { Save, ArrowLeft } from 'lucide-react';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ProfileGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -72,71 +74,86 @@ export const ProfileGroupUpdate = () => {
     }));
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) return <div className="p-4 text-xs">Loading...</div>;
 
   return (
-    <div>
-      <h2>{isNew ? `Add New Profile Groups` : `Edit Profile Groups ${profileGroup.name}`}</h2>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3  bg-white">
-          <FormGroup>
-            <div className="d-flex flex-column mb-3">
-              <Label htmlFor="name">Name</Label>
-              <InputText
-                id="name"
-                value={profileGroup.name || ''}
-                onChange={(e) => handleChange('name', e.target.value)}
-              />
-            </div>
-            <div className="d-flex flex-column mb-3">
+    <PageWrapper>
+      <div className="space-y-4 max-w-4xl">
+        <h2 className="text-base font-bold">{isNew ? `Add New Profile Group` : `Edit Profile Group ${profileGroup.name}`}</h2>
 
-              <Label htmlFor="accountingId">Accounting ID</Label>
-              <InputText
-                id="accountingId"
-                value={profileGroup.accountingId || ''}
-                onChange={(e) => handleChange('accountingId', e.target.value)}
-              />
-            </div>
-            <div className="d-flex flex-column mb-3">
+        <div className="bg-white p-4 border rounded-lg space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-xs font-semibold">Name</Label>
+            <Input
+              id="name"
+              value={profileGroup.name || ''}
+              onChange={(e) => handleChange('name', e.target.value)}
+              className="h-7 text-xs"
+            />
+          </div>
 
-              <Label htmlFor="profiles">Profiles</Label>
-              <Select
-                id="profiles"
-                options={taxProfilesList}
-                value={profileGroup.profiles || []}
-                getOptionValue={option => option.id}
-                getOptionLabel={option => option.name}
-                isMulti={true}
-                onChange={(profiles) => handleChange('profiles', profiles as IProfileGroup["profiles"])}
-                isClearable={true}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="accountingId" className="text-xs font-semibold">Accounting ID</Label>
+            <Input
+              id="accountingId"
+              value={profileGroup.accountingId || ''}
+              onChange={(e) => handleChange('accountingId', e.target.value)}
+              className="h-7 text-xs"
+            />
+          </div>
 
-          </FormGroup>
-        </Col>
-        <div className="d-flex justify-content-start align-items-center  mt-7">
-          <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-            <FontAwesomeIcon icon="arrow-left" />
-            &nbsp;
-            <span className="d-none d-md-inline">
-              <Translate contentKey="entity.action.back">Back</Translate>
-            </span>
+          <div className="space-y-2">
+            <Label htmlFor="profiles" className="text-xs font-semibold">Profiles</Label>
+            <Select
+              id="profiles"
+              options={taxProfilesList}
+              value={profileGroup.profiles || []}
+              getOptionValue={option => option.id}
+              getOptionLabel={option => option.name}
+              isMulti={true}
+              onChange={(profiles) => handleChange('profiles', profiles as IProfileGroup["profiles"])}
+              isClearable={true}
+              className="text-xs"
+              styles={{
+                control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                option: (base) => ({ ...base, fontSize: '0.75rem' }),
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            id="cancel-save"
+            data-cy="entityCreateCancelButton"
+            onClick={() => navigate(-1)}
+            variant="secondary"
+            className="h-8 text-xs"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            <Translate contentKey="entity.action.back">Back</Translate>
           </Button>
-          &nbsp;
-          <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-            <FontAwesomeIcon icon="save" />
-            &nbsp;
+          <Button
+            onClick={saveEntity}
+            id="save-entity"
+            data-cy="entityCreateSaveButton"
+            disabled={updating}
+            className="h-8 text-xs"
+          >
+            <Save className="h-4 w-4 mr-2" />
             <Translate contentKey="entity.action.save">Save</Translate>
           </Button>
-          &nbsp;
-          <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-            <FontAwesomeIcon icon="save" />
-            &nbsp;
+          <Button
+            onClick={(e) => saveEntity(e, true)}
+            disabled={updating}
+            className="h-8 text-xs"
+          >
+            <Save className="h-4 w-4 mr-2" />
             <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
           </Button>
         </div>
-      </Row>
-    </div>
+      </div>
+    </PageWrapper>
   );
 };
 

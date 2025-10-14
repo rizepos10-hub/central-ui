@@ -1,32 +1,34 @@
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
-import React from 'react'
-import { Col } from 'reactstrap'
+import React from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const TipSummary = ({ report }: { report: ISummaryReport["tipSummary"] }) => {
     if (!report || report.length === 0) return null;
 
     return (
-        <Col className="p-0">
-            <h3>Tip Summary</h3>
-            <div className="table-responsive">
-                <table className="table " id="sales_summary">
-                    <tbody>
-                        <tr>
-                            <th colSpan={2}>Username</th>
-                            <th colSpan={2}>Order Count</th>
-                            <th colSpan={2}>Total Tips</th>
-                        </tr>
+        <div className="p-0">
+            <h3 className="text-sm font-semibold mb-2">Tip Summary</h3>
+            <div className="border rounded-md overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="text-xs font-semibold">Username</TableHead>
+                            <TableHead className="text-xs font-semibold text-right">Order Count</TableHead>
+                            <TableHead className="text-xs font-semibold text-right">Total Tips</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {report.map((r, idx) => (
-                            <tr key={idx}>
-                                <td colSpan={2}>{r.username}</td>
-                                <td colSpan={2}>{r.orderCount}</td>
-                                <td colSpan={2}>{r.totalTips}</td>
-                            </tr>
+                            <TableRow key={idx}>
+                                <TableCell className="text-xs">{r.username}</TableCell>
+                                <TableCell className="text-xs text-right">{r.orderCount}</TableCell>
+                                <TableCell className="text-xs text-right">{r.totalTips}</TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
-        </Col>
+        </div>
     )
 }
 

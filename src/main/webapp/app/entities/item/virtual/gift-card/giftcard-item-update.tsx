@@ -1,24 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Row, Col, Spinner, FormGroup, Card, CardBody, CardHeader } from 'reactstrap';
 import { getSortState, translate, Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Dropdown } from 'primereact/dropdown';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './giftcard-item.reducer';
 import SharedVirtualItemUpdate from "app/shared/components/item/shared-virtual-update";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { InputNumber } from "primereact/inputnumber";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 
 import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
 import Visibility from 'app/shared/Visibility/Visibility';
-import { TabPanel, TabView } from "primereact/tabview";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { IGiftCardItem } from 'app/shared/model/ITEM/virtual/giftcard-item.model';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 
 
 const defaultItemPriceNumber = {
@@ -44,7 +45,7 @@ export const GiftCardItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.GiftCardItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const location = useLocation();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState('details');
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -60,14 +61,13 @@ export const GiftCardItemUpdate = () => {
     return giftCardsCouponEntities.find((giftCard) => giftCard.id === id);
   };
 
-
-  const [selectedGiftCard, setSelectedGiftCard] = useState(giftCardItem?.variants ? giftCardItem?.variants[0]?.giftCard: null);
+  const [selectedGiftCard, setSelectedGiftCard] = useState(giftCardItem?.variants ? giftCardItem?.variants[0]?.giftCard : null);
 
   const handleGiftCardChange = (selectedOption) => {
     setSelectedGiftCard(selectedOption);
     handleGiftCardItemVariantChange("giftCard", findGiftCardById(selectedOption));
   };
-  
+
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
     if (fromMenuId) {
@@ -116,7 +116,6 @@ export const GiftCardItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-
   }, [id, isNew]);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ export const GiftCardItemUpdate = () => {
       handleNavigate(giftCardItemId);
     }
   }, [giftCardItemEntity?.id, updateSuccess]);
-
 
   const saveEntity = e => {
     e.preventDefault();
@@ -150,102 +148,120 @@ export const GiftCardItemUpdate = () => {
   };
 
   if (loading) {
-    return <Spinner />
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <form onSubmit={saveEntity}>
-      <div className={"d-flex row"}>
-        <Col md={9}>
-          <Card className='p-0'>
-            <CardBody>
-              <Row>
-                <Col md={10}>
-                  <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
-                    <TabPanel header={translate('items.update.tabs.details.label')}>
-                      <div className='w-100'>
-                        <div className='text-xl font-semibold'>
-                          {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.giftcard'}>Create New Gift Card Item</Translate> : <span>Edit {giftCardItem.name}</span>}
+      <div className="flex gap-2 p-2">
+        <div className="flex-1">
+          <Card className="p-0">
+            <CardContent className="p-2">
+              <div className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="h-8">
+                    <TabsTrigger value="details" className="text-xs h-7">
+                      {translate('items.update.tabs.details.label')}
+                    </TabsTrigger>
+                    <TabsTrigger value="visibility" className="text-xs h-7">
+                      {translate('items.update.tabs.visibility.label')}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="details">
+                    <div className="w-full">
+                      <div className="text-sm font-semibold mb-3">
+                        {isNew ? (
+                          <Translate contentKey={'items.update.tabs.details.titles.create.giftcard'}>
+                            Create New Gift Card Item
+                          </Translate>
+                        ) : (
+                          <span>Edit {giftCardItem.name}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 bg-white p-2">
+                      <SharedVirtualItemUpdate item={giftCardItem} onFieldChange={handleFieldChange} />
+
+                      <div className="flex flex-col gap-2 mt-2">
+                        <div className="w-1/2">
+                          <Label className="text-xs font-semibold">
+                            <Translate contentKey={'items.update.price'}>Price</Translate>
+                          </Label>
+                          <Input
+                            type="number"
+                            name="price"
+                            id="price"
+                            required={true}
+                            min={0}
+                            step={0.01}
+                            className="h-7 text-xs mt-1"
+                            placeholder={translate('items.update.placeholders.itemPrice')}
+                            value={giftCardItem?.variants?.[0]?.price || ''}
+                            onChange={(e) => handleGiftCardItemVariantChange('price', parseFloat(e.target.value))}
+                          />
                         </div>
                       </div>
+                    </div>
+                  </TabsContent>
 
-                      <Row>
-
-                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
-
-                          <Col md="12" className={`d-flex flex-column bg-white gap-1 p-1`} >
-
-                            <SharedVirtualItemUpdate item={giftCardItem} onFieldChange={handleFieldChange} />
-
-                            <Row className="">
-                              <Col md="6">
-                                <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.price'}>Price</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="price"
-                                    id="price"
-                                    required={true}
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName={"w-1"}
-                                    placeholder={translate('items.update.placeholders.itemPrice')}
-                                    value={giftCardItem?.variants?.[0]?.price}
-                                    onChange={(e) => handleGiftCardItemVariantChange('price', e.value)}
-                                  />
-                                </div>
-                              </Col>
-                            </Row>
-
-                          </Col>
-                        </FormGroup>
-
-
-                      </Row>
-                    </TabPanel>
-                    <TabPanel header={translate('items.update.tabs.visibility.label')}>
-                      <Visibility
-                        initialState={giftCardItem.visibility}
-                        title={translate('items.update.tabs.visibility.titles.giftCard')}
-                        onStateChanged={(state) => setGiftCardItem(prev => {
-                          return { ...prev, visibility: state }
-                        })} />
-                    </TabPanel>
-                  </TabView>
-                </Col>
-              </Row>
-            </CardBody>
+                  <TabsContent value="visibility">
+                    <Visibility
+                      initialState={giftCardItem.visibility}
+                      title={translate('items.update.tabs.visibility.titles.giftCard')}
+                      onStateChanged={(state) => setGiftCardItem(prev => {
+                        return { ...prev, visibility: state }
+                      })}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3} style={{
-          position: 'sticky',
-          top: '0',
-          height: '90vh',
-        }}>
+        </div>
+
+        <div className="w-64" style={{ position: 'sticky', top: '0', height: '90vh' }}>
           <Card>
-            <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"
-                severity='secondary'>
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
+            <CardHeader className="p-2">
+              <CardTitle className="text-xs">Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-2">
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={handleBackClick}
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                  variant="secondary"
+                  className="h-8 text-xs"
+                >
+                  <ArrowLeft className="h-3 w-3 mr-1" />
                   <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </PrimeButton>
-              &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </PrimeButton>
-            </div>
+                </Button>
+                <Button
+                  id="save-entity"
+                  data-cy="entityCreateSaveButton"
+                  type="submit"
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  {updating ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Save className="h-3 w-3 mr-1" />
+                  )}
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+              </div>
+            </CardContent>
           </Card>
           {giftCardItemEntity?.id && <AuditLogs entityId={giftCardItemEntity?.id} />}
-        </Col>
-
+        </div>
       </div>
     </form>
   );

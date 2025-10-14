@@ -1,8 +1,8 @@
 import { fetchRecentByDate, fetchRecentBills } from 'app/modules/analytics/api';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import React, { useEffect, useState } from 'react';
-import { Col } from 'reactstrap';
 import PaginationFilterStateVals from '../pagination/pagination-filter-state-vals';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -31,36 +31,36 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
     if (bills.length === 0) return null;
 
     return (
-        <Col className='p-0'>
-            <h3>Bills Summary</h3>
-            <div className="table-responsive">
-                <table className="table" id="sales_summary">
-                    <thead>
-                        <tr>
-                            <th colSpan={2}>Sequence Number</th>
-                            <th colSpan={2}>Date / Time</th>
-                            <th colSpan={2}>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <div className="p-0">
+            <h3 className="text-sm font-semibold mb-2">Bills Summary</h3>
+            <div className="border rounded-md overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="text-xs font-semibold">Sequence Number</TableHead>
+                            <TableHead className="text-xs font-semibold">Date / Time</TableHead>
+                            <TableHead className="text-xs font-semibold text-right">Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {bills.map((b, idx) => (
-                            <tr key={idx}>
-                                <td colSpan={2}>{b.sequenceNumber}</td>
-                                <td colSpan={2}>{new Date(b.dateTime).toLocaleString()}</td>
-                                <td colSpan={2}>{b.total}</td>
-                            </tr>
+                            <TableRow key={idx}>
+                                <TableCell className="text-xs">{b.sequenceNumber}</TableCell>
+                                <TableCell className="text-xs">{new Date(b.dateTime).toLocaleString()}</TableCell>
+                                <TableCell className="text-xs text-right">{b.total}</TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
-            <div className='d-flex justify-content-center align-items-center'>
+            <div className="flex justify-center items-center mt-3">
                 <PaginationFilterStateVals
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
                     totalPages={totalPages}
                 />
             </div>
-        </Col>
+        </div>
     );
 };
 

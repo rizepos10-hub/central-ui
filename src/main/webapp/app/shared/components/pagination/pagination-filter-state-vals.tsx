@@ -1,4 +1,7 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 interface PaginationFilterProps {
   totalPages: number;
@@ -21,77 +24,95 @@ const PaginationFilterStateVals: React.FC<PaginationFilterProps> = ({ totalPages
   }
 
   return (
-    <nav aria-label="Page navigation example">
-      <ul className="pagination">
+    <nav aria-label="Pagination navigation" className="flex items-center justify-center">
+      <div className="flex items-center gap-1">
         {currentPage > 1 && (
-          <li className="page-item">
-            <a
-              className="page-link"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            >
-              Previous
-            </a>
-          </li>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            className="h-7 px-2 text-xs"
+          >
+            <ChevronLeft className="h-3 w-3 mr-1" />
+            Previous
+          </Button>
         )}
 
         {startPage > 1 && (
-          <li className="page-item">
-            <a className="page-link" onClick={() => setCurrentPage(1)}>
-              1
-            </a>
-          </li>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(1)}
+            className="h-7 w-7 p-0 text-xs"
+          >
+            1
+          </Button>
         )}
 
         {startPage > 2 && (
-          <li className="page-item">
-            <span className="page-link">...</span>
-          </li>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled
+            className="h-7 w-7 p-0 text-xs"
+          >
+            <MoreHorizontal className="h-3 w-3" />
+          </Button>
         )}
 
-        {Array.from({ length: endPage - startPage + 1 }, (_, index) => (
-          <li
-            key={index}
-            className={`page-item ${
-              startPage + index === currentPage ? 'active' : ''
-            }`}
-          >
-            <a
-              className="page-link"
-              onClick={() => setCurrentPage(startPage + index)}
+        {Array.from({ length: endPage - startPage + 1 }, (_, index) => {
+          const pageNum = startPage + index;
+          const isActive = pageNum === currentPage;
+          return (
+            <Button
+              key={index}
+              variant={isActive ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setCurrentPage(pageNum)}
+              className={cn(
+                'h-7 w-7 p-0 text-xs',
+                isActive && 'pointer-events-none'
+              )}
             >
-              {startPage + index}
-            </a>
-          </li>
-        ))}
+              {pageNum}
+            </Button>
+          );
+        })}
 
         {endPage < totalPages - 1 && (
-          <li className="page-item">
-            <span className="page-link">...</span>
-          </li>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled
+            className="h-7 w-7 p-0 text-xs"
+          >
+            <MoreHorizontal className="h-3 w-3" />
+          </Button>
         )}
 
         {endPage < totalPages && (
-          <li className="page-item">
-            <a
-              className="page-link"
-              onClick={() => setCurrentPage(totalPages)}
-            >
-              {totalPages}
-            </a>
-          </li>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(totalPages)}
+            className="h-7 w-7 p-0 text-xs"
+          >
+            {totalPages}
+          </Button>
         )}
 
         {currentPage < totalPages && (
-          <li className="page-item">
-            <a
-              className="page-link"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            >
-              Next
-            </a>
-          </li>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            className="h-7 px-2 text-xs"
+          >
+            Next
+            <ChevronRight className="h-3 w-3 ml-1" />
+          </Button>
         )}
-      </ul>
+      </div>
     </nav>
   );
 };

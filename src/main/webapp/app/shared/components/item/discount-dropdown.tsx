@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { Label } from '@/components/ui/label';
 
 type DiscountDropdownProps = {
   discounts: IDiscount[];
@@ -23,10 +24,10 @@ const DiscountDropdown = ({ discounts, handleChange, variantIndex, handleVariant
   );
 
   return (
-    <div className={'d-flex flex-column gap-2'}>
-      <label className={'font-semibold'}>
+    <div className="space-y-2">
+      <Label className="text-xs font-semibold">
         <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-      </label>
+      </Label>
       <Select
         value={discounts || []}
         options={discountList}
@@ -47,6 +48,17 @@ const DiscountDropdown = ({ discounts, handleChange, variantIndex, handleVariant
               sort: `${paginationState.sort},${paginationState.order}`,
             })
           );
+        }}
+        styles={{
+          control: (base) => ({
+            ...base,
+            minHeight: '32px',
+            fontSize: '0.75rem',
+          }),
+          menu: (base) => ({
+            ...base,
+            fontSize: '0.75rem',
+          }),
         }}
       />
     </div>

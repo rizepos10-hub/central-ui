@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Trash2, X } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './menu.reducer';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 export const MenuDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -15,9 +26,10 @@ export const MenuDeleteDialog = () => {
   const { id } = useParams<'id'>();
 
   const [loadModal, setLoadModal] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    dispatch(getEntity({id}));
+    dispatch(getEntity({ id }));
     setLoadModal(true);
   }, []);
 
@@ -25,6 +37,7 @@ export const MenuDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
 
   const handleClose = () => {
+    setOpen(false);
     navigate(-1);
   };
 
@@ -40,28 +53,46 @@ export const MenuDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="menuDeleteDialogHeading">
-        <Translate contentKey="menus.shared.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.menu.delete.question">
-        <Translate contentKey="menus.shared.delete.question" interpolate={{ menu: menuEntity.id }}>
-          Are you sure you want to delete this Menu?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-menu" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogContent className="max-w-md p-3">
+        <AlertDialogHeader className="p-2">
+          <AlertDialogTitle className="text-sm font-semibold">
+            <Translate contentKey="menus.shared.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            <Translate contentKey="menus.shared.delete.question" interpolate={{ menu: menuEntity.name || menuEntity.id }}>
+              Are you sure you want to delete this Menu?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-1 pt-2">
+          <AlertDialogCancel asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              className="h-8 text-xs"
+            >
+              <X className="h-3 w-3 mr-1" />
+              <Translate contentKey="entity.action.cancel">Cancel</Translate>
+            </Button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={confirmDelete}
+              id="jhi-confirm-delete-menu"
+              data-cy="entityConfirmDeleteButton"
+              className="h-8 text-xs"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              <Translate contentKey="entity.action.delete">Delete</Translate>
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

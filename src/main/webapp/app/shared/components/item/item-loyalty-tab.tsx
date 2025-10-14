@@ -1,24 +1,24 @@
-import {Col, Row} from "reactstrap";
 import {Translate} from "react-jhipster";
-import {Checkbox} from "primereact/checkbox";
 import React from "react";
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const ItemLoyaltyTab = ({excludedFromLoyaltyPoints, onFieldChange}) => {
 
   return (
-    <Row className={"my-3" } >
-      <Col md={"4"}>
-        <div className={"d-flex my-3 gap-2"}>
-          <label className={"font-semibold"}>
-            <Translate contentKey="items.update.excludedFromLoyalty">Excluded From Loyalty Points</Translate>
-          </label>
+    <div className="my-3">
+      <div className="md:w-1/3">
+        <div className="flex items-center gap-2 my-3">
           <Checkbox
             checked={excludedFromLoyaltyPoints}
-            onChange={(e) => onFieldChange('excludedFromLoyaltyPoints', e.checked)}
+            onCheckedChange={(checked) => onFieldChange('excludedFromLoyaltyPoints', checked)}
           />
+          <Label className="text-xs font-semibold cursor-pointer">
+            <Translate contentKey="items.update.excludedFromLoyalty">Excluded From Loyalty Points</Translate>
+          </Label>
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   );
 };
 

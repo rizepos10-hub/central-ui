@@ -10,13 +10,8 @@
   }
 }
 
-// Ensure the new sidebar takes precedence
-.new-sidebar {
-  position: fixed !important;
-  z-index: 50 !important; // Lower than navbar but above content
-}
-
-// The content margin is now handled dynamically by the NewSidebar component
+// Remove fixed positioning - shadcn sidebar uses flex layout
+// The new sidebar is part of the flex container, not fixed
 
 .sidebar {
   background-color: transparent;

@@ -1,19 +1,23 @@
 import { FilterMatchMode } from 'primereact/api';
-import { Calendar } from 'primereact/calendar';
 import React, { useState, useEffect } from 'react';
 import { translate } from 'react-jhipster';
 import { Chart } from 'primereact/chart';
-import { Card, Col, Row } from 'reactstrap';
-import { SelectButton } from 'primereact/selectbutton';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'react-select';
 import { DateSlotPeriod, IRetailDashboard } from 'app/shared/model/retail-dashboard.model';
 import { getReportData } from './retail-dashboard.reducer';
-import { MdGridOn, MdGridView, MdList } from 'react-icons/md';
-import { TfiLayoutGrid4Alt } from "react-icons/tfi";
-import { addMinutes } from 'date-fns';
-import { InputNumber } from 'primereact/inputnumber';
+import { List, Grid2X2, Grid3X3, Grid } from 'lucide-react';
+import { addMinutes, format } from 'date-fns';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const initialState = {
     first: 0,
@@ -46,6 +50,7 @@ const RetialDashboard: React.FC = () => {
         label: GridViewLabel.TWO,
         value: 6
     })
+    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
     const [data, setData] = useState<{
         revenueData?: IRetailDashboard;
         customerCountData?: IRetailDashboard;
@@ -104,41 +109,25 @@ const RetialDashboard: React.FC = () => {
         const updatedData: { [key: string]: IRetailDashboard } = {};
 
         results.forEach(({ type, data }) => {
-            const camelCaseKey = toCamelCase(type) + 'Data';  // Convert to camelCase and append "Data"
+            const camelCaseKey = toCamelCase(type) + 'Data';
             updatedData[camelCaseKey] = data as IRetailDashboard;
         });
         setData(updatedData);
     };
 
-
     const toCamelCase = (str: string) => {
         return str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
     };
 
-    const handleViewChange = (e: any) => {
-        setView(e.value);
+    const handleViewChange = (value: DateSlotPeriod) => {
+        setView(value);
     };
 
-    const calenderValue =
-        filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
-            ?
-            [filterState.filters?.instantClockedIn.value, null]
-            :
-            filterState.filters?.instantClockedIn.value && filterState.filters.instantClockedOut.value
-                ?
-                [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
-                :
-                null;
+    const handleDateChange = (from: Date | undefined, to: Date | undefined) => {
+        const localStartDate = from ? addMinutes(from, -from.getTimezoneOffset()) : null;
+        const localEndDate = to ? addMinutes(to, -to.getTimezoneOffset()) : null;
 
-    const handleDateChange = (e: any) => {
-        const startDate = e.value[0] ? new Date(e.value[0]) : null;
-        const endDate = e.value[1] ? new Date(e.value[1]) : null;
-
-        // Adjust the timezone using date-fns addMinutes
-        const localStartDate = startDate ? addMinutes(startDate, -startDate.getTimezoneOffset()) : null;
-        const localEndDate = endDate ? addMinutes(endDate, -endDate.getTimezoneOffset()) : null;
-
-
+        setDateRange({ from, to });
         setFilterState({
             ...filterState,
             filters: {
@@ -148,7 +137,6 @@ const RetialDashboard: React.FC = () => {
             }
         });
     };
-
 
     const handleBranchChange = (selectedOption: any) => {
         setFilterState({
@@ -165,144 +153,200 @@ const RetialDashboard: React.FC = () => {
         dataset: { data: chartData?.nodes?.map(node => node.y) || [] }
     });
 
+    const getGridClass = (value: number) => {
+        switch (value) {
+            case 12: return 'grid-cols-1';
+            case 6: return 'grid-cols-1 md:grid-cols-2';
+            case 4: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+            case 3: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+            default: return 'grid-cols-1 md:grid-cols-2';
+        }
+    };
 
     return (
-        <div className='d-flex flex-column gap-5'>
-            <div className='d-flex gap-2'>
-                <div className='d-flex flex-column gap-2 align-items-center justify-content-center w-100'>
-                    <div className='d-flex flex-column gap-2'>
-                        <label htmlFor="view">View</label>
-                        <SelectButton
-                            value={view}
-                            onChange={handleViewChange}
-                            optionLabel="name"
-                            options={views}
-                            style={{ width: '12rem' }}
-                        />
+        <PageWrapper>
+            <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="view" className="text-xs font-semibold">View</Label>
+                        <div className="flex gap-1">
+                            {views.map((v) => (
+                                <Button
+                                    key={v.value}
+                                    type="button"
+                                    variant={view === v.value ? 'default' : 'outline'}
+                                    size="sm"
+                                    className="h-7 text-xs flex-1"
+                                    onClick={() => handleViewChange(v.value)}
+                                >
+                                    {v.name}
+                                </Button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-                <div className='d-flex flex-column gap-2 align-items-center justify-content-center w-100'>
-                    <div className='d-flex flex-column gap-2'>
-                        <label htmlFor="slots">Slots</label>
-                        <InputNumber
-                            value={slots}
-                            onValueChange={(e) => setSlots(e.value)}
-                            min={1}
-                        />
-                    </div>
-                </div>
-                <div className='d-flex flex-column gap-2 align-items-center justify-content-center w-100'>
-                    <label htmlFor="date">Date Range</label>
-                    <Calendar
-                        style={{ width: '12rem' }}
-                        disabled={!branches || branches?.length === 0}
-                        value={calenderValue}
-                        id={'date'}
-                        onChange={handleDateChange}
-                        selectionMode="range"
-                        placeholder={translate('orders.view.table.filters.date')}
-                    />
-                </div>
-                <div className='d-flex flex-column gap-2 align-items-center justify-content-center w-100'>
-                    <label htmlFor="branch">Branch</label>
-                    <Select
-                        options={branches?.map(branch => ({ value: branch.id, label: branch.name }))}
-                        isClearable
-                        styles={{ control: (baseStyles) => ({ ...baseStyles, maxWidth: '12rem' }) }}
-                        className="w-100 d-flex align-items-center justify-content-center"
-                        onChange={handleBranchChange}
-                        onMenuOpen={() => {
-                            dispatch(getBranches({ page: 0, size: 1000, sort: 'id,desc' }));
-                        }}
-                    />
-                </div>
-                <div className='d-flex flex-column gap-2 align-items-center justify-content-center w-100'>
-                    <label htmlFor="branch">Grid View</label>
 
-                    <div className='d-flex gap-2'>
-                        <MdList
-                            onClick={() => setGridView({
-                                label: GridViewLabel.ONE,
-                                value: 12
-                            })}
-                            size={20}
-                            style={{
-                                cursor: 'pointer'
-                            }}
+                    <div className="space-y-2">
+                        <Label htmlFor="slots" className="text-xs font-semibold">Slots</Label>
+                        <Input
+                            type="number"
+                            id="slots"
+                            value={slots}
+                            onChange={(e) => setSlots(Number(e.target.value))}
+                            min={1}
+                            className="h-7 text-xs"
                         />
-                        <MdGridView
-                            onClick={() => setGridView({
-                                label: GridViewLabel.TWO,
-                                value: 6
-                            })}
-                            size={20}
-                            style={{
-                                cursor: 'pointer'
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Date Range</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!branches || branches?.length === 0}
+                                    className={cn(
+                                        "h-7 text-xs justify-start text-left font-normal w-full",
+                                        !dateRange.from && !dateRange.to && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
+                                    {dateRange.from && dateRange.to ? (
+                                        `${format(dateRange.from, 'PP')} - ${format(dateRange.to, 'PP')}`
+                                    ) : (
+                                        <span>{translate('orders.view.table.filters.date')}</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <div className="p-3 space-y-2">
+                                    <div>
+                                        <Label className="text-xs">From</Label>
+                                        <Calendar
+                                            mode="single"
+                                            selected={dateRange.from}
+                                            onSelect={(date) => handleDateChange(date, dateRange.to)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs">To</Label>
+                                        <Calendar
+                                            mode="single"
+                                            selected={dateRange.to}
+                                            onSelect={(date) => handleDateChange(dateRange.from, date)}
+                                        />
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="branch" className="text-xs font-semibold">Branch</Label>
+                        <Select
+                            options={branches?.map(branch => ({ value: branch.id, label: branch.name }))}
+                            isClearable
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    minHeight: '28px',
+                                    fontSize: '0.75rem',
+                                    borderColor: 'hsl(var(--input))',
+                                }),
+                                menu: (base) => ({
+                                    ...base,
+                                    fontSize: '0.75rem',
+                                }),
                             }}
-                        />
-                        <MdGridOn
-                            onClick={() => setGridView({
-                                label: GridViewLabel.THREE,
-                                value: 4
-                            })}
-                            size={20}
-                            style={{
-                                cursor: 'pointer'
-                            }}
-                        />
-                        <TfiLayoutGrid4Alt
-                            onClick={() => setGridView({
-                                label: GridViewLabel.FOUR,
-                                value: 3
-                            })}
-                            size={20}
-                            style={{
-                                cursor: 'pointer'
+                            onChange={handleBranchChange}
+                            onMenuOpen={() => {
+                                dispatch(getBranches({ page: 0, size: 1000, sort: 'id,desc' }));
                             }}
                         />
                     </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Grid View</Label>
+                        <div className="flex gap-1">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setGridView({ label: GridViewLabel.ONE, value: 12 })}
+                            >
+                                <List className="h-3 w-3" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setGridView({ label: GridViewLabel.TWO, value: 6 })}
+                            >
+                                <Grid2X2 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setGridView({ label: GridViewLabel.THREE, value: 4 })}
+                            >
+                                <Grid3X3 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setGridView({ label: GridViewLabel.FOUR, value: 3 })}
+                            >
+                                <Grid className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={`grid ${getGridClass(gridView.value)} gap-4`}>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Revenue" {...chartDataMapper(data.revenueData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Customer Count" {...chartDataMapper(data.customerCountData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Sale Count" {...chartDataMapper(data.saleCountData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Average Items Sale" {...chartDataMapper(data.averageItemsSaleData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Gross Profit" {...chartDataMapper(data.grossProfitData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Discount" {...chartDataMapper(data.discountData)} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <GeneralChart title="Discount Percentage" {...chartDataMapper(data.discountPercentageData)} />
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-            <div className='d-flex flex-column gap-5'>
-                <Row>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Revenue" {...chartDataMapper(data.revenueData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Customer Count" {...chartDataMapper(data.customerCountData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Sale Count" {...chartDataMapper(data.saleCountData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Average Items Sale" {...chartDataMapper(data.averageItemsSaleData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Gross Profit" {...chartDataMapper(data.grossProfitData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Discount" {...chartDataMapper(data.discountData)} />
-                        </Card>
-                    </Col>
-                    <Col md={gridView.value}>
-                        <Card>
-                            <GeneralChart title="Discount Percentage" {...chartDataMapper(data.discountPercentageData)} />
-                        </Card>
-                    </Col>
-                </Row>
-            </div>
-        </div>
+        </PageWrapper>
     );
 };
 
@@ -348,7 +392,7 @@ const GeneralChart: React.FC<GeneralChartProps> = ({ title, labels, dataset }) =
 
     return (
         <div>
-            <h3>{title}</h3>
+            <h3 className="text-sm font-semibold mb-2">{title}</h3>
             <Chart type="line" data={data} options={options} />
         </div>
     );

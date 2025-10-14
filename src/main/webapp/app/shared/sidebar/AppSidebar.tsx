@@ -3,7 +3,7 @@ import AppMenu from './AppMenu';
 import { LayoutContext } from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
 import {Link} from "react-router-dom";
-import 'primeflex/primeflex.css';
+// import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.css';
 const AppSidebar = () => {

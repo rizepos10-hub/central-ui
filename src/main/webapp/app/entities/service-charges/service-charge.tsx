@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button as PrimeButton } from "primereact/button"
+import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './service-charge.reducer';
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { IServiceCharge, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Dropdown } from 'primereact/dropdown';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Select from 'react-select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ServiceCharge = () => {
   const dispatch = useAppDispatch();
@@ -75,42 +74,13 @@ export const ServiceCharge = () => {
   }, [])
 
 
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/service-charge/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/service-charge/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
-
   const handleCreate = () => {
     navigate('/service-charge/new')
   }
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Service Charges</span>
-      <div className="ms-auto">
-        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </PrimeButton>
-        <PrimeButton label="Create new Service Charge" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </PrimeButton>
-      </div>
-    </div>
-  );
+  const getAllEntitiesHandler = () => {
+    getAllEntities();
+  };
 
   const formatServiceChargeKey = (key) => {
     switch (key) {
@@ -159,116 +129,107 @@ export const ServiceCharge = () => {
   }, [searchParams]);
 
   return (
-    <>
-      <Accordion activeIndex={0}>
-        <AccordionTab header='Filters'>
-          <div className="d-flex flex-column gap-3">
-            <div className="d-flex gap-3">
-              <Dropdown
-                value={searchParams.get('key')}
-                options={Object.keys(ServiceChargeKey).map(key => ({ label: key, value: key }))}
-                onChange={(e) => navigate(createQueryString('key', e.value))}
-                placeholder="Select a Key"
-                showClear
-                style={{ minWidth: '12rem' }}
-              />
-
-              <Dropdown
-                value={searchParams.get('whenToApply')}
-                options={Object.keys(ServiceChargeWhenToApply).map(key => ({ label: key, value: key }))}
-                onChange={(e) => navigate(createQueryString('whenToApply', e.value))}
-                placeholder="Select a When To Apply"
-                showClear
-                style={{ minWidth: '12rem' }}
-              />
-
-              <Dropdown
-                value={searchParams.get('branch')}
-                options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
-                onChange={(e) => navigate(createQueryString('branch', e.value))}
-                placeholder="Select a Branch"
-                showClear
-                style={{ minWidth: '12rem' }}
-              />
-            </div>
-          </div>
-        </AccordionTab>
-      </Accordion>
-
-      <div className="table-responsive">
-        <DataTable
-          value={serviceCharges}
-          editMode="row"
-          showGridlines
-          header={header}
-          paginator
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column
-            field="key"
-            header="Key"
-            body={(rowData) => formatServiceChargeKey(rowData.key)}
-          />
-
-          <Column
-            field="name"
-            header="Name"
-            body={(rowData) => rowData.value.name}
-          />
-
-          <Column
-            field="branch"
-            header="Branch"
-            body={(rowData) => rowData.branch.name}
-          />
-
-          <Column
-            field="whenToApply"
-            header="When To Apply"
-            body={(rowData) => formatServiceChargeWhenToApply(rowData.value.whenToApply)}
-          />
-
-          {/* <Column
-            field="minCharge"
-            header="Min Charge"
-            body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.minCharge : "-"}
-          />
-
-          <Column
-            field="maxCharge"
-            header="Max Charge"
-            body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.maxCharge : "-"}
-          /> */}
-
-          <Column
-            field="charge"
-            header="Charge"
-            body={(rowData) => rowData.value.charge}
-          />
-
-          <Column
-            field="type"
-            header="Type"
-            body={(rowData) => formatServiceChargeType(rowData.value.setting.type)}
-          />
-
-          <Column
-            header="Edit"
-            body={editColumnTemplate}
-            headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-            bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-          />
-
-          <Column
-            header="Delete"
-            body={deleteColumnTemplate}
-            headerStyle={{ width: '1%', }}
-            bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-          />
-        </DataTable>
+    <PageWrapper>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xl font-bold">Service Charges</span>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={getAllEntitiesHandler} disabled={loading} className="h-8 text-xs">
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            Refresh List
+          </Button>
+          <Button size="sm" onClick={handleCreate} disabled={loading} className="h-8 text-xs">
+            Create new Service Charge
+          </Button>
+        </div>
       </div>
-    </>
+
+      <div className="bg-white p-4 rounded-md border space-y-3">
+        <h3 className="font-semibold text-sm">Filters</h3>
+        <div className="flex gap-3">
+          <Select
+            value={searchParams.get('key') ? { label: searchParams.get('key'), value: searchParams.get('key') } : null}
+            options={Object.keys(ServiceChargeKey).map(key => ({ label: key, value: key }))}
+            onChange={(option) => navigate(createQueryString('key', option?.value))}
+            placeholder="Select a Key"
+            isClearable
+            className="flex-1"
+            styles={{
+              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+              option: (base) => ({ ...base, fontSize: '0.75rem' })
+            }}
+          />
+
+          <Select
+            value={searchParams.get('whenToApply') ? { label: searchParams.get('whenToApply'), value: searchParams.get('whenToApply') } : null}
+            options={Object.keys(ServiceChargeWhenToApply).map(key => ({ label: key, value: key }))}
+            onChange={(option) => navigate(createQueryString('whenToApply', option?.value))}
+            placeholder="Select When To Apply"
+            isClearable
+            className="flex-1"
+            styles={{
+              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+              option: (base) => ({ ...base, fontSize: '0.75rem' })
+            }}
+          />
+
+          <Select
+            value={searchParams.get('branch') ? branchList.find(b => b.id === searchParams.get('branch')) ? { label: branchList.find(b => b.id === searchParams.get('branch')).name, value: searchParams.get('branch') } : null : null}
+            options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
+            onChange={(option) => navigate(createQueryString('branch', option?.value))}
+            placeholder="Select a Branch"
+            isClearable
+            className="flex-1"
+            styles={{
+              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+              option: (base) => ({ ...base, fontSize: '0.75rem' })
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Key</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>When To Apply</TableHead>
+              <TableHead>Charge</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="w-[50px]">Edit</TableHead>
+              <TableHead className="w-[50px]">Delete</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {serviceCharges.map(charge => (
+              <TableRow key={charge.id}>
+                <TableCell className="text-xs">{formatServiceChargeKey(charge.key)}</TableCell>
+                <TableCell className="text-xs">{charge.value.name}</TableCell>
+                <TableCell className="text-xs">{charge.branch.name}</TableCell>
+                <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.value.whenToApply)}</TableCell>
+                <TableCell className="text-xs">{charge.value.charge}</TableCell>
+                <TableCell className="text-xs">{formatServiceChargeType(charge.value.setting.type)}</TableCell>
+                <TableCell>
+                  <Link to={`/service-charge/${charge.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Pencil className="h-3 w-3 text-gray-400" />
+                    </Button>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link to={`/service-charge/${charge.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Trash2 className="h-3 w-3 text-red-500" />
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </PageWrapper>
   );
 };
 

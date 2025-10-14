@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './void-reason.reducer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const VoidReasonDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -14,24 +22,23 @@ export const VoidReasonDeleteDialog = () => {
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
 
-  const [loadModal, setLoadModal] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     dispatch(getEntity(id));
-    setLoadModal(true);
   }, []);
 
   const voidReasonsEntity = useAppSelector(state => state.voidReason.entity);
   const updateSuccess = useAppSelector(state => state.voidReason.updateSuccess);
 
   const handleClose = () => {
+    setIsOpen(false);
     navigate(-1);
   };
 
   useEffect(() => {
-    if (updateSuccess && loadModal) {
+    if (updateSuccess) {
       handleClose();
-      setLoadModal(false);
     }
   }, [updateSuccess]);
 
@@ -40,28 +47,33 @@ export const VoidReasonDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="void-reasonsDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.void-reasons.delete.question">
-        <Translate contentKey="tempApp.void-reasons.delete.question" interpolate={{ id: voidReasonsEntity.id }}>
-          Are you sure you want to delete this VoidReasons?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-void-reasons" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle data-cy="void-reasonsDeleteDialogHeading">
+            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription id="tempApp.void-reasons.delete.question">
+            <Translate contentKey="tempApp.voidReasons.delete.question" interpolate={{ id: voidReasonsEntity.id }}>
+              Are you sure you want to delete this Void Reason?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            id="jhi-confirm-delete-void-reasons"
+            data-cy="entityConfirmDeleteButton"
+            onClick={confirmDelete}
+            className="h-8 text-xs bg-destructive hover:bg-destructive/90"
+          >
+            <Translate contentKey="entity.action.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

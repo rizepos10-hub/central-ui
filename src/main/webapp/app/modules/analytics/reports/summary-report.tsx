@@ -1,18 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import axios from "axios";
 import { format, addDays, addMonths } from 'date-fns';
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { Dropdown } from "primereact/dropdown";
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 import { translate, Translate } from "react-jhipster";
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
-import { Button } from 'primereact/button';
 import { exportExcelEodSummaryReport, exportExcelSummaryReport } from 'app/shared/util/excel-utils';
-import { Calendar } from 'primereact/calendar';
 import DynamicEndOfDayReportUI from './end-of-day/dynamic-end-of-day-report';
 import { fetchRecentByDate } from '../api';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, BarChart3, CalendarIcon } from 'lucide-react';
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -43,15 +48,19 @@ const SalesSummaryReport = () => {
     })),
   ];
 
-  const handleFromDateChange = (e: any) => {
-    setFromDate(e.value);
+  const handleFromDateChange = (date: Date | undefined) => {
+    setFromDate(date || null);
   };
-  
 
-  const handleToDateChange = (e: any) => {
-    const date = new Date(e.value);
-    date.setHours(23, 59, 59, 999);
-    setToDate(date);
+
+  const handleToDateChange = (date: Date | undefined) => {
+    if (date) {
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(23, 59, 59, 999);
+      setToDate(adjustedDate);
+    } else {
+      setToDate(null);
+    }
   };
 
   const fetchLastWeekData = () => {
@@ -169,189 +178,243 @@ const SalesSummaryReport = () => {
   const printWrapperRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="container mt-5">
-      <div className="text-center mb-4">
-        <h4>
-          <Translate contentKey={'analytics.summary.report.title'}>
-            Sales Summary Report
-          </Translate>
-        </h4>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mb-4">
-        <div className="card p-4">
-          {/* Date Range Section */}
-          <div className="row mb-4">
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label fw-bold">
-                <Translate contentKey={'analytics.summary.fromDate'}>
-                  From Date
-                </Translate>
-              </label>
-              <Calendar
-                id="fromDate"
-                value={fromDate}
-                onChange={handleFromDateChange}
-                dateFormat="yy-mm-dd"
-                showIcon
-                className="w-100"
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="toDate" className="form-label fw-bold">
-                <Translate contentKey={'analytics.summary.toDate'}>
-                  To Date
-                </Translate>
-              </label>
-              <Calendar
-                id="toDate"
-                value={toDate}
-                onChange={handleToDateChange}
-                dateFormat="yy-mm-dd"
-                showIcon
-                className="w-100"
-              />
-            </div>
-          </div>
-
-          {/* Filter Dropdowns */}
-          <div className="row mb-4">
-            <div className="col-md-4">
-              <label className="form-label fw-bold">
-                <Translate contentKey={'analytics.summary.select.source'}>
-                  Source
-                </Translate>
-              </label>
-              <Dropdown
-                value={selectedSource}
-                options={sourceTypeOptions}
-                onChange={(e) => setSelectedSource(e.value)}
-                placeholder={translate('analytics.summary.select.source')}
-                showClear
-                className="w-100"
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label fw-bold">
-                <Translate contentKey={'analytics.summary.select.branch'}>
-                  Branch
-                </Translate>
-              </label>
-              <Dropdown
-                value={selectedBranch}
-                options={filteredBranchOptions}
-                onChange={(e) => setSelectedBranch(e.value)}
-                placeholder={translate('analytics.summary.select.branch')}
-                showClear
-                className="w-100"
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label fw-bold">
-                <Translate contentKey={'analytics.summary.select.day'}>
-                  Day of Week
-                </Translate>
-              </label>
-              <Dropdown
-                value={selectedDay}
-                options={[
-                  { label: 'Monday', value: 'MONDAY' },
-                  { label: 'Tuesday', value: 'TUESDAY' },
-                  { label: 'Wednesday', value: 'WEDNESDAY' },
-                  { label: 'Thursday', value: 'THURSDAY' },
-                  { label: 'Friday', value: 'FRIDAY' },
-                  { label: 'Saturday', value: 'SATURDAY' },
-                  { label: 'Sunday', value: 'SUNDAY' },
-                ]}
-                onChange={(e) => setSelectedDay(e.value)}
-                placeholder={translate('analytics.summary.select.day')}
-                showClear
-                className="w-100"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div className="d-flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={fetchLastWeekData}
-              >
-                <Translate contentKey={'analytics.summary.buttons.lastWeek'}>
-                  Last Week
-                </Translate>
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={fetchLastTwoWeeksData}
-              >
-                <Translate contentKey={'analytics.summary.buttons.lastTwoWeeks'}>
-                  Last Two Weeks
-                </Translate>
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={fetchLastMonthData}
-              >
-                <Translate contentKey={'analytics.summary.buttons.lastMonth'}>
-                  Last Month
-                </Translate>
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={fetchLastThreeMonthsData}
-              >
-                <Translate contentKey={'analytics.summary.buttons.lastThreeMonths'}>
-                  Last 3 Months
-                </Translate>
-              </button>
-            </div>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? (
-                <span>
-                  <i className="pi pi-spin pi-spinner me-2"></i>
-                  Loading...
-                </span>
-              ) : (
-                <Translate contentKey={'analytics.summary.buttons.getReport'}>
-                  Get Report
-                </Translate>
-              )}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {/* Report Results */}
-      {salesData ? (
-        <DynamicEndOfDayReportUI
-          reportData={salesData}
-          endOfDay={null}
-          printWrapperRef={printWrapperRef}
-          loading={loading}
-          title=""
-          branchId={selectedBranch}
-          fromDate={fromDate?.toISOString()}
-          toDate={toDate?.toISOString()}
-          source={selectedSource}
-          handleExcelExport={fetchExcelData}
-        />
-      ) : (
-        <div className="text-center text-muted py-5">
-          <i className="pi pi-chart-line" style={{ fontSize: '3rem' }}></i>
-          <p className="mt-3">
-            <Translate contentKey={'analytics.summary.noData'}>
-              Select your filters and click Get Report to view sales data.
+    <PageWrapper>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-3">
+          <h4 className="text-sm font-semibold">
+            <Translate contentKey={'analytics.summary.report.title'}>
+              Sales Summary Report
             </Translate>
-          </p>
+          </h4>
         </div>
-      )}
-    </div>
+
+        <form onSubmit={handleSubmit} className="mb-3">
+          <Card className="p-3">
+            <CardContent className="space-y-3">
+              {/* Date Range Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="fromDate" className="text-xs font-semibold">
+                    <Translate contentKey={'analytics.summary.fromDate'}>
+                      From Date
+                    </Translate>
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-7 w-full justify-start text-xs font-normal",
+                          !fromDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-3 w-3" />
+                        {fromDate ? format(fromDate, "yyyy-MM-dd") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={fromDate || undefined}
+                        onSelect={handleFromDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="toDate" className="text-xs font-semibold">
+                    <Translate contentKey={'analytics.summary.toDate'}>
+                      To Date
+                    </Translate>
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-7 w-full justify-start text-xs font-normal",
+                          !toDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-3 w-3" />
+                        {toDate ? format(toDate, "yyyy-MM-dd") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={toDate || undefined}
+                        onSelect={handleToDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* Filter Dropdowns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">
+                    <Translate contentKey={'analytics.summary.select.source'}>
+                      Source
+                    </Translate>
+                  </Label>
+                  <Select
+                    value={selectedSource || undefined}
+                    onValueChange={(value) => setSelectedSource(value === "null" ? null : value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder={translate('analytics.summary.select.source')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="null" className="text-xs">Both</SelectItem>
+                      {Object.values(SourceType).map((source) => (
+                        <SelectItem key={source} value={source} className="text-xs">
+                          {source}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">
+                    <Translate contentKey={'analytics.summary.select.branch'}>
+                      Branch
+                    </Translate>
+                  </Label>
+                  <Select
+                    value={selectedBranch || undefined}
+                    onValueChange={(value) => setSelectedBranch(value === "null" ? null : value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder={translate('analytics.summary.select.branch')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="null" className="text-xs">All</SelectItem>
+                      {branchList.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-xs">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold">
+                    <Translate contentKey={'analytics.summary.select.day'}>
+                      Day of Week
+                    </Translate>
+                  </Label>
+                  <Select
+                    value={selectedDay || undefined}
+                    onValueChange={(value) => setSelectedDay(value === "null" ? null : value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder={translate('analytics.summary.select.day')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="null" className="text-xs">All Days</SelectItem>
+                      <SelectItem value="MONDAY" className="text-xs">Monday</SelectItem>
+                      <SelectItem value="TUESDAY" className="text-xs">Tuesday</SelectItem>
+                      <SelectItem value="WEDNESDAY" className="text-xs">Wednesday</SelectItem>
+                      <SelectItem value="THURSDAY" className="text-xs">Thursday</SelectItem>
+                      <SelectItem value="FRIDAY" className="text-xs">Friday</SelectItem>
+                      <SelectItem value="SATURDAY" className="text-xs">Saturday</SelectItem>
+                      <SelectItem value="SUNDAY" className="text-xs">Sunday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap justify-between items-center gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={fetchLastWeekData}
+                  >
+                    <Translate contentKey={'analytics.summary.buttons.lastWeek'}>
+                      Last Week
+                    </Translate>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={fetchLastTwoWeeksData}
+                  >
+                    <Translate contentKey={'analytics.summary.buttons.lastTwoWeeks'}>
+                      Last Two Weeks
+                    </Translate>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={fetchLastMonthData}
+                  >
+                    <Translate contentKey={'analytics.summary.buttons.lastMonth'}>
+                      Last Month
+                    </Translate>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={fetchLastThreeMonthsData}
+                  >
+                    <Translate contentKey={'analytics.summary.buttons.lastThreeMonths'}>
+                      Last 3 Months
+                    </Translate>
+                  </Button>
+                </div>
+                <Button type="submit" className="h-7 text-xs" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <Translate contentKey={'analytics.summary.buttons.getReport'}>
+                      Get Report
+                    </Translate>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+
+        {/* Report Results */}
+        {salesData ? (
+          <DynamicEndOfDayReportUI
+            reportData={salesData}
+            endOfDay={null}
+            printWrapperRef={printWrapperRef}
+            loading={loading}
+            title=""
+            branchId={selectedBranch}
+            fromDate={fromDate?.toISOString()}
+            toDate={toDate?.toISOString()}
+            source={selectedSource}
+            handleExcelExport={fetchExcelData}
+          />
+        ) : (
+          <div className="text-center text-muted-foreground py-8">
+            <BarChart3 className="mx-auto h-12 w-12 mb-3" />
+            <p className="text-xs">
+              <Translate contentKey={'analytics.summary.noData'}>
+                Select your filters and click Get Report to view sales data.
+              </Translate>
+            </p>
+          </div>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

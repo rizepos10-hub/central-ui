@@ -5,12 +5,12 @@ import { deleteEntities, getEntities, uploadImage } from '../../../entities/atta
 import { IAttachment } from '../../model/attachment.model';
 import { toast } from 'react-toastify';
 import { FileLibraryListItem } from 'react-media-library-cloud-links';
-import { Card } from 'primereact/card';
 import { useDropzone } from 'react-dropzone'
-import { Spinner } from 'reactstrap';
-import { Button } from 'primereact/button';
 import { TiDelete } from "react-icons/ti";
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Loader2 } from 'lucide-react';
 
 interface MediaLibraryProps {
     sizePerPage?: number
@@ -29,6 +29,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const [attachments, setAttachments] = useState<IAttachment[]>([]);
     const [selectedItems, setSelectedItems] = useState<Array<FileLibraryListItem>>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
     const dispatch = useAppDispatch();
 
@@ -98,19 +100,18 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     };
 
     const confirm1 = (index) => {
-        confirmDialog({
-            message: 'Are you sure you want to proceed?',
-            header: 'Confirmation',
-            icon: 'pi pi-exclamation-triangle',
-            defaultFocus: 'accept',
-            accept: () => handleRemove(index)
-        });
+        setItemToDelete(index);
+        setShowDeleteDialog(true);
     };
 
-    const handleRemove = (index) => {
-        const newSelectedItems = selectedItems.filter((_, i) => i !== index);
-        setSelectedItems(newSelectedItems);
-        handleFilesSelectCallback(newSelectedItems);
+    const handleRemove = () => {
+        if (itemToDelete !== null) {
+            const newSelectedItems = selectedItems.filter((_, i) => i !== itemToDelete);
+            setSelectedItems(newSelectedItems);
+            handleFilesSelectCallback(newSelectedItems);
+            setItemToDelete(null);
+            setShowDeleteDialog(false);
+        }
     };
 
     return (
@@ -119,20 +120,20 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 {...getRootProps({
                     onClick: handleClick
                 })}
-                className="dropzone p-5 border border-primary rounded"
+                className="p-5 border border-primary rounded cursor-pointer hover:bg-muted/50 transition-colors"
                 style={{ textAlign: 'center' }}
             >
                 <input {...getInputProps()} />
-                <p>Drag n drop some files here, or click to open the media library</p>
-                {loading && <Spinner style={{ width: '3rem', height: '3rem' }} />}
+                <p className="text-xs">Drag n drop some files here, or click to open the media library</p>
+                {loading && <Loader2 className="animate-spin h-12 w-12 mx-auto mt-3" />}
             </div>
-            <div className="d-flex flex-wrap gap-3 my-3">
+            <div className="flex flex-wrap gap-3 my-3">
                 {defaultValues?.map((item, index) => (
-                    <div key={index} style={{ position: 'relative' }}>
+                    <div key={index} className="relative">
                         <img
                             src={item.thumbnailUrl}
                             alt={item.name}
-                            className="img-fluid"
+                            className="object-cover"
                             style={{
                                 maxWidth: '100px',
                                 maxHeight: '100px',
@@ -151,6 +152,26 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     </div>
                 ))}
             </div>
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-base">Confirmation</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                            Are you sure you want to proceed?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowDeleteDialog(false)} className="h-8 text-xs">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRemove} className="h-8 text-xs">
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             {isOpen && (
                 <MediaLibraryTest
                     handleFilesSelectCallback={handleFilesSelectCallback}
@@ -318,11 +339,11 @@ const MediaLibraryTest = ({
                 selectedItems={selectedItems}
                 setSelectedItems={setSelectedItems}
                 topBarComponent={() => (
-                    <div className="d-flex align-items-center justify-content-center w-100 my-1">
+                    <div className="flex items-center justify-center w-full my-1">
                         <input
                             type="text"
                             placeholder="Search"
-                            className="p-1"
+                            className="p-1 border rounded text-xs"
                             onChange={(e) => setSearchValue(e.target.value)}
                             value={searchValue}
                         />
@@ -334,15 +355,19 @@ const MediaLibraryTest = ({
 }
 
 const CustomSelectedFormComponent: React.FC<FileLibraryListItem> = (props: FileLibraryListItem): ReactElement => {
-    const header = <img alt={props.fileName} src={props.thumbnailUrl} style={{ width: '100%' }} />;
-
     return (
-        <Card title={props.name} header={header}>
-            <div>
-                <p><strong>Title:</strong> {props.title}</p>
-                <p><strong>File Name:</strong> {props.fileName}</p>
-                <p><strong>Size:</strong> {props.size} bytes</p>
-            </div>
+        <Card>
+            <CardHeader className="p-0">
+                <img alt={props.fileName} src={props.thumbnailUrl} style={{ width: '100%' }} />
+            </CardHeader>
+            <CardContent className="p-3">
+                <CardTitle className="text-sm mb-2">{props.name}</CardTitle>
+                <div className="text-xs space-y-1">
+                    <p><strong>Title:</strong> {props.title}</p>
+                    <p><strong>File Name:</strong> {props.fileName}</p>
+                    <p><strong>Size:</strong> {props.size} bytes</p>
+                </div>
+            </CardContent>
         </Card>
     );
 }

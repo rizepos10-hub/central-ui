@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Translate, translate, getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './item-measure.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ItemMeasure = () => {
   const dispatch = useAppDispatch();
@@ -27,8 +27,8 @@ export const ItemMeasure = () => {
   const loading = useAppSelector(state => state.itemMeasure.loading);
   const totalItems = useAppSelector(state => state.itemMeasure.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: '',
+    code: '',
   });
 
   const getAllEntities = () => {
@@ -76,82 +76,93 @@ export const ItemMeasure = () => {
     sortEntities();
   };
 
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/item-measure/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/item-measure/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/item-measure/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
-
   const handleCreate = () => {
     navigate('/item-measure/new')
   }
 
-  console.log(itemMeasureList, 'itemMeasurelist')
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.itemMeasure.view.table.title'}>Measurements</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("tempApp.itemMeasure.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.itemMeasure.view.table.buttons.createNewItemMeasure")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
-
-
+  const filteredItemMeasureList = itemMeasureList.filter(item => {
+    const matchesName = !filters.name || item.name?.toLowerCase().includes(filters.name.toLowerCase());
+    const matchesCode = !filters.code || item.code?.toLowerCase().includes(filters.code.toLowerCase());
+    return matchesName && matchesCode;
+  });
 
   return (
-      <div >
-        <DataTable
-          value={itemMeasureList}
-          editMode="row"
-          header={header}
-          removableSort
-          filters={filters}
-          filterDisplay="row"
-          paginator
-          loading={loading}
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column field="name" header={translate('tempApp.itemMeasure.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.itemMeasure.view.table.search.name')}  sortable  />
-          <Column field="code" header={translate('tempApp.itemMeasure.view.table.fields.code')}
-                  filter filterPlaceholder={translate('tempApp.itemMeasure.view.table.search.code')} sortable />
+    <PageWrapper>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xl font-bold"><Translate contentKey={'tempApp.itemMeasure.view.table.title'}>Measurements</Translate></span>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={handleSyncList} disabled={loading} className="h-8 text-xs">
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            {translate("tempApp.itemMeasure.view.table.buttons.refreshList")}
+          </Button>
+          <Button size="sm" onClick={handleCreate} disabled={loading} className="h-8 text-xs">
+            {translate("tempApp.itemMeasure.view.table.buttons.createNewItemMeasure")}
+          </Button>
+        </div>
+      </div>
 
-          <Column header={translate('tempApp.itemMeasure.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate('tempApp.itemMeasure.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-    </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                <div className="space-y-1">
+                  <div>{translate('tempApp.itemMeasure.view.table.fields.name')}</div>
+                  <Input
+                    placeholder={translate('tempApp.itemMeasure.view.table.search.name')}
+                    value={filters.name}
+                    onChange={(e) => setFilters({...filters, name: e.target.value})}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="space-y-1">
+                  <div>{translate('tempApp.itemMeasure.view.table.fields.code')}</div>
+                  <Input
+                    placeholder={translate('tempApp.itemMeasure.view.table.search.code')}
+                    value={filters.code}
+                    onChange={(e) => setFilters({...filters, code: e.target.value})}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="w-[50px]">{translate('tempApp.itemMeasure.view.table.fields.edit')}</TableHead>
+              <TableHead className="w-[50px]">{translate('tempApp.itemMeasure.view.table.fields.delete')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredItemMeasureList.map(measure => (
+              <TableRow key={measure.id}>
+                <TableCell className="text-xs">
+                  <Link
+                    to={`/item-measure/${measure.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    className="hover:underline"
+                  >
+                    {measure.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-xs">{measure.code}</TableCell>
+                <TableCell>
+                  <Link to={`/item-measure/${measure.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Pencil className="h-3 w-3 text-gray-400" />
+                    </Button>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link to={`/item-measure/${measure.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Trash2 className="h-3 w-3 text-red-500" />
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </PageWrapper>
   );
 };
 

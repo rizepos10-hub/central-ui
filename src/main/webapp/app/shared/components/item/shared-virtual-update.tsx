@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Row, Col, FormGroup } from 'reactstrap';
 import { getSortState, Translate, translate } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import Select from 'react-select';
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import MediaLibrary from '../media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { InputText } from 'primereact/inputtext';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -46,82 +46,100 @@ export const SharedVirtualItemUpdate = ({ item, onFieldChange }: SharedItemProps
 
 
   return (
-    <div>
-      <Row>
-        <FormGroup className={'d-flex flex-column gap-1'}>
-          <Col md="12">
-            <div className="row">
-                <div className={'d-flex flex-column gap-1  col'}>
-                  <label className={'font-semibold'}>
-                    <Translate contentKey={'items.update.name'}>Name</Translate>
-                  </label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    id="name"
-                    required={true}
-                    placeholder={translate('items.update.placeholders.itemName')}
-                    value={item.name || ''}
-                    onChange={e => onFieldChange('name', e.target.value)}
-                  />
-                </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-xs font-semibold">
+            <Translate contentKey={'items.update.name'}>Name</Translate>
+          </Label>
+          <Input
+            type="text"
+            name="name"
+            id="name"
+            required={true}
+            placeholder={translate('items.update.placeholders.itemName')}
+            value={item.name || ''}
+            onChange={e => onFieldChange('name', e.target.value)}
+            className="h-7 text-xs"
+          />
+        </div>
 
-              <div className={'d-flex flex-column gap-1  col'}>
-                <label className={'font-semibold'}>
-                  <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
-                </label>
-                <InputTextarea
-                  name="desc"
-                  id="desc"
-                  placeholder={translate('items.update.placeholders.shortDescription')}
-                  value={item.desc || ''}
-                  onChange={e => onFieldChange('desc', e.target.value)}
-                />
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="desc" className="text-xs font-semibold">
+            <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+          </Label>
+          <Textarea
+            name="desc"
+            id="desc"
+            placeholder={translate('items.update.placeholders.shortDescription')}
+            value={item.desc || ''}
+            onChange={e => onFieldChange('desc', e.target.value)}
+            className="h-20 text-xs resize-none"
+          />
+        </div>
+      </div>
 
-            <div className="row">
-              <div className={'d-flex flex-column gap-1  col'}>
-                <label className={'font-semibold'}>
-                  <Translate contentKey="items.update.tags">Tags</Translate>
-                </label>
-                <Select
-                  value={item?.tags || []}
-                  isMulti={true}
-                  options={tags}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                  onChange={selectedTags => onFieldChange('tags', selectedTags)}
-                  onMenuOpen={() => {
-                    dispatch(
-                      getTags({
-                        page: paginationState.activePage - 1,
-                        size: paginationState.itemsPerPage,
-                        sort: `${paginationState.sort},${paginationState.order}`,
-                      })
-                    );
-                  }}
-                />
-              </div>
-            </div>
+      <div className="space-y-2">
+        <Label htmlFor="tags" className="text-xs font-semibold">
+          <Translate contentKey="items.update.tags">Tags</Translate>
+        </Label>
+        <Select
+          value={item?.tags || []}
+          isMulti={true}
+          options={tags}
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          onChange={selectedTags => onFieldChange('tags', selectedTags)}
+          onMenuOpen={() => {
+            dispatch(
+              getTags({
+                page: paginationState.activePage - 1,
+                size: paginationState.itemsPerPage,
+                sort: `${paginationState.sort},${paginationState.order}`,
+              })
+            );
+          }}
+          styles={{
+            control: (base) => ({
+              ...base,
+              minHeight: '28px',
+              fontSize: '0.75rem',
+              borderColor: 'hsl(var(--input))',
+            }),
+            menu: (base) => ({
+              ...base,
+              fontSize: '0.75rem',
+            }),
+            multiValue: (base) => ({
+              ...base,
+              fontSize: '0.75rem',
+            }),
+            input: (base) => ({
+              ...base,
+              margin: 0,
+              padding: 0,
+            }),
+            valueContainer: (base) => ({
+              ...base,
+              padding: '0 8px',
+            }),
+            indicatorsContainer: (base) => ({
+              ...base,
+              height: '28px',
+            }),
+          }}
+        />
+      </div>
 
-            <Row className={''}>
-              <Col md={'7'}>
-                <div className={'d-flex flex-column '}>
-                  <label className={'font-semibold'}>
-                    <Translate contentKey={'items.update.image'}>Image</Translate>
-                  </label>
-                  <MediaLibrary
-                    handleFilesSelectCallback={files => addImage(files)}
-                    defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
-                  />
-                </div>
-              </Col>
-            </Row>
-
-          </Col>
-        </FormGroup>
-      </Row>
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">
+          <Translate contentKey={'items.update.image'}>Image</Translate>
+        </Label>
+        <MediaLibrary
+          handleFilesSelectCallback={files => addImage(files)}
+          defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+        />
+      </div>
     </div>
   );
 };

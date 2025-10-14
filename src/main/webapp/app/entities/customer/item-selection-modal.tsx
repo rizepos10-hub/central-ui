@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState, translate } from "react-jhipster";
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
 import { getEntities, searchEntities } from 'app/entities/item/restaurant/restaurant-item.reducer';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -26,13 +33,15 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   );
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(Array(itemList.length).fill(false));
 
   const isVariantSelected = (item, variant) => {
     return selectedVariant.some((selected) => selected.itemId === item.id && selected.variantId === variant.id);
   };
 
-
+  const getSelectedVariantForItem = (item) => {
+    const selected = selectedVariant.find((sv) => sv.itemId === item.id);
+    return selected?.variantId || '';
+  };
 
   const startSearching = () => {
     dispatch(
@@ -62,116 +71,143 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
-
     setSearch(newSearchTerm);
   };
 
-  const handleDropdownToggle = (index) => {
-    const newDropdownOpen = [...dropdownOpen];
-    newDropdownOpen[index] = !newDropdownOpen[index];
-    setDropdownOpen(newDropdownOpen);
-  };
+  const handleVariantSelect = (item, variantId) => {
+    const variant = item.variants.find(v => v.id === variantId);
 
-  const handleVariantSelect = (itemIndex, variant) => {
-    console.log(variant, 'hello')
     if (
       variant &&
       (Object.keys(variant.specialPrices).length === 0 || Object.values(variant.specialPrices).every((value) => value === null))) {
       alert("Variant has no special prices!");
       return null;
     }
-    handleToggleSelect(itemIndex, variant);
-    const newDropdownOpen = [...dropdownOpen];
-    newDropdownOpen[itemIndex] = false;
-    setDropdownOpen(newDropdownOpen);
+    handleToggleSelect(item, variant);
   };
 
 
+  const totalPages = Math.ceil(totalItems / paginationState.itemsPerPage);
+
   return (
-    <Modal size="lg" isOpen={isOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>{translate('customers.itemSelection.title')}</ModalHeader>
-      <ModalBody>
-        <FormGroup>
-          <Label for="searchVariant">{translate('customers.itemSelection.searchVariant')}</Label>
-          <Input type="text" id="searchVariant" value={searchTerm} onChange={handleSearchInputChange} />
-        </FormGroup>
-        <table className="table">
-          <thead>
-          <tr>
-            <th>{translate('customers.itemSelection.id')}</th>
-            <th>{translate('customers.itemSelection.name')}</th>
-            <th>{translate('customers.itemSelection.selectedVariant')}t</th>
-            <th>{translate('customers.itemSelection.action')}</th>
+    <Dialog open={isOpen} onOpenChange={toggle}>
+      <DialogContent className="max-w-4xl p-3 max-h-[90vh] overflow-auto">
+        <DialogHeader className="p-2">
+          <DialogTitle className="text-sm font-semibold">
+            {translate('customers.itemSelection.title')}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 px-2">
+          <div className="space-y-1">
+            <Label htmlFor="searchVariant" className="text-xs">
+              {translate('customers.itemSelection.searchVariant')}
+            </Label>
+            <Input
+              type="text"
+              id="searchVariant"
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              className="h-8 text-xs"
+              placeholder="Search items..."
+            />
+          </div>
 
-          </tr>
-          </thead>
-          <tbody>
-          {itemList.map((item, index) => (
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">{translate('customers.itemSelection.id')}</TableHead>
+                  <TableHead className="text-xs">{translate('customers.itemSelection.name')}</TableHead>
+                  <TableHead className="text-xs">{translate('customers.itemSelection.selectedVariant')}</TableHead>
+                  <TableHead className="text-xs">{translate('customers.itemSelection.action')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {itemList.map((item) => {
+                  const selectedVariantForItem = selectedVariant.find((sv) => sv.itemId === item.id);
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="text-xs">{item.id}</TableCell>
+                      <TableCell className="text-xs font-medium">{item.name}</TableCell>
+                      <TableCell className="text-xs">
+                        {selectedVariantForItem ? selectedVariantForItem.name : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={getSelectedVariantForItem(item)}
+                          onValueChange={(value) => handleVariantSelect(item, value)}
+                        >
+                          <SelectTrigger className="h-7 text-xs w-[180px]">
+                            <SelectValue placeholder="Select a Variant" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {item.variants?.map((variant) => (
+                              <SelectItem
+                                key={variant.id}
+                                value={variant.id}
+                                className="text-xs"
+                              >
+                                <div className="flex items-center">
+                                  {isVariantSelected(item, variant) && (
+                                    <Check className="h-3 w-3 mr-1" />
+                                  )}
+                                  {variant.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
 
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.name}</td>
-              <td>{selectedVariant[index] ? selectedVariant[index].name : ''}</td>
-              <td>
-                <Dropdown placeholder="Select Variant" isOpen={dropdownOpen[index]} toggle={() => handleDropdownToggle(index)}>
-                  <DropdownToggle caret>
-                    {selectedVariant.lengh > 0 ? '' : 'Select a Variant'}
-                  </DropdownToggle>
-                  <DropdownMenu>
-                    {item.variants
-                     .map((variant) => (
-                      <DropdownItem
-                        key={variant.id}
-                        onClick={() => handleVariantSelect(item, variant)}
-                        active={isVariantSelected(item, variant)}
-                      >
-                        {variant.name}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                </Dropdown>
-              </td>
-            </tr>
-          ))}
-          </tbody>
-        </table>
-
-        <div className="d-flex justify-content-center mt-3">
-          <Button
-            onClick={() =>
-              setPaginationState({
-                ...paginationState,
-                activePage: paginationState.activePage - 1,
-              })
-            }
-            disabled={paginationState.activePage === 1}
-            color="primary"
-            className="mr-2"
-          >
-            {translate('customers.itemSelection.previous')}
-          </Button>
-          <span>Page {paginationState.activePage}</span>
-          <Button
-            onClick={() =>
-              setPaginationState({
-                ...paginationState,
-                activePage: paginationState.activePage + 1,
-              })
-            }
-            disabled={totalItems <= paginationState.itemsPerPage * paginationState.activePage}
-            color="primary"
-            className="ml-2"
-          >
-            {translate('customers.itemSelection.next')}
-          </Button>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPaginationState({
+                  ...paginationState,
+                  activePage: paginationState.activePage - 1,
+                })
+              }
+              disabled={paginationState.activePage === 1}
+              className="h-7 text-xs px-2"
+            >
+              <ChevronLeft className="h-3 w-3 mr-1" />
+              {translate('customers.itemSelection.previous')}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Page {paginationState.activePage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPaginationState({
+                  ...paginationState,
+                  activePage: paginationState.activePage + 1,
+                })
+              }
+              disabled={paginationState.activePage >= totalPages}
+              className="h-7 text-xs px-2"
+            >
+              {translate('customers.itemSelection.next')}
+              <ChevronRight className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
         </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="primary" onClick={toggle}>
-          {translate('customers.itemSelection.save')}
-        </Button>
-      </ModalFooter>
-    </Modal>
+        <DialogFooter className="pt-2">
+          <Button size="sm" className="h-8 text-xs" onClick={toggle}>
+            {translate('customers.itemSelection.save')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

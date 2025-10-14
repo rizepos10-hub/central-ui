@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './sales-location.reducer';
-import { InputText } from "primereact/inputtext";
 import { ISalesLocation } from "app/shared/model/STOCK/sales-location.model";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { translate, Translate } from "react-jhipster";
 import Select from "react-select";
 import { IBranch } from "app/shared/model/branch.model";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const SalesLocationUpdate = () => {
   const dispatch = useAppDispatch();
@@ -58,7 +60,7 @@ export const SalesLocationUpdate = () => {
   };
 
   const saveEntity = (e, createNew = false) => {
-    e.preventDefault()
+    e.preventDefault();
     const entity: ISalesLocation = {
       ...salesLocation,
       type: "SALES_LOCATION"
@@ -74,101 +76,122 @@ export const SalesLocationUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/inventory/sales-location/${newId}/edit`)
+            navigate(`/inventory/sales-location/${newId}/edit`);
           }
         }
-      })
+      });
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/inventory/sales-location/new`)
+          navigate(`/inventory/sales-location/new`);
         }
-      })
+      });
     }
   };
 
+  const customSelectStyles = {
+    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+    valueContainer: (base) => ({ ...base, padding: '0 8px' }),
+    input: (base) => ({ ...base, margin: 0, padding: 0 }),
+    menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+    option: (base) => ({ ...base, fontSize: '0.75rem' }),
+  };
+
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? `${translate("tempApp.salesLocation.createNew")}` : `${translate("tempApp.salesLocation.edit")}`}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+    <PageWrapper>
+      <div className="mb-4">
+        <h2 className="text-xl font-bold">
+          {isNew ? translate("tempApp.salesLocation.createNew") : translate("tempApp.salesLocation.edit")}
+        </h2>
+      </div>
+
+      <Card>
+        <CardContent className="p-4">
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-xs">Loading...</p>
           ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column"}>
-                  <Label for="name">
-                    <Translate contentKey={"common.name"} />
-                  </Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="name"
-                    value={salesLocation.name || ''}
-                    onChange={handleChange}
-                  />
-                </div>
+            <form onSubmit={saveEntity} className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="name" className="text-xs font-medium">
+                  <Translate contentKey={"common.name"}>Name</Translate>
+                </label>
+                <Input
+                  type="text"
+                  name="name"
+                  required={true}
+                  id="name"
+                  className="h-8 text-xs"
+                  value={salesLocation.name || ''}
+                  onChange={handleChange}
+                />
+              </div>
 
-                <div className={"d-flex flex-column mt-2"}>
-                  <Label for="location">
-                    <Translate contentKey={"common.location"} />
-                  </Label>
-                  <InputText
-                    type="text"
-                    name="location"
-                    id="location"
-                    value={salesLocation.location || ''}
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="space-y-1">
+                <label htmlFor="location" className="text-xs font-medium">
+                  <Translate contentKey={"common.location"}>Location</Translate>
+                </label>
+                <Input
+                  type="text"
+                  name="location"
+                  id="location"
+                  className="h-8 text-xs"
+                  value={salesLocation.location || ''}
+                  onChange={handleChange}
+                />
+              </div>
 
-                <div className={"d-flex flex-column"}>
-                  <label className={"mt-2"}>
-                    <Translate contentKey={"tempApp.table.branch"}>
-                      Branch
-                    </Translate>
-                  </label>
-                  <Select
-                    options={branchList}
-                    onChange={handleBranchChange}
-                    getOptionValue={(option: IBranch) => option.id}
-                    getOptionLabel={(option: IBranch) => option.name}
-                    name={"branch"}
-                    value={salesLocation.branch || null}
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">
+                  <Translate contentKey={"tempApp.table.branch"}>Branch</Translate>
+                </label>
+                <Select
+                  options={branchList}
+                  onChange={handleBranchChange}
+                  getOptionValue={(option: IBranch) => option.id}
+                  getOptionLabel={(option: IBranch) => option.name}
+                  name={"branch"}
+                  value={salesLocation.branch || null}
+                  styles={customSelectStyles}
+                />
+              </div>
 
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
                   <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 text-xs"
+                  disabled={updating}
+                  onClick={saveEntity}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  disabled={updating}
+                  onClick={(e) => saveEntity(e, true)}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </div>
             </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

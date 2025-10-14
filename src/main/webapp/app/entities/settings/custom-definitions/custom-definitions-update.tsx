@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { getSortState, Translate, } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset, getEntities } from './custom-definitions.reducer';
-import Select from 'react-select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { Card as PrimeCard } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
 import { CustomDefinitionType, ICustomDefinition } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition.model';
-import { Checkbox } from 'primereact/checkbox';
 
 export const CustomDefinitionsUpdate = () => {
     const dispatch = useAppDispatch();
@@ -27,12 +28,6 @@ export const CustomDefinitionsUpdate = () => {
     const [paginationState, setPaginationState] = useState(
         overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
     );
-
-    const handleClose = () => {
-        navigate(-1);
-    };
-
-
 
     useEffect(() => {
         if (isNew) {
@@ -88,116 +83,153 @@ export const CustomDefinitionsUpdate = () => {
         label: value,
     }));
 
-
     return (
-        <div>
-            <Row>
-                <Col md="12">
-                    <h2 id="tempApp.customDefinition.home.createOrEditLabel">
-                        {isNew ? (
-                            <Translate contentKey={'customDefinition.update.create.title'}>Create New custom Definition</Translate>
-                        ) : (
-                            <Translate contentKey={'customDefinition.update.edit.title'}>Edit custom Definition Group</Translate>
-                        )}
-                    </h2>
-                </Col>
-            </Row>
-            <Row>
-                <Col md="12" className="d-flex flex-column p-3">
-                    <PrimeCard>
-                        {loading ? (
-                            <p>Loading...</p>
-                        ) : (
-                            <>
-                                <form>
-                                    <FormGroup className={"d-flex flex-column gap-3"}>
-                                        <div className={'d-flex flex-column gap-2'}>
-                                            <Label for="custom-definitions-group-name">
-                                                <Translate contentKey={'customDefinition.update.name'}>custom definitions Name</Translate>
-                                            </Label>
-                                            <InputText
-                                                type="text"
-                                                name="name"
-                                                required={true}
-                                                id="custom-definitions-group-name"
-                                                value={customDefinition?.name || ''}
-                                                onChange={handleChange}
-                                                placeholder="Enter name"
-                                            />
-                                            <InputText
-                                                type="text"
-                                                name="description"
-                                                required={true}
-                                                id="custom-definitions-group-description"
-                                                value={customDefinition?.description || ''}
-                                                onChange={handleChange}
-                                                placeholder="Enter description"
-                                            />
-                                            <InputText
-                                                type="text"
-                                                name="label"
-                                                required={true}
-                                                id="custom-definitions-group-label"
-                                                value={customDefinition?.label || ''}
-                                                onChange={handleChange}
-                                                placeholder="Enter label"
-                                            />
-                                            <Select
-                                                options={options}
-                                                placeholder="Select a type"
-                                                value={options.find(option => option.value === customDefinition?.type)}
-                                                onChange={(e) => dispatch(changeEntityField({ name: 'type', value: e.value }))}
-                                            />
-                                            <div className='d-flex gap-2'>
-                                                <Label htmlFor="authorities-checkbox">
-                                                    <Translate contentKey={'customDefinition.update.required'}>Required</Translate>
-                                                </Label>
-                                                <Checkbox
-                                                    id="custom-definitions-required-checkbox"
-                                                    checked={customDefinition?.required}
-                                                    onChange={e => dispatch(changeEntityField({ name: 'required', value: e.checked }))}
-                                                />
-                                            </div>
-                                            <div className='d-flex gap-2'>
-                                                <Label htmlFor="authorities-checkbox">
-                                                    <Translate contentKey={'customDefinition.update.display'}>Display</Translate>
-                                                </Label>
-                                                <Checkbox
-                                                    id="custom-definitions-display-checkbox"
-                                                    checked={customDefinition?.display}
-                                                    onChange={e => dispatch(changeEntityField({ name: 'display', value: e.checked }))}
-                                                />
-                                            </div>
-                                        </div>
+        <PageWrapper>
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold">
+                    {isNew ? (
+                        <Translate contentKey={'customDefinition.update.create.title'}>Create New custom Definition</Translate>
+                    ) : (
+                        <Translate contentKey={'customDefinition.update.edit.title'}>Edit custom Definition Group</Translate>
+                    )}
+                </h2>
 
-                                    </FormGroup>
+                {loading ? (
+                    <p className="text-xs">Loading...</p>
+                ) : (
+                    <form onSubmit={saveEntity} className="space-y-4">
+                        <div className="bg-white p-4 rounded-md border space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-definitions-group-name" className="text-xs font-semibold">
+                                    <Translate contentKey={'customDefinition.update.name'}>custom definitions Name</Translate>
+                                    <span className="text-destructive ml-1">*</span>
+                                </Label>
+                                <Input
+                                    type="text"
+                                    name="name"
+                                    required={true}
+                                    id="custom-definitions-group-name"
+                                    value={customDefinition?.name || ''}
+                                    onChange={handleChange}
+                                    placeholder="Enter name"
+                                    className="h-7 text-xs"
+                                />
+                            </div>
 
-                                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                                        <FontAwesomeIcon icon="arrow-left" />
-                                        &nbsp;
-                                        <span className="d-none d-md-inline">
-                                            <Translate contentKey="entity.action.back">Back</Translate>
-                                        </span>
-                                    </Button>
-                                    &nbsp;
-                                    <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                                        <FontAwesomeIcon icon="save" />
-                                        &nbsp;
-                                        <Translate contentKey="entity.action.save">Save</Translate>
-                                    </Button>
-                                    &nbsp;
-                                    <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                                        <FontAwesomeIcon icon="save" />
-                                        &nbsp;
-                                        <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                                    </Button>
-                                </form>
-                            </>
-                        )}
-                    </PrimeCard>
-                </Col>
-            </Row>
-        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-definitions-group-description" className="text-xs font-semibold">
+                                    <Translate contentKey={'customDefinition.update.description'}>Description</Translate>
+                                    <span className="text-destructive ml-1">*</span>
+                                </Label>
+                                <Input
+                                    type="text"
+                                    name="description"
+                                    required={true}
+                                    id="custom-definitions-group-description"
+                                    value={customDefinition?.description || ''}
+                                    onChange={handleChange}
+                                    placeholder="Enter description"
+                                    className="h-7 text-xs"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-definitions-group-label" className="text-xs font-semibold">
+                                    <Translate contentKey={'customDefinition.update.label'}>Label</Translate>
+                                    <span className="text-destructive ml-1">*</span>
+                                </Label>
+                                <Input
+                                    type="text"
+                                    name="label"
+                                    required={true}
+                                    id="custom-definitions-group-label"
+                                    value={customDefinition?.label || ''}
+                                    onChange={handleChange}
+                                    placeholder="Enter label"
+                                    className="h-7 text-xs"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-definitions-type" className="text-xs font-semibold">
+                                    <Translate contentKey={'customDefinition.update.type'}>Type</Translate>
+                                </Label>
+                                <Select
+                                    value={customDefinition?.type || ''}
+                                    onValueChange={(value) => dispatch(changeEntityField({ name: 'type', value }))}
+                                >
+                                    <SelectTrigger id="custom-definitions-type" className="h-7 text-xs">
+                                        <SelectValue placeholder="Select a type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {options.map(option => (
+                                            <SelectItem key={option.value} value={option.value} className="text-xs">
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="custom-definitions-required-checkbox"
+                                    checked={customDefinition?.required || false}
+                                    onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'required', value: checked === true }))}
+                                />
+                                <Label htmlFor="custom-definitions-required-checkbox" className="text-xs font-normal cursor-pointer">
+                                    <Translate contentKey={'customDefinition.update.required'}>Required</Translate>
+                                </Label>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="custom-definitions-display-checkbox"
+                                    checked={customDefinition?.display || false}
+                                    onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'display', value: checked === true }))}
+                                />
+                                <Label htmlFor="custom-definitions-display-checkbox" className="text-xs font-normal cursor-pointer">
+                                    <Translate contentKey={'customDefinition.update.display'}>Display</Translate>
+                                </Label>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => navigate(-1)}
+                                type="button"
+                                className="h-8 text-xs"
+                                id="cancel-save"
+                                data-cy="entityCreateCancelButton"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                <Translate contentKey="entity.action.back">Back</Translate>
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={updating}
+                                className="h-8 text-xs"
+                                id="save-entity"
+                                data-cy="entityCreateSaveButton"
+                            >
+                                <Save className="h-4 w-4 mr-2" />
+                                <Translate contentKey="entity.action.save">Save</Translate>
+                            </Button>
+                            <Button
+                                onClick={(e) => saveEntity(e, true)}
+                                disabled={updating}
+                                className="h-8 text-xs"
+                                type="button"
+                            >
+                                <Save className="h-4 w-4 mr-2" />
+                                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                            </Button>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </PageWrapper>
     );
 };
 

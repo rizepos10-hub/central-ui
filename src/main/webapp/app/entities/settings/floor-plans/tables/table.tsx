@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import {  getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {  getEntities } from './table.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
 import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const FloorPlanTable = () => {
   const dispatch = useAppDispatch();
@@ -27,14 +27,17 @@ export const FloorPlanTable = () => {
   const floorPlanTablesList :IFloorPlanTable[] = useAppSelector(state => state.floorPlanTable.entities);
   const loading = useAppSelector(state => state.floorPlanTable.loading);
   const totalItems = useAppSelector(state => state.floorPlanTable.totalItems);
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
 
-  console.log(floorPlanTablesList, 'floorPlanTablesList')
+  const [nameFilter, setNameFilter] = useState('');
+
+  const filteredList = useMemo(() => {
+    return floorPlanTablesList.filter(item => {
+      const matchesName = !nameFilter || (item.name || '').toLowerCase().includes(nameFilter.toLowerCase());
+      return matchesName;
+    });
+  }, [floorPlanTablesList, nameFilter]);
 
   const getAllEntities = () => {
-
       dispatch(
         getEntities({
           page: paginationState.activePage - 1,
@@ -44,90 +47,92 @@ export const FloorPlanTable = () => {
       );
   };
 
-
-
-
   useEffect(() => {
     getAllEntities();
   }, [paginationState.activePage, paginationState.order, paginationState.sort]);
-
-
-
-
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
-
-
-
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/floor-plan/table/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData?.name}
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/floor-plan/table/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/floor-plan/table/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
     navigate('/floor-plan/table/new')
   }
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Tables</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Add New Table" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
-
-
-
 
   return (
-    <div>
-        <DataTable value={floorPlanTablesList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column field="branch" header="Branch"  body={(rowData) => rowData?.branch?.name}   sortable  />
-          <Column field="width" header="Width"  body={(rowData) => rowData.dimensions?.width}  sortable  />
-          <Column field="height" header="Height"  body={(rowData) => rowData.dimensions?.height}  sortable  />
-          <Column field="image" header="Image"  body={(rowData) => <img height={40} width={40} src={rowData.image?.url} /> }  sortable  />
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-    </div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Tables</h2>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={handleSyncList} size="sm" className="h-7 text-xs">
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button onClick={handleCreate} disabled={loading} size="sm" className="h-7 text-xs">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Table
+            </Button>
+          </div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Name</TableHead>
+              <TableHead className="text-xs">Branch</TableHead>
+              <TableHead className="text-xs">Width</TableHead>
+              <TableHead className="text-xs">Height</TableHead>
+              <TableHead className="text-xs">Image</TableHead>
+              <TableHead className="text-xs text-center">Edit</TableHead>
+              <TableHead className="text-xs text-center">Delete</TableHead>
+            </TableRow>
+            <TableRow>
+              <TableHead>
+                <Input
+                  placeholder="Search by name"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  className="h-7 text-xs"
+                />
+              </TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredList.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell className="text-xs">
+                  <Link to={`/floor-plan/table/${row.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    {row?.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-xs">{row?.branch?.name}</TableCell>
+                <TableCell className="text-xs">{row.dimensions?.width}</TableCell>
+                <TableCell className="text-xs">{row.dimensions?.height}</TableCell>
+                <TableCell className="text-xs">
+                  {row.image?.url && <img height={40} width={40} src={row.image?.url} alt="Table" />}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Link to={`/floor-plan/table/${row.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground inline-block cursor-pointer" />
+                  </Link>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Link to={`/floor-plan/table/${row.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700 inline-block cursor-pointer" />
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </PageWrapper>
   );
 };
 

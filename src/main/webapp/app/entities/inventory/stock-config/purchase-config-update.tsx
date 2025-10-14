@@ -1,8 +1,7 @@
 // PurchaseConfigUpdate.tsx
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './purchase-config.reducer';
 import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
@@ -11,7 +10,8 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { getSortState, translate } from 'react-jhipster';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import PurchaseConfigUpdateTab from './purchase-config-update-tab';
-import { Card as PrimeCard } from 'primereact/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export const PurchaseConfigUpdate = () => {
   const dispatch = useAppDispatch();
@@ -67,8 +67,7 @@ export const PurchaseConfigUpdate = () => {
     setPurchaseConfig(config);
   };
 
-  const saveEntity = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const saveEntity = () => {
     console.log(purchaseConfig, 'purchaseConfig')
     const entity = {
       ...purchaseConfig,
@@ -88,39 +87,33 @@ export const PurchaseConfigUpdate = () => {
   }, [updateSuccess]);
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew
-              ? translate('tempApp.stockConfig.addNewPurchaseConfig')
-              : translate('tempApp.stockConfig.editPurchaseConfig')}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <PrimeCard>
-            <form onSubmit={saveEntity}>
-              <PurchaseConfigUpdateTab
-                purchaseConfig={purchaseConfig}
-                onConfigChange={handleConfigChange}
-                variantIndex={0}
-                id={purchaseConfig?.id}
-              />
-              <div className="mt-3">
-                <Button tag={Link} to={-1} replace color="info">
-                  <FontAwesomeIcon icon="arrow-left" />&nbsp;{translate('common.back')}
-                </Button>
-                &nbsp;
-                <Button color="primary" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />&nbsp;{translate('common.save')}
-                </Button>
-              </div>
-            </form>
-          </PrimeCard>
-        </Col>
-      </Row>
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-semibold">
+        {isNew
+          ? translate('tempApp.stockConfig.addNewPurchaseConfig')
+          : translate('tempApp.stockConfig.editPurchaseConfig')}
+      </h2>
+
+      <Card className="max-w-4xl">
+        <CardContent className="p-4">
+          <PurchaseConfigUpdateTab
+            purchaseConfig={purchaseConfig}
+            onConfigChange={handleConfigChange}
+            variantIndex={0}
+            id={purchaseConfig?.id}
+          />
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-3 w-3 mr-1" />
+              {translate('common.back')}
+            </Button>
+            <Button size="sm" className="h-8 text-xs" onClick={saveEntity} disabled={updating}>
+              <Save className="h-3 w-3 mr-1" />
+              {translate('common.save')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

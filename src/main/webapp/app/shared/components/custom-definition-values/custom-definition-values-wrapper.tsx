@@ -1,6 +1,4 @@
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import React from 'react'
 import CustomDefinitionValues from './custom-definition-values';
 

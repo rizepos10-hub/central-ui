@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Row, Col, Input } from 'reactstrap';
 import { getSortState } from 'react-jhipster';
 import { Tree, TreeDragDropEvent } from 'primereact/tree';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITerm } from 'app/shared/model/term.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type DynamicCategoryTreeProps = {
     selector: (state: any) => any[];
@@ -38,7 +39,7 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     const loading = loadingSelector ? useAppSelector(loadingSelector) : false;
 
     const [searchParam, setSearchParams] = useSearchParams();
-    console.log(categoryList, 'categoryList')
+
     const getAllEntities = () => {
         dispatch(
             getEntities({
@@ -103,7 +104,6 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     }, [categoryList, search]);
 
     useEffect(() => {
-        console.log(searchParam)
         getAllEntities();
     }, []);
 
@@ -148,9 +148,15 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
 
     const nodeTemplate = (node: any, options: any) => {
         return (
-            <div className="d-flex align-items-center gap-2 border-bottom w-100">
-                {node.imageUrl && <img src={node.imageUrl} alt={node.label} width={50} height={50} />}
-                <span>{node.label}</span>
+            <div className="flex items-center gap-2 border-b w-full py-1">
+                {node.imageUrl && (
+                    <img
+                        src={node.imageUrl}
+                        alt={node.label}
+                        className="w-12 h-12 object-cover rounded shadow-sm"
+                    />
+                )}
+                <span className="text-xs">{node.label}</span>
             </div>
         );
     };
@@ -193,36 +199,54 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     };
 
     return (
-        <Row className="justify-content-center">
-            <Col md="6" className="p-2">
-                <Input type="text" value={search} onChange={handleSearchChange} placeholder="Search..." className="mb-3" />
-                <div style={{ marginBottom: '1rem' }}>
-                    <Button label="Expand All" icon="pi pi-plus" onClick={expandAll} className="p-button-success" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <div className="space-y-4">
+                <Input
+                    type="text"
+                    value={search}
+                    onChange={handleSearchChange}
+                    placeholder="Search..."
+                    className="h-8 text-xs"
+                />
+                <div className="flex gap-2">
                     <Button
-                        label="Collapse All"
-                        icon="pi pi-minus"
+                        size="sm"
+                        variant="default"
+                        onClick={expandAll}
+                        className="h-8 text-xs"
+                    >
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                        Expand All
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="secondary"
                         onClick={collapseAll}
-                        className="p-button-secondary"
-                        style={{ marginLeft: '0.5rem' }}
+                        className="h-8 text-xs"
+                    >
+                        <ChevronUp className="h-4 w-4 mr-2" />
+                        Collapse All
+                    </Button>
+                </div>
+                <div className="border rounded-lg p-2">
+                    <Tree
+                        nodeTemplate={nodeTemplate}
+                        onSelectionChange={onSelectionChange}
+                        value={nodes}
+                        selectionMode="single"
+                        className="w-full"
+                        selectionKeys={selectedNodeKey}
+                        dragdropScope="demo"
+                        onDragDrop={handleDragDrop}
+                        expandedKeys={expandedKeys}
+                        onToggle={(e) => setExpandedKeys(e.value)}
                     />
                 </div>
-                <Tree
-                    nodeTemplate={nodeTemplate}
-                    onSelectionChange={onSelectionChange}
-                    value={nodes}
-                    selectionMode="single"
-                    className="w-100"
-                    selectionKeys={selectedNodeKey}
-                    dragdropScope="demo"
-                    onDragDrop={handleDragDrop}
-                    expandedKeys={expandedKeys}
-                    onToggle={(e) => setExpandedKeys(e.value)}
-                />
-            </Col>
-            <Col md="6" className="p-2">
+            </div>
+            <div>
                 <UpdateComponent onSave={updatedTree} />
-            </Col>
-        </Row>
+            </div>
+        </div>
     );
 };
 

@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Translate, translate, getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './transfer-request.reducer';
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { FilterMatchMode } from "primereact/api";
-import { Tag } from "primereact/tag";
-import { Dropdown } from "primereact/dropdown";
 import { ITransferRequest } from "app/shared/model/STOCK/transfer-request.model";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import Select from 'react-select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const TransferRequest = () => {
   const dispatch = useAppDispatch();
@@ -29,10 +30,11 @@ export const TransferRequest = () => {
   const transferRequestList: ITransferRequest[] = useAppSelector(state => state.transferRequest.entities);
   const loading = useAppSelector(state => state.transferRequest.loading);
   const totalItems = useAppSelector(state => state.transferRequest.totalItems);
+
   const [filters, setFilters] = useState({
-    status: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "source.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "destination.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
+    sourceName: '',
+    destinationName: '',
+    status: null,
   });
 
   const getAllEntities = () => {
@@ -72,125 +74,219 @@ export const TransferRequest = () => {
     sortEntities();
   };
 
-  const statusBodyTemplate = (item) => {
-    const getSeverity = (transferRequest: ITransferRequest) => {
-      switch (transferRequest.status) {
-        case 'PLACED':
-          return 'warning';
-
-        case 'CONFIRMED':
-          return 'success';
-
-        default:
-          return null;
-      }
-    };
-    return <Tag value={item.status} severity={getSeverity(item)}></Tag>;
-  };
-
-
-
-  const statusFilterTemplate = () => {
-    const dropdownItems = [
-      { label: 'All', value: null },
-      { label: 'Placed', value: "PLACED" },
-      { label: 'Completed', value: "COMPLETED" },
-    ];
-
-    const handleDropdownChange = (e) => {
-      setFilters((prev: any) => ({
-        ...prev,
-        status: { value: e.value, matchMode: 'equals' }
-      }));
-    };
-
-    return (
-      <Dropdown
-        options={dropdownItems}
-        value={filters?.status?.value}
-        onChange={handleDropdownChange}
-        placeholder={translate("common.search.status")}
-      />
-    );
-  };
-
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/inventory/transfer-request/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData?.source?.name}
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/transfer-request/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/transfer-request/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
-    navigate('/inventory/transfer-request/new')
-  }
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.transferRequest.title'}>Transfer Requests</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.transferRequest.createNew")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
+    navigate('/inventory/transfer-request/new');
+  };
+
+  const getSeverity = (status: string) => {
+    switch (status) {
+      case 'PLACED':
+        return 'warning';
+      case 'CONFIRMED':
+        return 'default';
+      case 'COMPLETED':
+        return 'default';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const statusOptions = [
+    { label: 'All', value: null },
+    { label: 'Placed', value: 'PLACED' },
+    { label: 'Completed', value: 'COMPLETED' },
+  ];
+
+  const filteredData = transferRequestList.filter((item) => {
+    const sourceMatch = !filters.sourceName || item?.source?.name?.toLowerCase().includes(filters.sourceName.toLowerCase());
+    const destinationMatch = !filters.destinationName || item?.destination?.name?.toLowerCase().includes(filters.destinationName.toLowerCase());
+    const statusMatch = !filters.status || item.status === filters.status;
+    return sourceMatch && destinationMatch && statusMatch;
+  });
+
+  const onPage = (page: number) => {
+    setPaginationState({
+      ...paginationState,
+      activePage: page + 1,
+    });
+  };
 
 
   return (
-    <div>
-      <DataTable
-        showGridlines
-        value={transferRequestList}
-        editMode="row"
-        header={header}
-        removableSort
-        filters={filters}
-        filterDisplay="row"
-        paginator
-        loading={loading}
-        totalRecords={totalItems}
-        rows={20}
-      >
-        <Column field="source.name" header={translate('tempApp.transferRequest.source')} filter body={nameColumnTemplate}
-          filterPlaceholder={translate('tempApp.transferRequest.search.source')} sortable />
-        <Column field="destination.name" header={translate('tempApp.transferRequest.destination')}
-          filter filterPlaceholder={translate('tempApp.transferRequest.search.destination')} sortable />
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold">
+            <Translate contentKey={'tempApp.transferRequest.title'}>Transfer Requests</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              {translate("common.refreshList")}
+            </Button>
+            <Button size="sm" className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
+              <Plus className="h-4 w-4 mr-1" />
+              {translate("tempApp.transferRequest.createNew")}
+            </Button>
+          </div>
+        </div>
 
-        <Column field="status" header={translate('common.status')} filter
-          filterElement={statusFilterTemplate} body={statusBodyTemplate} sortable />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('tempApp.transferRequest.source')}</div>
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder={translate('tempApp.transferRequest.search.source')}
+                    value={filters.sourceName}
+                    onChange={(e) => setFilters({ ...filters, sourceName: e.target.value })}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('tempApp.transferRequest.destination')}</div>
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder={translate('tempApp.transferRequest.search.destination')}
+                    value={filters.destinationName}
+                    onChange={(e) => setFilters({ ...filters, destinationName: e.target.value })}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('common.status')}</div>
+                  <Select
+                    options={statusOptions}
+                    value={statusOptions.find(opt => opt.value === filters.status)}
+                    onChange={(option) => setFilters({ ...filters, status: option?.value })}
+                    placeholder={translate("common.search.status")}
+                    styles={{
+                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                      option: (base) => ({ ...base, fontSize: '0.75rem' }),
+                      menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+                      singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
+                    }}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs w-16">{translate('common.edit')}</TableHead>
+              <TableHead className="text-xs w-16">{translate('common.delete')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.map((item) => {
+              const editUrl = `/inventory/transfer-request/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+              const deleteUrl = `/inventory/transfer-request/${item.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
+              return (
+                <TableRow key={item.id}>
+                  <TableCell className="text-xs">
+                    <Link to={editUrl} className="text-primary hover:underline">
+                      {item?.source?.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">{item?.destination?.name}</TableCell>
+                  <TableCell className="text-xs">
+                    <Badge variant={getSeverity(item.status)}>{item.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Link to={editUrl}>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Link to={deleteUrl}>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
 
-        <Column header={translate('common.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        {totalItems > ITEMS_PER_PAGE && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (paginationState.activePage > 1) onPage(paginationState.activePage - 2);
+                  }}
+                  className={paginationState.activePage === 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
 
-        <Column header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+              {(() => {
+                const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+                const currentPage = paginationState.activePage - 1;
+                const pages = [];
 
-      </DataTable>
-    </div>
+                if (totalPages <= 7) {
+                  for (let i = 0; i < totalPages; i++) {
+                    pages.push(i);
+                  }
+                } else {
+                  if (currentPage < 3) {
+                    pages.push(0, 1, 2, 3, -1, totalPages - 1);
+                  } else if (currentPage > totalPages - 4) {
+                    pages.push(0, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1);
+                  } else {
+                    pages.push(0, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages - 1);
+                  }
+                }
+
+                return pages.map((pageNum, idx) => {
+                  if (pageNum === -1) {
+                    return (
+                      <PaginationItem key={`ellipsis-${idx}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPage(pageNum);
+                        }}
+                        isActive={paginationState.activePage - 1 === pageNum}
+                      >
+                        {pageNum + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                });
+              })()}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+                    if (paginationState.activePage < totalPages) onPage(paginationState.activePage);
+                  }}
+                  className={paginationState.activePage >= Math.ceil(totalItems / ITEMS_PER_PAGE) ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

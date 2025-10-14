@@ -7,17 +7,20 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getCurrencies } from './currencies.reducer';
-import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
 import { ICurrencySettings } from "app/shared/model/CURRENCY/currency-settings.model";
 import { ICurrency } from "app/shared/model/CURRENCY/currency.model";
-import { InputNumber } from "primereact/inputnumber";
-import { Alert, Col, Row, Table } from "reactstrap";
-import { Button } from "primereact/button";
-import Select from "react-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import ReactSelect from "react-select";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { IBranch } from "app/shared/model/branch.model";
 import { getEntity, updateEntity } from "app/entities/settings/currency/currency-settings.reducer";
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { AlertTriangle, Plus, Trash2, Save } from 'lucide-react';
 
 
 export const Currency = () => {
@@ -39,6 +42,7 @@ export const Currency = () => {
   const [currencySettings, setCurrencySettings] = useState<ICurrencySettings>({
     exchangeRates: [],
   });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
 
   const exchangeRatesArray = currencySettings?.exchangeRates || [];
@@ -50,16 +54,11 @@ export const Currency = () => {
   console.log(currencySettings, 'currencySettings')
 
   const confirm1 = () => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      accept: () => handleSetDefaultCurrency()
-    });
+    setShowConfirmDialog(true);
   };
 
   const handleSetDefaultCurrency = () => {
+    setShowConfirmDialog(false);
     handleCurrencyChange(defaultCurrency, "defaultCurrency");
   }
 
@@ -85,7 +84,7 @@ export const Currency = () => {
     });
   };
 
-  const handleBranchCurrencyChange = (index: number, field: string, value: ICurrency | IBranch) => {
+  const handleBranchCurrencyChange = (index: number, field: string, value: ICurrency | IBranch | string) => {
     setCurrencySettings((prevSettings) => {
       const updatedBranchCurrencies = [...prevSettings.branchDisplayCurrencies];
       updatedBranchCurrencies[index] = { ...updatedBranchCurrencies[index], [field]: value };
@@ -144,43 +143,29 @@ export const Currency = () => {
     dispatch(updateEntity(entity))
   }
 
-  const selectedCurrencyTemplate = (option: ICurrency, props) => {
-    if (option) {
-      return (
-        <div className="flex align-items-center">
-          <div>{option.name} ({option.code})</div>
-        </div>
-      );
-    }
-    return <span>{props.placeholder}</span>;
-  };
-
-  const currencyOptionTemplate = (option: ICurrency) => {
-    return (
-      <div className="flex align-items-center">
-        <div>{option.name} ({option.code})</div>
-      </div>
-    );
-  };
 
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
+    <PageWrapper>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-xl font-bold">
             Currency Settings
           </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 gap-5  bg-white">
-          <Alert className={"alert-warning"}>Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.</Alert>
-          <div className={"d-flex gap-2 w-auto"} data-tour="default-currency">
-            <label className={"text-xl mt-2 font-bold"}>
+        </div>
+        <div className="flex flex-col gap-5 p-4 bg-white rounded-lg shadow-sm max-w-4xl">
+          <Alert variant="default" className="border-yellow-500 bg-yellow-50">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-xs">
+              Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex gap-3 items-center" data-tour="default-currency">
+            <label className="text-sm font-semibold whitespace-nowrap">
               Default Currency:
             </label>
-            <Select
+            <ReactSelect
               value={currencySettings?.defaultCurrency ?? defaultCurrency}
               options={currencies}
               placeholder="Select a Currency"
@@ -188,136 +173,185 @@ export const Currency = () => {
               onChange={(currency) => setDefaultCurrency(currency)}
               getOptionLabel={option => option.name}
               getOptionValue={option => option.code}
+              className="min-w-[200px]"
+              styles={{
+                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+              }}
             />
-            {currencySettings?.defaultCurrency === null ?
+            {currencySettings?.defaultCurrency === null && (
               <Button
-                raised
                 disabled={defaultCurrency === null}
                 onClick={confirm1}
+                className="h-7 text-xs"
                 data-tour="currency-save-button">
                 Set Default Currency
-              </Button> : null}
-
+              </Button>
+            )}
           </div>
 
-          <div className={"d-flex gap-2 w-auto"} >
-            <label className={"text-xl mt-2 font-bold"}>
+          <div className="flex gap-3 items-center">
+            <label className="text-sm font-semibold whitespace-nowrap">
               Display Currency:
             </label>
-
-            <Select
+            <ReactSelect
               value={currencySettings?.displayCurrency}
               onChange={(currency) => handleCurrencyChange(currency, "displayCurrency")}
               options={currencies}
               isClearable
-              styles={{
-                control: (baseStyles, state) => ({
-                  ...baseStyles,
-                  minWidth: '10rem',
-                }),
-              }}
               getOptionLabel={option => option.name}
               getOptionValue={option => option.code}
               placeholder="Select a Currency"
+              className="min-w-[200px]"
+              styles={{
+                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+              }}
             />
           </div>
 
-          <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
-            <div className={"d-flex justify-content-between"}>
-              <label className={"text-xl mt-2 font-bold"}>
+          <div className="flex flex-col gap-3 mt-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-semibold">
                 Exchange Rates
               </label>
-              <Button onClick={handleAddExchangeRate}>Add Exchange Rate</Button>
+              <Button onClick={handleAddExchangeRate} className="h-7 text-xs gap-1">
+                <Plus className="h-3 w-3" />
+                Add Exchange Rate
+              </Button>
             </div>
 
-            <Table bordered >
-              <thead>
-                <tr>
-                  <th>Currency</th>
-                  <th>Rate</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Currency</TableHead>
+                  <TableHead className="text-xs">Rate</TableHead>
+                  <TableHead className="text-xs w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {currencySettings?.exchangeRates?.map((exchangeRate, index) => {
                   const { currency } = exchangeRate
                   console.log(currency, 'currency')
                   return (
-                    <tr key={index}>
-                      <td>
-                        <Select
+                    <TableRow key={index}>
+                      <TableCell className="text-xs">
+                        <ReactSelect
                           value={currency}
                           onChange={(selectedCurrency) => handleExchangeRateChange(index, 'currency', selectedCurrency)}
                           options={filteredExchangeCurrencies}
                           placeholder="Select a Currency"
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.code}
+                          styles={{
+                            control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                            valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                            input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                            indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+                          }}
                         />
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell className="text-xs">
                         {currency?.code &&
-                          <InputNumber
-                            value={exchangeRate.rate}
-                            onChange={(e) => handleExchangeRateChange(index, 'rate', e.value)}
-                            mode="currency"
-                            inputId={currency.code}
-                            currency={currency.code}
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={exchangeRate.rate || ''}
+                            onChange={(e) => handleExchangeRateChange(index, 'rate', Number(e.target.value))}
+                            className="h-7 text-xs"
+                            placeholder="0.00"
                           />}
-                      </td>
-                      <td>
-                        <Button severity={"danger"} onClick={() => handleRemoveExchangeRate(index)}>Remove</Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleRemoveExchangeRate(index)}
+                          className="h-7 text-xs gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Remove
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
+              </TableBody>
             </Table>
           </div>
 
-          <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
-            <label className={"text-xl mt-2 font-bold"}>
+          <div className="flex flex-col gap-3 mt-2">
+            <label className="text-sm font-semibold">
               Branches Currencies
             </label>
 
-            <Table bordered >
-              <thead>
-                <tr>
-                  <th>Branch</th>
-                  <th>Currency</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Branch</TableHead>
+                  <TableHead className="text-xs">Currency</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {currencySettings?.branchDisplayCurrencies?.map((branchCurrency, index) => {
                   return (
-                    <tr key={index}>
-                      <td>
+                    <TableRow key={index}>
+                      <TableCell className="text-xs">
                         {branchCurrency?.branch?.name}
-                      </td>
-                      <td>
-                        <Dropdown
-                          value={branchCurrency?.currency}
-                          onChange={(e: DropdownChangeEvent) => handleBranchCurrencyChange(index, 'currency', e.value)}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <ReactSelect
+                          value={currencies?.find(c => c.id === branchCurrency?.currency)}
+                          onChange={(selectedCurrency: ICurrency) => handleBranchCurrencyChange(index, 'currency', selectedCurrency?.id || '')}
                           options={currencies}
-                          optionLabel="name"
                           placeholder="Select a Currency"
-                          filter
-                          showClear
-                          valueTemplate={selectedCurrencyTemplate}
-                          itemTemplate={currencyOptionTemplate}
+                          isClearable
+                          getOptionLabel={(option: ICurrency) => option.name}
+                          getOptionValue={(option: ICurrency) => option.id}
+                          styles={{
+                            control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                            valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                            input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                            indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+                          }}
                         />
-                      </td>
-
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
+              </TableBody>
             </Table>
-            <div className="d-flex justify-content-end align-items-end">
-              <Button label="Save" onClick={handleSave} />
+
+            <div className="flex justify-end mt-2">
+              <Button onClick={handleSave} className="h-8 text-xs gap-1">
+                <Save className="h-4 w-4" />
+                Save
+              </Button>
             </div>
           </div>
-        </Col>
-      </Row>
-    </div>
+        </div>
+      </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirmation</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSetDefaultCurrency} className="h-8 text-xs">
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageWrapper>
   );
 };
 
