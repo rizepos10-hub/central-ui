@@ -281,6 +281,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
             <DraggableList
               value={addonGroups?.map(group => group.addonGroup) || []}
               onChange={handleAddonGroupReorder}
+              selectable={true}
               itemTemplate={(addonGroup: IAddonGroup, idx: number) => {
                 const index = addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
 

@@ -647,27 +647,35 @@ export const PizzaItemUpdate = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <Button
                       type="button"
-                      variant="outline"
-                      className="h-auto flex-col gap-2 p-4 text-left"
+                      variant={pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE ? "default" : "outline"}
+                      className={`h-auto min-h-[100px] flex flex-col items-start gap-2 p-4 text-left whitespace-normal overflow-hidden ${
+                        pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE
+                          ? 'border-2 border-primary bg-primary/10'
+                          : ''
+                      }`}
                       onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.BASE)}
                     >
-                      <span className="text-sm font-bold">
+                      <span className="text-sm font-bold break-words overflow-wrap-anywhere w-full">
                         <Translate contentKey={'items.update.pizza.createNewPizzaSteps.BASE'}>Base</Translate>
                       </span>
-                      <span className="text-xs font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground break-words overflow-wrap-anywhere w-full leading-relaxed">
                         Only Dough and cheese without toppings configuration
                       </span>
                     </Button>
                     <Button
                       type="button"
-                      variant="outline"
-                      className="h-auto flex-col gap-2 p-4 text-left"
+                      variant={pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.PREDEFINED ? "default" : "outline"}
+                      className={`h-auto min-h-[100px] flex flex-col items-start gap-2 p-4 text-left whitespace-normal overflow-hidden ${
+                        pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.PREDEFINED
+                          ? 'border-2 border-primary bg-primary/10'
+                          : ''
+                      }`}
                       onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.PREDEFINED)}
                     >
-                      <span className="text-sm font-bold">
+                      <span className="text-sm font-bold break-words overflow-wrap-anywhere w-full">
                         <Translate contentKey={'items.update.pizza.createNewPizzaSteps.PREDEFINED'}>Predefined</Translate>
                       </span>
-                      <span className="text-xs font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground break-words overflow-wrap-anywhere w-full leading-relaxed">
                         Vegetarian, Peperoni, etc...
                       </span>
                     </Button>
@@ -675,27 +683,35 @@ export const PizzaItemUpdate = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <Button
                       type="button"
-                      variant="outline"
-                      className="h-auto flex-col gap-2 p-4 text-left"
+                      variant={pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ? "default" : "outline"}
+                      className={`h-auto min-h-[100px] flex flex-col items-start gap-2 p-4 text-left whitespace-normal overflow-hidden ${
+                        pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN
+                          ? 'border-2 border-primary bg-primary/10'
+                          : ''
+                      }`}
                       onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.MAKE_YOUR_OWN)}
                     >
-                      <span className="text-sm font-bold">
+                      <span className="text-sm font-bold break-words overflow-wrap-anywhere w-full">
                         <Translate contentKey={'items.update.pizza.createNewPizzaSteps.MAKE_YOUR_OWN'}>Make Your Own</Translate>
                       </span>
-                      <span className="text-xs font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground break-words overflow-wrap-anywhere w-full leading-relaxed">
                         Choose Number Of Pizza with Topping Number and enter your item pricing class
                       </span>
                     </Button>
                     <Button
                       type="button"
-                      variant="outline"
-                      className="h-auto flex-col gap-2 p-4 text-left"
+                      variant={pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL ? "default" : "outline"}
+                      className={`h-auto min-h-[100px] flex flex-col items-start gap-2 p-4 text-left whitespace-normal overflow-hidden ${
+                        pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL
+                          ? 'border-2 border-primary bg-primary/10'
+                          : ''
+                      }`}
                       onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.FIXED_DEAL)}
                     >
-                      <span className="text-sm font-bold">
+                      <span className="text-sm font-bold break-words overflow-wrap-anywhere w-full">
                         <Translate contentKey={'items.update.pizza.createNewPizzaSteps.FIXED_DEAL'}>Fixed Deal</Translate>
                       </span>
-                      <span className="text-xs font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground break-words overflow-wrap-anywhere w-full leading-relaxed">
                         Same as Make you own with selected options and fixed price
                       </span>
                     </Button>

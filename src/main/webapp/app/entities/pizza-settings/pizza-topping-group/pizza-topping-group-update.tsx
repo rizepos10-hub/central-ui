@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {getSortState, isNumber, Translate, translate} from 'react-jhipster';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset }   from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const ToppingGroupUpdate = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
-
-
-
   const { id } = useParams<'id'>();
-  console.log(id, 'identity1')
-
   const isNew = id === undefined;
 
   const termEntity = useAppSelector(state => state.toppingGroup.entity);
@@ -27,15 +26,12 @@ export const ToppingGroupUpdate = () => {
   const updating = useAppSelector(state => state.toppingGroup.updating);
   const updateSuccess = useAppSelector(state => state.toppingGroup.updateSuccess);
 
-
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
-
-
-
-
-
+  const {
+    register,
+    handleSubmit,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     if (isNew) {
@@ -44,36 +40,29 @@ export const ToppingGroupUpdate = () => {
       dispatch(getEntity(id));
     }
 
-
-
     return () => {
       dispatch(reset());
     };
-
   }, []);
 
+  useEffect(() => {
+    if (!loading && termEntity && !isNew) {
+      resetForm({ name: termEntity.name });
+    }
+  }, [termEntity, loading, isNew]);
 
   useEffect(() => {
-
-
-
     const {id: newTermId} = termEntity
     if (updateSuccess && newTermId) {
       navigate(`/pizza-topping-group/${newTermId}/edit`)
     }
-
-
-
   }, [updateSuccess, termEntity ]);
 
-
-
-  const saveEntity = values => {
+  const saveEntity = (data) => {
     const entity = {
       ...termEntity,
-      ...values,
+      ...data,
     };
-    console.log("saved entity" ,entity)
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -81,58 +70,69 @@ export const ToppingGroupUpdate = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
-  const defaultValues = () =>
-    isNew
-      ? {
-      }
-      : {
-        ...termEntity,
-      };
-  console.log(termEntity?.parents, 'ddd')
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2  data-cy="TermCreateUpdateHeading">
+    <div className="p-4">
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold" data-cy="TermCreateUpdateHeading">
             {isNew ? "Create a Menu Category" : "Edit Menu Category"}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
-              <ValidatedField
-                label={translate('tempApp.term.name')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="term-name" className="text-xs">
+                {translate('tempApp.term.name')}
+              </Label>
+              <Input
                 id="term-name"
-                name="name"
-                data-cy="name"
                 type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
+                className="h-8 text-xs"
+                data-cy="name"
+                {...register('name', {
+                  required: translate('entity.validation.required'),
+                })}
               />
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/pizza-topping-group" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name.message as string}</p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => navigate('/pizza-topping-group')}
+                id="cancel-save"
+                data-cy="entityCreateCancelButton"
+              >
+                <ArrowLeft className="h-3 w-3 mr-1" />
+                <Translate contentKey="entity.action.back">Back</Translate>
               </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSubmit(saveEntity)}
+                disabled={updating}
+                id="save-entity"
+                data-cy="entityCreateSaveButton"
+              >
+                <Save className="h-3 w-3 mr-1" />
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-            </ValidatedForm>
-          )}
-        </Col>
-      </Row>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

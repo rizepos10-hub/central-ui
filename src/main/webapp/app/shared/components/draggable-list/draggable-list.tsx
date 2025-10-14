@@ -10,6 +10,7 @@ interface DraggableListProps {
   dataKey: string;
   dragdrop?: boolean;
   showArrows?: boolean;
+  selectable?: boolean;
 }
 
 export const DraggableList: React.FC<DraggableListProps> = ({
@@ -20,6 +21,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   dataKey,
   dragdrop = true,
   showArrows = true,
+  selectable = false,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -115,11 +117,11 @@ export const DraggableList: React.FC<DraggableListProps> = ({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, index)}
             onDragEnd={handleDragEnd}
-            onClick={() => handleRowClick(index)}
+            onClick={selectable ? () => handleRowClick(index) : undefined}
             className={`
               p-2 transition-colors
-              ${dragdrop ? 'cursor-move' : 'cursor-pointer'}
-              ${selectedIndex === index ? 'bg-primary/10 border-l-4 border-l-primary' : 'hover:bg-muted/50'}
+              ${dragdrop ? 'cursor-move' : selectable ? 'cursor-pointer' : ''}
+              ${selectable && selectedIndex === index ? 'bg-primary/10 border-l-4 border-l-primary' : 'hover:bg-muted/50'}
               ${draggedIndex === index ? 'opacity-50' : ''}
               ${dragOverIndex === index ? 'border-t-2 border-primary' : ''}
             `}
