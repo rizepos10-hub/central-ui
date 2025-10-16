@@ -362,7 +362,7 @@ export const PurchaseOrderUpdate = () => {
         <p>Loading...</p>
       ) : (
         <div className="flex gap-4">
-          <form onSubmit={saveEntity} className="flex-1">
+          <form  className="flex-1">
             <Card>
               <CardContent className="p-4">
                 {/* Supplier, Warehouse, Delivery Info */}
@@ -889,7 +889,7 @@ export const PurchaseOrderUpdate = () => {
 
                   {purchaseOrderEntity?.status !== 'RECEIVED' && (
                     <Button
-                      type="submit"
+                      type="button"
                       size="sm"
                       className="h-8 text-xs"
                       disabled={updating || isDisabled}

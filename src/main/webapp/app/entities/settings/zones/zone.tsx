@@ -95,7 +95,7 @@ const ZonePage = () => {
 
     return (
         <PageWrapper>
-            <form onSubmit={saveEntity} className='flex flex-col gap-4'>
+            <form  className='flex flex-col gap-4'>
                 <div className='flex gap-4'>
                     <div>
                         <Map

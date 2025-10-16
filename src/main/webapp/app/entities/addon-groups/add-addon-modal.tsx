@@ -143,7 +143,7 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="l">
-      <form onSubmit={saveEntity}>
+      <form>
         <FormGroup>
           <ModalHeader>
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">

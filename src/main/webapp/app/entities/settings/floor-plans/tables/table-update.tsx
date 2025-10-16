@@ -123,7 +123,7 @@ const FloorPlanTableUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form >
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-xs">
@@ -225,7 +225,7 @@ const FloorPlanTableUpdate = () => {
                   onClick={saveEntity}
                   id="save-entity"
                   data-cy="entityCreateSaveButton"
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   size="sm"
                   className="h-7 text-xs"
@@ -237,7 +237,7 @@ const FloorPlanTableUpdate = () => {
                   onClick={(e) => saveEntity(e, true)}
                   id="save-entity-new"
                   data-cy="entityCreateSaveButton"
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   size="sm"
                   className="h-7 text-xs"

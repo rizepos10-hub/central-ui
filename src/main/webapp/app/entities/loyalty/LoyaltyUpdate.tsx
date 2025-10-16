@@ -60,7 +60,7 @@ export const LoyaltyUpdate = () => {
           <div className="max-w-2xl">
             <Card>
               <CardContent className="space-y-4 pt-6">
-                <form onSubmit={onSave} className="space-y-4">
+                <form className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold">
                       <Translate contentKey={'loyalty.update.name'}>Name</Translate>
@@ -104,9 +104,10 @@ export const LoyaltyUpdate = () => {
                       </Link>
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       size="sm"
                       className="h-8 text-xs"
+                      onClick={onSave}
                       disabled={updating}
                     >
                       <Save className="h-4 w-4 mr-1" />

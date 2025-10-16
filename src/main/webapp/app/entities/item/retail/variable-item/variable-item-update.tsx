@@ -572,7 +572,7 @@ export const VariableItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
@@ -943,7 +943,7 @@ export const VariableItemUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="button" onClick={saveEntity} disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>

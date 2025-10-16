@@ -102,7 +102,7 @@ export const TagGroupUpdate = () => {
             {loading ? (
               <p className="text-xs">Loading...</p>
             ) : (
-              <form onSubmit={saveEntity} className="space-y-4">
+              <form className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="tag-group-name" className="text-xs">
                     <Translate contentKey={'tagGroup.update.name'}>tag Name</Translate>
@@ -156,9 +156,10 @@ export const TagGroupUpdate = () => {
                     <Translate contentKey="entity.action.back">Back</Translate>
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
                     size="sm"
                     className="h-8 text-xs"
+                    onClick={saveEntity}
                     disabled={updating}
                   >
                     <Save className="h-4 w-4 mr-2" />

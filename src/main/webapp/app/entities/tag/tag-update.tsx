@@ -81,7 +81,7 @@ export const TagUpdate = () => {
             {loading ? (
               <p className="text-xs">Loading...</p>
             ) : (
-              <form onSubmit={saveEntity} className="space-y-4">
+              <form className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="tag-name" className="text-xs">
                     <Translate contentKey={'tag.update.name'}>Tag Name</Translate>
@@ -109,9 +109,10 @@ export const TagUpdate = () => {
                     <Translate contentKey="entity.action.back">Back</Translate>
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
                     size="sm"
                     className="h-8 text-xs"
+                    onClick={saveEntity}
                     disabled={updating}
                   >
                     <Save className="h-4 w-4 mr-2" />

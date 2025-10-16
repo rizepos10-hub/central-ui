@@ -277,7 +277,7 @@ export const PizzaPricingClassTypeUpdate = () => {
                     onClick={saveEntity}
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating || !isFormValid}
                     className="h-8 text-xs"
                   >
@@ -288,7 +288,7 @@ export const PizzaPricingClassTypeUpdate = () => {
                     onClick={e => saveEntity(e, true)}
                     id="save-entity-new"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating || !isFormValid}
                     className="h-8 text-xs"
                   >

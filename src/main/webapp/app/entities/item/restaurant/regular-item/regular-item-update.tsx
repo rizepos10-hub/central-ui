@@ -1262,7 +1262,7 @@ export const RegularItemUpdate = () => {
                   <Button
                     className='text-xs h-8 w-full'
                     onClick={saveEntity}
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <Save className="h-3 w-3 mr-2" />}
@@ -1272,7 +1272,7 @@ export const RegularItemUpdate = () => {
                   <Button
                     className='text-xs h-8 w-full'
                     onClick={(e) => saveEntity(e, true)}
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <PlusCircle className="h-3 w-3 mr-2" />
@@ -1282,7 +1282,7 @@ export const RegularItemUpdate = () => {
                   <Button
                     className='text-xs h-8 w-full'
                     onClick={(e) => saveEntity(e, false, true)}
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <PlusCircle className="h-3 w-3 mr-2" />

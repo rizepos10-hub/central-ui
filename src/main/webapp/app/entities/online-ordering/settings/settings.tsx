@@ -175,7 +175,7 @@ export const UiSettingsUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <form onSubmit={saveEntity} className="space-y-4">
+            <form  className="space-y-4">
               <Tabs defaultValue="general" className="w-full">
                 <TabsList className="h-9">
                   <TabsTrigger value="general" className="text-xs">General</TabsTrigger>

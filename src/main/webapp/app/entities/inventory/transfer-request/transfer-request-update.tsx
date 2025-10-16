@@ -260,7 +260,7 @@ export const TransferRequestUpdate = () => {
         <p className="text-xs">Loading...</p>
       ) : (
         <div className="flex gap-4">
-          <form onSubmit={saveEntity} className="flex-1">
+          <form  className="flex-1">
             <div className="space-y-4 bg-white p-4 rounded-md border">
               <div className="space-y-2">
                 <Label htmlFor="source" className="text-xs">
@@ -612,7 +612,7 @@ export const TransferRequestUpdate = () => {
                   </Button>
 
                   {!isConfirmed && (
-                    <Button size="sm" className="h-8 text-xs flex-1" type="submit" disabled={updating || isDisabled}>
+                    <Button size="sm" className="h-8 text-xs flex-1" type="button" onClick={saveEntity} disabled={updating || isDisabled}>
                       <Save className="h-4 w-4 mr-1" />
                       <Translate contentKey={"common.save"} />
                     </Button>

@@ -1803,7 +1803,7 @@ export const ProductUpdate = () => {
                     onClick={saveEntity}
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     {updating && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
@@ -1817,7 +1817,7 @@ export const ProductUpdate = () => {
                     onClick={(e) => saveEntity(e, true)}
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
@@ -1828,7 +1828,7 @@ export const ProductUpdate = () => {
                     onClick={(e) => saveEntity(e, false, true)}
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>

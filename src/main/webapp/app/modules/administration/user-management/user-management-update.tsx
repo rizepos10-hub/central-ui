@@ -61,7 +61,7 @@ export const UserManagementUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm onSubmit={saveUser} defaultValues={user}>
+            <ValidatedForm defaultValues={user} onSubmit={() => {}}>
               {user.id ? (
                 <ValidatedField
                   type="text"
@@ -169,7 +169,7 @@ export const UserManagementUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={isInvalid || updating}>
+              <Button color="primary" type="button" onClick={() => saveUser(user)} disabled={isInvalid || updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>

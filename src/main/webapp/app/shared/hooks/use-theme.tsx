@@ -18,7 +18,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
 
     // Get theme from localStorage or system preference
-    const storedTheme = localStorage.getItem('app-theme') as Theme | null;
+    const storedTheme = 'light' as Theme | null;
+    // const storedTheme = localStorage.getItem('app-theme') as Theme | null;
 
     if (storedTheme) {
       setThemeState(storedTheme);

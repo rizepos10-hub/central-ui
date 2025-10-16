@@ -355,7 +355,7 @@ export const MixAndMatchRuleUpdate = () => {
                       </span>
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={saveEntity}
                       id="save-entity"
                       data-cy="entityCreateSaveButton"
@@ -366,7 +366,7 @@ export const MixAndMatchRuleUpdate = () => {
                       <Translate contentKey="entity.action.save">Save</Translate>
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={(e) => saveEntity(e, true)}
                       id="save-entity-new"
                       data-cy="entityCreateSaveButton"

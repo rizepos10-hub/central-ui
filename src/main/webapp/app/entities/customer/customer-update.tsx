@@ -580,7 +580,7 @@ export const CustomerUpdate = ({
                     <Translate contentKey="entity.action.back">Back</Translate>
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
                     size="sm"
                     className="h-8 text-xs"
                     onClick={saveEntity}
@@ -604,7 +604,7 @@ export const CustomerUpdate = ({
                 </>
               ) : (
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   className="h-8 text-xs"
                   onClick={saveEntity}

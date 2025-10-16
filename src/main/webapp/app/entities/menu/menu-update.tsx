@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Translate, ValidatedField, ValidatedForm, translate } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import Select from 'react-select';
 import { Save, X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -28,10 +28,11 @@ const MenuUpdate = ({
     setSelectedName,
     selectedAttachment,
     setSelectedAttachment,
+    isNew,
 }: {
     setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     isModalOpen: boolean;
-    saveEntity: (values?: any) => void;
+    saveEntity: () => void;
     updating: any;
     selectedBranches: IBranch[];
     setSelectedBranches: React.Dispatch<React.SetStateAction<IBranch[]>>;
@@ -39,6 +40,7 @@ const MenuUpdate = ({
     setSelectedName: React.Dispatch<React.SetStateAction<string>>;
     selectedAttachment: IAttachment;
     setSelectedAttachment: React.Dispatch<React.SetStateAction<IAttachment>>;
+    isNew?: boolean;
 }) => {
     const dispatch = useAppDispatch();
     const { id } = useParams<'id'>();
@@ -48,7 +50,7 @@ const MenuUpdate = ({
 
     useEffect(() => {
         dispatch(getBranches({}));
-        if (!id) return;
+        if (!id || isNew) return;
         dispatch(getEntity({ id })).then((res) => {
             // @ts-expect-error -- unknown type
             if (res.payload?.data?.name) {
@@ -56,24 +58,27 @@ const MenuUpdate = ({
                 setSelectedName(res.payload?.data?.name);
             }
         });
-    }, [id]);
+    }, [id, isNew]);
 
     useEffect(() => {
+        if (isNew) return;
         setSelectedBranches(menuEntity?.branches);
         setSelectedAttachment(menuEntity?.image);
         setSelectedName(menuEntity?.name);
-    }, [menuEntity]);
+    }, [menuEntity, isNew]);
 
     return (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent className="max-w-2xl p-3">
                 <DialogHeader className="p-2">
                     <DialogTitle className="text-sm font-semibold">
-                        <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
+                        <Translate contentKey={isNew ? "menus.shared.update.create.title" : "menus.shared.update.edit.title"}>
+                            {isNew ? 'Create Menu' : 'Edit Menu'}
+                        </Translate>
                     </DialogTitle>
                 </DialogHeader>
 
-                <ValidatedForm onSubmit={saveEntity} className="space-y-2 px-2">
+                <form className="space-y-2 px-2">
                     <div className="space-y-1">
                         <Label htmlFor="menu-name" className="text-xs">
                             {translate('menus.shared.update.name')}
@@ -145,8 +150,9 @@ const MenuUpdate = ({
                             <Translate contentKey="entity.action.back">Back</Translate>
                         </Button>
                         <Button
-                            type="submit"
+                            type="button"
                             size="sm"
+                            onClick={saveEntity}
                             disabled={updating}
                             className="h-8 text-xs"
                         >
@@ -154,7 +160,7 @@ const MenuUpdate = ({
                             <Translate contentKey="entity.action.save">Save</Translate>
                         </Button>
                     </DialogFooter>
-                </ValidatedForm>
+                </form>
             </DialogContent>
         </Dialog>
     );

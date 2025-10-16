@@ -64,6 +64,7 @@ export const Menu = () => {
   const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
   const [selectedName, setSelectedName] = useState("");
   const [selectedAttachment, setSelectedAttachment] = useState<IAttachment>();
+  const [isNewMenu, setIsNewMenu] = useState(false);
 
   const getAllEntities = () => {
     if (search) {
@@ -126,20 +127,20 @@ export const Menu = () => {
     return Array.from(names) as string[];
   }, [menuList]);
 
-  const saveEntity = values => {
-    values.createdDate = convertDateTimeToServer(values.createdDate);
-    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
-
+  const saveEntity = () => {
     const entity = {
-      ...values,
+      name: selectedName,
       branches: selectedBranches,
-      type: menuType,
+      type: menuType as "POS" | "ONLINE_ORDERING",
       image: selectedAttachment,
     };
 
     dispatch(createEntity(entity)).then((res) => {
       setIsModalOpen(false);
-      navigate(`/menu/${(res.payload as any).data.id}/${menuType}/edit?page=1&sort=sort=id,asc`);
+      const createdId = (res.payload as any)?.data?.id || (res.payload as any)?.id;
+      if (createdId) {
+        navigate(`/menu/${createdId}/${menuType}/edit?page=1&sort=sort=id,asc`);
+      }
     });
   };
 
@@ -278,6 +279,7 @@ export const Menu = () => {
         setSelectedBranches={setSelectedBranches}
         selectedAttachment={selectedAttachment}
         setSelectedAttachment={setSelectedAttachment}
+        isNew={isNewMenu}
       />
       <Card>
         <CardContent>
@@ -323,7 +325,13 @@ export const Menu = () => {
                   <TooltipTrigger asChild>
                     <Button
                       size="sm"
-                      onClick={() => setIsModalOpen(true)}
+                      onClick={() => {
+                        setSelectedName("");
+                        setSelectedBranches([]);
+                        setSelectedAttachment(undefined);
+                        setIsNewMenu(true);
+                        setIsModalOpen(true);
+                      }}
                       disabled={loading}
                       className="h-7 w-7 p-0"
                     >

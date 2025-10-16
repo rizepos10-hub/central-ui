@@ -84,7 +84,7 @@ export const WarehouseUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); saveEntity(e); }}>
+            <form>
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label htmlFor="name" className="text-xs font-medium">
@@ -140,9 +140,10 @@ export const WarehouseUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   className="h-8 text-xs"
+                  onClick={saveEntity}
                   disabled={updating}
                 >
                   <Save className="h-4 w-4 mr-1" />

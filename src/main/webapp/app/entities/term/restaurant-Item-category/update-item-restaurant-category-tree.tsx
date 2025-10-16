@@ -136,7 +136,7 @@ export const UpdateItemRestaurantCategoryTree: React.FC<UpdateItemRestaurantCate
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={saveEntity} className="space-y-4">
+          <form  className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="category-name" className="text-xs">
                 <Translate contentKey="itemCategories.update.name">Name</Translate>

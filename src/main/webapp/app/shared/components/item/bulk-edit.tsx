@@ -313,7 +313,7 @@ export const BulkEdit = ({
             overflow: 'auto'
         }}>
             {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-            <form onSubmit={handleSubmit}>
+            <form>
                 <Row>
                     <Col md="4">
                         <div className="fw-bold">Bulk Edit</div>
@@ -694,7 +694,7 @@ export const BulkEdit = ({
                                     setSelectedActionOption(null)
                                 }
                             />
-                            <Button className="mt-3" icon="pi pi-save" type="submit" disabled={loading || isloadingUpdate}>
+                            <Button className="mt-3" icon="pi pi-save" type="button" onClick={handleSubmit} disabled={loading || isloadingUpdate}>
                                 {loading || isloadingUpdate ? <Spinner /> : "Update"}
                             </Button>
                         </div>

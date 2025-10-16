@@ -90,7 +90,7 @@ export const BrandUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <form onSubmit={saveEntity} className="space-y-2">
+            <form className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="name" className="text-xs">
                   <Translate contentKey={'common.name'} />
@@ -128,8 +128,9 @@ export const BrandUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
+                  onClick={saveEntity}
                   disabled={updating}
                   className="h-8 text-xs"
                 >
