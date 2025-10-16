@@ -110,7 +110,7 @@ export const SalesLocationUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <form onSubmit={saveEntity} className="space-y-4">
+            <form  className="space-y-4">
               <div className="space-y-1">
                 <label htmlFor="name" className="text-xs font-medium">
                   <Translate contentKey={"common.name"}>Name</Translate>
@@ -167,7 +167,7 @@ export const SalesLocationUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   className="h-8 text-xs"
                   disabled={updating}

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IBranch } from 'app/shared/model/branch.model';
-import { getEntity, updateEntity, createEntity, reset } from './branch.reducer';
+import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './branch.reducer';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
@@ -43,10 +45,14 @@ export const BranchUpdate = () => {
     }
   }, [updateSuccess]);
 
-  const saveEntity = values => {
+  const handleChange = e => {
+    const { name, value } = e.target;
+    dispatch(changeEntityField({ name, value: name === 'numberOfEmployees' ? parseInt(value) || 0 : value }));
+  };
+
+  const saveEntity = () => {
     const entity = {
       ...branchEntity,
-      ...values,
     };
 
     if (isNew) {
@@ -55,13 +61,6 @@ export const BranchUpdate = () => {
       dispatch(updateEntity(entity));
     }
   };
-
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-          ...branchEntity,
-        };
 
   return (
     <PageWrapper>
@@ -75,29 +74,39 @@ export const BranchUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+            <form>
               <div className="space-y-2">
-                <ValidatedField
-                  label={translate('tempApp.branch.name')}
-                  id="branch-name"
-                  name="name"
-                  data-cy="name"
-                  type="text"
-                  validate={{
-                    required: { value: true, message: translate('entity.validation.required') },
-                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                  }}
-                  className="h-8 text-xs"
-                />
+                <div className="space-y-1">
+                  <Label htmlFor="branch-name" className="text-xs">
+                    {translate('tempApp.branch.name')}
+                  </Label>
+                  <Input
+                    id="branch-name"
+                    name="name"
+                    data-cy="name"
+                    type="text"
+                    required
+                    maxLength={100}
+                    value={branchEntity?.name || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
 
-                <ValidatedField
-                  label={translate('tempApp.branch.numberOfEmployees')}
-                  id="branch-numberOfEmployees"
-                  name="numberOfEmployees"
-                  data-cy="numberOfEmployees"
-                  type="number"
-                  className="h-8 text-xs"
-                />
+                <div className="space-y-1">
+                  <Label htmlFor="branch-numberOfEmployees" className="text-xs">
+                    {translate('tempApp.branch.numberOfEmployees')}
+                  </Label>
+                  <Input
+                    id="branch-numberOfEmployees"
+                    name="numberOfEmployees"
+                    data-cy="numberOfEmployees"
+                    type="number"
+                    value={branchEntity?.numberOfEmployees || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
 
                 <div className="flex gap-2 pt-2">
                   <Button
@@ -114,7 +123,8 @@ export const BranchUpdate = () => {
                   <Button
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
+                    onClick={saveEntity}
                     disabled={updating}
                     size="sm"
                     className="h-8 text-xs"
@@ -124,7 +134,7 @@ export const BranchUpdate = () => {
                   </Button>
                 </div>
               </div>
-            </ValidatedForm>
+            </form>
           )}
         </CardContent>
       </Card>

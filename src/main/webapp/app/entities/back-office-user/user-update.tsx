@@ -139,7 +139,7 @@ export const UserUpdate = () => {
 
         <Card>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-xs">
                   <Translate contentKey="tempApp.username" />
@@ -271,9 +271,10 @@ export const UserUpdate = () => {
                   <Translate contentKey="common.buttons.back" />
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   className="h-8 text-xs"
+                  onClick={handleSubmit}
                   disabled={updating}
                 >
                   <Save className="h-4 w-4 mr-2" />

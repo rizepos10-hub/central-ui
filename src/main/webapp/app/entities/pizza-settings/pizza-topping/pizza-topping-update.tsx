@@ -253,7 +253,7 @@ export const PizzaToppingUpdate = () => {
                     size="sm"
                     className="h-8 text-xs"
                     onClick={saveEntity}
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <Save className="h-4 w-4 mr-1" />
@@ -263,7 +263,7 @@ export const PizzaToppingUpdate = () => {
                     size="sm"
                     className="h-8 text-xs"
                     onClick={(e) => saveEntity(e, true)}
-                    type="submit"
+                    type="button"
                     disabled={updating}
                   >
                     <Save className="h-4 w-4 mr-1" />

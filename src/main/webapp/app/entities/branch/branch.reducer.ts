@@ -85,6 +85,14 @@ export const deleteEntity = createAsyncThunk(
 export const BranchSlice = createEntitySlice({
   name: 'branch',
   initialState,
+  reducers: {
+    changeEntityField(state, action) {
+      state.entity = {
+        ...state.entity,
+        [action.payload.name]: action.payload.value,
+      };
+    },
+  },
   extraReducers(builder) {
     builder
       .addCase(getEntity.fulfilled, (state, action) => {
@@ -125,7 +133,7 @@ export const BranchSlice = createEntitySlice({
   },
 });
 
-export const { reset } = BranchSlice.actions;
+export const { reset, changeEntityField } = BranchSlice.actions;
 
 // Reducer
 export default BranchSlice.reducer;

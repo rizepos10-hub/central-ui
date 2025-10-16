@@ -94,6 +94,14 @@ export const deleteEntity = createAsyncThunk(
 export const TermSlice = createEntitySlice({
   name: 'menu-category',
   initialState,
+  reducers: {
+    changeEntityField(state, action) {
+      state.entity = {
+        ...state.entity,
+        [action.payload.name]: action.payload.value,
+      };
+    },
+  },
   extraReducers(builder) {
     builder
       .addCase(getEntity.fulfilled, (state, action) => {
@@ -134,7 +142,7 @@ export const TermSlice = createEntitySlice({
   },
 });
 
-export const { reset } = TermSlice.actions;
+export const { reset, changeEntityField } = TermSlice.actions;
 
 // Reducer
 export default TermSlice.reducer;

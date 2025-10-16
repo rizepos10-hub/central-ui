@@ -147,7 +147,7 @@ export const AddonUpdate = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={saveEntity}>
+          <form>
             <div className="space-y-3">
               <div className="flex flex-col gap-1">
                 <Label htmlFor="addon-name" className="text-xs">
@@ -280,7 +280,8 @@ export const AddonUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
+                  onClick={saveEntity}
                   disabled={updating}
                   className="h-8 text-xs"
                 >

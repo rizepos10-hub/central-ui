@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Route, useLocation, useNavigate } from 'react-router-dom';
 import Loadable from 'react-loadable';
+import { Building, ArrowRight } from 'lucide-react';
 
 import Login from 'app/modules/login/login';
 import Register from 'app/modules/account/register/register';
@@ -21,10 +22,10 @@ import BusinessDetailRoutes from "app/entities/settings/business-details";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
 import { getTenantFromURL } from './app';
-import { Card } from 'primereact/card';
-import { Label } from 'reactstrap';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 const loading = <div>loading ...</div>;
 
@@ -54,52 +55,47 @@ const AppRoutes = () => {
   }
 
   if (!tenant) return (
-    <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
-      <Card className="shadow-lg border-0" style={{ maxWidth: "450px", width: "100%" }}>
-        <div className="text-center mb-4">
-          <i className="pi pi-building text-primary" style={{ fontSize: "2rem" }}></i>
-          <h2 className="mt-3 mb-1">Welcome To Rize POS</h2>
-          {/* <h2 className="mt-3 mb-1">Tenant Access</h2> */}
-          <p className="text-muted">Account Access - Enter your account name to continue</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
-          <div className="form-group">
-            <label htmlFor="tenantName" className="form-label fw-semibold">
-              Account Name
-            </label>
-            <div className="p-inputgroup">
-              <span className="p-inputgroup-addon">
-                <i className="pi pi-building"></i>
-              </span>
-              <InputText
-                id="tenantName"
-                placeholder="Enter your account name"
-                value={tenantName}
-                onChange={(e) => setTenantName(e.target.value)}
-                className={"w-100"}
-                aria-describedby="tenant-error"
-              />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardContent className="pt-6">
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <Building className="h-12 w-12 text-primary" />
             </div>
+            <h2 className="text-2xl font-bold mb-2">Welcome To Rize POS</h2>
+            <p className="text-sm text-muted-foreground">Account Access - Enter your account name to continue</p>
           </div>
 
-          <Button
-            type="submit"
-            iconPos="right"
-            className="p-button-primary w-100 mt-2 d-flex gap-2 justify-content-center align-items-center"
-          >
-            <span>Continue</span> <i className="pi pi-arrow-right"></i>
-          </Button>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="tenantName" className="text-sm font-semibold">
+                Account Name
+              </Label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                  <Building className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <Input
+                  id="tenantName"
+                  placeholder="Enter your account name"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                  className="pl-10"
+                  aria-describedby="tenant-error"
+                />
+              </div>
+            </div>
 
-          {/* <div className="text-center mt-3">
-            <small className="text-muted">
-              Need help?{" "}
-              <a href="#" className="text-decoration-none">
-                Contact your administrator
-              </a>
-            </small>
-          </div> */}
-        </form>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              className="w-full"
+            >
+              <span>Continue</span>
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </form>
+        </CardContent>
       </Card>
     </div>
   )

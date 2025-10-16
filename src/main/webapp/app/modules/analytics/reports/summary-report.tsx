@@ -188,7 +188,7 @@ const SalesSummaryReport = () => {
           </h4>
         </div>
 
-        <form onSubmit={handleSubmit} className="mb-3">
+        <form className="mb-3">
           <Card className="p-3">
             <CardContent className="space-y-3">
               {/* Date Range Section */}
@@ -372,7 +372,7 @@ const SalesSummaryReport = () => {
                     </Translate>
                   </Button>
                 </div>
-                <Button type="submit" className="h-7 text-xs" disabled={loading}>
+                <Button type="button" onClick={handleSubmit} className="h-7 text-xs" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-3 w-3 animate-spin" />

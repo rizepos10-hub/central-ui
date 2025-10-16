@@ -220,7 +220,7 @@ export const PizzaCrustThicknessUpdate = () => {
                     onClick={saveEntity}
                     id="save-entity"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating}
                     className="h-8 text-xs"
                   >
@@ -231,7 +231,7 @@ export const PizzaCrustThicknessUpdate = () => {
                     onClick={(e) => saveEntity(e, true)}
                     id="save-entity-new"
                     data-cy="entityCreateSaveButton"
-                    type="submit"
+                    type="button"
                     disabled={updating}
                     className="h-8 text-xs"
                   >

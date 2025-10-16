@@ -74,7 +74,7 @@ export const TvDisplayUpdate = () => {
           {loading ? (
             <p className="text-sm">Loading...</p>
           ) : (
-            <form onSubmit={saveEntity} className="flex flex-col gap-4">
+            <form  className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="tv-display-name" className="text-xs">
                   <Translate contentKey="tempApp.tvDisplay.name">Name</Translate>
@@ -110,7 +110,7 @@ export const TvDisplayUpdate = () => {
                   </Link>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   className="h-8 text-xs"
                 >

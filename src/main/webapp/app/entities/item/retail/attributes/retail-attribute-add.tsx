@@ -40,7 +40,7 @@ const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attribute
     inputRef.current.value = ""
   }
   return (
-    <form onSubmit={handleSave} className="space-y-3">
+    <form className="space-y-3">
       <div className="space-y-2">
         <label className="text-xs font-medium">
           <Translate contentKey={'retailAttributes.update.create.label'}>Name</Translate>
@@ -61,7 +61,8 @@ const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attribute
           />
           <Button
             disabled={updating}
-            type="submit"
+            type="button"
+            onClick={handleSave}
             size="sm"
             className="h-8 text-xs"
           >

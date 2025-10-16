@@ -61,7 +61,7 @@ export const CourseDefinitionUpdate = () => {
       </div>
       <div className="max-w-2xl">
         <div className="bg-white p-6 rounded-lg shadow space-y-4">
-          <form onSubmit={handleSubmit}>
+          <form >
             <div className="space-y-2 mb-4">
               <Label htmlFor="name" className="text-xs">
                 <Translate contentKey={'tempApp.course.name'} />
@@ -125,7 +125,8 @@ export const CourseDefinitionUpdate = () => {
               </Button>
               <Button
                 id="save-entity"
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={updating}
                 size="sm"
                 className="h-7 text-xs"

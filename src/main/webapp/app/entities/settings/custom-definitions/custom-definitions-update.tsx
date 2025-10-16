@@ -97,7 +97,7 @@ export const CustomDefinitionsUpdate = () => {
                 {loading ? (
                     <p className="text-xs">Loading...</p>
                 ) : (
-                    <form onSubmit={saveEntity} className="space-y-4">
+                    <form  className="space-y-4">
                         <div className="bg-white p-4 rounded-md border space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="custom-definitions-group-name" className="text-xs font-semibold">
@@ -207,7 +207,7 @@ export const CustomDefinitionsUpdate = () => {
                                 <Translate contentKey="entity.action.back">Back</Translate>
                             </Button>
                             <Button
-                                type="submit"
+                                type="button"
                                 disabled={updating}
                                 className="h-8 text-xs"
                                 id="save-entity"

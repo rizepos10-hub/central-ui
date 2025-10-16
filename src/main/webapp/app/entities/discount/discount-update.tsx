@@ -110,7 +110,7 @@ export const DiscountUpdate = () => {
               <Button
                 size="sm"
                 onClick={saveEntity}
-                type="submit"
+                type="button"
                 disabled={updating}
                 className="h-8 text-xs"
               >
@@ -120,7 +120,7 @@ export const DiscountUpdate = () => {
               <Button
                 size="sm"
                 onClick={(e) => saveEntity(e, true)}
-                type="submit"
+                type="button"
                 disabled={updating}
                 className="h-8 text-xs"
               >

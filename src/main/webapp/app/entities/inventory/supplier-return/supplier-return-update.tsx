@@ -397,7 +397,7 @@ export const SupplierReturnUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   size="sm"
                   className="h-8 text-xs"
                   onClick={saveEntity}

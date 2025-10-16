@@ -34,11 +34,20 @@ export const RegisterSlice = createSlice({
       .addCase(handleRegister.pending, state => {
         state.loading = true;
       })
-      .addCase(handleRegister.rejected, (state, action) => ({
-        ...initialState,
-        registrationFailure: true,
-        errorMessage: action.error.message,
-      }))
+      .addCase(handleRegister.rejected, (state, action) => {
+        // Extract localizedMessage from API response if available
+        const payload = action.payload as any;
+        const errorMessage = payload?.response?.data?.localizedMessage
+          || payload?.response?.data?.message
+          || action.error?.message
+          || 'Registration failed';
+
+        return {
+          ...initialState,
+          registrationFailure: true,
+          errorMessage,
+        };
+      })
       .addCase(handleRegister.fulfilled, () => ({
         ...initialState,
         registrationSuccess: true,

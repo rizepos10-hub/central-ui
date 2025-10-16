@@ -95,7 +95,7 @@ export const VoidReasonUpdate = () => {
           {!isNew && voidReason.code && ` - ${voidReason.code}`}
         </h2>
 
-        <form onSubmit={saveEntity} className="space-y-4">
+        <form  className="space-y-4">
           <div className="bg-white p-4 rounded-md border space-y-4">
             <div className="space-y-2">
               <Label htmlFor="code" className="text-xs font-semibold">
@@ -141,7 +141,7 @@ export const VoidReasonUpdate = () => {
               <Translate contentKey="entity.action.back">Back</Translate>
             </Button>
             <Button
-              type="submit"
+              type="button"
               id="save-entity"
               data-cy="entityCreateSaveButton"
               disabled={updating}

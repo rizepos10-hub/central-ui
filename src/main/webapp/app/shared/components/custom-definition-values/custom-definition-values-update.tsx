@@ -157,7 +157,7 @@ const CustomDefinitionValuesUpdate = ({
     }
 
     return (
-        <form ref={formRef} onSubmit={handleSave}>
+        <form ref={formRef}>
             <div className='d-flex flex-column justify-content-between gap-2 h-100'>
                 <div className='d-flex flex-column gap-2'>
                     <Select
@@ -182,6 +182,7 @@ const CustomDefinitionValuesUpdate = ({
                     <Button
                         label="Save"
                         icon="pi pi-save"
+                        onClick={handleSave}
                         disabled={!isFormValid}
                     />
                 </div>

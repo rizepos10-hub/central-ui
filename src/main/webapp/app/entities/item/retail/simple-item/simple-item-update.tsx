@@ -397,7 +397,7 @@ export const SimpleItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
@@ -704,8 +704,8 @@ export const SimpleItemUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="button"
+                onClick={saveEntity} disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>

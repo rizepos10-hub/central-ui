@@ -178,7 +178,7 @@ export const SupplierUpdate = () => {
                   onClick={saveEntity}
                   id="save-entity"
                   data-cy="entityCreateSaveButton"
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   className="h-8 text-xs"
                 >
@@ -189,7 +189,7 @@ export const SupplierUpdate = () => {
                 <Button
                   onClick={(e) => saveEntity(e, true)}
                   id="save-entity-new"
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   className="h-8 text-xs"
                 >

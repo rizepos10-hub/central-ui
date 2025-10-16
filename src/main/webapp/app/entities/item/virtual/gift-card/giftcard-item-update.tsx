@@ -156,7 +156,7 @@ export const GiftCardItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form>
       <div className="flex gap-2 p-2">
         <div className="flex-1">
           <Card className="p-0">
@@ -246,7 +246,8 @@ export const GiftCardItemUpdate = () => {
                 <Button
                   id="save-entity"
                   data-cy="entityCreateSaveButton"
-                  type="submit"
+                  type="button"
+                  onClick={saveEntity}
                   disabled={updating}
                   className="h-8 text-xs"
                 >
