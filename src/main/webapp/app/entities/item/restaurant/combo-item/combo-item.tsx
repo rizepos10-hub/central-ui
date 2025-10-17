@@ -502,6 +502,7 @@ export const ComboItem = () => {
       <div className="bg-muted/50 p-2 flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
           <Select
+            key={`bulk-actions-${selectedProducts.length > 0 ? 'enabled' : 'disabled'}`}
             value={selectedActionOption}
             onChange={(option) => setSelectedActionOption(option)}
             options={query?.filters?.isArchived?.value ? archivedActionOptions : actionOptions}
