@@ -719,6 +719,7 @@ export const BulkEdit = ({
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-sm">Confirm Override Action</AlertDialogTitle>
                         <AlertDialogDescription className="text-xs">
+                             {/* eslint-disable-next-line react/no-unescaped-entities */}
                             You have selected "Override" mode. This will completely replace all existing addon groups for the selected items with the new addon groups you've configured.
                             <br /><br />
                             Are you sure you want to proceed? This action cannot be undone.

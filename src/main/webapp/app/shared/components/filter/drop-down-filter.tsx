@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { getEntities as getRetailCategories, searchEntities as searchRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { getEntities as getBranches, searchEntities as searchBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getMeasures, searchEntities as searchMeasures } from "app/entities/item-measure/item-measure.reducer";
@@ -8,14 +8,13 @@ import { getEntities as getRestaurantCategories, searchEntities as searchRestaur
 import { getEntities as getProfileGroups, searchEntities as searchProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITerm } from 'app/shared/model/term.model';
-import { Dropdown } from 'primereact/dropdown';
 import { DropDownOptionType, IDropDownMap } from "app/shared/model/filter-dropdown-options.model";
-import { InputText } from "primereact/inputtext";
 import { IBranch } from "app/shared/model/branch.model";
 import { IMeasurementUnit } from "app/shared/model/STOCK/measurement-unit.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IAddonGroups } from "app/shared/model/ADDON/addon-groups.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
+import Select from 'react-select';
 
 type DropDownFilterProps = {
   selectedOption: string;
@@ -44,7 +43,6 @@ const DropDownFilter = ({
   const tags: ITag[] = useAppSelector(state => state.tag.entities);
   const addonGroups: IAddonGroups[] = useAppSelector(state => state.addonGroups.entities);
   const profileGroups: IProfileGroup[] = useAppSelector(state => state.profileGroup.entities);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const dropDownMap: IDropDownMap = {
     RETAIL_CATEGORY: {
@@ -93,41 +91,33 @@ const DropDownFilter = ({
     );
   }, [dropDownOptionType, dispatch]);
 
-  const filterElement = () => (
-    <span className="p-input-icon-right">
-      <InputText
-        placeholder="Search"
-        value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
-      />
-      <i className="pi pi-search" />
-    </span>
-  );
-
   const sortedOptions = [...dropDownMap[dropDownOptionType].options].sort((a, b) =>
     a?.name?.localeCompare(b.name)
   );
 
-  const filteredOptions = searchTerm
-    ? sortedOptions.filter(option =>
-      option.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : sortedOptions;
+  const selectOptions = sortedOptions.map(option => ({
+    value: (option as any).id || (option as any).addonGroup?.id,
+    label: (option as any).name || (option as any).addonGroup?.name
+  }));
 
   return (
-    <Dropdown
-      options={filteredOptions}
-      showFilterClear={true}
-      showClear
-      filterTemplate={filterElement}
-      filter
+    <Select
+      value={selectOptions.find(opt => opt.value === selectedOption) || null}
+      options={selectOptions}
+      onChange={(selected) => {
+        handleDropdownChange(fieldName, { value: selected?.value || null, matchMode: "equals" });
+      }}
+      isClearable
       placeholder={placeholder}
       className={classname}
-      optionLabel="name"
-      optionValue="id"
-      value={selectedOption}
-      onChange={e => {
-        handleDropdownChange(fieldName, { value: e.target.value, matchMode: "equals" });
+      menuPortalTarget={document.body}
+      styles={{
+        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+        valueContainer: (base) => ({ ...base, padding: '0 8px' }),
+        input: (base) => ({ ...base, margin: 0, padding: 0 }),
+        menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+        option: (base) => ({ ...base, fontSize: '0.75rem' }),
+        menuPortal: (base) => ({ ...base, zIndex: 9999 })
       }}
     />
   );
