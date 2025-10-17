@@ -255,7 +255,11 @@ export const MixAndMatchRuleUpdate = () => {
                                   getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                   getOptionValue={option => option.id}
                                   onChange={(discount) => setNewQuantityConfig(prev => ({ ...prev, discount }))}
-                                  styles={customSelectStyles}
+                                  menuPortalTarget={document.body}
+                                  styles={{
+                                    ...customSelectStyles,
+                                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                                  }}
                                 />
                               ) : newQuantityConfig?.type === "PRICE" ? (
                                 <Input
@@ -326,13 +330,17 @@ export const MixAndMatchRuleUpdate = () => {
                         <div style={{ minWidth: '15rem' }}>
                           <Select
                             id="ruleGroup"
-                            styles={customSelectStyles}
                             isDisabled={!mixAndMatchRule?.rules?.[0]?.aboveQuantity}
                             value={mixAndMatchRule?.rules?.[0]?.accountingGroup}
                             options={profileGroupList}
                             getOptionLabel={option => option.name}
                             getOptionValue={option => option.id}
                             onChange={(selectedOption) => handleRuleChange('accountingGroup', selectedOption)}
+                            menuPortalTarget={document.body}
+                            styles={{
+                              ...customSelectStyles,
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                            }}
                           />
                         </div>
                         <span className="text-xs">Profile Group</span>
