@@ -52,6 +52,7 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
   const isRetailVariable = item?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isRetailItem = item?.itemType === 'RETAIL';
   const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
+  const isPredefinedPizza = item?.variants?.[0]?.pizzaVariantType === 'PREDEFINED';
 
   const itemCategoriesOptions = isRetailItem
     ? useAppSelector(state => state.retailCategory.entities)
@@ -168,7 +169,7 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
           />
         </div>
 
-        {!item.askForPrice && (
+        {!item.askForPrice && !isPredefinedPizza && (
           <div className="space-y-2">
             <Label htmlFor="price" className="text-xs font-semibold">
               {isRetailVariable ? 'Default Price' : 'Price'}
