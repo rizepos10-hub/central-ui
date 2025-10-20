@@ -69,6 +69,8 @@
             "title": "Add New Sub-Screen",
             "name": "Sub-screen Name",
             "color": "Select Color Theme",
+            "isPizza": "هي بيتزا",
+            "image": "صورة",
             "add": "Add Sub-Screen"
           },
           "item": {
