@@ -175,7 +175,7 @@ export const UiSettingsUpdate = () => {
           {loading ? (
             <p className="text-xs">Loading...</p>
           ) : (
-            <form  className="space-y-4">
+            <div className="space-y-4">
               <Tabs defaultValue="general" className="w-full">
                 <TabsList className="h-9">
                   <TabsTrigger value="general" className="text-xs">General</TabsTrigger>
@@ -619,15 +619,16 @@ export const UiSettingsUpdate = () => {
                   </Link>
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   disabled={updating}
                   className="h-8 text-xs"
+                  onClick={saveEntity}
                 >
                   <Save className="h-3 w-3 mr-1" />
                   <Translate contentKey="entity.action.save">Save</Translate>
                 </Button>
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>
