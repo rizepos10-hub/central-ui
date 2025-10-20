@@ -3,11 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getSortState, Translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
+import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './addon-groups.reducer';
 import Select from 'react-select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { FilterMatchMode } from 'primereact/api';
+import axios from 'axios';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
@@ -32,7 +35,6 @@ export const AddonGroupUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const addons = useAppSelector(state => state.addon.entities);
   const newAddon = useAppSelector(state => state.addon.entity);
 
   const addonGroupsEntity = useAppSelector(state => state.addonGroups.entity);
@@ -47,6 +49,8 @@ export const AddonGroupUpdate = () => {
 
   const [addonGroup, setAddonGroup] = useState<IAddonGroup>();
   const [showModal, setShowModal] = useState(false);
+  const [isLoadingAddons, setIsLoadingAddons] = useState(false);
+  const [addons, setAddons] = useState<IAddon[]>([]);
 
   const handleAddonChange = selectedAddons => {
     setAddonGroup(prev => ({
@@ -68,12 +72,34 @@ export const AddonGroupUpdate = () => {
     setShowModal(prev => !prev);
   };
 
+  const fetchAddons = async (searchTerm = '') => {
+    setIsLoadingAddons(true);
+    try {
+      const query = {
+        first: 0,
+        rows: 1000,
+        page: 0,
+        sortField: 'name',
+        sortOrder: 1,
+        filters: {
+          name: { value: searchTerm || null, matchMode: FilterMatchMode.CONTAINS }
+        }
+      };
+      const updatedQuery = applyMatchModeMap(query);
+
+      // Direct axios call to bypass redux loading state
+      const response = await axios.post<IAddon[]>('api/_search/addons', updatedQuery);
+      setAddons(response.data);
+    } catch (error) {
+      console.error('Error fetching addons:', error);
+      setAddons([]);
+    } finally {
+      setIsLoadingAddons(false);
+    }
+  };
+
   useEffect(() => {
-    dispatch(getAddons({
-      page: 0,
-      size: 1000,
-      sort: 'name,asc'
-    }));
+    fetchAddons();
 
     if (isNew) {
       dispatch(reset());
@@ -176,9 +202,15 @@ export const AddonGroupUpdate = () => {
                           isMulti={true}
                           value={addonGroup?.addons || []}
                           onChange={handleAddonChange}
+                          onInputChange={(inputValue) => {
+                            // Fetch with search term or empty to show all
+                            fetchAddons(inputValue || '');
+                          }}
                           options={addons}
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.id}
+                          placeholder="Search and select addons..."
+                          isLoading={isLoadingAddons}
                           styles={{
                             control: (base) => ({
                               ...base,
