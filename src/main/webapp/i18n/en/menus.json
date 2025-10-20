@@ -72,6 +72,8 @@
             "title": "Add New Sub-Screen",
             "name": "Sub-screen Name",
             "color": "Select Color Theme",
+            "isPizza": "Is Pizza",
+            "image": "Image",
             "add": "Add Sub-Screen"
           },
           "item": {
