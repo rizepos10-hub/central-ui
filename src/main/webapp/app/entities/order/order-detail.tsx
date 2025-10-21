@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCcw, BadgeDollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -284,11 +284,11 @@ export const OrderDetail = () => {
                   <CardTitle className="flex justify-between items-center">
                     <span className="flex items-center gap-2">
                       Order Details
-                      {orderEntity?.refund && <span className="text-green-600">(Refunded)</span>}
+                      {orderEntity?.refund && <span className="text-orange-600">(Refund)</span>}
                     </span>
                     <span>
                       {orderEntity?.refund && (
-                        <RefreshCcw className="h-7 w-7 text-green-600" />
+                        <BadgeDollarSign className="h-7 w-7 text-orange-600" />
                       )}
                     </span>
                   </CardTitle>
@@ -634,7 +634,7 @@ export const OrderDetail = () => {
               )}
             </div>
           </div>
-          {!orderEntity?.refund && orderEntity?.bills?.length > 0 && (
+          {orderEntity?.bills?.length > 0 && (
             <div className="w-full">
               <Card className={editMode ? 'opacity-50' : ''}>
                 <CardHeader>
@@ -712,27 +712,31 @@ export const OrderDetail = () => {
                                   Resend E-mail
                                 </Button>
 
-                                <Button
-                                  className="h-8 text-xs"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setRefundMode(prev => !prev);
-                                  }}
-                                >
-                                  {refundMode ? 'Cancel' : 'Refund'}
-                                </Button>
-                                {refundMode && (
-                                  <Button
-                                    className="h-8 text-xs"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleRefund(bill)
-                                    }}
-                                  >
-                                    Apply Refund
-                                  </Button>
+                                {!orderEntity?.refund && (
+                                  <>
+                                    <Button
+                                      className="h-8 text-xs"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setRefundMode(prev => !prev);
+                                      }}
+                                    >
+                                      {refundMode ? 'Cancel' : 'Refund'}
+                                    </Button>
+                                    {refundMode && (
+                                      <Button
+                                        className="h-8 text-xs"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleRefund(bill)
+                                        }}
+                                      >
+                                        Apply Refund
+                                      </Button>
+                                    )}
+                                  </>
                                 )}
                               </span>
                             </div>
