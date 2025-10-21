@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw, BadgeDollarSign } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -91,6 +91,10 @@ export const OrderDetail = () => {
   const [showCancelBookingConfirm, setShowCancelBookingConfirm] = useState(false);
   const [pendingProcessingStatus, setPendingProcessingStatus] = useState<OrderStatus | null>(null);
   const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState<DeliverStatus | null>(null);
+
+  // Refund dialog states
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
+  const [selectedBillForRefund, setSelectedBillForRefund] = useState<IBill | null>(null);
 
   useEffect(() => {
     if (orderEntity.orderDeliveryDetails) {
@@ -221,15 +225,25 @@ export const OrderDetail = () => {
     setDeliveryStatus(filteredOrderEntity.deliveryStatus);
   }, [filteredOrderEntity.deliveryStatus])
 
-  const handleRefund = (bill: IBill) => {
+  const openRefundDialog = (bill: IBill) => {
+    setSelectedBillForRefund(bill);
+    dispatch(changeBillEntityField({ name: 'items', value: [] }));
+    setShowRefundDialog(true);
+  };
+
+  const handleRefund = () => {
+    if (!selectedBillForRefund) return;
+
     dispatch(refundBill({
       id: filteredOrderEntity.id,
-      billId: bill.id,
+      billId: selectedBillForRefund.id,
       items: billEntity.items,
-      paymentType: bill.paymentType,
-      chargesShares: bill.chargesShares,
-    }))
-  }
+      paymentType: selectedBillForRefund.paymentType,
+      chargesShares: selectedBillForRefund.chargesShares,
+    }));
+    setShowRefundDialog(false);
+    setSelectedBillForRefund(null);
+  };
 
   const handleCancelBooking = () => {
     dispatch(cancelBooking(orderEntity));
@@ -288,7 +302,7 @@ export const OrderDetail = () => {
                     </span>
                     <span>
                       {orderEntity?.refund && (
-                        <BadgeDollarSign className="h-7 w-7 text-orange-600" />
+                        <BanknoteArrowDown  className="h-7 w-7 text-orange-600" />
                       )}
                     </span>
                   </CardTitle>
@@ -552,42 +566,42 @@ export const OrderDetail = () => {
                   </CardContent>
                 </Card>
               )}
-
-              {!orderEntity.orderDeliveryDetails ? (
-                <Card id="booking" className={editMode ? 'opacity-50' : ''}>
-                  <CardHeader>
-                    <CardTitle>Create Booking</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="h-8 text-xs justify-start">
-                          {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={bookingDate}
-                          onSelect={setBookingDate}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Button
-                      type="button"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        dispatch(createBooking({
-                          date: bookingDate?.toISOString(),
-                          orderId: orderEntity.id
-                        }))
-                      }}
-                    >
-                      Create
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
+              {!orderEntity?.refund && (
+                !orderEntity.orderDeliveryDetails ? (
+                  <Card id="booking" className={editMode ? 'opacity-50' : ''}>
+                    <CardHeader>
+                      <CardTitle>Create Booking</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="h-8 text-xs justify-start">
+                            {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={bookingDate}
+                            onSelect={setBookingDate}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        type="button"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          dispatch(createBooking({
+                            date: bookingDate?.toISOString(),
+                            orderId: orderEntity.id
+                          }))
+                        }}
+                      >
+                        Create
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
                 <Card id="booking" className={editMode ? 'opacity-50' : ''}>
                   <CardHeader>
                     <CardTitle>Update Booking</CardTitle>
@@ -631,6 +645,7 @@ export const OrderDetail = () => {
                     </div>
                   </CardContent>
                 </Card>
+                )
               )}
             </div>
           </div>
@@ -644,41 +659,39 @@ export const OrderDetail = () => {
                   <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="w-full">
 
                     {filteredOrderEntity?.bills?.map((bill, idx) => {
-                      const newDataTableValues = [];
-                      bill?.billItems?.forEach((item) => {
-                        newDataTableValues.push({
-                          id: item.id,
-                          itemName: item.itemName,
-                          amount: item.amount,
-                          price: item.price,
-                          taxIdsToValues: item.taxIdsToValues,
-                          discount: item.discount,
-                          taxValue: item.taxValue,
-                          isAddon: false,
-                          total: item.total?.toFixed(2),
-                        });
-                        console.log(newDataTableValues, 'newDataTableValues')
-                        item.addons?.forEach((addon) => {
-                          newDataTableValues.push({
-                            id: addon.id,
-                            itemName: addon.name,
-                            amount: addon.amount,
-                            price: addon.price,
-                            taxIdsToValues: addon.taxIdsToValues,
-                            discount: addon.discount,
-                            taxValue: addon.taxValue,
-                            isAddon: true,
-                            total: addon.total?.toFixed(2),
-                          });
-                        });
-                      });
+                      const billStatus = String(bill.status);
+                      const getBillStatusColor = (status: string) => {
+                        switch (status) {
+                          case 'PAID': return 'bg-green-100 text-green-800';
+                          case 'REFUNDED': return 'bg-orange-100 text-orange-800';
+                          case 'CANCELED': return 'bg-red-100 text-red-800';
+                          case 'DRAFT': return 'bg-gray-100 text-gray-800';
+                          default: return 'bg-blue-100 text-blue-800';
+                        }
+                      };
 
                       return (
-                        <AccordionItem key={idx} value={idx.toString()} className="w-full">
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex justify-between items-center w-full pr-4 text-xs">
-                              <span>{new Date(bill.dateTime).toDateString()}</span>
-                              <span>{bill.status}</span>
+                        <AccordionItem key={idx} value={idx.toString()} className="w-full border rounded-lg mb-2">
+                          <AccordionTrigger className="hover:no-underline px-4">
+                            <div className="flex justify-between items-center w-full pr-4">
+                              <div className="flex items-center gap-4">
+                                <span className="font-semibold text-sm">Bill #{bill.sequenceNumber}</span>
+                                <Badge className={`${getBillStatusColor(billStatus)} text-xs`}>
+                                  {billStatus}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(bill.dateTime).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                                <span className="font-semibold text-sm">${bill?.total?.toFixed(2)}</span>
+                              </div>
                               <span id={`actionsTab-${idx}`} className="flex items-center justify-center gap-2">
                                 <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
                                   <Button variant="link" className="h-8 text-xs p-0">
@@ -712,54 +725,55 @@ export const OrderDetail = () => {
                                   Resend E-mail
                                 </Button>
 
-                                {!orderEntity?.refund && (
-                                  <>
-                                    <Button
-                                      className="h-8 text-xs"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setRefundMode(prev => !prev);
-                                      }}
-                                    >
-                                      {refundMode ? 'Cancel' : 'Refund'}
-                                    </Button>
-                                    {refundMode && (
-                                      <Button
-                                        className="h-8 text-xs"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          handleRefund(bill)
-                                        }}
-                                      >
-                                        Apply Refund
-                                      </Button>
-                                    )}
-                                  </>
+                                {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
+                                  <Button
+                                    className="h-8 text-xs"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      openRefundDialog(bill);
+                                    }}
+                                  >
+                                    Refund
+                                  </Button>
                                 )}
                               </span>
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <Card>
-                              <CardContent className="pt-2">
-                                <OrderedItems
-                                  ref={billPrintRef}
-                                  dataTableValues={newDataTableValues}
-                                  rowClick={rowClick}
-                                  entity={billEntity}
-                                  changeEntityField={changeBillEntityField}
-                                  refundMode={refundMode}
-                                />
-                              </CardContent>
-                              <CardFooter className="text-sm font-bold px-5">
-                                <div className="w-full flex justify-between items-center">
-                                  <span>Total:</span>
-                                  <span>{bill?.total?.toFixed(2)}</span>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className="space-y-3">
+                              <div className="text-xs font-semibold text-muted-foreground mb-2">Payment Transactions</div>
+                              {bill?.paymentTransactions?.length > 0 ? (
+                                bill.paymentTransactions.map((transaction, txnIdx) => (
+                                  <div key={transaction.id} className="bg-muted/30 rounded-lg p-4 border">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <span className="font-semibold text-sm">Txn {txnIdx + 1}</span>
+                                      <Badge variant="outline" className="text-xs">
+                                        {transaction.status}
+                                      </Badge>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Amount</div>
+                                        <div className="font-semibold text-sm">${transaction.amount?.toFixed(2)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Method</div>
+                                        <div className="font-medium text-sm capitalize">{String(transaction.method || '').toLowerCase()}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Type</div>
+                                        <div className="font-medium text-sm capitalize">{String(transaction.type || '').toLowerCase()}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-muted-foreground text-center py-4">
+                                  No payment transactions
                                 </div>
-                              </CardFooter>
-                            </Card>
+                              )}
+                            </div>
                           </AccordionContent>
                         </AccordionItem>
                       )
@@ -835,6 +849,79 @@ export const OrderDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Refund Bill #{selectedBillForRefund?.sequenceNumber}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedBillForRefund && (
+              <>
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Select items to refund from this bill
+                </div>
+                <OrderedItems
+                  dataTableValues={(() => {
+                    const items = [];
+                    selectedBillForRefund.billItems?.forEach((item) => {
+                      items.push({
+                        id: item.id,
+                        itemName: item.itemName,
+                        amount: item.amount,
+                        price: item.price,
+                        taxIdsToValues: item.taxIdsToValues,
+                        discount: item.discount,
+                        taxValue: item.taxValue,
+                        isAddon: false,
+                        total: item.total?.toFixed(2),
+                      });
+                      item.addons?.forEach((addon) => {
+                        items.push({
+                          id: addon.id,
+                          itemName: addon.name,
+                          amount: addon.amount,
+                          price: addon.price,
+                          taxIdsToValues: addon.taxIdsToValues,
+                          discount: addon.discount,
+                          taxValue: addon.taxValue,
+                          isAddon: true,
+                          total: addon.total?.toFixed(2),
+                        });
+                      });
+                    });
+                    return items;
+                  })()}
+                  rowClick={false}
+                  entity={billEntity}
+                  changeEntityField={changeBillEntityField}
+                  refundMode={true}
+                />
+              </>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRefundDialog(false);
+                setSelectedBillForRefund(null);
+              }}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRefund}
+              disabled={!billEntity.items || billEntity.items.length === 0}
+              className="h-8 text-xs"
+            >
+              Apply Refund
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

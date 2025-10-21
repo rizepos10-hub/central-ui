@@ -5,6 +5,7 @@ import { IOrderedItem } from './ordered-item.model';
 export interface IBill extends IOrderAudit {
   id?: string;
   billId?: string;
+  sequenceNumber?: number;
   dateTime?: string;
   billItems?: IOrderedItem[];
   items?: IOrderedItem[];
@@ -15,7 +16,7 @@ export interface IBill extends IOrderAudit {
     [key: string]: number;
   },
   total?: number | null,
-  status?: BillStatus;
+  status?: BillStatus | string;
 }
 
 export enum BillStatus {
