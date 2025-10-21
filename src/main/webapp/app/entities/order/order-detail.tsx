@@ -634,7 +634,7 @@ export const OrderDetail = () => {
               )}
             </div>
           </div>
-          {!orderEntity?.refund && orderEntity?.bills?.length > 0 && (
+          {orderEntity?.bills?.length > 0 && (
             <div className="w-full">
               <Card className={editMode ? 'opacity-50' : ''}>
                 <CardHeader>
@@ -712,27 +712,31 @@ export const OrderDetail = () => {
                                   Resend E-mail
                                 </Button>
 
-                                <Button
-                                  className="h-8 text-xs"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setRefundMode(prev => !prev);
-                                  }}
-                                >
-                                  {refundMode ? 'Cancel' : 'Refund'}
-                                </Button>
-                                {refundMode && (
-                                  <Button
-                                    className="h-8 text-xs"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleRefund(bill)
-                                    }}
-                                  >
-                                    Apply Refund
-                                  </Button>
+                                {!orderEntity?.refund && (
+                                  <>
+                                    <Button
+                                      className="h-8 text-xs"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setRefundMode(prev => !prev);
+                                      }}
+                                    >
+                                      {refundMode ? 'Cancel' : 'Refund'}
+                                    </Button>
+                                    {refundMode && (
+                                      <Button
+                                        className="h-8 text-xs"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleRefund(bill)
+                                        }}
+                                      >
+                                        Apply Refund
+                                      </Button>
+                                    )}
+                                  </>
                                 )}
                               </span>
                             </div>
