@@ -28,33 +28,76 @@ interface LazyTableState {
   first?: number;
   rows: number;
   page: number;
-  sortField?: string;
+  sortField?: string | null;
   sortOrder?: any;
   filters: any;
+  modifiedDate?: boolean;
 }
 
 type OrderProps = {
+  pageType?: 'history' | 'today' | 'scheduled';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
 }
 
-
-export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
+export const Order = ({ pageType = 'history', customer = '', appSourceProp }: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const LOCAL_STORAGE_KEY = "order-history-columns";
+
+  // Configure based on page type
+  const today = new Date();
+  const from = startOfDay(today);
+  const to = endOfDay(today);
+
+  const config = {
+    history: {
+      storageKey: 'order-history-columns',
+      title: 'Order History',
+      sortField: 'createdDate',
+      sortOrder: 'asc' as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
+    },
+    today: {
+      storageKey: 'order-today-columns',
+      title: "Today's Orders",
+      sortField: null,
+      sortOrder: null,
+      dateFrom: from.toISOString(),
+      dateTo: to.toISOString(),
+      modifiedDate: true,
+      showDatePicker: false,
+    },
+    scheduled: {
+      storageKey: 'order-scheduled-columns',
+      title: 'Scheduled Orders',
+      sortField: null,
+      sortOrder: null,
+      dateFrom: from.toISOString(),
+      dateTo: to.toISOString(),
+      modifiedDate: true,
+      showDatePicker: false,
+    },
+  };
+
+  const pageConfig = config[pageType];
+  const LOCAL_STORAGE_KEY = pageConfig.storageKey;
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [orderStatuses, setOrderStatuses]: any = useState([]);
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
     page: 0,
-    sortField: 'createdDate',
-    sortOrder: "asc",
+    sortField: pageConfig.sortField,
+    sortOrder: pageConfig.sortOrder,
+    modifiedDate: pageConfig.modifiedDate,
     filters: {
       createdDate: {
-        from: '',
-        to: ''
+        from: pageConfig.dateFrom,
+        to: pageConfig.dateTo,
       },
       id: { value: '', matchMode: 'contains' },
       byClient: { value: '', matchMode: 'contains' },
@@ -205,9 +248,14 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
           discount: lazyState.filters.discount?.value,
           refund: lazyState.filters.refund?.value,
           size: lazyState.rows,
-          fromDate: dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '',
-          toDate: dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '',
-          sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
+          fromDate: pageConfig.showDatePicker
+            ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
+            : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
+          toDate: pageConfig.showDatePicker
+            ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
+            : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
+          modifiedDate: pageConfig.modifiedDate,
+          sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
         };
 
         const filteredQueryParams = Object.fromEntries(
@@ -286,7 +334,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
     <Card className="p-4">
       <CardHeader className="pb-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Order History</CardTitle>
+          <CardTitle className="text-lg">{pageConfig.title}</CardTitle>
           <div className="flex items-center gap-4">
             {UiSettingsEntity.orderConfirmation && (
               <div className="flex items-center gap-2">
@@ -411,36 +459,38 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                     <div className="space-y-1">
                       <div
                         className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('createdDate')}
+                        onClick={() => pageConfig.showDatePicker && handleSort('createdDate')}
                       >
-                        {translate('orders.view.table.fields.date')} {getSortIcon('createdDate')}
+                        {translate('orders.view.table.fields.date')} {pageConfig.showDatePicker && getSortIcon('createdDate')}
                       </div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="h-7 text-xs w-full justify-start">
-                            <CalendarIcon className="mr-2 h-3 w-3" />
-                            {dateRange?.from ? (
-                              dateRange.to ? (
-                                <>
-                                  {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
-                                </>
+                      {pageConfig.showDatePicker && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="h-7 text-xs w-full justify-start">
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {dateRange?.from ? (
+                                dateRange.to ? (
+                                  <>
+                                    {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
+                                  </>
+                                ) : (
+                                  format(dateRange.from, "PP")
+                                )
                               ) : (
-                                format(dateRange.from, "PP")
-                              )
-                            ) : (
-                              <span>{translate('orders.view.table.filters.date')}</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="range"
-                            selected={dateRange}
-                            onSelect={(range) => setDateRange(range)}
-                            numberOfMonths={2}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                                <span>{translate('orders.view.table.filters.date')}</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="range"
+                              selected={dateRange}
+                              onSelect={(range) => setDateRange(range)}
+                              numberOfMonths={2}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
                   </TableHead>
                 )}
@@ -468,6 +518,38 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                           }))
                         }
                         placeholder={translate('orders.view.table.filters.status')}
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderRefund && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Refund</div>
+                      <Select
+                        styles={selectStyles}
+                        value={
+                          lazyState.filters.refund?.value === true
+                            ? { label: 'Yes', value: true }
+                            : lazyState.filters.refund?.value === false
+                            ? { label: 'No', value: false }
+                            : null
+                        }
+                        options={[
+                          { label: 'Yes', value: true },
+                          { label: 'No', value: false }
+                        ]}
+                        isClearable
+                        onChange={(selected) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              refund: { value: selected?.value ?? null, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Filter"
                       />
                     </div>
                   </TableHead>
@@ -609,38 +691,6 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                     </div>
                   </TableHead>
                 )}
-                {visibleColumns.orderRefund && (
-                  <TableHead>
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium">Refund</div>
-                      <Select
-                        styles={selectStyles}
-                        value={
-                          lazyState.filters.refund?.value === true
-                            ? { label: 'Yes', value: true }
-                            : lazyState.filters.refund?.value === false
-                            ? { label: 'No', value: false }
-                            : null
-                        }
-                        options={[
-                          { label: 'Yes', value: true },
-                          { label: 'No', value: false }
-                        ]}
-                        isClearable
-                        onChange={(selected) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              refund: { value: selected?.value ?? null, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder="Filter"
-                      />
-                    </div>
-                  </TableHead>
-                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -681,6 +731,15 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                     {visibleColumns.orderStatus && (
                       <TableCell className="text-xs">{order.processingStatus}</TableCell>
                     )}
+                    {visibleColumns.orderRefund && (
+                      <TableCell className="text-xs text-center">
+                        {order.refund ? (
+                          <Check className="h-4 w-4 text-green-600 inline" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600 inline" />
+                        )}
+                      </TableCell>
+                    )}
                     {visibleColumns.orderSource && (
                       <TableCell className="text-xs">{order.sourceApp?.type}</TableCell>
                     )}
@@ -696,15 +755,6 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                     {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">
                         {order.discount ? (
-                          <Check className="h-4 w-4 text-green-600 inline" />
-                        ) : (
-                          <X className="h-4 w-4 text-red-600 inline" />
-                        )}
-                      </TableCell>
-                    )}
-                    {visibleColumns.orderRefund && (
-                      <TableCell className="text-xs text-center">
-                        {order.refund ? (
                           <Check className="h-4 w-4 text-green-600 inline" />
                         ) : (
                           <X className="h-4 w-4 text-red-600 inline" />
