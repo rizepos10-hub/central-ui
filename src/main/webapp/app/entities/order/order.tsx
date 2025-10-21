@@ -63,7 +63,9 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
       "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: '', matchMode: 'equals' },
-      tables: { value: '', matchMode: 'contains' }
+      tables: { value: '', matchMode: 'contains' },
+      discount: { value: null, matchMode: 'equals' },
+      refund: { value: null, matchMode: 'equals' }
     }
   });
 
@@ -99,7 +101,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    
+
     // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
     const storedFields = storedData[LOCAL_STORAGE_KEY] || {
       orderId: true,
@@ -111,8 +113,9 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
       customerEmail: true,
       customerPhone: true,
       orderDiscount: true,
+      orderRefund: true,
     };
-  
+
     return storedFields;
   });
 
@@ -151,6 +154,20 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
     header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
   }));
 
+  const handleSort = (field: string) => {
+    const isAsc = lazyState.sortField === field && lazyState.sortOrder === 1;
+    setLazyState(prev => ({
+      ...prev,
+      sortField: field,
+      sortOrder: isAsc ? -1 : 1
+    }));
+  };
+
+  const getSortIcon = (field: string) => {
+    if (lazyState.sortField !== field) return null;
+    return lazyState.sortOrder === 1 ? '↑' : '↓';
+  };
+
   useEffect(() => {
     const handleFilterOrders = debounce(() => {
       if (
@@ -168,6 +185,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
         lazyState.filters.tables?.value ||
         lazyState.filters.orderSource?.value ||
         lazyState.filters.status?.value ||
+        lazyState.filters.discount?.value !== null ||
+        lazyState.filters.refund?.value !== null ||
         dateRange?.from ||
         dateRange?.to
       ) {
@@ -183,6 +202,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
           customerId: lazyState.filters['customer.id']?.value || '',
           branchId: lazyState.filters.branchId?.value || '',
           tables: lazyState.filters.tables?.value || '',
+          discount: lazyState.filters.discount?.value,
+          refund: lazyState.filters.refund?.value,
           size: lazyState.rows,
           fromDate: dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '',
           toDate: dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '',
@@ -335,7 +356,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.orderId && (
                   <TableHead className="w-24">
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.id')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('sequenceNumber')}
+                      >
+                        Sequence Number {getSortIcon('sequenceNumber')}
+                      </div>
                       <Input
                         className="h-7 text-xs"
                         onChange={(e) =>
@@ -355,7 +381,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.orderBranch && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.branch')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('branchId')}
+                      >
+                        {translate('orders.view.table.fields.branch')} {getSortIcon('branchId')}
+                      </div>
                       <Select
                         styles={selectStyles}
                         value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
@@ -378,7 +409,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.OrderDate && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.date')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('createdDate')}
+                      >
+                        {translate('orders.view.table.fields.date')} {getSortIcon('createdDate')}
+                      </div>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="h-7 text-xs w-full justify-start">
@@ -411,7 +447,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.orderStatus && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.status')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('processingStatus')}
+                      >
+                        {translate('orders.view.table.fields.status')} {getSortIcon('processingStatus')}
+                      </div>
                       <Select
                         styles={selectStyles}
                         value={orderStatuses.find((opt: any) => opt.value === lazyState.filters.status?.value) || null}
@@ -434,7 +475,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.orderSource && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.source')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('sourceApp.type')}
+                      >
+                        {translate('orders.view.table.fields.source')} {getSortIcon('sourceApp.type')}
+                      </div>
                       {!appSourceProp && (
                         <Select
                           styles={selectStyles}
@@ -459,7 +505,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {visibleColumns.orderTable && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.tables')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('tables')}
+                      >
+                        {translate('orders.view.table.fields.tables')} {getSortIcon('tables')}
+                      </div>
                       <Input
                         className="h-7 text-xs"
                         onChange={(e) =>
@@ -479,7 +530,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {!customer && visibleColumns.customerEmail && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.customerEmail')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('customer.email')}
+                      >
+                        {translate('orders.view.table.fields.customerEmail')} {getSortIcon('customer.email')}
+                      </div>
                       <Input
                         className="h-7 text-xs"
                         onChange={(e) =>
@@ -499,7 +555,12 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 {!customer && visibleColumns.customerPhone && (
                   <TableHead>
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">{translate('orders.view.table.fields.customerPhone')}</div>
+                      <div
+                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                        onClick={() => handleSort('customer.phone')}
+                      >
+                        {translate('orders.view.table.fields.customerPhone')} {getSortIcon('customer.phone')}
+                      </div>
                       <Input
                         className="h-7 text-xs"
                         onChange={(e) =>
@@ -518,7 +579,66 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 )}
                 {visibleColumns.orderDiscount && (
                   <TableHead>
-                    <div className="text-xs font-medium">{translate('orders.view.table.fields.discount')}</div>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">{translate('orders.view.table.fields.discount')}</div>
+                      <Select
+                        styles={selectStyles}
+                        value={
+                          lazyState.filters.discount?.value === true
+                            ? { label: 'Yes', value: true }
+                            : lazyState.filters.discount?.value === false
+                            ? { label: 'No', value: false }
+                            : null
+                        }
+                        options={[
+                          { label: 'Yes', value: true },
+                          { label: 'No', value: false }
+                        ]}
+                        isClearable
+                        onChange={(selected) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              discount: { value: selected?.value ?? null, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Filter"
+                      />
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderRefund && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Refund</div>
+                      <Select
+                        styles={selectStyles}
+                        value={
+                          lazyState.filters.refund?.value === true
+                            ? { label: 'Yes', value: true }
+                            : lazyState.filters.refund?.value === false
+                            ? { label: 'No', value: false }
+                            : null
+                        }
+                        options={[
+                          { label: 'Yes', value: true },
+                          { label: 'No', value: false }
+                        ]}
+                        isClearable
+                        onChange={(selected) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              refund: { value: selected?.value ?? null, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Filter"
+                      />
+                    </div>
                   </TableHead>
                 )}
               </TableRow>
@@ -576,6 +696,15 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                     {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">
                         {order.discount ? (
+                          <Check className="h-4 w-4 text-green-600 inline" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600 inline" />
+                        )}
+                      </TableCell>
+                    )}
+                    {visibleColumns.orderRefund && (
+                      <TableCell className="text-xs text-center">
+                        {order.refund ? (
                           <Check className="h-4 w-4 text-green-600 inline" />
                         ) : (
                           <X className="h-4 w-4 text-red-600 inline" />
