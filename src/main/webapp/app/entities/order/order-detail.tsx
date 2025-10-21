@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw, BadgeDollarSign } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -288,7 +288,7 @@ export const OrderDetail = () => {
                     </span>
                     <span>
                       {orderEntity?.refund && (
-                        <BadgeDollarSign className="h-7 w-7 text-orange-600" />
+                        <BanknoteArrowDown  className="h-7 w-7 text-orange-600" />
                       )}
                     </span>
                   </CardTitle>
@@ -552,42 +552,42 @@ export const OrderDetail = () => {
                   </CardContent>
                 </Card>
               )}
-
-              {!orderEntity.orderDeliveryDetails ? (
-                <Card id="booking" className={editMode ? 'opacity-50' : ''}>
-                  <CardHeader>
-                    <CardTitle>Create Booking</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="h-8 text-xs justify-start">
-                          {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={bookingDate}
-                          onSelect={setBookingDate}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Button
-                      type="button"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        dispatch(createBooking({
-                          date: bookingDate?.toISOString(),
-                          orderId: orderEntity.id
-                        }))
-                      }}
-                    >
-                      Create
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
+              {!orderEntity?.refund && (
+                !orderEntity.orderDeliveryDetails ? (
+                  <Card id="booking" className={editMode ? 'opacity-50' : ''}>
+                    <CardHeader>
+                      <CardTitle>Create Booking</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="h-8 text-xs justify-start">
+                            {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={bookingDate}
+                            onSelect={setBookingDate}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        type="button"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          dispatch(createBooking({
+                            date: bookingDate?.toISOString(),
+                            orderId: orderEntity.id
+                          }))
+                        }}
+                      >
+                        Create
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
                 <Card id="booking" className={editMode ? 'opacity-50' : ''}>
                   <CardHeader>
                     <CardTitle>Update Booking</CardTitle>
@@ -631,6 +631,7 @@ export const OrderDetail = () => {
                     </div>
                   </CardContent>
                 </Card>
+                )
               )}
             </div>
           </div>
