@@ -645,41 +645,39 @@ export const OrderDetail = () => {
                   <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="w-full">
 
                     {filteredOrderEntity?.bills?.map((bill, idx) => {
-                      const newDataTableValues = [];
-                      bill?.billItems?.forEach((item) => {
-                        newDataTableValues.push({
-                          id: item.id,
-                          itemName: item.itemName,
-                          amount: item.amount,
-                          price: item.price,
-                          taxIdsToValues: item.taxIdsToValues,
-                          discount: item.discount,
-                          taxValue: item.taxValue,
-                          isAddon: false,
-                          total: item.total?.toFixed(2),
-                        });
-                        console.log(newDataTableValues, 'newDataTableValues')
-                        item.addons?.forEach((addon) => {
-                          newDataTableValues.push({
-                            id: addon.id,
-                            itemName: addon.name,
-                            amount: addon.amount,
-                            price: addon.price,
-                            taxIdsToValues: addon.taxIdsToValues,
-                            discount: addon.discount,
-                            taxValue: addon.taxValue,
-                            isAddon: true,
-                            total: addon.total?.toFixed(2),
-                          });
-                        });
-                      });
+                      const billStatus = String(bill.status);
+                      const getBillStatusColor = (status: string) => {
+                        switch (status) {
+                          case 'PAID': return 'bg-green-100 text-green-800';
+                          case 'REFUNDED': return 'bg-orange-100 text-orange-800';
+                          case 'CANCELED': return 'bg-red-100 text-red-800';
+                          case 'DRAFT': return 'bg-gray-100 text-gray-800';
+                          default: return 'bg-blue-100 text-blue-800';
+                        }
+                      };
 
                       return (
-                        <AccordionItem key={idx} value={idx.toString()} className="w-full">
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex justify-between items-center w-full pr-4 text-xs">
-                              <span>{new Date(bill.dateTime).toDateString()}</span>
-                              <span>{bill.status}</span>
+                        <AccordionItem key={idx} value={idx.toString()} className="w-full border rounded-lg mb-2">
+                          <AccordionTrigger className="hover:no-underline px-4">
+                            <div className="flex justify-between items-center w-full pr-4">
+                              <div className="flex items-center gap-4">
+                                <span className="font-semibold text-sm">Bill #{bill.sequenceNumber}</span>
+                                <Badge className={`${getBillStatusColor(billStatus)} text-xs`}>
+                                  {billStatus}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(bill.dateTime).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                                <span className="font-semibold text-sm">${bill?.total?.toFixed(2)}</span>
+                              </div>
                               <span id={`actionsTab-${idx}`} className="flex items-center justify-center gap-2">
                                 <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
                                   <Button variant="link" className="h-8 text-xs p-0">
@@ -713,7 +711,7 @@ export const OrderDetail = () => {
                                   Resend E-mail
                                 </Button>
 
-                                {!orderEntity?.refund && (
+                                {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
                                   <>
                                     <Button
                                       className="h-8 text-xs"
@@ -742,25 +740,40 @@ export const OrderDetail = () => {
                               </span>
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent>
-                            <Card>
-                              <CardContent className="pt-2">
-                                <OrderedItems
-                                  ref={billPrintRef}
-                                  dataTableValues={newDataTableValues}
-                                  rowClick={rowClick}
-                                  entity={billEntity}
-                                  changeEntityField={changeBillEntityField}
-                                  refundMode={refundMode}
-                                />
-                              </CardContent>
-                              <CardFooter className="text-sm font-bold px-5">
-                                <div className="w-full flex justify-between items-center">
-                                  <span>Total:</span>
-                                  <span>{bill?.total?.toFixed(2)}</span>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className="space-y-3">
+                              <div className="text-xs font-semibold text-muted-foreground mb-2">Payment Transactions</div>
+                              {bill?.paymentTransactions?.length > 0 ? (
+                                bill.paymentTransactions.map((transaction, txnIdx) => (
+                                  <div key={transaction.id} className="bg-muted/30 rounded-lg p-4 border">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <span className="font-semibold text-sm">Txn {txnIdx + 1}</span>
+                                      <Badge variant="outline" className="text-xs">
+                                        {transaction.status}
+                                      </Badge>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Amount</div>
+                                        <div className="font-semibold text-sm">${transaction.amount?.toFixed(2)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Method</div>
+                                        <div className="font-medium text-sm capitalize">{String(transaction.method || '').toLowerCase()}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-muted-foreground mb-1">Type</div>
+                                        <div className="font-medium text-sm capitalize">{String(transaction.type || '').toLowerCase()}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-muted-foreground text-center py-4">
+                                  No payment transactions
                                 </div>
-                              </CardFooter>
-                            </Card>
+                              )}
+                            </div>
                           </AccordionContent>
                         </AccordionItem>
                       )

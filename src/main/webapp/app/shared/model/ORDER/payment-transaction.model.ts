@@ -7,8 +7,9 @@ export interface IPaymentTransaction extends IOrderAudit {
   amount?: number;
   description?: string;
   dateTime?: string;
-  type?: TransactionType;
-  method?: TransactionMethod;
+  type?: TransactionType | string;
+  method?: TransactionMethod | string;
+  status?: string;
 }
 
 export const defaultValue: Readonly<IPaymentTransaction> = {};
