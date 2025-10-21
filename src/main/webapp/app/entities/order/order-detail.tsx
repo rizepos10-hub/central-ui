@@ -92,6 +92,10 @@ export const OrderDetail = () => {
   const [pendingProcessingStatus, setPendingProcessingStatus] = useState<OrderStatus | null>(null);
   const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState<DeliverStatus | null>(null);
 
+  // Refund dialog states
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
+  const [selectedBillForRefund, setSelectedBillForRefund] = useState<IBill | null>(null);
+
   useEffect(() => {
     if (orderEntity.orderDeliveryDetails) {
       setBookingDate(new Date(orderEntity.orderDeliveryDetails.pickupDate))
@@ -221,15 +225,25 @@ export const OrderDetail = () => {
     setDeliveryStatus(filteredOrderEntity.deliveryStatus);
   }, [filteredOrderEntity.deliveryStatus])
 
-  const handleRefund = (bill: IBill) => {
+  const openRefundDialog = (bill: IBill) => {
+    setSelectedBillForRefund(bill);
+    dispatch(changeBillEntityField({ name: 'items', value: [] }));
+    setShowRefundDialog(true);
+  };
+
+  const handleRefund = () => {
+    if (!selectedBillForRefund) return;
+
     dispatch(refundBill({
       id: filteredOrderEntity.id,
-      billId: bill.id,
+      billId: selectedBillForRefund.id,
       items: billEntity.items,
-      paymentType: bill.paymentType,
-      chargesShares: bill.chargesShares,
-    }))
-  }
+      paymentType: selectedBillForRefund.paymentType,
+      chargesShares: selectedBillForRefund.chargesShares,
+    }));
+    setShowRefundDialog(false);
+    setSelectedBillForRefund(null);
+  };
 
   const handleCancelBooking = () => {
     dispatch(cancelBooking(orderEntity));
@@ -712,30 +726,16 @@ export const OrderDetail = () => {
                                 </Button>
 
                                 {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
-                                  <>
-                                    <Button
-                                      className="h-8 text-xs"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setRefundMode(prev => !prev);
-                                      }}
-                                    >
-                                      {refundMode ? 'Cancel' : 'Refund'}
-                                    </Button>
-                                    {refundMode && (
-                                      <Button
-                                        className="h-8 text-xs"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          handleRefund(bill)
-                                        }}
-                                      >
-                                        Apply Refund
-                                      </Button>
-                                    )}
-                                  </>
+                                  <Button
+                                    className="h-8 text-xs"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      openRefundDialog(bill);
+                                    }}
+                                  >
+                                    Refund
+                                  </Button>
                                 )}
                               </span>
                             </div>
@@ -849,6 +849,79 @@ export const OrderDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Refund Bill #{selectedBillForRefund?.sequenceNumber}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedBillForRefund && (
+              <>
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Select items to refund from this bill
+                </div>
+                <OrderedItems
+                  dataTableValues={(() => {
+                    const items = [];
+                    selectedBillForRefund.billItems?.forEach((item) => {
+                      items.push({
+                        id: item.id,
+                        itemName: item.itemName,
+                        amount: item.amount,
+                        price: item.price,
+                        taxIdsToValues: item.taxIdsToValues,
+                        discount: item.discount,
+                        taxValue: item.taxValue,
+                        isAddon: false,
+                        total: item.total?.toFixed(2),
+                      });
+                      item.addons?.forEach((addon) => {
+                        items.push({
+                          id: addon.id,
+                          itemName: addon.name,
+                          amount: addon.amount,
+                          price: addon.price,
+                          taxIdsToValues: addon.taxIdsToValues,
+                          discount: addon.discount,
+                          taxValue: addon.taxValue,
+                          isAddon: true,
+                          total: addon.total?.toFixed(2),
+                        });
+                      });
+                    });
+                    return items;
+                  })()}
+                  rowClick={false}
+                  entity={billEntity}
+                  changeEntityField={changeBillEntityField}
+                  refundMode={true}
+                />
+              </>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRefundDialog(false);
+                setSelectedBillForRefund(null);
+              }}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRefund}
+              disabled={!billEntity.items || billEntity.items.length === 0}
+              className="h-8 text-xs"
+            >
+              Apply Refund
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
