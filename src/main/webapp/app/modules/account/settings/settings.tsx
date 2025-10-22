@@ -1,17 +1,28 @@
-import React, { useEffect } from 'react';
-import { Button, Col, Row } from 'reactstrap';
-import { Translate, translate, ValidatedField, ValidatedForm, isEmail } from 'react-jhipster';
+import React, { useEffect, useState } from 'react';
+import { Translate, translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
+import { Save, ArrowLeft } from 'lucide-react';
 
 import { locales, languages } from 'app/config/translation';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getSession } from 'app/shared/reducers/authentication';
 import { saveAccountSettings, reset } from './settings.reducer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const SettingsPage = () => {
   const dispatch = useAppDispatch();
   const account = useAppSelector(state => state.authentication.account);
   const successMessage = useAppSelector(state => state.settings.successMessage);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [langKey, setLangKey] = useState('');
 
   useEffect(() => {
     dispatch(getSession());
@@ -21,81 +32,135 @@ export const SettingsPage = () => {
   }, []);
 
   useEffect(() => {
+    if (account) {
+      setFirstName(account.firstName || '');
+      setLastName(account.lastName || '');
+      setEmail(account.email || '');
+      setLangKey(account.langKey || 'en');
+    }
+  }, [account]);
+
+  useEffect(() => {
     if (successMessage) {
       toast.success(translate(successMessage));
     }
   }, [successMessage]);
 
-  const handleValidSubmit = values => {
+  const handleSubmit = () => {
     dispatch(
       saveAccountSettings({
         ...account,
-        ...values,
+        firstName,
+        lastName,
+        email,
+        langKey,
       })
     );
   };
 
   return (
-    <div>
-      <Row className="justify-content-center">
-        <Col md="8">
-          <h2 id="settings-title">
+    <PageWrapper>
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm font-semibold">
             <Translate contentKey="settings.title" interpolate={{ username: account.login }}>
               User settings for {account.login}
             </Translate>
-          </h2>
-          <ValidatedForm id="settings-form" onSubmit={handleValidSubmit} defaultValues={account}>
-            <ValidatedField
-              name="firstName"
-              label={translate('settings.form.firstname')}
-              id="firstName"
-              placeholder={translate('settings.form.firstname.placeholder')}
-              validate={{
-                required: { value: true, message: translate('settings.messages.validate.firstname.required') },
-                minLength: { value: 1, message: translate('settings.messages.validate.firstname.minlength') },
-                maxLength: { value: 50, message: translate('settings.messages.validate.firstname.maxlength') },
-              }}
-              data-cy="firstname"
-            />
-            <ValidatedField
-              name="lastName"
-              label={translate('settings.form.lastname')}
-              id="lastName"
-              placeholder={translate('settings.form.lastname.placeholder')}
-              validate={{
-                required: { value: true, message: translate('settings.messages.validate.lastname.required') },
-                minLength: { value: 1, message: translate('settings.messages.validate.lastname.minlength') },
-                maxLength: { value: 50, message: translate('settings.messages.validate.lastname.maxlength') },
-              }}
-              data-cy="lastname"
-            />
-            <ValidatedField
-              name="email"
-              label={translate('global.form.email.label')}
-              placeholder={translate('global.form.email.placeholder')}
-              type="email"
-              validate={{
-                required: { value: true, message: translate('global.messages.validate.email.required') },
-                minLength: { value: 5, message: translate('global.messages.validate.email.minlength') },
-                maxLength: { value: 254, message: translate('global.messages.validate.email.maxlength') },
-                validate: v => isEmail(v) || translate('global.messages.validate.email.invalid'),
-              }}
-              data-cy="email"
-            />
-            <ValidatedField type="select" id="langKey" name="langKey" label={translate('settings.form.language')} data-cy="langKey">
-              {locales.map(locale => (
-                <option value={locale} key={locale}>
-                  {languages[locale].name}
-                </option>
-              ))}
-            </ValidatedField>
-            <Button color="primary" type="submit" data-cy="submit">
-              <Translate contentKey="settings.form.button">Save</Translate>
-            </Button>
-          </ValidatedForm>
-        </Col>
-      </Row>
-    </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3">
+          <form className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="firstName" className="text-xs">
+                {translate('settings.form.firstname')}
+              </Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                minLength={1}
+                maxLength={50}
+                placeholder={translate('settings.form.firstname.placeholder')}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="h-8 text-xs"
+                data-cy="firstname"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="lastName" className="text-xs">
+                {translate('settings.form.lastname')}
+              </Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                minLength={1}
+                maxLength={50}
+                placeholder={translate('settings.form.lastname.placeholder')}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="h-8 text-xs"
+                data-cy="lastname"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-xs">
+                {translate('global.form.email.label')}
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                minLength={5}
+                maxLength={254}
+                placeholder={translate('global.form.email.placeholder')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-8 text-xs"
+                data-cy="email"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="langKey" className="text-xs">
+                {translate('settings.form.language')}
+              </Label>
+              <Select value={langKey} onValueChange={setLangKey}>
+                <SelectTrigger className="h-8 text-xs" data-cy="langKey">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {locales.map(locale => (
+                    <SelectItem key={locale} value={locale} className="text-xs">
+                      {languages[locale].name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSubmit}
+                data-cy="submit"
+              >
+                <Save className="h-4 w-4 mr-1" />
+                <Translate contentKey="settings.form.button">Save</Translate>
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

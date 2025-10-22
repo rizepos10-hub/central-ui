@@ -1,20 +1,20 @@
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model'
 import React, { useState, useEffect } from 'react'
-import { Menu } from 'primereact/menu';
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import { Dropdown } from 'primereact/dropdown';
-import { Checkbox } from 'primereact/checkbox';
 import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity, getEntity} from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
-import { Button } from 'primereact/button';
 import Select from 'react-select';
-import { TabPanel, TabView } from 'primereact/tabview';
 import Printer from '../printing/printer/printer';
 import { getEntities } from '../tv-config/tv/tv.reducer';
 import { ITv } from 'app/shared/model/TV/tv.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 type MenuItem = {
     label: string;
@@ -22,20 +22,19 @@ type MenuItem = {
 };
 
 const FieldWrapper: React.FC<{
-    icon: string;
+    icon?: string;
     title: string;
     description?: string;
     children: React.ReactNode;
 }> = ({ icon, title, description, children }) => (
-    <div className="flex justify-content-between mb-5">
-        <div className="flex align-items-center gap-3">
-            <i className={`pi ${icon} text-xl`} />
-            <div>
-                <h4 className="m-0">{title}</h4>
-                {description && <p className="text-sm text-500 mt-1">{description}</p>}
-            </div>
+    <div className="flex items-center justify-between mb-1 p-1 border rounded">
+        <div className="flex-1">
+            <Label className="text-xs font-medium">{title}</Label>
+            {description && <p className="text-xs text-muted-foreground">{description}</p>}
         </div>
-        {children}
+        <div className="ml-2">
+            {children}
+        </div>
     </div>
 );
 
@@ -56,33 +55,31 @@ const BranchRegistryTerminalSettings = () => {
     }, [])
 
     return (
-        <div className="container-fluid h-100">
-            <div className="row h-100">
-                {/* Sidebar */}
-                <div className="col-md-2 border-right p-3">
-                    <Menu
-                        model={sections.map(section => ({
-                            label: section.label,
-                            command: () => setActiveSection(section)
-                        }))}
-                        className="w-100 border-0"
-                    />
-                </div>
-
-                {/* Main Content */}
-                <div className="col-md-10 p-4">
-                    <h2 className="mb-4">{activeSection.label}</h2>
-                    <activeSection.component />
-                </div>
+        <Card>
+            <CardContent className="p-1">
+                <Tabs defaultValue={sections[0].label.toLowerCase()} className="w-full">
+                    <TabsList className="mb-1">
+                        {sections.map(section => (
+                            <TabsTrigger key={section.label} value={section.label.toLowerCase()} className="text-xs">
+                                {section.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                    {sections.map(section => (
+                        <TabsContent key={section.label} value={section.label.toLowerCase()}>
+                            <section.component />
+                        </TabsContent>
+                    ))}
+                </Tabs>
 
                 {/* Save Button */}
-                <div>
-                    <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
+                <div className="mt-1 flex justify-end">
+                    <Button onClick={saveEntity} id="save-entity" data-cy="entityCreateSaveButton" size="sm">
                         Save
                     </Button>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 };
 
@@ -92,111 +89,109 @@ function GeneralSettings() {
     const dispatch = useAppDispatch();
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-building"
-                    title="Business Type"
-                    description="Choose business type"
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Business Type"
+                description="Choose business type"
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.businessType}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'businessType', value }))}
                 >
-                    <Dropdown
-                        options={[
-                            { label: 'Retail', value: 'RETAIL' },
-                            { label: 'Restaurant', value: 'RESTAURANT' }
-                        ]}
-                        value={branchRegistry?.terminalSettings?.businessType}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'businessType', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-shopping-bag"
-                    title="Order Type"
-                    description="Choose Order type"
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="RETAIL">Retail</SelectItem>
+                        <SelectItem value="RESTAURANT">Restaurant</SelectItem>
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Order Type"
+                description="Choose Order type"
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.orderType}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'orderType', value }))}
                 >
-                    <Dropdown
-                        options={Object.values(OrderMethod).map(method => ({ label: method, value: method }))}
-                        value={branchRegistry?.terminalSettings?.orderType}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'orderType', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-wallet"
-                    title="Enable Split Bills"
-                    description="Enable Split Bills"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.enableSplitBill}
-                        value={branchRegistry?.terminalSettings?.enableSplitBill}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-arrow-down-left"
-                    title="Receive Online Order Popups"
-                    description="Receive Online Order Popups"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
-                        value={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-arrow-down-left"
-                    title="Enable walk in"
-                    description="Enable walk in"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.enableWalkInType}
-                        value={branchRegistry?.terminalSettings?.enableWalkInType}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableWalkInType', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="HST Number"
-                    description="Enter HST number"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.hstNumber}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="GST Number"
-                    description="Enter GST number"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.gstNumber}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="PST Number"
-                    description="Enter PST number"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.pstNumber}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select order type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(OrderMethod).map(method => (
+                            <SelectItem key={method} value={method}>{method}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Enable Split Bills"
+                description="Enable Split Bills"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableSplitBill}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Receive Online Order Popups"
+                description="Receive Online Order Popups"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Enable walk in"
+                description="Enable walk in"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableWalkInType}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableWalkInType', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="HST Number"
+                description="Enter HST number"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.hstNumber || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="GST Number"
+                description="Enter GST number"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.gstNumber || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="PST Number"
+                description="Enter PST number"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.pstNumber || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -205,73 +200,60 @@ function PersonalizationSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
-    
-
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-image"
-                    title="Show Item Pictures"
-                    description="Show item pictures in the app"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.showItemsPic}
-                        value={branchRegistry?.terminalSettings?.showItemsPic}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'showItemsPic', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-filter"
-                    title="Show Retail Items Only"
-                    description="Show Retail Items Only in the app"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.showRetailItemsOnly}
-                        value={branchRegistry?.terminalSettings?.showRetailItemsOnly}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'showRetailItemsOnly', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-bars"
-                    title="Always Show Scrollbar"
-                    description="Force scrollbar to always be visible"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.alwaysShowScrollbar}
-                        value={branchRegistry?.terminalSettings?.alwaysShowScrollbar}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'alwaysShowScrollbar', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-ellipsis-v"
-                    title="Scrollbar Thickness"
-                    description="Thickness in pixels"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scrollbarThickness}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-globe"
-                    title="Change POS Language"
-                    description="Chane display langauge of the terminal"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.languageCode}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'languageCode', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Show Item Pictures"
+                description="Show item pictures in the app"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showItemsPic}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showItemsPic', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Show Retail Items Only"
+                description="Show Retail Items Only in the app"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showRetailItemsOnly}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showRetailItemsOnly', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Always Show Scrollbar"
+                description="Force scrollbar to always be visible"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.alwaysShowScrollbar}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'alwaysShowScrollbar', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Scrollbar Thickness"
+                description="Thickness in pixels"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scrollbarThickness || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Change POS Language"
+                description="Change display language of the terminal"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.languageCode || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'languageCode', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -281,20 +263,16 @@ function AdminActionsSettings() {
     const dispatch = useAppDispatch();
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-th-large"
-                    title="Select Pricing Point"
-                    description="Select Pricing Point"
-                >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.selectPricingPoint}
-                        value={branchRegistry?.terminalSettings?.selectPricingPoint}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Select Pricing Point"
+                description="Select Pricing Point"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.selectPricingPoint}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: checked }))}
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -304,93 +282,87 @@ function ScaleSettings() {
     const dispatch = useAppDispatch();
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-sliders-v"
-                    title="Read Scale Barcodes"
-                    description="When enabled, the terminal will read the configuration below and use them to read barcodes scanned from scales"
-                >
-                    <Checkbox
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
-                        checked={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'readScaleBarCodes', value: e.checked }))}
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Read Scale Barcodes"
+                description="When enabled, the terminal will read the configuration below and use them to read barcodes scanned from scales"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'readScaleBarCodes', value: checked }))}
+                />
+            </FieldWrapper>
 
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Total Number Of Digits"
-                    description="Enter total number of digits"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-ellipsis-h"
-                    title="Prefix"
-                    description="Enter Prefix"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.prefix}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'prefix', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-ellipsis-h"
-                    title="Plus Start Position"
-                    description="Enter plus start position"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Plus Total Digit Count"
-                    description="Enter plus total digit count"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-ellipsis-h"
-                    title="Price Start Position"
-                    description="Enter price start position"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Price Total Digit Count"
-                    description="Enter price total digit count"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+            <FieldWrapper
+                title="Total Number Of Digits"
+                description="Enter total number of digits"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Prefix"
+                description="Enter Prefix"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.prefix || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'prefix', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Plus Start Position"
+                description="Enter plus start position"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Plus Total Digit Count"
+                description="Enter plus total digit count"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Price Start Position"
+                description="Enter price start position"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Price Total Digit Count"
+                description="Enter price total digit count"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -408,96 +380,107 @@ function Devices() {
     ];
 
     return (
-        <TabView>
-            <TabPanel header="Price computing scale">
+        <Tabs defaultValue="price-computing-scale" className="w-full">
+            <TabsList>
+                <TabsTrigger value="price-computing-scale">Price computing scale</TabsTrigger>
+                <TabsTrigger value="direct-scale">Direct scale</TabsTrigger>
+                <TabsTrigger value="debit-machine">Debit machine</TabsTrigger>
+                <TabsTrigger value="rize-integrator">Rize integrator</TabsTrigger>
+                <TabsTrigger value="customer-screen">Customer screen</TabsTrigger>
+            </TabsList>
+            <TabsContent value="price-computing-scale">
                 <ScaleSettings />
-            </TabPanel>
-            <TabPanel header="Direct scale">
-                <div className="grid">
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-server"
-                            title="Integration Type"
-                            description="Integration type of the direct scale which can be either direct communication or rize integrator"
+            </TabsContent>
+            <TabsContent value="direct-scale">
+                <div className="space-y-1">
+                    <FieldWrapper
+                        title="Integration Type"
+                        description="Integration type of the direct scale which can be either direct communication or rize integrator"
+                    >
+                        <ShadcnSelect
+                            value={selectedType}
+                            onValueChange={value => dispatch(changeTerminalField({ name: "scaleIntegrationType", value }))}
                         >
-                            <Dropdown
-                                value={selectedType}
-                                options={integrationTypeOptions}
-                                onChange={e => dispatch(changeTerminalField({ name: "scaleIntegrationType", value: e.value }))}
-                                placeholder="Select Integration Type"
-                                className="w-full"
-                            />
-                        </FieldWrapper>
-                    </div>
+                            <SelectTrigger className="w-64">
+                                <SelectValue placeholder="Select Integration Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {integrationTypeOptions.map(opt => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </ShadcnSelect>
+                    </FieldWrapper>
                     {/* Conditionally rendered based on integration type */}
                     {selectedType === ScaleIntegrationTypeEnum.direct && (
                         <>
-                            <div className="col-12">
-                                <FieldWrapper
-                                    icon="pi-pencil"
-                                    title="Serial Port Name"
-                                    description="Serial port name that the scaale is connected to"
-                                >
-                                    <InputText
-                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.serialPortName}
-                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.serialPortName', value: e.target.value }))}
-                                    />
-                                </FieldWrapper>
-                            </div>
-                            <div className="col-12">
-                                <FieldWrapper
-                                    icon="pi-window-minimize"
-                                    title="Get weight message"
-                                    description="The message sent to the scale when getting the weight"
-                                >
-                                    <InputText
-                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.getWeightMessage}
-                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.getWeightMessage', value: e.target.value }))}
-                                    />
-                                </FieldWrapper>
-                            </div>
-                            <div className="col-12">
-                                <FieldWrapper
-                                    icon="pi-cloud"
-                                    title="Expected payload length"
-                                    description="Expected payload length of the scale in the serial port"
-                                >
-                                    <InputText
-                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.expectedPayloadLength}
-                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.expectedPayloadLength', value: e.target.value }))}
-                                    />
-                                </FieldWrapper>
-                            </div>
+                            <FieldWrapper
+                                title="Serial Port Name"
+                                description="Serial port name that the scale is connected to"
+                            >
+                                <Input
+                                    value={branchRegistry?.terminalSettings?.serialScaleSettings?.serialPortName || ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.serialPortName', value: e.target.value }))}
+                                    className="w-48"
+                                />
+                            </FieldWrapper>
+
+                            <FieldWrapper
+                                title="Get weight message"
+                                description="The message sent to the scale when getting the weight"
+                            >
+                                <Input
+                                    value={branchRegistry?.terminalSettings?.serialScaleSettings?.getWeightMessage || ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.getWeightMessage', value: e.target.value }))}
+                                    className="w-48"
+                                />
+                            </FieldWrapper>
+
+                            <FieldWrapper
+                                title="Expected payload length"
+                                description="Expected payload length of the scale in the serial port"
+                            >
+                                <Input
+                                    value={branchRegistry?.terminalSettings?.serialScaleSettings?.expectedPayloadLength || ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.expectedPayloadLength', value: e.target.value }))}
+                                    className="w-48"
+                                />
+                            </FieldWrapper>
                         </>
                     )}
 
                     {selectedType === ScaleIntegrationTypeEnum.rizeIntegrator && (
                         <>
-                            <div className="col-12">
-                                <FieldWrapper
-                                    icon="pi-wifi"
-                                    title="Timeout In Seconds"
-                                    description="Timeout in seconds used by the debit machine"
+                            <FieldWrapper
+                                title="Timeout In Seconds"
+                                description="Timeout in seconds used by the debit machine"
+                            >
+                                <Input
+                                    type="number"
+                                    value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds || ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: parseFloat(e.target.value) || null }))}
+                                    className="w-48"
+                                />
+                            </FieldWrapper>
+
+                            <FieldWrapper
+                                title="Interface Type"
+                                description="Interface Type used to communicate with the direct scale"
+                            >
+                                <ShadcnSelect
+                                    value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceType}
+                                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceType', value }))}
                                 >
-                                    <InputNumber
-                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds}
-                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: e.value }))}
-                                    />
-                                </FieldWrapper>
-                            </div>
-                            <div className="col-12">
-                                <FieldWrapper
-                                    icon="pi-shopping-bag"
-                                    title="Interface Type"
-                                    description="Interface Type used to communicate with the direct scale"
-                                >
-                                    <Dropdown
-                                        options={Object.values(DeviceInterfaceEnum).map(method => ({ label: method, value: method }))}
-                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceType}
-                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceType', value: e.value }))}
-                                    />
-                                </FieldWrapper>
-                            </div>
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Select interface type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.values(DeviceInterfaceEnum).map(method => (
+                                            <SelectItem key={method} value={method}>{method}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </ShadcnSelect>
+                            </FieldWrapper>
                             {/* <div className="col-12">
                                 <FieldWrapper
                                     icon="pi-cloud"
@@ -669,28 +652,29 @@ function Devices() {
                         </>
                     )}
                 </div>
-            </TabPanel>
-            <TabPanel header="Debit machine">
+            </TabsContent>
+            <TabsContent value="debit-machine">
                 <CreditCardSettings />
-            </TabPanel>
-            <TabPanel header="Rize integrator">
-                <div className="col-12">
+            </TabsContent>
+            <TabsContent value="rize-integrator">
+                <div className="space-y-1">
                     <FieldWrapper
-                        icon="pi-cloud"
                         title="Service Port"
                         description="Specify the port which the service must listen to"
                     >
-                        <InputNumber
-                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port}
-                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.port', value: e.value }))}
+                        <Input
+                            type="number"
+                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.port', value: parseFloat(e.target.value) || null }))}
+                            className="w-48"
                         />
                     </FieldWrapper>
                 </div>
-            </TabPanel>
-            <TabPanel header="Customer screen">
+            </TabsContent>
+            <TabsContent value="customer-screen">
                 <CustomerAppSettings />
-            </TabPanel>
-        </TabView>
+            </TabsContent>
+        </Tabs>
     )
 }
 
@@ -699,31 +683,29 @@ function EmailLogsSettings() {
     const dispatch = useAppDispatch();
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Max Email Attachment Size"
-                    description="Enter max email attachment size"
-                >
-                    <InputNumber
-                        value={branchRegistry?.terminalSettings?.emailLogsSettings?.maxEmailAttachmentSize}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.maxEmailAttachmentSize', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-link"
-                    title="Recipient"
-                    description="Enter recipient"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.emailLogsSettings?.recipient}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.recipient', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Max Email Attachment Size"
+                description="Enter max email attachment size"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry?.terminalSettings?.emailLogsSettings?.maxEmailAttachmentSize || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.maxEmailAttachmentSize', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Recipient"
+                description="Enter recipient"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.emailLogsSettings?.recipient || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.recipient', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -734,71 +716,69 @@ function CustomerAppSettings() {
     const dispatch = useAppDispatch()
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-user"
-                    title="Enable Customer Screen"
-                    description="This flag enables the customer screen and allows the pos to connect and send it the required data"
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Enable Customer Screen"
+                description="This flag enables the customer screen and allows the pos to connect and send it the required data"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableCustomerApp}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Same Device As Customer Screen"
+                description="If checked, it will enable the capability to open the app from the pos window (only available on windows)"
+            >
+                <Checkbox
+                    disabled={!branchRegistry?.terminalSettings?.enableCustomerApp}
+                    checked={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Customer App IP"
+                description="Enter IP address of the customer app"
+            >
+                <Input
+                    value={branchRegistry.terminalSettings?.customerAppIp || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIp', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Customer App Port"
+                description="Enter port number of the customer app"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry.terminalSettings?.customerAppPort || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="TV"
+                description="Choose tv to take the pics from, to display them on the side"
+            >
+                <ShadcnSelect
+                    value={branchRegistry.terminalSettings?.customerScreenTV?.id}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'customerScreenTV.id', value }))}
                 >
-                    <Checkbox
-                        checked={branchRegistry?.terminalSettings?.enableCustomerApp}
-                        value={branchRegistry?.terminalSettings?.enableCustomerApp}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-users"
-                    title="Same Device As Customer Screen"
-                    description="If checked, it will enable the capabilty to open the app from the pos window (only available on windows)"
-                >
-                    <Checkbox
-                        disabled={!branchRegistry?.terminalSettings?.enableCustomerApp}
-                        checked={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
-                        value={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-wifi"
-                    title="Customer App IP"
-                    description="Enter IP address of the customer app"
-                >
-                    <InputText
-                        value={branchRegistry.terminalSettings?.customerAppIp}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIp', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-angle-double-up"
-                    title="Customer App Port"
-                    description="Enter port number of the customer app"
-                >
-                    <InputNumber
-                        value={branchRegistry.terminalSettings?.customerAppPort}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-eye"
-                    title="TV"
-                    description="Choose tv to take the pics from, to display them on the side"
-                >
-                    <Dropdown
-                        options={tvsList.map(tv => ({ label: tv.name, value: tv.id }))}
-                        value={branchRegistry.terminalSettings?.customerScreenTV?.id}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerScreenTV.id', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select TV" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {tvsList.map(tv => (
+                            <SelectItem key={tv.id} value={tv.id}>{tv.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
         </div>
     );
 }
@@ -841,68 +821,65 @@ const CreditCardSettings = () => {
         : null;
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-credit-card"
-                    title="Integration Type"
-                    description="Select credit card integration provider"
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Integration Type"
+                description="Select credit card integration provider"
+            >
+                <ShadcnSelect
+                    value={selectedType}
+                    onValueChange={value => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: value || null }))}
                 >
-                    <Dropdown
-                        value={selectedType}
-                        options={integrationTypeOptions}
-                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value || null }))}
-                        placeholder="Select Integration Type"
-                        className="w-full"
-                    />
-                </FieldWrapper>
-            </div>
+                    <SelectTrigger className="w-64">
+                        <SelectValue placeholder="Select Integration Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {integrationTypeOptions.map(opt => (
+                            <SelectItem key={opt.value || 'none'} value={opt.value || 'none'}>{opt.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
 
             {/* Conditionally rendered based on integration type */}
             {selectedType === CreditCardIntegrationTypeEnum.ELAVON_CWS && (
                 <>
-                    <div className="col-12">
-                        <h4 className='text-decoration-underline'>
-                            CWS Settings
-                        </h4>
-                    </div>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-cloud-upload"
-                            title="Auto Configure On Startup"
-                            description="Autoconfigure elavon cws on startup of the application (must complete all configuration steps to be able to do so)"
-                        >
-                            <Checkbox
-                                checked={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.autoconfigure}
-                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.autoconfigure}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.autoconfigure', value: e.target.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-wifi"
-                            title="CWS Machine Ip"
-                            description="IP of the machine hosting cws"
-                        >
-                            <InputText
-                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsIp}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsIp', value: e.target.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-angle-double-up"
-                            title="CWS Machine Port"
-                            description="Port of cws on the machine"
-                        >
-                            <InputNumber
-                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsPort}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsPort', value: e.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
+                    <h4 className='text-lg font-semibold border-b pb-2 mt-6'>
+                        CWS Settings
+                    </h4>
+
+                    <FieldWrapper
+                        title="Auto Configure On Startup"
+                        description="Autoconfigure elavon cws on startup of the application (must complete all configuration steps to be able to do so)"
+                    >
+                        <Checkbox
+                            checked={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.autoconfigure}
+                            onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.autoconfigure', value: checked }))}
+                        />
+                    </FieldWrapper>
+
+                    <FieldWrapper
+                        title="CWS Machine Ip"
+                        description="IP of the machine hosting cws"
+                    >
+                        <Input
+                            value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsIp || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsIp', value: e.target.value }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+
+                    <FieldWrapper
+                        title="CWS Machine Port"
+                        description="Port of cws on the machine"
+                    >
+                        <Input
+                            type="number"
+                            value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsPort || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsPort', value: parseFloat(e.target.value) || null }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
                     <div className="col-12">
                         <h4 className='text-decoration-underline'>
                             {/* eslint-disable-next-line react/no-unescaped-entities */}
@@ -920,8 +897,8 @@ const CreditCardSettings = () => {
                                 title="CWS Reader IP"
                                 description="IP of the credit card reader"
                             >
-                                <InputText
-                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.host}
+                                <Input
+                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.host || ''}
                                     onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.host', value: e.target.value }))}
                                 />
                             </FieldWrapper>
@@ -932,9 +909,10 @@ const CreditCardSettings = () => {
                                 title="CWS Reader Port"
                                 description="Port of the credit card reader"
                             >
-                                <InputNumber
-                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.port}
-                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.port', value: e.value }))}
+                                <Input
+                                    type="number"
+                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.port || ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.port', value: parseFloat(e.target.value) || null }))}
                                 />
                             </FieldWrapper>
                         </div>
@@ -1038,47 +1016,43 @@ const CreditCardSettings = () => {
 
             {selectedType === CreditCardIntegrationTypeEnum.INGENICO && (
                 <>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-wifi"
-                            title="Credit Card Machine IP"
-                            description=""
-                        >
-                            <InputText
-                                value={branchRegistry?.terminalSettings?.creditCardMachineIp}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachineIp', value: e.target.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-angle-double-up"
-                            title="Credit Card Machine PORT"
-                            description="Enter port number of the customer app"
-                        >
-                            <InputText
-                                value={branchRegistry?.terminalSettings?.creditCardMachinePort}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachinePort', value: e.target.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
+                    <FieldWrapper
+                        title="Credit Card Machine IP"
+                        description=""
+                    >
+                        <Input
+                            value={branchRegistry?.terminalSettings?.creditCardMachineIp || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachineIp', value: e.target.value }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+
+                    <FieldWrapper
+                        title="Credit Card Machine PORT"
+                        description="Enter port number of the customer app"
+                    >
+                        <Input
+                            value={branchRegistry?.terminalSettings?.creditCardMachinePort || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachinePort', value: e.target.value }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
                 </>
             )}
 
             {selectedType === CreditCardIntegrationTypeEnum.rizeIntegrator && (
                 <>
-                    <div className="col-12">
-                        <FieldWrapper
-                            icon="pi-wifi"
-                            title="Timeout In Seconds"
-                            description="Timeout in seconds used by the debit machine"
-                        >
-                            <InputNumber
-                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds}
-                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: e.value }))}
-                            />
-                        </FieldWrapper>
-                    </div>
+                    <FieldWrapper
+                        title="Timeout In Seconds"
+                        description="Timeout in seconds used by the debit machine"
+                    >
+                        <Input
+                            type="number"
+                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: parseFloat(e.target.value) || null }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
                     {/* <div className="col-12">
                         <FieldWrapper
                             icon="pi-wifi"
@@ -1200,104 +1174,95 @@ const ElavonIntegrationType = () => {
     const dispatch = useAppDispatch();
 
     return (
-        <>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-book"
-                    title="Merchant Id"
-                    description="Enter the merchant id of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.merchantId}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.merchantId', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-user"
-                    title="User Id"
-                    description="Enter the user id of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.userId}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.userId', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Pin"
-                    description="Enter the pin of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.pin}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.pin', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-server"
-                    title="Vendor Id"
-                    description="Enter the vendor id of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorId}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorId', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-server"
-                    title="Vendor App Names"
-                    description="Enter the vendor app names of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppName}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppName', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-server"
-                    title="Vendor App Version"
-                    description="Enter the vendor app version of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppVersion}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppVersion', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-sign-in"
-                    title="BMS Username"
-                    description="Enter the bms username of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsUsername}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsUsername', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-ellipsis-h"
-                    title="BMP Password"
-                    description="Enter the bms password of the elavon account"
-                >
-                    <InputText
-                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsPassword}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsPassword', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-        </>
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Merchant Id"
+                description="Enter the merchant id of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.merchantId || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.merchantId', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="User Id"
+                description="Enter the user id of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.userId || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.userId', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Pin"
+                description="Enter the pin of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.pin || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.pin', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Vendor Id"
+                description="Enter the vendor id of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorId || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorId', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Vendor App Names"
+                description="Enter the vendor app names of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppName || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppName', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Vendor App Version"
+                description="Enter the vendor app version of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppVersion || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppVersion', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="BMS Username"
+                description="Enter the bms username of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsUsername || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsUsername', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="BMP Password"
+                description="Enter the bms password of the elavon account"
+            >
+                <Input
+                    value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsPassword || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsPassword', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+        </div>
     )
 }
 
@@ -1343,156 +1308,158 @@ function PrinterProperties() {
     const dispatch = useAppDispatch();
 
     return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-print"
-                    title="Print Receipt by Default (Walk in)"
-                    description="Disabling this will disable printing the receipt on payment and you will be obliged to click the button to print it, only applies to walk in orders"
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Print Receipt by Default (Walk in)"
+                description="Disabling this will disable printing the receipt on payment and you will be obliged to click the button to print it, only applies to walk in orders"
+            >
+                <Checkbox
+                    checked={branchRegistry.terminalSettings?.printReceiptByDefault}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Show order number on receipt"
+                description="Show order number just above the receipt number"
+            >
+                <Checkbox
+                    checked={branchRegistry.terminalSettings?.receiptShowOrderNumber}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'receiptShowOrderNumber', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Receipt Header"
+                description="Add a header to the receipt"
+            >
+                <Input
+                    value={branchRegistry.terminalSettings?.receiptHeader || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptHeader', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Receipt Footer"
+                description="Add a Footer to the receipt"
+            >
+                <Input
+                    value={branchRegistry.terminalSettings?.receiptFooter || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptFooter', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Open Drawer Type"
+                description="Set drawer to open either before or after printing or set to manually be opened"
+            >
+                <ShadcnSelect
+                    value={branchRegistry.terminalSettings?.openDrawerType}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'openDrawerType', value }))}
                 >
-                    <Checkbox
-                        checked={branchRegistry.terminalSettings?.printReceiptByDefault}
-                        value={branchRegistry.terminalSettings?.printReceiptByDefault}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: e.target.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-hashtag"
-                    title="Show order number on receipt"
-                    description="Show order number just above the receipt number"
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select drawer type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(openDrawerTypeEnum).map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Open Drawer on Debit/Credit Transactions"
+                description="Option to open drawer on debit/card related transactions"
+            >
+                <Checkbox
+                    checked={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'openDrawerOnDebitCreditTransactions', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Receipt Copies"
+                description="This specifies the number of copies of the receipt printed by default on payment"
+            >
+                <Input
+                    type="number"
+                    value={branchRegistry.terminalSettings?.receiptCopies || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: parseFloat(e.target.value) || null }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Reverse"
+                description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
+            >
+                <Checkbox
+                    checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.reverse', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Print By PDF"
+                description="Print receipt by PDF"
+            >
+                <Checkbox
+                    checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.printByPdf', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer Type"
+                description="Connection type to the printer (Network/USB)"
+            >
+                <ShadcnSelect
+                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.type}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value }))}
                 >
-                    <Checkbox
-                        checked={branchRegistry.terminalSettings?.receiptShowOrderNumber}
-                        value={branchRegistry.terminalSettings?.receiptShowOrderNumber}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptShowOrderNumber', value: e.target.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-caret-up"
-                    title="Receipt Header"
-                    description="Add a header to the receipt"
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select printer type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(PrinterConnectionTypeEnum).map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer Name"
+                description="Printer name from the windows system"
+            >
+                <Input
+                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.name || ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer Size"
+                description="Choose one of the supported printer sizes"
+            >
+                <ShadcnSelect
+                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.size}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.size', value }))}
                 >
-                    <InputText
-                        value={branchRegistry.terminalSettings?.receiptHeader}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptHeader', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-caret-down"
-                    title="Receipt Footer"
-                    description="Add a Footer to the receipt"
-                >
-                    <InputText
-                        value={branchRegistry.terminalSettings?.receiptFooter}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptFooter', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12 mt-2">
-                <FieldWrapper
-                    icon="pi-briefcase"
-                    title="Open Drawer Type"
-                    description="Set drawer to open either before or after printing or set to manually be opened"
-                >
-                    <Dropdown options={Object.values(openDrawerTypeEnum).map(type => ({ label: type, value: type }))}
-                        value={branchRegistry.terminalSettings?.openDrawerType}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerType', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-briefcase"
-                    title="Open Drawer on Debit/Credit Transactions"
-                    description="Option to open drawer on debit/card related transactions"
-                >
-                    <Checkbox
-                        checked={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
-                        value={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerOnDebitCreditTransactions', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-copy"
-                    title="Receipt Copies"
-                    description="This specifies the number of copies of the receipt printed ny default on payment"
-                >
-                    <InputNumber
-                        value={branchRegistry.terminalSettings?.receiptCopies}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-arrows-h"
-                    title="Reverse"
-                    description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
-                >
-                    <Checkbox
-                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
-                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.reverse', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-file-pdf"
-                    title="Print By PDF"
-                    description="Print receipt by PDF"
-                >
-                    <Checkbox
-                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
-                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.printByPdf', value: e.checked }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12 mt-2">
-                <FieldWrapper
-                    icon="pi-building"
-                    title="Printer Type"
-                    description="Connection type to the printer (Network/USB)"
-                >
-                    <Dropdown options={Object.values(PrinterConnectionTypeEnum).map(type => ({ label: type, value: type }))}
-                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.type}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-file-o"
-                    title="Printer Name"
-                    description="Printer name from the windows system"
-                >
-                    <InputText
-                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.name}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
-                    />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-tablet"
-                    title="Printer Size"
-                    description="Choose one of the supported printer sizes"
-                >
-                    <Dropdown options={Object.values(PrinterSizeEnum).map(type => ({ label: type, value: type }))}
-                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.size}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.size', value: e.value }))}
-                    />
-                </FieldWrapper>
-            </div>
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select printer size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(PrinterSizeEnum).map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
         </div>
     );
 }

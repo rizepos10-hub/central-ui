@@ -1,14 +1,18 @@
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getRoles, updateRoles, changeEntityField } from "app/entities/back-office-user/user.reducer";
-import { Checkbox } from "primereact/checkbox";
-import { Label } from "reactstrap";
 import { translate } from "react-jhipster";
 import { IBackOfficeUser } from "app/shared/model/back-offic-user.model";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 function Authorities({ userEntity }: { userEntity: IBackOfficeUser }) {
   const dispatch = useAppDispatch();
   const apiRoles = useAppSelector(state => state.user.roles?.['groups']);
+
   useEffect(() => {
     dispatch(getRoles());
   }, [dispatch]);
@@ -112,54 +116,91 @@ function Authorities({ userEntity }: { userEntity: IBackOfficeUser }) {
     }
   };
 
+  const getAssignedCount = (role: any) => {
+    const assignedCount = role.authorities.filter((auth: any) => auth.assigned).length;
+    const totalCount = role.authorities.length;
+    return { assignedCount, totalCount };
+  };
+
   return (
-    <div className="d-flex flex-row flex-wrap justify-content-between">
-      {roles?.map((role, index) => (
-        <div key={`role-${index}-${role.groupName}`}>
-          <h5>{role.groupName}</h5>
-          <div className="d-flex flex-column gap-2">
-            <div className="d-flex flex-row gap-2">
-              <Label htmlFor="role-checkbox">
-                {role.assigned
-                  ? translate("tempApp.deactivateRole")
-                  : translate("tempApp.activateRole")}
-              </Label>
-              <Checkbox
-                id="role-checkbox"
-                value={role.assigned}
-                checked={role.assigned}
-                onChange={e => handleRoleChange(role.groupName, e.checked)}
-              />
-            </div>
-            <div className="d-flex flex-row gap-2">
-              <Label htmlFor="authorities-checkbox">
-                {areAllRolesAuthoritiesAssigned(role.groupName)
-                  ? translate("tempApp.uncheckAllAuthorities")
-                  : translate("tempApp.checkAllAuthorities")}
-              </Label>
-              <Checkbox
-                id="authorities-checkbox"
-                checked={areAllRolesAuthoritiesAssigned(role.groupName)}
-                onChange={e => handleAllRoleAuthoritiesChange(role.groupName, e.checked)}
-              />
-            </div>
-          </div>
-          <ul>
-            {role.authorities?.map((authority, i) => (
-              <li key={`authority-${i}-${role.groupName}-${authority.authorityName}`}>
-                <input
-                  type="checkbox"
-                  checked={authority.assigned}
-                  onChange={event =>
-                    handleAuthorityChange(role.groupName, authority.authorityName, event.target.checked)
-                  }
-                />
-                <label>{authority.authorityName}</label>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {roles?.map((role, index) => {
+        const { assignedCount, totalCount } = getAssignedCount(role);
+        const allAssigned = areAllRolesAuthoritiesAssigned(role.groupName);
+
+        return (
+          <Card key={`role-${index}-${role.groupName}`} className="overflow-hidden">
+            <CardHeader className="pb-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  {role.groupName}
+                  <Badge variant={role.assigned ? "default" : "secondary"} className="text-xs">
+                    {role.assigned ? "Active" : "Inactive"}
+                  </Badge>
+                </CardTitle>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {assignedCount} of {totalCount} permissions
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <div className="space-y-3 pb-3">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/20">
+                  <Label htmlFor={`role-${role.groupName}`} className="text-xs font-medium cursor-pointer">
+                    {role.assigned
+                      ? translate("tempApp.deactivateRole")
+                      : translate("tempApp.activateRole")}
+                  </Label>
+                  <Checkbox
+                    id={`role-${role.groupName}`}
+                    checked={role.assigned}
+                    onCheckedChange={(checked) => handleRoleChange(role.groupName, checked as boolean)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-md bg-primary/5">
+                  <Label htmlFor={`authorities-${role.groupName}`} className="text-xs font-medium cursor-pointer">
+                    {allAssigned
+                      ? translate("tempApp.uncheckAllAuthorities")
+                      : translate("tempApp.checkAllAuthorities")}
+                  </Label>
+                  <Checkbox
+                    id={`authorities-${role.groupName}`}
+                    checked={allAssigned}
+                    onCheckedChange={(checked) => handleAllRoleAuthoritiesChange(role.groupName, checked as boolean)}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                <div className="text-xs font-semibold text-muted-foreground mb-2">Permissions:</div>
+                {role.authorities?.map((authority, i) => (
+                  <div
+                    key={`authority-${i}-${role.groupName}-${authority.authorityName}`}
+                    className="flex items-center space-x-2 p-2 rounded hover:bg-muted/30 transition-colors"
+                  >
+                    <Checkbox
+                      id={`auth-${role.groupName}-${authority.authorityName}`}
+                      checked={authority.assigned}
+                      onCheckedChange={(checked) =>
+                        handleAuthorityChange(role.groupName, authority.authorityName, checked as boolean)
+                      }
+                    />
+                    <Label
+                      htmlFor={`auth-${role.groupName}-${authority.authorityName}`}
+                      className="text-xs cursor-pointer flex-1 leading-relaxed"
+                    >
+                      {authority.authorityName}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

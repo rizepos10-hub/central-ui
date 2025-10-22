@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil } from 'lucide-react';
 
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './printing-profile.reducer';
 import { getEntities as getBranches } from '../../../branch/branch.reducer';
 
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { FilterMatchMode } from 'primereact/api';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PrintingProfiles = () => {
   const dispatch = useAppDispatch();
@@ -31,6 +30,8 @@ export const PrintingProfiles = () => {
   const totalItems = useAppSelector(state => state.printingProfiles.totalItems);
   const branchList = useAppSelector(state => state.branch.entities);
 
+  const [nameFilter, setNameFilter] = useState('');
+  const [branchFilter, setBranchFilter] = useState('');
 
   const handleCreate = () => {
     navigate('/printing-profiles/new');
@@ -40,12 +41,6 @@ export const PrintingProfiles = () => {
     label: branch.name,
     value: branch.id,
   }));
-
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    printers: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
 
   const getPrintingProfiles = () => {
     dispatch(getEntities({
@@ -64,109 +59,112 @@ export const PrintingProfiles = () => {
     getPrintingProfiles();
   }, []);
 
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/printing-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return <Link to={editUrl}>{rowData.name}</Link>;
-  };
+  const filteredData = useMemo(() => {
+    return printingProfilesList?.filter(profile => {
+      const matchesName = !nameFilter || profile.name?.toLowerCase().includes(nameFilter.toLowerCase());
+      const matchesBranch = !branchFilter || profile.branch?.id === branchFilter;
+      return matchesName && matchesBranch;
+    });
+  }, [printingProfilesList, nameFilter, branchFilter]);
 
-  const handleNameFilterChange = e => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = rowData => {
-    const editUrl = `/printing-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Printing Profiles</span>
-      <div className="ms-auto">
-        <Button
-          label="Refresh List"
-          severity="secondary"
-          raised
-          className="me-5"
-          color="info"
-          onClick={getPrintingProfiles}
-          disabled={loading}
-        >
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create New Printing Profile" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
   return (
-    <div>
-      <DataTable
-        value={printingProfilesList}
-        editMode="row"
-        header={header}
-        paginator
-        filters={filters}
-        filterDisplay="row"
-        totalRecords={totalItems}
-        rows={20}
-      >
-        <Column
-          field="name"
-          header="Name"
-          filter
-          body={nameColumnTemplate}
-          filterElement={<InputText placeholder="Search by Name" onChange={handleNameFilterChange} />}
-          filterField="name"
-          sortable
-        />
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Printing Profiles</h2>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              className="h-8 text-xs"
+              onClick={getPrintingProfiles}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button
+              className="h-8 text-xs"
+              onClick={handleCreate}
+              disabled={loading}
+            >
+              <Plus className="h-4 w-4" />
+              Create New Printing Profile
+            </Button>
+          </div>
+        </div>
 
-        <Column
-          field="branch"
-          body={rowData => rowData?.branch?.name}
-          header="Branch"
-          filter
-          sortable
-          filterElement={
-            <Dropdown
-              value={filters['branch.name']?.value || ''}
-              options={filteredBranchOptions}
-              onChange={e => {
-                setFilters(prevState => ({
-                  ...prevState,
-                  ['branch.id']: { value: e.value, matchMode: FilterMatchMode.CONTAINS },
-                }));
-              }}
-              placeholder="Select a branch"
-            />
-          }
-        />
-
-        <Column field="printers" header="Printers" body={rowData => rowData?.printers?.map(printer => printer.name).join(' | ')} />
-
-        <Column
-          header="Edit"
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-      </DataTable>
-    </div>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">
+                  <div className="space-y-2">
+                    <div>Name</div>
+                    <Input
+                      placeholder="Search by Name"
+                      value={nameFilter}
+                      onChange={(e) => setNameFilter(e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="text-xs">
+                  <div className="space-y-2">
+                    <div>Branch</div>
+                    <Select value={branchFilter} onValueChange={setBranchFilter}>
+                      <SelectTrigger className="h-7 text-xs min-w-[200px]">
+                        <SelectValue placeholder="Select a branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>All Branches</SelectItem>
+                        {filteredBranchOptions.map(branch => (
+                          <SelectItem key={branch.value} value={branch.value}>
+                            {branch.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TableHead>
+                <TableHead className="text-xs">Printers</TableHead>
+                <TableHead className="text-xs w-[50px]">Edit</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-xs">
+                    No printing profiles found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredData?.map(profile => (
+                  <TableRow key={profile.id}>
+                    <TableCell className="text-xs">
+                      <Link
+                        to={`/printing-profiles/${profile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        className="text-primary hover:underline"
+                      >
+                        {profile.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">{profile?.branch?.name}</TableCell>
+                    <TableCell className="text-xs">
+                      {profile?.printers?.map(printer => printer.name).join(' | ')}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <Link to={`/printing-profiles/${profile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                        <Pencil className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

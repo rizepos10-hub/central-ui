@@ -1,6 +1,5 @@
 // DynamicEndOfDayReportUI.tsx
 import React, { useEffect, useState } from 'react';
-import { Spinner } from 'reactstrap';
 import ReactToPrint from 'react-to-print';
 import { Translate, translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
@@ -10,14 +9,17 @@ import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills
 import BillsSummary from 'app/shared/components/report/bills-summary';
 import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
-import { Button } from 'primereact/button';
+import { Button } from '@/components/ui/button';
 import CatalogSection from './catalog-section';
 import { fetchFirstLastBills, fetchFirstLastBillsSummary } from '../../api';
 import { useAppDispatch } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
-import { SplitButton } from 'primereact/splitbutton';
 import CategoryReport from './category-report';
 import { useNavigate } from 'react-router-dom';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -146,7 +148,11 @@ const DynamicEndOfDayReportUI = ({
     const lastBillDate = new Date(billsSummary?.lastBill?.createdDate).toLocaleString();
 
     if (loading) {
-        return <Spinner />;
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
     }
 
     if (!reportData) {
@@ -157,151 +163,151 @@ const DynamicEndOfDayReportUI = ({
 
     return (
         <div ref={printWrapperRef} className="mt-2">
-            <div className="hide-on-print bg-white p-2 mb-2">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0">Sections</h5>
-                    <div className="d-flex gap-2">
+            <div className="hide-on-print bg-white p-3 mb-2 rounded-md border">
+                <div className="flex justify-between items-center mb-3">
+                    <h5 className="text-sm font-semibold">Sections</h5>
+                    <div className="flex gap-2">
                         <Button
-                            type="button"
-                            className="p-button-outlined p-button-secondary"
-                            icon="pi pi-arrow-left"
-                            label="Back"
+                            variant="outline"
+                            className="h-7 text-xs"
                             onClick={handleBack}
-                            data-pr-tooltip="Go Back"
-                        />
+                        >
+                            <ArrowLeft className="h-3 w-3 mr-1" />
+                            Back
+                        </Button>
                         <Button
-                            type="button"
-                            className="p-button-outlined p-button-info"
-                            icon="pi pi-refresh"
-                            label="Refresh"
+                            variant="outline"
+                            className="h-7 text-xs"
                             onClick={handleRefresh}
-                            data-pr-tooltip="Refresh Data"
+                        >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Refresh
+                        </Button>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="orderMethod"
+                            checked={visibleSections.orderMethod}
+                            onCheckedChange={() => toggleSection('orderMethod')}
+                        />
+                        <Label htmlFor="orderMethod" className="text-xs font-normal cursor-pointer">
+                            Order Method
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="tipSummary"
+                            checked={visibleSections.tipSummary}
+                            onCheckedChange={() => toggleSection('tipSummary')}
+                        />
+                        <Label htmlFor="tipSummary" className="text-xs font-normal cursor-pointer">
+                            Tip Summary
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="retailCatalog"
+                            checked={visibleSections.retailCatalog}
+                            onCheckedChange={() => toggleSection('retailCatalog')}
+                        />
+                        <Label htmlFor="retailCatalog" className="text-xs font-normal cursor-pointer">
+                            Retail Catalog
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="restaurantCatalog"
+                            checked={visibleSections.restaurantCatalog}
+                            onCheckedChange={() => toggleSection('restaurantCatalog')}
+                        />
+                        <Label htmlFor="restaurantCatalog" className="text-xs font-normal cursor-pointer">
+                            Restaurant Catalog
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="billsSummary"
+                            checked={visibleSections.billsSummary}
+                            onCheckedChange={() => toggleSection('billsSummary')}
+                        />
+                        <Label htmlFor="billsSummary" className="text-xs font-normal cursor-pointer">
+                            Bills Summary
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="relatedTills"
+                            checked={visibleSections.relatedTills}
+                            onCheckedChange={() => toggleSection('relatedTills')}
+                        />
+                        <Label htmlFor="relatedTills" className="text-xs font-normal cursor-pointer">
+                            Related Tills
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="categorySalesSummary"
+                            checked={visibleSections.categorySalesSummary}
+                            onCheckedChange={() => toggleSection('categorySalesSummary')}
+                        />
+                        <Label htmlFor="categorySalesSummary" className="text-xs font-normal cursor-pointer">
+                            Category Sales Summary
+                        </Label>
+                    </div>
+                </div>
+            </div>
+            <div className="bg-white p-3 mb-2 rounded-md border">
+                <div className="flex justify-between items-center">
+                    <span />
+                    <h4 className="text-lg font-semibold">{title}</h4>
+                    <div className="hide-on-print flex gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="default" className="h-7 text-xs">
+                                    <FileSpreadsheet className="h-3 w-3 mr-1" />
+                                    Export
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleExcelExport()}>
+                                    <FileSpreadsheet className="h-3 w-3 mr-2" />
+                                    Summary Report
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => exportExcelSummaryReport(
+                                    reportData,
+                                    new Date(fromDate).toLocaleString(),
+                                    new Date(toDate).toLocaleString(),
+                                    'Sales Summary Report',
+                                    visibleSections
+                                )}>
+                                    <Download className="h-3 w-3 mr-2" />
+                                    Report
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <ReactToPrint
+                            trigger={() => (
+                                <Button variant="outline" className="h-7 text-xs">
+                                    <Printer className="h-3 w-3 mr-1" />
+                                    Print
+                                </Button>
+                            )}
+                            content={() => printWrapperRef.current}
+                            pageStyle={pageStyle}
                         />
                     </div>
                 </div>
-                <div className="flex gap-4">
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.orderMethod}
-                            onChange={() => toggleSection('orderMethod')}
-                        />
-                        Order Method
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.tipSummary}
-                            onChange={() => toggleSection('tipSummary')}
-                        />
-                        Tip Summary
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.retailCatalog}
-                            onChange={() => toggleSection('retailCatalog')}
-                        />
-                        Retail Catalog
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.restaurantCatalog}
-                            onChange={() => toggleSection('restaurantCatalog')}
-                        />
-                        Restaurant Catalog
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.billsSummary}
-                            onChange={() => toggleSection('billsSummary')}
-                        />
-                        Bills Summary
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.relatedTills}
-                            onChange={() => toggleSection('relatedTills')}
-                        />
-                        Related Tills
-                    </label>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-1"
-                            checked={visibleSections.categorySalesSummary}
-                            onChange={() => toggleSection('categorySalesSummary')}
-                        />
-                        Category Sales Summary
-                    </label>
-                </div>
-            </div>
-            <div className="bg-white p-1 mb-2">
-                <div className="d-flex justify-content-between align-items-center">
-                    <span />
-                    <span>
-                        <h4>{title}</h4>
-                    </span>
-                    <span>
-                        <div className="hide-on-print d-flex gap-2">
-                            <SplitButton
-                                label="Export"
-                                icon="pi pi-file-excel"
-                                model={[
-                                    {
-                                        label: 'Summary Report',
-                                        icon: 'pi pi-file-excel',
-                                        command: () => handleExcelExport()
-                                    },
-                                    {
-                                        label: 'Report',
-                                        icon: 'pi pi-download',
-                                        command: () => exportExcelSummaryReport(
-                                            reportData,
-                                            new Date(fromDate).toLocaleString(),
-                                            new Date(toDate).toLocaleString(),
-                                            'Sales Summary Report',
-                                            visibleSections
-                                        )
-                                    }
-                                ]}
-                                className="rounded-circle p-button-success"
-                                data-pr-tooltip="XLS"
-                            />
-                            <ReactToPrint
-                                trigger={() => (
-                                    <Button
-                                        type="button"
-                                        className="rounded-circle"
-                                        icon="pi pi-print"
-                                        severity="info"
-                                        data-pr-tooltip="PRINT"
-                                    />
-                                )}
-                                content={() => printWrapperRef.current}
-                                pageStyle={pageStyle}
-                            />
-                        </div>
-                    </span>
-                </div>
                 {firstBillDate !== 'Invalid Date' && lastBillDate !== 'Invalid Date' && (
-                    <h5>
+                    <h5 className="text-sm mt-2">
                         First bill date:{' '}
-                        <span className="text-primary">{firstBillDate}</span>, Last bill date:{' '}
-                        <span className="text-primary">{lastBillDate}</span>
+                        <span className="text-primary font-semibold">{firstBillDate}</span>, Last bill date:{' '}
+                        <span className="text-primary font-semibold">{lastBillDate}</span>
                     </h5>
                 )}
             </div>
-            <div className="bg-white p-1 mb-2 section-totalSales">
+            <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
                 <GenericSalesReport
                     title={translate('analytics.report.totalSales')}
                     report={reportData.totalSales}
@@ -311,9 +317,9 @@ const DynamicEndOfDayReportUI = ({
             </div>
 
             {visibleSections.orderMethod && showOrderMethod && (
-                <div className="bg-white p-1 mb-2 section-orderMethod">
-                    <h3>Order Method</h3>
-                    <div className="ps-3">
+                <div className="bg-white p-3 mb-2 rounded-md border section-orderMethod">
+                    <h3 className="text-base font-semibold mb-2">Order Method</h3>
+                    <div className="pl-3">
                         {reportData.totalSalesByOrderOption?.DineIn?.orders > 0 && (
                             <GenericSalesReport
                                 title={translate('analytics.report.dineIn')}
@@ -339,24 +345,11 @@ const DynamicEndOfDayReportUI = ({
                             />
                         )}
                     </div>
-                    <hr className="p-2" style={{ backgroundColor: 'gray' }} />
+                    <hr className="my-2 border-gray-300" />
                 </div>
             )}
 
-            {/* {visibleSections.catalogSection && (
-                <div className="bg-white p-1 mb-2 section-catalogRecords">
-                    <GenericSalesReport
-                        title={'Retail Catalog'}
-                        report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RETAIL')}
-                    />
-                    <GenericSalesReport
-                        title={'Restaurant Catalog'}
-                        report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RESTAURANT')}
-                    />
-                </div>
-            )} */}
-
-            <div className="bg-white p-1 mb-2 section-catalogRecords">
+            <div className="bg-white p-3 mb-2 rounded-md border section-catalogRecords">
                 {visibleSections.retailCatalog && (
                     <GenericSalesReport
                         title={'Retail Catalog'}
@@ -373,20 +366,20 @@ const DynamicEndOfDayReportUI = ({
             </div>
 
             {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
-                <div className="bg-white p-1 mb-2 section-catalogRecords">
+                <div className="bg-white p-3 mb-2 rounded-md border section-catalogRecords">
                     <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
                 </div>
             )}
 
             {visibleSections.tipSummary &&
                 endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
-                    <div className="bg-white p-1 mb-2 section-tipSummary">
+                    <div className="bg-white p-3 mb-2 rounded-md border section-tipSummary">
                         <TipSummary report={reportData.tipSummary} />
-                        <hr className="p-2" style={{ backgroundColor: 'gray' }} />
+                        <hr className="my-2 border-gray-300" />
                     </div>
                 )}
             {visibleSections.billsSummary && (
-                <div className="bg-white p-1 mb-2 section-billsSummary">
+                <div className="bg-white p-3 mb-2 rounded-md border section-billsSummary">
                     <BillsSummary
                         branchId={branchId}
                         fromDate={fromDate}
@@ -399,8 +392,8 @@ const DynamicEndOfDayReportUI = ({
             {visibleSections.relatedTills &&
                 endOfDay?.fromDate &&
                 endOfDay?.toDate && (
-                    <div className="bg-white p-1 mb-2 section-relatedTills">
-                        <h3>Related Tills</h3>
+                    <div className="bg-white p-3 mb-2 rounded-md border section-relatedTills">
+                        <h3 className="text-base font-semibold mb-2">Related Tills</h3>
                         <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
                     </div>
                 )}

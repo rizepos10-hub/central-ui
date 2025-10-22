@@ -3,13 +3,15 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from "./void-reason.reducer";
 import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
-import { InputText } from "primereact/inputtext";
-import { Col, FormGroup, Row, Button, Spinner } from "reactstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Save, ArrowLeft } from 'lucide-react';
 import { getSortState, Translate } from "react-jhipster";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { IVoidReason } from "app/shared/model/void-reason.model"; // Import FormGroup from reactstrap
+import { IVoidReason } from "app/shared/model/void-reason.model";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const VoidReasonUpdate = () => {
   const dispatch = useAppDispatch();
@@ -71,60 +73,97 @@ export const VoidReasonUpdate = () => {
     }
   };
 
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
-    <div className="bg-light">
-      <h2> {isNew ? `Add New Void Reason` : `Edit Void Reason ${voidReason.code}`} </h2>
-      <Row>
-        <form>
-          <Col md="8" className="d-flex flex-column p-3 bg-white">
-            <FormGroup>
-              <div className="d-flex flex-column mb-3">
-                <label htmlFor="code">Code</label>
-                <InputText
-                  id="code"
-                  value={voidReason.code || ''}
-                  onChange={(e) => handleChange("code", e.target.value)}
-                />
-              </div>
-              <div className="d-flex flex-column mb-3">
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">
+          {isNew ? (
+            <Translate contentKey="tempApp.voidReason.home.createLabel">Create new Void Reason</Translate>
+          ) : (
+            <Translate contentKey="tempApp.voidReason.home.editLabel">Edit Void Reason</Translate>
+          )}
+          {!isNew && voidReason.code && ` - ${voidReason.code}`}
+        </h2>
 
+        <form  className="space-y-4">
+          <div className="bg-white p-4 rounded-md border space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="code" className="text-xs font-semibold">
+                <Translate contentKey="tempApp.voidReason.code">Code</Translate>
+                <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
+                id="code"
+                name="code"
+                value={voidReason.code || ''}
+                onChange={(e) => handleChange("code", e.target.value)}
+                className="h-7 text-xs"
+                required
+              />
+            </div>
 
-                <label htmlFor="reason">Reason</label>
-                <InputText
-                  id="reason"
-                  value={voidReason.reason || ''}
-                  onChange={(e) => handleChange("reason", e.target.value)}
-                />
-              </div>
-            </FormGroup>
-          </Col>
+            <div className="space-y-2">
+              <Label htmlFor="reason" className="text-xs font-semibold">
+                <Translate contentKey="tempApp.voidReason.reason">Reason</Translate>
+                <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
+                id="reason"
+                name="reason"
+                value={voidReason.reason || ''}
+                onChange={(e) => handleChange("reason", e.target.value)}
+                className="h-7 text-xs"
+                required
+              />
+            </div>
+          </div>
 
-          <div className="d-flex justify-content-start align-items-center ga-3 mt-5">
-            <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-              <FontAwesomeIcon icon="arrow-left" />
-              &nbsp;
-              <span className="d-none d-md-inline">
-                <Translate contentKey="entity.action.back">Back</Translate>
-              </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              id="cancel-save"
+              data-cy="entityCreateCancelButton"
+              onClick={() => navigate(-1)}
+              className="h-8 text-xs"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.back">Back</Translate>
             </Button>
-            &nbsp;
-            <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-              <FontAwesomeIcon icon="save" />
-              &nbsp;
+            <Button
+              type="button"
+              id="save-entity"
+              data-cy="entityCreateSaveButton"
+              disabled={updating}
+              className="h-8 text-xs"
+            >
+              <Save className="h-4 w-4 mr-2" />
               <Translate contentKey="entity.action.save">Save</Translate>
             </Button>
-            &nbsp;
-            <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-              <FontAwesomeIcon icon="save" />
-              &nbsp;
+            <Button
+              type="button"
+              onClick={(e) => saveEntity(e, true)}
+              id="save-and-new-entity"
+              disabled={updating}
+              className="h-8 text-xs"
+            >
+              <Save className="h-4 w-4 mr-2" />
               <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
             </Button>
           </div>
         </form>
-      </Row>
-    </div>
+      </div>
+    </PageWrapper>
   );
 };
 

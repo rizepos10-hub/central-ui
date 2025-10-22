@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { Translate, translate } from 'react-jhipster';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
-import {searchEntities, getEntities} from './item-restaurant-category.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
+import { searchEntities, getEntities } from './item-restaurant-category.reducer';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Badge } from '@/components/ui/badge';
 
 export const ItemRestaurantCategories = () => {
   const dispatch = useAppDispatch();
@@ -21,18 +20,15 @@ export const ItemRestaurantCategories = () => {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
   const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+    overridePaginationStateWithQueryParams({ activePage: 1, itemsPerPage: ITEMS_PER_PAGE, sort: 'id', order: 'asc' }, location.search)
   );
 
   const categoryList = useAppSelector(state => state.restaurantCategory.entities)
   const loading = useAppSelector(state => state.restaurantCategory.loading);
 
   const totalItems = categoryList.length;
-
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
 
   const getAllEntities = () => {
     if (search) {
@@ -55,26 +51,6 @@ export const ItemRestaurantCategories = () => {
     }
   };
 
-
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
-
-
   const sortEntities = () => {
     getAllEntities();
     const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -87,98 +63,179 @@ export const ItemRestaurantCategories = () => {
     sortEntities();
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-
-
-
   const handleSyncList = () => {
     sortEntities();
   };
 
-  console.log(totalItems, 'totalItemCategories')
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/category/${rowData.id}/restaurant-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name} <br/><span className="text-xs">#{rowData?.itemsCount == null ? 0 : rowData?.itemsCount}</span>
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/category/${rowData.id}/restaurant-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/category/${rowData.id}/restaurant-items/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
     navigate('/category/restaurant-items/new')
   }
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={"itemCategories.categories.table.title"}/></span>
-      <div className="ms-auto">
-        <Button label={translate("itemCategories.categories.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("itemCategories.categories.table.buttons.createNewRestaurantCategory")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
+  const filteredCategories = categoryList?.filter(category =>
+    !nameFilter || category.name?.toLowerCase().includes(nameFilter.toLowerCase())
   );
 
-  console.log(categoryList, 'categorylist')
-
   return (
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">
+            <Translate contentKey={"itemCategories.categories.table.title"}>Restaurant Categories</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleSyncList}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{translate("itemCategories.categories.table.buttons.refreshList")}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleCreate}
+                  disabled={loading}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {translate("itemCategories.categories.table.buttons.createNewRestaurantCategory")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">{translate("itemCategories.categories.table.buttons.createNewRestaurantCategory")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
 
-      <div className="table-responsive">
-        <DataTable value={categoryList} editMode="row" paginator header={header}
-                   loading={loading} removableSort  filters={filters} filterDisplay="row"
-                   totalRecords={totalItems} rows={20}>
-          <Column field="name" header={translate("itemCategories.categories.table.fields.name")} filterPlaceholder={translate("itemCategories.categories.table.search.name")} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs h-8 font-semibold">
+                  {translate("itemCategories.categories.table.fields.name")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold">
+                  {translate("itemCategories.categories.table.fields.profileGroups")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold w-32 text-center">
+                  {translate("itemCategories.categories.table.fields.image")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold w-20 text-center">
+                  {translate("itemCategories.categories.table.fields.edit")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold w-20 text-center">
+                  {translate("itemCategories.categories.table.fields.delete")}
+                </TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="p-2">
+                  <Input
+                    placeholder={translate("itemCategories.categories.table.search.name")}
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="p-2"></TableHead>
+                <TableHead className="p-2"></TableHead>
+                <TableHead className="p-2"></TableHead>
+                <TableHead className="p-2"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-xs p-4">
+                    <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2" />
+                    {translate("common.loading")}
+                  </TableCell>
+                </TableRow>
+              ) : filteredCategories && filteredCategories.length > 0 ? (
+                filteredCategories.map((category, i) => {
+                  const editUrl = `/category/${category.id}/restaurant-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                  const deleteUrl = `/category/${category.id}/restaurant-items/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-          <Column field="accountingGroups" header={translate("itemCategories.categories.table.fields.profileGroups")} body={(rowData)=> rowData?.accountingGroups?.map((group)=> group.name)} filterPlaceholder={translate("itemCategories.categories.table.search.profileGroups")} sortable  style={{ width: '20%' }} />
-
-          <Column header={translate("itemCategories.categories.table.fields.image")}  body={(rowData) =>
-            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
-
-          <Column header={translate("itemCategories.categories.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate("itemCategories.categories.table.fields.delete")} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-    </div>
+                  return (
+                    <TableRow key={`entity-${i}`}>
+                      <TableCell className="text-xs p-2">
+                        <Link to={editUrl} className="text-primary hover:underline">
+                          {category.name}
+                          <br />
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1 mt-1">
+                            #{category?.itemsCount == null ? 0 : category?.itemsCount}
+                          </Badge>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {category?.accountingGroups?.map((group, idx) => (
+                          <Badge key={idx} variant="outline" className="text-[10px] h-5 px-2 mr-1">
+                            {group.name}
+                          </Badge>
+                        ))}
+                      </TableCell>
+                      <TableCell className="text-xs p-2 text-center">
+                        {category.attachments?.[0]?.url && (
+                          <img
+                            src={category.attachments[0].url}
+                            alt={category.attachments[0]?.name || 'Category'}
+                            className="w-16 h-16 object-cover rounded shadow-sm mx-auto"
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs p-2 text-center">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link to={editUrl}>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">{translate("common.edit")}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="text-xs p-2 text-center">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link to={deleteUrl}>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-destructive/10">
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">{translate("common.delete")}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-xs p-4 text-muted-foreground">
+                    {translate("common.noRecordsFound")}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

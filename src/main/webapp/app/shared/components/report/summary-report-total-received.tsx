@@ -1,6 +1,7 @@
 import React from 'react';
-import { Table } from 'reactstrap';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Separator } from '@/components/ui/separator';
 
 const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummaryReport['totalReceived'] }) => {
   const filteredData = totalReceived?.filter(
@@ -15,29 +16,31 @@ const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummary
 
   return (
     <>
-      <Table striped bordered size="sm">
-        <thead>
-          <tr className="bg-gray-700">
-            <th className="text-white">PAYMENT</th>
-            <th className="text-white">TIP</th>
-            <th className="text-white">AMOUNT</th>
-            <th className="text-white">REFUND</th>
-            <th className="text-white">RECEIVED</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData?.map((item, index) => (
-            <tr key={index}>
-              <td>{item.paymentType}</td>
-              <td className="text-end">{item.tip?.toFixed(2)}</td>
-              <td className="text-end">{item.amount?.toFixed(2)}</td>
-              <td className="text-end">{item.refund?.toFixed(2)}</td>
-              <td className="text-end">{item.received.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-      <hr className='p-2' style={{ backgroundColor: 'gray' }} />
+      <div className="border rounded-md overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-700 hover:bg-gray-700">
+              <TableHead className="text-white text-xs font-semibold">PAYMENT</TableHead>
+              <TableHead className="text-white text-xs font-semibold text-right">TIP</TableHead>
+              <TableHead className="text-white text-xs font-semibold text-right">AMOUNT</TableHead>
+              <TableHead className="text-white text-xs font-semibold text-right">REFUND</TableHead>
+              <TableHead className="text-white text-xs font-semibold text-right">RECEIVED</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData?.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell className="text-xs">{item.paymentType}</TableCell>
+                <TableCell className="text-xs text-right">{item.tip?.toFixed(2)}</TableCell>
+                <TableCell className="text-xs text-right">{item.amount?.toFixed(2)}</TableCell>
+                <TableCell className="text-xs text-right">{item.refund?.toFixed(2)}</TableCell>
+                <TableCell className="text-xs text-right">{item.received.toFixed(2)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <Separator className="my-4 bg-gray-400" />
     </>
   );
 };

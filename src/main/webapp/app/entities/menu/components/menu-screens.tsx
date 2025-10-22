@@ -1,24 +1,27 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { MdDeleteOutline, MdModeEditOutline } from 'react-icons/md';
+import { Trash2, Edit2, Grid2X2, Columns2 } from 'lucide-react';
 import { Translate } from 'react-jhipster';
-import { Button, Card, Col, FormGroup, Input, Label, ListGroup, Modal, ModalBody, ModalHeader, Row, Spinner } from 'reactstrap';
 import MenuPosPreview from './menu-pos-preview';
-import { InputNumber } from 'primereact/inputnumber';
 import ItemSelectionModal from '../item-selection-modal';
 
 import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Slider } from 'primereact/slider';
-import { InputText } from 'primereact/inputtext';
 import _, { update } from 'lodash';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { IMenuData } from '../menu-instance';
-import { CiGrid41 } from "react-icons/ci";
-import { CiGrid2H } from "react-icons/ci";
-import { Checkbox } from 'primereact/checkbox';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { IAttachment } from 'app/shared/model/attachment.model';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Loader2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -47,6 +50,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         isEditModalOpen: false,
         isPreviewModalOpen: false,
     });
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ type: 'card' | 'mainScreen', index: number, item?: any, name?: string } | null>(null);
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
     const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
     const [editScreenName, setEditScreenName] = useState('');
@@ -322,23 +327,23 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     // };
 
     const confirm1 = (mainScreenIndex, item) => {
-        confirmDialog({
-            message: 'Do you want to delete this record?',
-            icon: 'pi pi-exclamation-triangle',
-            defaultFocus: 'accept',
-            accept: () => handleRemoveCard(mainScreenIndex, item),
-            // reject
-        });
+        setDeleteTarget({ type: 'card', index: mainScreenIndex, item });
+        setDeleteConfirmOpen(true);
     };
 
     const confirm2 = (mainScreenIndex, mainScreenName) => {
-        confirmDialog({
-            message: 'Do you want to delete this record?',
-            icon: 'pi pi-exclamation-triangle',
-            defaultFocus: 'accept',
-            accept: () => handleRemoveMainScreen(mainScreenIndex, mainScreenName),
-            // reject
-        });
+        setDeleteTarget({ type: 'mainScreen', index: mainScreenIndex, name: mainScreenName });
+        setDeleteConfirmOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deleteTarget?.type === 'card') {
+            handleRemoveCard(deleteTarget.index, deleteTarget.item);
+        } else if (deleteTarget?.type === 'mainScreen') {
+            handleRemoveMainScreen(deleteTarget.index, deleteTarget.name);
+        }
+        setDeleteConfirmOpen(false);
+        setDeleteTarget(null);
     };
     console.log(subScreenStack, 'subScreenStack')
     const handleRemoveCard = (mainScreenIndex, item) => {
@@ -555,7 +560,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         };
 
         const handleInputChange = (e: any, rowIndex: number) => {
-            const rawValue = e.value !== undefined ? e.value : e.target.value;
+            const rawValue = e.target.value;
             const value = parseFloat(rawValue);
             if (!isNaN(value)) {
                 handleRowHeightChange(value, rowIndex);
@@ -563,30 +568,29 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         };
 
         return (
-            <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
-                <Col md={12}>
+            <div className="flex gap-2 mb-2" onDragOver={e => e.preventDefault()}>
+                <div className="w-full">
                     {groupedSubscreens.map((row, rowIndex) => (
                         <React.Fragment key={rowIndex}>
-                            <div className="mb-2 d-flex align-items-center">
+                            <div className="mb-1 flex items-center gap-2">
                                 <Slider
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 1}
-                                    onChange={(e) => handleRowHeightChange(e.value, rowIndex)}
+                                    value={[findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 1]}
+                                    onValueChange={(value) => handleRowHeightChange(value[0], rowIndex)}
                                     min={0.5}
                                     max={2}
                                     step={0.01}
-                                    className="w-full"
+                                    className="flex-1"
                                 />
-                                <InputNumber
+                                <Input
+                                    type="number"
                                     value={
                                         findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 1
                                     }
                                     onChange={(e) => handleInputChange(e, rowIndex)}
-                                    className="w-full ml-2"
+                                    className="w-20 h-7 text-xs"
                                     min={0.5}
                                     max={2}
                                     step={0.1}
-                                    minFractionDigits={2}
-                                    maxFractionDigits={2}
                                 />
                             </div>
 
@@ -609,17 +613,16 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         onDrop={(e) => handleDrop(e, { rowIndex, itemIndex: index })}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        <div className="d-flex flex-column p-1 cursor-pointer card p-3 h-100">
-                                            <div className={'d-flex'}>
-                                                <span className="m-0">{item?.componentType}</span>
-                                                <div className="ml-auto">
-                                                    <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
-                                                    &nbsp;
-                                                    <MdDeleteOutline
-                                                        size={20}
-                                                        color={'red'}
-                                                        onClick={(e) => confirm1(mainScreenIndex, item)}
-                                                    />
+                                        <Card className="flex flex-col p-1 cursor-pointer h-full">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs">{item?.componentType}</span>
+                                                <div className="flex gap-1">
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => openEditModal(item, index, 'sub')}>
+                                                        <Edit2 className="h-3 w-3" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={(e) => confirm1(mainScreenIndex, item)}>
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </Button>
                                                 </div>
                                             </div>
 
@@ -629,19 +632,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                         handleNavigateToSubScreen(item);
                                                     }
                                                 }}
+                                                className="flex-1"
                                             >
-                                                <h4 className="m-0 mb-2">{item?.name}</h4>
-                                                <div className="d-flex align-items-center">
-                                                    <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }} />
+                                                <h4 className="text-sm font-medium mb-1">{item?.name}</h4>
+                                                <div className="flex items-center">
+                                                    <div style={{ backgroundColor: item?.backgroundColor }} className="w-14 h-7 rounded" />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Card>
                                     </div>
                                 ))}
                             </div>
                         </React.Fragment>
                     ))}
-                </Col>
+                </div>
             </div>
         );
     };
@@ -1272,162 +1276,170 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
     if (loading) {
         return (
-            <div>
-                <Spinner />
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         );
     }
 
 
     return (
-        <>
-            <Modal
-                isOpen={isModalOpen.isPreviewModalOpen}
-                className="modal-xl"
-                toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}
-            >
-                <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
-                    <Translate contentKey={'menus.pos.update.modals.preview.title'}>Screen Preview</Translate>
-                </ModalHeader>
-                <ModalBody style={{ minWidth: '100%', minHeight: '60vh' }}>
-                    <MenuPosPreview data={data} />
-                </ModalBody>
-            </Modal>
+        <PageWrapper>
+            <Dialog open={isModalOpen.isPreviewModalOpen} onOpenChange={(open) => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: open })}>
+                <DialogContent className="max-w-7xl p-3">
+                    <DialogHeader className="p-2">
+                        <DialogTitle className="text-sm font-semibold">
+                            <Translate contentKey={'menus.pos.update.modals.preview.title'}>Screen Preview</Translate>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div style={{ minWidth: '100%', minHeight: '60vh' }} className="p-2">
+                        <MenuPosPreview data={data} />
+                    </div>
+                </DialogContent>
+            </Dialog>
 
-            <Modal
-                isOpen={isModalOpen.isMainScreenModalOpen}
-                toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}
-            >
-                <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
-                    <Translate contentKey={'menus.pos.update.modals.mainScreen.title'}>Add new main screen</Translate>
-                </ModalHeader>
-                <ModalBody>
-                    <FormGroup>
-                        <Label for="mainScreenName">
-                            <Translate contentKey={'menus.pos.update.modals.mainScreen.name'}>Main screen name</Translate>
-                        </Label>
-                        <Input
-                            type="text"
-                            id="mainScreenName"
-                            required
-                            value={newMainScreenName}
-                            onChange={e => setNewMainScreenName(e.target.value)}
-                        />
+            <Dialog open={isModalOpen.isMainScreenModalOpen} onOpenChange={(open) => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: open })}>
+                <DialogContent className="max-w-lg p-3">
+                    <DialogHeader className="p-2">
+                        <DialogTitle className="text-sm font-semibold">
+                            <Translate contentKey={'menus.pos.update.modals.mainScreen.title'}>Add new main screen</Translate>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 px-2">
+                        <div className="space-y-1">
+                            <Label htmlFor="mainScreenName" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.mainScreen.name'}>Main screen name</Translate>
+                            </Label>
+                            <Input
+                                type="text"
+                                id="mainScreenName"
+                                required
+                                value={newMainScreenName}
+                                onChange={e => setNewMainScreenName(e.target.value)}
+                                className="h-8 text-xs"
+                            />
+                        </div>
 
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="newMainScreenCols">Main screen cols</Label>
-                            <InputNumber
+                        <div className="space-y-1">
+                            <Label htmlFor="newMainScreenCols" className="text-xs">Main screen cols</Label>
+                            <Input
+                                type="number"
                                 id="newMainScreenCols"
                                 value={newMainScreenCols}
                                 min={1}
                                 max={12}
                                 onChange={e => {
-                                    if (!e.value) {
-                                        setNewMainScreenCols(1)
-                                    } else {
-                                        setNewMainScreenCols(e.value)
-                                    }
+                                    const val = parseInt(e.target.value);
+                                    setNewMainScreenCols(val || 1);
                                 }}
+                                className="h-8 text-xs"
                             />
                         </div>
 
-                        <Label for="colorTheme">
-                            <Translate contentKey={'menus.pos.update.modals.mainScreen.color'}>Select color theme</Translate>
-                        </Label>
-                        <div className="d-flex flex-wrap mt-3">
-                            {colorThemes.map((color, index) => (
-                                <Button
-                                    key={index}
-                                    style={{
-                                        backgroundColor: color,
-                                        width: '55px',
-                                        height: '30px',
-                                        border: 'none',
-                                        marginRight: '10px',
-                                        marginBottom: '10px',
-                                    }}
-                                    className={selectedColorTheme === color ? 'active' : ''}
-                                    onClick={() => setSelectedColorTheme(color)}
-                                ></Button>
-                            ))}
-                        </div>
-                    </FormGroup>
-                    <Button color="primary" onClick={() => handleModalSubmit({ empty: false })}>
-                        <Translate contentKey={'menus.pos.update.modals.mainScreen.add'}>Add Main Screen</Translate>
-                    </Button>
-                </ModalBody>
-            </Modal>
-
-            <Modal
-                isOpen={isModalOpen.isSubScreenModalOpen}
-                toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}
-            >
-                <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}>
-                    <Translate contentKey={'menus.pos.update.modals.subScreen.title'}>Add new sub-screen</Translate>
-                </ModalHeader>
-                <ModalBody>
-                    <FormGroup>
-                        <Label for="subScreenName">
-                            <Translate contentKey={'menus.pos.update.modals.subScreen.name'}>Sub-screen name</Translate>
-                        </Label>
-                        <Input type="text" id="subScreenName" value={newSubScreenName} onChange={e => setNewSubScreenName(e.target.value)} />
-
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="subScreenColumns">Sub-screen Cols</Label>
-                            <InputNumber id="subScreenColumns" min={1} max={12} value={newSubScreenCols} onChange={e => setNewSubScreenCols(e.value)} />
-                        </div>
-
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="newSubScreenIsPizza">
-                                <Translate contentKey={'menus.pos.update.modals.subScreen.isPizza'}>Is Pizza</Translate>
+                        <div className="space-y-1">
+                            <Label htmlFor="colorTheme" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.mainScreen.color'}>Select color theme</Translate>
                             </Label>
+                            <div className="flex flex-wrap gap-2">
+                                {colorThemes.map((color, index) => (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        style={{ backgroundColor: color }}
+                                        className={`w-14 h-7 rounded border-2 ${selectedColorTheme === color ? 'border-primary' : 'border-transparent'}`}
+                                        onClick={() => setSelectedColorTheme(color)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter className="pt-2">
+                        <Button size="sm" className="h-8 text-xs" onClick={() => handleModalSubmit({ empty: false })}>
+                            <Translate contentKey={'menus.pos.update.modals.mainScreen.add'}>Add Main Screen</Translate>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isModalOpen.isSubScreenModalOpen} onOpenChange={(open) => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: open })}>
+                <DialogContent className="max-w-lg p-3">
+                    <DialogHeader className="p-2">
+                        <DialogTitle className="text-sm font-semibold">
+                            <Translate contentKey={'menus.pos.update.modals.subScreen.title'}>Add new sub-screen</Translate>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 px-2">
+                        <div className="space-y-1">
+                            <Label htmlFor="subScreenName" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.subScreen.name'}>Sub-screen name</Translate>
+                            </Label>
+                            <Input type="text" id="subScreenName" value={newSubScreenName} onChange={e => setNewSubScreenName(e.target.value)} className="h-8 text-xs" />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="subScreenColumns" className="text-xs">Sub-screen Cols</Label>
+                            <Input
+                                type="number"
+                                id="subScreenColumns"
+                                min={1}
+                                max={12}
+                                value={newSubScreenCols || 1}
+                                onChange={e => setNewSubScreenCols(parseInt(e.target.value) || 1)}
+                                className="h-8 text-xs"
+                            />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
                             <Checkbox
                                 id="newSubScreenIsPizza"
                                 checked={newSubScreenIsPizza}
-                                onChange={e => setNewSubScreenIsPizza(e.target.checked)}
+                                onCheckedChange={(checked) => setNewSubScreenIsPizza(!!checked)}
                             />
+                            <Label htmlFor="newSubScreenIsPizza" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.subScreen.isPizza'}>Is Pizza</Translate>
+                            </Label>
                         </div>
 
-                        <Label for="newSubScreenImage">
-                            <Translate contentKey={'menus.pos.update.modals.subScreen.image'}>Image</Translate>
-                        </Label>
-                        <div className="d-flex flex-wrap mt-3">
-                            <MediaLibrary
-                                handleFilesSelectCallback={files =>
-                                    setNewSubScreenImage(
-                                        transformAttachmentStructure(files, 'toIAttachment')[0]
-                                    )
-                                }
-                                defaultValues={transformAttachmentStructure(newSubScreenImage ? [newSubScreenImage] : [], 'toFileLibraryListItem')}
-                            />
+                        <div className="space-y-1">
+                            <Label htmlFor="newSubScreenImage" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.subScreen.image'}>Image</Translate>
+                            </Label>
+                            <div className="flex flex-wrap">
+                                <MediaLibrary
+                                    handleFilesSelectCallback={files =>
+                                        setNewSubScreenImage(
+                                            transformAttachmentStructure(files, 'toIAttachment')[0]
+                                        )
+                                    }
+                                    defaultValues={transformAttachmentStructure(newSubScreenImage ? [newSubScreenImage] : [], 'toFileLibraryListItem')}
+                                />
+                            </div>
                         </div>
 
-                        <Label for="subScreenColor">
-                            <Translate contentKey={'menus.pos.update.modals.subScreen.color'}>Select color theme</Translate>
-                        </Label>
-                        <div className="d-flex flex-wrap mt-3">
-                            {colorThemes.map((color, index) => (
-                                <Button
-                                    key={index}
-                                    style={{
-                                        backgroundColor: color,
-                                        width: '55px',
-                                        height: '30px',
-                                        border: 'none',
-                                        marginRight: '10px',
-                                        marginBottom: '10px',
-                                    }}
-                                    className={newSubScreenColor === color ? 'active' : ''}
-                                    onClick={() => setNewSubScreenColor(color)}
-                                ></Button>
-                            ))}
+                        <div className="space-y-1">
+                            <Label htmlFor="subScreenColor" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.subScreen.color'}>Select color theme</Translate>
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                                {colorThemes.map((color, index) => (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        style={{ backgroundColor: color }}
+                                        className={`w-14 h-7 rounded border-2 ${newSubScreenColor === color ? 'border-primary' : 'border-transparent'}`}
+                                        onClick={() => setNewSubScreenColor(color)}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                    </FormGroup>
-                    <Button color="primary" onClick={handleSubScreenModalSubmit}>
-                        <Translate contentKey={'menus.pos.update.modals.subScreen.add'}>Add Sub-Screen</Translate>
-                    </Button>
-                </ModalBody>
-            </Modal>
+                    </div>
+                    <DialogFooter className="pt-2">
+                        <Button size="sm" className="h-8 text-xs" onClick={handleSubScreenModalSubmit}>
+                            <Translate contentKey={'menus.pos.update.modals.subScreen.add'}>Add Sub-Screen</Translate>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             {isModalOpen.isItemModalOpen && (
                 <ItemSelectionModal
                     isOpen={isModalOpen.isItemModalOpen}
@@ -1440,150 +1452,174 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 />
             )}
 
-            <Modal isOpen={isModalOpen.isEditModalOpen} toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
-                <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
-                    <Translate contentKey={'menus.pos.update.modals.editScreen.title'}>Edit</Translate>
-                </ModalHeader>
-                <ModalBody>
-                    <FormGroup>
-                        <Label for="subScreenName">
-                            <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
-                        </Label>
-                        <Input type="text" id="subScreenName" value={editScreenName} onChange={e => setEditScreenName(e.target.value)} />
-
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="editCols">Cols</Label>
-                            <InputNumber id="editCols" min={1} max={12} value={editScreenCols} onChange={e => setEditScreenCols(e.value)} />
+            <Dialog open={isModalOpen.isEditModalOpen} onOpenChange={(open) => setIsModalOpen({ ...isModalOpen, isEditModalOpen: open })}>
+                <DialogContent className="max-w-lg p-3">
+                    <DialogHeader className="p-2">
+                        <DialogTitle className="text-sm font-semibold">
+                            <Translate contentKey={'menus.pos.update.modals.editScreen.title'}>Edit</Translate>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 px-2">
+                        <div className="space-y-1">
+                            <Label htmlFor="editScreenName" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
+                            </Label>
+                            <Input type="text" id="editScreenName" value={editScreenName} onChange={e => setEditScreenName(e.target.value)} className="h-8 text-xs" />
                         </div>
 
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="isPizza">
-                                <Translate contentKey={'menus.pos.update.modals.editScreen.isPizza'}>Is Pizza</Translate>
-                            </Label>
+                        <div className="space-y-1">
+                            <Label htmlFor="editCols" className="text-xs">Cols</Label>
+                            <Input
+                                type="number"
+                                id="editCols"
+                                min={1}
+                                max={12}
+                                value={editScreenCols || 1}
+                                onChange={e => setEditScreenCols(parseInt(e.target.value) || 1)}
+                                className="h-8 text-xs"
+                            />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
                             <Checkbox
                                 id="isPizza"
                                 checked={editScreenIsPizza}
-                                onChange={e => setEditScreenIsPizza(e.target.checked)}
+                                onCheckedChange={(checked) => setEditScreenIsPizza(!!checked)}
                             />
+                            <Label htmlFor="isPizza" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.editScreen.isPizza'}>Is Pizza</Translate>
+                            </Label>
                         </div>
 
-                        <Label for="colorTheme">
-                            <Translate contentKey={'menus.pos.update.modals.editScreen.image'}>Image</Translate>
-                        </Label>
-                        <div className="d-flex flex-wrap mt-3">
-                            <MediaLibrary
-                                handleFilesSelectCallback={files =>
-                                    setMainScreenImage(
-                                        transformAttachmentStructure(files, 'toIAttachment')[0]
-                                    )
-                                }
-                                defaultValues={transformAttachmentStructure(mainScreenImage ? [mainScreenImage] : [], 'toFileLibraryListItem')}
-                            />
+                        <div className="space-y-1">
+                            <Label htmlFor="editScreenImage" className="text-xs">
+                                <Translate contentKey={'menus.pos.update.modals.editScreen.image'}>Image</Translate>
+                            </Label>
+                            <div className="flex flex-wrap">
+                                <MediaLibrary
+                                    handleFilesSelectCallback={files =>
+                                        setMainScreenImage(
+                                            transformAttachmentStructure(files, 'toIAttachment')[0]
+                                        )
+                                    }
+                                    defaultValues={transformAttachmentStructure(mainScreenImage ? [mainScreenImage] : [], 'toFileLibraryListItem')}
+                                />
+                            </div>
                         </div>
 
-                        <div className={'d-flex flex-column mt-2'}>
-                            <Label for="subScreenColor">
+                        <div className="space-y-1">
+                            <Label htmlFor="editScreenColor" className="text-xs">
                                 <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
                             </Label>
-                            <div className="d-flex flex-wrap">
+                            <div className="flex flex-wrap gap-2">
                                 {colorThemes.map((color, index) => (
-                                    <Button
+                                    <button
                                         key={index}
-                                        style={{
-                                            backgroundColor: color,
-                                            width: '55px',
-                                            height: '30px',
-                                            border: 'none',
-                                            marginRight: '10px',
-                                            marginBottom: '10px',
-                                        }}
-                                        className={editScreenColor === color ? 'active' : ''}
+                                        type="button"
+                                        style={{ backgroundColor: color }}
+                                        className={`w-14 h-7 rounded border-2 ${editScreenColor === color ? 'border-primary' : 'border-transparent'}`}
                                         onClick={() => setEditScreenColor(color)}
-                                    ></Button>
+                                    />
                                 ))}
                             </div>
                         </div>
-                    </FormGroup>
-                    <Button
-                        color="primary"
-                        onClick={e => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEditScreen();
-                        }}
-                    >
-                        <Translate contentKey={'entity.action.apply'}>Apply</Translate>
-                    </Button>
-                </ModalBody>
-            </Modal>
+                    </div>
+                    <DialogFooter className="pt-2">
+                        <Button
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleEditScreen();
+                            }}
+                        >
+                            <Translate contentKey={'entity.action.apply'}>Apply</Translate>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
+            <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                <AlertDialogContent className="max-w-md p-3">
+                    <AlertDialogHeader className="p-2">
+                        <AlertDialogTitle className="text-sm font-semibold">
+                            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                            Do you want to delete this record?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-1 pt-2">
+                        <AlertDialogCancel asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs">
+                                <Translate contentKey="entity.action.cancel">Cancel</Translate>
+                            </Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button variant="destructive" size="sm" className="h-8 text-xs" onClick={handleConfirmDelete}>
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                <Translate contentKey="entity.action.delete">Delete</Translate>
+                            </Button>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
-            <Card>
-                <Row style={{ minHeight: '55rem' }}>
-                    <Col md="3" className="border-right-1">
-                        <div className="d-flex justify-content-between align-items-center w-100">
-                            <div className='d-flex flex-column gap-2 w-100'>
-                                <div className='w-100'>
-                                    <h2 className="pb-3 w-100">
-                                        <Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate>
-                                    </h2>
-                                </div>
-                                <div className='d-flex justify-content-between w-100'>
-                                    <div className='d-flex gap-2'>
-                                        <Button color="primary" onClick={handleMainScreenAdd}>
-                                            <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
-                                        </Button>
-                                        <Button color="primary" onClick={() => handleModalSubmit({ empty: true })}>
-                                            <Translate contentKey={'menus.pos.update.buttons.blank'}>Blank</Translate>
-                                        </Button>
-                                    </div>
-                                    <div className='d-flex'>
-                                        <Button onClick={() => {
-                                            setData(prev => {
-                                                return {
-                                                    ...prev,
-                                                    numberOfColumns: 1
-                                                }
-                                            })
-                                        }}>
-                                            <CiGrid2H size={20} />
-                                        </Button>
-                                        <Button onClick={() => {
-                                            setData(prev => {
-                                                return {
-                                                    ...prev,
-                                                    numberOfColumns: 2
-                                                }
-                                            })
-                                        }}>
-                                            <CiGrid41 size={20} />
-                                        </Button>
-                                    </div>
-                                </div>
+            <Card className="p-0 overflow-hidden">
+                <div className="grid grid-cols-12 gap-0" style={{ minHeight: '55rem' }}>
+                    <div className="col-span-3 border-r border-border flex flex-col">
+                        <div className="flex items-center justify-between p-2 border-b border-border bg-muted/30">
+                            <h2 className="text-sm font-semibold">
+                                <Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate>
+                            </h2>
+                            <div className="flex gap-1">
+                                <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => {
+                                    setData(prev => ({
+                                        ...prev,
+                                        numberOfColumns: 1
+                                    }))
+                                }}>
+                                    <Columns2 className="h-3 w-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => {
+                                    setData(prev => ({
+                                        ...prev,
+                                        numberOfColumns: 2
+                                    }))
+                                }}>
+                                    <Grid2X2 className="h-3 w-3" />
+                                </Button>
                             </div>
-                            <hr />
                         </div>
-                        <ListGroup className="mt-3">
+                        <div className="p-2 flex gap-1 border-b border-border">
+                            <Button size="sm" variant="outline" className="h-7 text-xs flex-1" onClick={handleMainScreenAdd}>
+                                <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-7 text-xs flex-1" onClick={() => handleModalSubmit({ empty: true })}>
+                                <Translate contentKey={'menus.pos.update.buttons.blank'}>Blank</Translate>
+                            </Button>
+                        </div>
+                        <div className="flex-1 overflow-auto p-2">
                             {groupedMainScreens.map((row, rowIndex) => (
                                 <React.Fragment key={rowIndex}>
-                                    <div className="mb-2 d-flex align-items-center">
+                                    <div className="mb-1 flex items-center gap-2">
                                         <Slider
-                                            value={data?.rowHeight?.[rowIndex] || 1}
-                                            onChange={(e) => handleMainRowHeightChange(e.value, rowIndex)}
+                                            value={[data?.rowHeight?.[rowIndex] || 1]}
+                                            onValueChange={(value) => handleMainRowHeightChange(value[0], rowIndex)}
                                             min={0.5}
                                             max={2}
                                             step={0.01}
-                                            className="w-full"
+                                            className="flex-1"
                                         />
-                                        <InputNumber
+                                        <Input
+                                            type="number"
                                             value={data?.rowHeight?.[rowIndex] || 1}
                                             onChange={(e) => handleMainInputChange(e, rowIndex)}
-                                            className="w-full ml-2"
+                                            className="w-20 h-7 text-xs"
                                             min={0.5}
                                             max={2}
                                             step={0.1}
-                                            minFractionDigits={2}
-                                            maxFractionDigits={2}
                                         />
                                     </div>
 
@@ -1600,7 +1636,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                             return (
                                                 <div
                                                     key={colIndex}
-                                                    className="mb-3"
+                                                    className="mb-2"
                                                     draggable
                                                     onClick={() => {
                                                         if (item?.empty) return
@@ -1611,7 +1647,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     onDragEnd={handleMainDragEnd}
                                                 >
                                                     <Card
-                                                        className="d-flex p-3 cursor-pointer h-100"
+                                                        className="flex p-1 cursor-pointer h-full"
                                                         style={
                                                             item.empty
                                                                 ? {
@@ -1621,19 +1657,22 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                                 : {}
                                                         }
                                                     >
-                                                        <div>
-                                                            <div className="d-flex justify-content-end">
+                                                        <div className="w-full">
+                                                            <div className="flex justify-end gap-1 mb-1">
                                                                 {!item?.empty && (
-                                                                    <MdModeEditOutline size={20} onClick={() => openEditModal(item, globalIndex, 'main')} />
+                                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => openEditModal(item, globalIndex, 'main')}>
+                                                                        <Edit2 className="h-3 w-3" />
+                                                                    </Button>
                                                                 )}
-                                                                &nbsp;
-                                                                <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(globalIndex, item.name)} />
+                                                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => confirm2(globalIndex, item.name)}>
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </Button>
                                                             </div>
                                                             {!item?.empty && (
                                                                 <>
-                                                                    <h5 className="m-0 mr-3 mb-2">{item?.name}</h5>
-                                                                    <div className="d-flex flex-row justify-content-between">
-                                                                        <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px' }} />
+                                                                    <h5 className="text-sm font-medium mb-1">{item?.name}</h5>
+                                                                    <div className="flex items-center">
+                                                                        <div style={{ backgroundColor: item?.backgroundColor }} className="w-14 h-7 rounded" />
                                                                     </div>
                                                                 </>
                                                             )}
@@ -1645,69 +1684,47 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     </div>
                                 </React.Fragment>
                             ))}
-                            {/* {data.menuScreens?.map((mainScreen, index) => (
-                                <div
-                                    key={index}
-                                    className="mb-3"
-                                    draggable
-                                    onClick={() => mainScreenClickHandler(index, mainScreen)}
-                                    onDragStart={() => handleMainDragStart(index)}
-                                    onDragOver={() => handleMainDragOver(index)}
-                                    onDragEnd={handleMainDragEnd}
-                                >
-                                    <Card className="d-flex p-3 cursor-pointer">
-                                        <div>
-                                            <div className="d-flex justify-content-end">
-                                                <MdModeEditOutline size={20} onClick={() => openEditModal(mainScreen, index, 'main')} />
-                                                &nbsp;
-                                                <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(index, mainScreen.name)} />
-                                            </div>
-                                            <h5 className="m-0 mr-3 mb-2">{mainScreen?.name}</h5>
-                                            <div className="d-flex flex-row justify-content-between">
-                                                <Button style={{ backgroundColor: mainScreen?.backgroundColor, width: '55px', height: '30px' }} />
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </div>
-                            ))} */}
-                        </ListGroup>
-                    </Col>
-                    <Col md="9" className="border-left">
-                        <div className="d-flex justify-content-between">
-                            <Col md="8">
-                                <h2>
+                        </div>
+                    </div>
+                    <div className="col-span-9 border-l border-border">
+                        <div className="flex flex-col h-full">
+                            <div className="flex items-center justify-between p-2 border-b border-border bg-muted/30">
+                                <h2 className="text-sm font-semibold">
                                     {breadcrumb?.length > 0 &&
                                         breadcrumb.map((breadcrumbTitle, index) => (
-                                            <span key={index} className="cursor-pointer" onClick={() => navigateToBreadcrumbItem(index)}>
+                                            <span key={index} className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigateToBreadcrumbItem(index)}>
                                                 {breadcrumbTitle}
                                                 {index < breadcrumb.length - 1 && ' / '}
                                             </span>
                                         ))}
                                 </h2>
-                            </Col>
 
-                            <Button disabled={!mainScreen} color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
-                                <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
-                            </Button>
-                            {menu.type === "POS" && (
-                                <Button disabled={!mainScreen} color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
-                                    <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
-                                </Button>
-                            )}
+                                <div className="flex gap-1">
+                                    <Button disabled={!mainScreen} variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => handleButtonAdd('Item')}>
+                                        <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
+                                    </Button>
+                                    {menu.type === "POS" && (
+                                        <Button disabled={!mainScreen} variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => handleButtonAdd('Sub-screen')}>
+                                            <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
+                                        </Button>
+                                    )}
 
-                            <Button disabled={!mainScreen} onClick={togglePreviewModal} className="mx-2 btn btn-info">
-                                <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
-                            </Button>
+                                    <Button disabled={!mainScreen} variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={togglePreviewModal}>
+                                        <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
+                                    </Button>
 
-                            <Button disabled={!mainScreen || updating} color="primary" onClick={() => saveEntity()} className="">
-                                <Translate contentKey={'entity.action.save'}>Save</Translate>
-                            </Button>
+                                    <Button disabled={!mainScreen || updating} size="sm" className="h-7 text-xs px-2" onClick={() => saveEntity()}>
+                                        {updating && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                                        <Translate contentKey={'entity.action.save'}>Save</Translate>
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="flex-1 overflow-auto p-2">{renderCurrentSubScreen()}</div>
                         </div>
-                        <div className="mt-3">{renderCurrentSubScreen()}</div>
-                    </Col>
-                </Row>
+                    </div>
+                </div>
             </Card>
-        </>
+        </PageWrapper>
     )
 }
 

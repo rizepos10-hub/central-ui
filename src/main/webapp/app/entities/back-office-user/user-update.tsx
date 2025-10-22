@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Translate, translate, } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -13,16 +13,19 @@ import {
   assignRole,
   changeEntityField
 } from './user.reducer';
-import { InputText } from "primereact/inputtext";
-import { Checkbox } from "primereact/checkbox";
-import { Button } from "primereact/button";
-import Authorities from "app/entities/back-office-user/Authority";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Save } from 'lucide-react';
+import Authorities from 'app/entities/back-office-user/Authority';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IBackOfficeUser } from 'app/shared/model/back-offic-user.model';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
 
   const { id } = useParams<'id'>();
@@ -38,7 +41,6 @@ export const UserUpdate = () => {
   const handleClose = () => {
     navigate('/back-office-user');
   };
-
 
   const updateUserFieldvalue = (fieldName, value) => {
     if (fieldName.includes('.')) {
@@ -95,9 +97,6 @@ export const UserUpdate = () => {
           entity: newUser,
           roles: authoritiesWithAssignedTrue
         }));
-
-        // dispatch(assignRole({ id: userEntity?.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
-        // handleClose()
       } else {
         const { userRole, ...rest } = userEntity;
 
@@ -108,14 +107,10 @@ export const UserUpdate = () => {
           roles: authoritiesWithAssignedTrue,
         };
 
-
-        // dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
         dispatch(updateEntity(updatedUser));
-        // handleClose()
       }
-
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
 
@@ -135,135 +130,162 @@ export const UserUpdate = () => {
     }
   }, [updateSuccess]);
 
-
-
   return (
-    <div className="" >
-      <div className="col-12">
-        <h2>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">
           {isNew ? translate("tempApp.createNewUser") : translate("tempApp.editUser")}
         </h2>
+
+        <Card>
+          <CardContent className="pt-6">
+            <form className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-xs">
+                  <Translate contentKey="tempApp.username" />
+                </Label>
+                <Input
+                  id="username"
+                  name="username"
+                  readOnly={!isNew}
+                  value={userEntity?.user?.username || ''}
+                  onChange={e => updateUserFieldvalue('user.username', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-xs">
+                  <Translate contentKey="tempApp.firstName" />
+                </Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  value={userEntity?.user?.firstName || ''}
+                  onChange={e => updateUserFieldvalue('user.firstName', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-xs">
+                  <Translate contentKey="tempApp.lastName" />
+                </Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  value={userEntity?.user?.lastName || ''}
+                  onChange={e => updateUserFieldvalue('user.lastName', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs">
+                  <Translate contentKey="tempApp.email" />
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={userEntity?.user?.email}
+                  onChange={e => updateUserFieldvalue('user.email', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              {isNew && (
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-xs">
+                    <Translate contentKey="tempApp.password" />
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={userEntity?.user?.password || ''}
+                    onChange={e => updateUserFieldvalue('user.password', e.target.value)}
+                    required
+                    className="h-8 text-xs"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-xs">
+                  <Translate contentKey={'common.branches'} />
+                </Label>
+                <Select
+                  value={userEntity.branches}
+                  isMulti
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={e => updateUserFieldvalue('branches', e)}
+                  options={branchList}
+                  className="text-xs"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: '32px',
+                      fontSize: '0.75rem',
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      fontSize: '0.75rem',
+                    })
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="enabled"
+                  checked={userEntity?.user?.enabled}
+                  onCheckedChange={(checked) => updateUserFieldvalue('user.enabled', checked)}
+                />
+                <Label htmlFor="enabled" className="text-xs font-normal cursor-pointer">
+                  <Translate contentKey="tempApp.enabled" />
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold">
+                  <Translate contentKey="tempApp.permissions" />
+                </Label>
+                <Authorities userEntity={userEntity} />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => navigate('/back-office-user')}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <Translate contentKey="common.buttons.back" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleSubmit}
+                  disabled={updating}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  <Translate contentKey="common.buttons.save" />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-      <div className="col-12">
-
-        <div className=" d-flex flex-column p-3  bg-white">
-          <form onSubmit={handleSubmit}>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="username">
-                <Translate contentKey="tempApp.username" />
-              </label>
-              <InputText
-                id="username"
-                name="username"
-                readOnly={!isNew}
-                value={userEntity?.user?.username || ''}
-                onChange={e => updateUserFieldvalue('user.username', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="firstName">
-                <Translate contentKey="tempApp.firstName" />
-              </label>
-              <InputText
-                id="firstName"
-                name="firstName"
-                value={userEntity?.user?.firstName || ''}
-                onChange={e => updateUserFieldvalue('user.firstName', e.target.value)}
-                required
-              />
-            </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="lastName">
-                <Translate contentKey="tempApp.lastName" />
-              </label>
-              <InputText
-                id="lastName"
-                name="lastName"
-                value={userEntity?.user?.lastName || ''}
-                onChange={e => updateUserFieldvalue('user.lastName', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="email">
-                <Translate contentKey="tempApp.email" />
-              </label>
-              <InputText
-                id="email"
-                name="email"
-                value={userEntity?.user?.email}
-                onChange={e => updateUserFieldvalue('user.email', e.target.value)}
-                required
-              />
-            </div>
-            {isNew && <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="password">
-                <Translate contentKey="tempApp.password" />
-              </label>
-              <InputText
-                id="password"
-                name="password"
-                type="password"
-                value={userEntity?.user?.password || ''}
-                onChange={e => updateUserFieldvalue('user.password', e.target.value)}
-                required
-              />
-            </div>}
-
-            <div className="mb-3">
-              <Translate contentKey={'common.branches'} />
-              <Select
-                value={userEntity.branches}
-                isMulti
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                onChange={e => updateUserFieldvalue('branches', e)}
-                options={branchList}
-              />
-            </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="enabled">
-                <Translate contentKey="tempApp.enabled" />
-              </label>
-              <Checkbox
-                inputId={`enabled-${userEntity?.user?.enabled}`}
-                name="Enabled"
-                value={userEntity?.user?.enabled}
-                onChange={e => updateUserFieldvalue('user.enabled', e.target.checked)}
-                checked={userEntity?.user?.enabled}
-              />
-            </div>
-            <div className="p-field d-flex flex-column gap-3 mb-3">
-              <label className="font-bold">
-                <Translate contentKey="tempApp.permissions" />
-              </label>
-              <Authorities userEntity={userEntity} />
-            </div>
-            <div className="p-field d-flex gap-2 align-items-center mb-3">
-              <Button
-                id="cancel-save"
-                icon="pi pi-arrow-left"
-                className="p-button-secondary"
-                onClick={() => navigate('/back-office-user')}
-              >
-                <Translate contentKey="common.buttons.back" />
-              </Button>
-              <Button
-                id="save-entity"
-                type="submit"
-                // disabled={updating}
-                icon="pi pi-save"
-              >
-                <Translate contentKey="common.buttons.save" />
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    </PageWrapper>
   );
 };
 

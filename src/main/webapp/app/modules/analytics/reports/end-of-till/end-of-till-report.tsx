@@ -5,15 +5,15 @@ import {
   getEntity,
   getEntityAReport
 } from "app/entities/settings/branch-registry/till/till.reducer";
-import { Button, Spinner } from "reactstrap";
-import { Button as PrimeButton } from "primereact/button";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet, Printer, Loader2 } from "lucide-react";
 import TillDetails from "app/modules/analytics/reports/end-of-till/till-details";
 import GenericSalesReport from "app/shared/components/report/generic-sales-report";
-;
 import { ISalesSummary, ISummaryReport } from "app/shared/model/report-summary.model";
 import EndOfTillTotalReceived from "app/shared/components/report/summary-report-total-received";
 import ReactToPrint from "react-to-print";
 import { exportExcelSummaryReport, saveAsExcelFile } from "app/shared/util/excel-utils";
+import { PageWrapper } from "app/shared/layout/page-wrapper";
 
 const EndOfTillReport = () => {
   const { id, tillId } = useParams();
@@ -29,7 +29,13 @@ const EndOfTillReport = () => {
   }, []);
 
   if (loading) {
-    return <Spinner />
+    return (
+      <PageWrapper>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </PageWrapper>
+    )
   }
 
   const pageStyle = `
@@ -46,44 +52,50 @@ const EndOfTillReport = () => {
   `;
 
   return (
-    <div ref={printWrapper}>
-      <div className={'bg-white p-5'}>
-        <div className="w-100 flex justify-content-between align-items-center">
-          <h1>End of Till Report</h1>
-          <span className="hide-on-print d-flex gap-2">
-            <PrimeButton type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={
-              () => exportExcelSummaryReport(summaryReport)
-            } data-pr-tooltip="XLS" />
+    <PageWrapper>
+      <div ref={printWrapper}>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-lg font-semibold">End of Till Report</h1>
+          <div className="hide-on-print flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 w-7 p-0"
+              onClick={() => exportExcelSummaryReport(summaryReport)}
+            >
+              <FileSpreadsheet className="h-3 w-3" />
+            </Button>
             <ReactToPrint
               trigger={() => (
-                <PrimeButton
-                  type="button"
-                  className="rounded-circle"
-                  icon="pi pi-print"
-                  severity="info"
-                  rounded
-                  data-pr-tooltip="PRINT"
-                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-7 p-0"
+                >
+                  <Printer className="h-3 w-3" />
+                </Button>
               )}
               content={() => printWrapper.current}
               pageStyle={pageStyle}
             />
-          </span>
+          </div>
         </div>
-        <div className="p-3 rounded-3 border bg-gray-300 border-2 border-gray-300 shadow-sm bg-gradient hide-on-print">
+
+        <div className="p-2 rounded-lg border bg-muted/50 mb-2 hide-on-print">
           <Button
-            tag={Link}
-            to={`/analytics/register-closure/${id}/${tillId}/orders?registry=${till?.registry?.name}&from=${till.startDate}&to=${till.endDate}`}
-            className="btn btn--pill btn--well"
+            asChild
+            size="sm"
+            className="h-7 text-xs"
           >
-            View full details
+            <Link to={`/analytics/register-closure/${id}/${tillId}/orders?registry=${till?.registry?.name}&from=${till.startDate}&to=${till.endDate}`}>
+              View full details
+            </Link>
           </Button>
         </div>
 
         <div>
           <TillDetails till={till} />
         </div>
-
 
         <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />
 
@@ -97,7 +109,7 @@ const EndOfTillReport = () => {
 
         {summaryReport?.totalReceived && <EndOfTillTotalReceived totalReceived={summaryReport.totalReceived} />}
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 export default EndOfTillReport;

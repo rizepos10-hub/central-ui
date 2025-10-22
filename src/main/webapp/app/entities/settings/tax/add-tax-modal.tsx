@@ -1,12 +1,13 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
-import { Dialog } from 'primereact/dialog';
-// import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert } from 'reactstrap';
+import React, { useEffect, useState } from "react";
+import { Save, X, ArrowLeft } from 'lucide-react';
 import { createEntity, getEntity, resetEntity, updateEntity, changeEntityField } from "app/entities/settings/tax/tax.reducer";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { ITax } from "app/shared/model/TAX/tax.model";
-import { InputNumber } from "primereact/inputnumber";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 
 
@@ -71,89 +72,98 @@ const AddTaxModal = ({ visible, onHide, taxId = null }) => {
 
 
   return (
-    <Modal isOpen={visible} toggle={handleClose} size="lg">
-      <ModalHeader toggle={handleClose}>
-        Add a New Tax
-        <hr className="black" />
-      </ModalHeader>
-      {!next ? (
-        <ModalBody>
-          {isNew && (
-            <Alert color="warning">
-              Code, description, and value are required. Note that you cannot delete a tax after adding it.
-            </Alert>
-          )}
-          <div className="grid">
-            <div className="col-12 d-flex flex-column mb-2">
-              <span className={"fw-bold"}>Code</span>
-              <InputText
+    <Dialog open={visible} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-base">{isNew ? 'Add a New Tax' : 'Edit Tax'}</DialogTitle>
+        </DialogHeader>
+        {!next ? (
+          <div className="space-y-4">
+            {isNew && (
+              <Alert className="py-2">
+                <AlertDescription className="text-xs">
+                  Code, description, and value are required. Note that you cannot delete a tax after adding it.
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="code" className="text-xs font-semibold">Code</Label>
+              <Input
+                id="code"
                 placeholder="Enter code"
                 value={taxEntity.code || ''}
                 readOnly={!isNew}
                 onChange={(e) => handleChange('code', e.target.value)}
+                className="h-7 text-xs"
               />
-              <p>You cannot edit the code after saving</p>
+              <p className="text-xs text-muted-foreground">You cannot edit the code after saving</p>
             </div>
-            <div className="col-12 d-flex flex-column mb-2">
-              <span className={"fw-bold"}>Description</span>
-              <InputText
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-xs font-semibold">Description</Label>
+              <Input
+                id="description"
                 placeholder="Enter description"
                 value={taxEntity.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
+                className="h-7 text-xs"
               />
             </div>
-
-            <div className="col-12 d-flex flex-column mb-2">
-              <span className={"fw-bold"}>Value (%)</span>
-              <InputNumber
+            <div className="space-y-2">
+              <Label htmlFor="value" className="text-xs font-semibold">Value (%)</Label>
+              <Input
+                id="value"
+                type="number"
+                step="0.01"
                 placeholder="Enter value"
-                maxFractionDigits={2}
-                value={taxEntity.value || null}
-                onChange={(e) => handleChange('value', e.value)}
+                value={taxEntity.value || 0}
+                onChange={(e) => handleChange('value', parseFloat(e.target.value))}
+                className="h-7 text-xs"
               />
             </div>
           </div>
-        </ModalBody>
-      ) : (
-        <ModalBody>
-          {isNew && (
-            <Alert color="warning">
-              You cannot delete a tax after adding it.
-            </Alert>
+        ) : (
+          <div className="space-y-4">
+            {isNew && (
+              <Alert className="py-2">
+                <AlertDescription className="text-xs">
+                  You cannot delete a tax after adding it.
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2 border-b">
+                <span className="font-semibold text-sm">Code</span>
+                <span className="text-sm">{taxEntity.code}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b">
+                <span className="font-semibold text-sm">Description</span>
+                <span className="text-sm">{taxEntity.description}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b">
+                <span className="font-semibold text-sm">Value (%)</span>
+                <span className="text-sm">{taxEntity.value}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          {next && (
+            <Button variant="secondary" onClick={() => setNext(false)} className="h-8 text-xs mr-auto">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
           )}
-          <>
-            <div className="col-6 d-flex mb-2 align-items-center">
-              <span className="font-bold text-xl">Code</span>
-              <span className="ml-auto">{taxEntity.code}</span>
-            </div>
-            <hr className="border-dark" />
-            <div className="col-6 d-flex mb-2 align-items-center">
-              <span className="font-bold text-xl">Description</span>
-              <span className="ml-auto">{taxEntity.description}</span>
-            </div>
-            <hr className="border-dark" />
-
-            <hr className="border-dark" />
-            <div className="col-6 d-flex mb-2 align-items-center">
-              <span className="font-bold text-xl">Value (%)</span>
-              <span className="ml-auto  ">{taxEntity.value}</span>
-            </div>
-          </>
-        </ModalBody>
-
-
-      )}
-      <ModalFooter>
-        {next && <div className="d-flex flex-start flex-auto"><Button className="flex-start" color="secondary" onClick={() => setNext(false)}>Back</Button></div>}
-        <Button color="primary" onClick={handleClose}>
-          Close
-        </Button>
-        <Button color="primary" disabled={updating} onClick={!next ? handleNextClick : handleSubmit}>
-          {next ? 'Submit' : "Next"}
-        </Button>
-      </ModalFooter>
-
-    </Modal>
+          <Button variant="secondary" onClick={handleClose} className="h-8 text-xs">
+            <X className="h-4 w-4 mr-2" />
+            Close
+          </Button>
+          <Button onClick={!next ? handleNextClick : handleSubmit} disabled={updating} className="h-8 text-xs">
+            <Save className="h-4 w-4 mr-2" />
+            {next ? 'Submit' : "Next"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

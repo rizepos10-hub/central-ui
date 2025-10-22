@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
-import { getSortState, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState, Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 import {
     getEntity,
@@ -25,8 +22,14 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { ITerm } from 'app/shared/model/term.model';
-import { InputText } from 'primereact/inputtext';
 import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { RotateCcw, Save, Trash2 } from 'lucide-react';
 
 interface UpdateItemRetailCategoryTreeProps {
     categories?: [];
@@ -50,7 +53,7 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
         overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
     );
 
-    // Local state for visibility – initialize with entity data or defaults.
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [localVisibility, setLocalVisibility] = useState<any[]>([]);
 
     useEffect(() => {
@@ -80,7 +83,6 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
         );
     }, [searchParam.get("categoryId")]);
 
-    // Ensure localVisibility always contains both applications.
     useEffect(() => {
         if (categoryEntity) {
             const defaultVisibility = [
@@ -149,16 +151,14 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
         }
     };
 
-    const removeEntity = (e) => {
-        e.preventDefault();
+    const removeEntity = () => {
         const entity = { ...categoryEntity };
         dispatch(deleteEntity(entity.id)).then(() => {
             dispatch(reset());
             onSave && onSave();
         });
+        setShowDeleteDialog(false);
     };
-
-    const reject = () => { };
 
     const resetData = () => {
         dispatch(reset());
@@ -169,36 +169,28 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
 
     const confirmDelete = (e) => {
         e.preventDefault();
-        confirmDialog({
-            message: 'Do you want to delete this record?',
-            header: 'Delete Confirmation',
-            icon: 'pi pi-info-circle',
-            defaultFocus: 'reject',
-            acceptClassName: 'p-button-danger',
-            accept: () => removeEntity(e),
-            reject,
-        });
+        setShowDeleteDialog(true);
     };
 
     return (
-        <div className="position-fixed w-50">
-            <Row>
-                <Col md="8">
-                    <h2 data-cy="TermCreateUpdateHeading" key={isNew ? 'create' : 'edit'}>
+        <div className="fixed w-1/2">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">
                         {isNew ? (
                             <Translate contentKey={'itemCategories.update.retail.create.title'} />
                         ) : (
                             <Translate contentKey={'itemCategories.update.retail.edit.title'} />
                         )}
-                    </h2>
-                </Col>
-            </Row>
-            <Row>
-                <Col md="8" className="d-flex flex-column p-3 bg-white">
-                    <form>
-                        <div className="mb-3 d-flex flex-column">
-                            <Translate contentKey="itemCategories.update.name">Name</Translate>
-                            <InputText
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form  className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="category-name" className="text-xs">
+                                <Translate contentKey="itemCategories.update.name">Name</Translate>
+                            </Label>
+                            <Input
                                 name="name"
                                 id="category-name"
                                 required
@@ -206,11 +198,14 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                                 onChange={(e) =>
                                     dispatch(changeEntityField({ name: 'name', value: e.target.value }))
                                 }
+                                className="h-8 text-xs"
                             />
                         </div>
 
-                        <div className="mb-3">
-                            <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+                        <div className="space-y-2">
+                            <Label className="text-xs">
+                                <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+                            </Label>
                             <Select
                                 value={categoryEntity.accountingGroups || []}
                                 isClearable
@@ -218,11 +213,29 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                                 options={profileGroupsOptions}
                                 getOptionLabel={(option) => option.name}
                                 getOptionValue={(option) => option.id}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '32px',
+                                        fontSize: '0.75rem',
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        fontSize: '0.75rem',
+                                    }),
+                                    option: (base) => ({
+                                        ...base,
+                                        fontSize: '0.75rem',
+                                        padding: '4px 8px',
+                                    }),
+                                }}
                             />
                         </div>
 
-                        <div className="mb-3">
-                            <Translate contentKey="itemCategories.update.parents">Parents</Translate>
+                        <div className="space-y-2">
+                            <Label className="text-xs">
+                                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
+                            </Label>
                             <Select
                                 value={categoryEntity?.parents || []}
                                 isClearable
@@ -231,10 +244,29 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                                 getOptionLabel={(option) => option.name}
                                 getOptionValue={(option) => option.id}
                                 onInputChange={handleSearch}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '32px',
+                                        fontSize: '0.75rem',
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        fontSize: '0.75rem',
+                                    }),
+                                    option: (base) => ({
+                                        ...base,
+                                        fontSize: '0.75rem',
+                                        padding: '4px 8px',
+                                    }),
+                                }}
                             />
                         </div>
 
-                        <div className="mb-3">
+                        <div className="space-y-2">
+                            <Label className="text-xs">
+                                <Translate contentKey="itemCategories.update.image">Image</Translate>
+                            </Label>
                             <MediaLibrary
                                 handleFilesSelectCallback={(files) => {
                                     const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
@@ -252,92 +284,97 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                             />
                         </div>
 
-                        {/* Visibility Section */}
-                        <div className="mb-3">
-                            <h4>Visibility</h4>
-                            <div className="d-flex gap-3">
-                                <div>
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            checked={
-                                                localVisibility.find((v: any) => v.application === SourceType.BRANCH_POS)
-                                                    ?.visible !== false
-                                            }
-                                            onChange={(e) =>
-                                                setLocalVisibility((prev) =>
-                                                    prev.map((item) =>
-                                                        item.application === SourceType.BRANCH_POS
-                                                            ? { ...item, visible: e.target.checked }
-                                                            : item
-                                                    )
+                        <div className="space-y-3">
+                            <Label className="text-xs font-semibold">Visibility</Label>
+                            <div className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="visibility-pos"
+                                        checked={
+                                            localVisibility.find((v: any) => v.application === SourceType.BRANCH_POS)
+                                                ?.visible !== false
+                                        }
+                                        onCheckedChange={(checked) =>
+                                            setLocalVisibility((prev) =>
+                                                prev.map((item) =>
+                                                    item.application === SourceType.BRANCH_POS
+                                                        ? { ...item, visible: checked as boolean }
+                                                        : item
                                                 )
-                                            }
-                                        />
+                                            )
+                                        }
+                                    />
+                                    <Label htmlFor="visibility-pos" className="text-xs font-normal cursor-pointer">
                                         POS
-                                    </label>
+                                    </Label>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            checked={
-                                                localVisibility.find((v: any) => v.application === SourceType.ONLINE_ORDERING)
-                                                    ?.visible !== false
-                                            }
-                                            onChange={(e) =>
-                                                setLocalVisibility((prev) =>
-                                                    prev.map((item) =>
-                                                        item.application === SourceType.ONLINE_ORDERING
-                                                            ? { ...item, visible: e.target.checked }
-                                                            : item
-                                                    )
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="visibility-online"
+                                        checked={
+                                            localVisibility.find((v: any) => v.application === SourceType.ONLINE_ORDERING)
+                                                ?.visible !== false
+                                        }
+                                        onCheckedChange={(checked) =>
+                                            setLocalVisibility((prev) =>
+                                                prev.map((item) =>
+                                                    item.application === SourceType.ONLINE_ORDERING
+                                                        ? { ...item, visible: checked as boolean }
+                                                        : item
                                                 )
-                                            }
-                                        />
+                                            )
+                                        }
+                                    />
+                                    <Label htmlFor="visibility-online" className="text-xs font-normal cursor-pointer">
                                         Online Ordering
-                                    </label>
+                                    </Label>
                                 </div>
                             </div>
                         </div>
-                        {/* End Visibility Section */}
 
-                        <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => resetData()} color="info">
-                            <span className="d-none d-md-inline">
+                        <div className="flex gap-2 pt-4">
+                            <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={resetData}>
+                                <RotateCcw className="h-4 w-4 mr-2" />
                                 <Translate contentKey="entity.action.reset">Reset</Translate>
-                            </span>
-                        </Button>
-                        &nbsp;
-                        <Button
-                            onClick={saveEntity}
-                            color="primary"
-                            id="save-entity"
-                            data-cy="entityCreateSaveButton"
-                            type="submit"
-                            disabled={updating}
-                        >
-                            <FontAwesomeIcon icon="save" />
-                            &nbsp;
-                            <Translate contentKey="entity.action.save">Save</Translate>
-                        </Button>
-                        &nbsp;
-                        {!isNew && (
-                            <Button
-                                onClick={confirmDelete}
-                                color="danger"
-                                id="Delete-entity"
-                                data-cy="entityDeleteButton"
-                                type="submit"
-                                disabled={updating}
-                            >
-                                <FontAwesomeIcon icon="trash" />
-                                &nbsp;
-                                <Translate contentKey="entity.action.delete">Delete</Translate>
                             </Button>
-                        )}
+                            <Button type="submit" size="sm" className="h-8 text-xs" disabled={updating}>
+                                <Save className="h-4 w-4 mr-2" />
+                                <Translate contentKey="entity.action.save">Save</Translate>
+                            </Button>
+                            {!isNew && (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                    onClick={confirmDelete}
+                                    disabled={updating}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <Translate contentKey="entity.action.delete">Delete</Translate>
+                                </Button>
+                            )}
+                        </div>
                     </form>
-                </Col>
-            </Row>
+                </CardContent>
+            </Card>
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-base">Delete Confirmation</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                            Do you want to delete this record? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={removeEntity} className="h-8 text-xs bg-destructive hover:bg-destructive/90">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

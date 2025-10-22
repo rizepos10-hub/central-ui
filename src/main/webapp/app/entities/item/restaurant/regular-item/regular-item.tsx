@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from 'primereact/button';
 import { getSortState, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, archiveEntities, exportEntities, filterEntities, updateEntities, purgeEntities, unArchiveEntities } from "./regular-item.reducer";
-import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column, ColumnProps } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
@@ -17,20 +13,24 @@ import ImportButton from "app/shared/components/data-import/data-import";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import _ from "lodash";
-import { initialItemFilterState } from "app/shared/model/filter-state.model";
-import { confirmDialog } from 'primereact/confirmdialog';
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
-import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
 import { FaCog, FaCopy, FaTrash } from 'react-icons/fa';
-import { Menu } from 'primereact/menu';
-import { Checkbox } from 'primereact/checkbox';
 import { SummarizeText } from 'app/shared/util/SummarizeText';
-import { ToggleButton } from 'primereact/togglebutton';
-import { ProgressBar } from "primereact/progressbar";
 import axios from "axios";
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { RefreshCw, Plus, Download, Upload, Settings, Trash2, Edit, Copy, RotateCcw, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import Select from 'react-select';
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -41,14 +41,12 @@ export const RegularItem = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const menu: any = useRef(null);
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
-  
-  // Export job tracking state
+
   const EXPORT_JOB_STORAGE_KEY = 'regular-item-export-job';
-  
+
   const [exportJob, setExportJob] = useState<{
     id: string;
     status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -58,8 +56,13 @@ export const RegularItem = () => {
     errorMessage: string | null;
   } | null>(null);
   const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPurgeDialog, setShowPurgeDialog] = useState(false);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showExportAllDialog, setShowExportAllDialog] = useState(false);
+  const [itemsToAction, setItemsToAction] = useState<IRegularItem[]>([]);
 
-  // Persist export job to localStorage
   const persistExportJob = (job: typeof exportJob) => {
     if (job) {
       localStorage.setItem(EXPORT_JOB_STORAGE_KEY, JSON.stringify(job));
@@ -68,7 +71,6 @@ export const RegularItem = () => {
     }
   };
 
-  // Load export job from localStorage
   const loadPersistedExportJob = () => {
     try {
       const stored = localStorage.getItem(EXPORT_JOB_STORAGE_KEY);
@@ -108,15 +110,14 @@ export const RegularItem = () => {
     dispatch(filterEntities({ query: updatedQuery }));
   };
 
-  // Export job polling function
   const pollExportStatus = async (jobId: string) => {
     try {
       const response = await axios.get(`/api/export-data/status/${jobId}`);
       const jobData = response.data;
-      
+
       setExportJob(jobData);
       persistExportJob(jobData);
-      
+
       if (jobData.status === 'COMPLETED' || jobData.status === 'FAILED' || jobData.status === 'CANCELLED') {
         if (pollingInterval) {
           clearInterval(pollingInterval);
@@ -132,7 +133,6 @@ export const RegularItem = () => {
     }
   };
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
       if (pollingInterval) {
@@ -143,14 +143,12 @@ export const RegularItem = () => {
 
   useEffect(() => {
     getAllEntities();
-    
-    // Restore persisted export job on component mount (only on first mount)
+
     if (!exportJob) {
       const persistedJob = loadPersistedExportJob();
       if (persistedJob) {
         setExportJob(persistedJob);
-        
-        // Resume polling if job is still in progress
+
         if (persistedJob.status === 'PENDING' || persistedJob.status === 'PROCESSING') {
           const interval = setInterval(() => {
             pollExportStatus(persistedJob.id);
@@ -165,26 +163,12 @@ export const RegularItem = () => {
     getAllEntities();
   };
 
-  const onSort = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
-  };
-
   const debouncedFilter = useRef(_.debounce((event) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
     setSearchParams({ query: queryParams }, { replace: true })
   }, 300)).current
-
-  const onFilter = (event: DataTableFilterEvent) => {
-    debouncedFilter(event);
-  };
-
-  const onPage = (event) => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
-  };
 
   const handleDropdownChange = (field, value) => {
     const newQuery = JSON.stringify({
@@ -210,261 +194,44 @@ export const RegularItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   }
 
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/restaurant/regular/${rowData.id}/edit`;
-    return (
-      <Link className="font-normal" to={editUrl}>
-        {rowData.name} <br />
-        <span className="text-xs">#{rowData?.variants?.length}</span>
-      </Link>
-    );
-  };
-
-  const AddonLinkTemplate = ({ rowData }) => {
-    if (!rowData) return null;
-    return (
-      <Link className="font-normal" to={`/addon-groups/${rowData.id}/edit`}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const AddonGroupsBody = rowData => {
-    const addonGroups = rowData?.addonGroups;
-
-    if (!addonGroups || addonGroups.length === 0) {
-      return "No Addons";
-    }
-
-    return addonGroups.map((addon, index) => (
-      <>
-        <AddonLinkTemplate key={addon?.addonGroup?.id} rowData={addon?.addonGroup} />
-        {index < addonGroups.length - 1 && ' | '}
-      </>
-    ));
-  };
-
-  const TagsBody = rowData => {
-    const tags = rowData?.tags;
-
-    if (!tags || tags.length === 0) {
-      return "No Tags";
-    }
-
-    return tags.map((tag, index) => (
-      <>
-        <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
-          {tag.name}
-          {index < tags.length - 1 && ' | '}
-        </Link>
-      </>
-    ));
-  };
-
-  const DiscountBody = rowData => {
-    const discounts = rowData?.discounts;
-    if (!discounts || discounts.length === 0) {
-      return "No Discounts";
-    }
-
-    return discounts.map((discount, index) => (
-      <>
-        <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
-          {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
-          {index < discounts.length - 1 && ' | '}
-        </Link>
-      </>
-    ));
-  };
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/restaurant/regular/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const archiveColumnTemplate = (rowData) => {
-    const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
-
-  const unArchiveColumnTemplate = (rowData) => {
-    return (
-      <Button outlined text onClick={() => confirmUnArchiveItems([rowData])}>
-        <FontAwesomeIcon icon="trash-restore" style={{ cursor: 'pointer', color: 'green', marginLeft: '1rem' }} />
-      </Button>
-    );
-  };
-
-  const purgeColumnTemplate = (rowData) => {
-    return (
-      <Button outlined text onClick={() => confirmPurgeItems([rowData])}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Button>
-    );
-  };
-
-  useEffect(() => {
-    if (selectedActionOption?.code === "PURGE") {
-      confirmPurgeItems(selectedProducts);
-    }
-  }, [selectedActionOption])
-
-  const confirmPurgeItems = (products: IRegularItem[]) => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handlePurgeItems(products),
-      // reject: () => setSelectedActionOption(null)
-    });
-  };
-
-  const handlePurgeItems = async (products: IRegularItem[]) => {
-    const updatedQuery = applyMatchModeMap(query)
-    await dispatch(purgeEntities({
-      ids: products.map(product => product.id),
-      query: updatedQuery
-    }))
-    setSelectedProducts([]);
-    setSelectedActionOption(null);
-  }
-
-  useEffect(() => {
-    if (selectedActionOption?.code === "RESTORE") {
-      confirmUnArchiveItems(selectedProducts);
-    }
-  }, [selectedActionOption])
-
-  const confirmUnArchiveItems = (products: IRegularItem[]) => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleUnArchiveItems(products),
-      // reject: () => setSelectedActionOption(null)
-    });
-  };
-
-  const handleUnArchiveItems = async (products: IRegularItem[]) => {
-    const updatedQuery = applyMatchModeMap(query)
-    await dispatch(unArchiveEntities({
-      ids: products.map(product => product.id),
-      query: updatedQuery
-    }))
-    setSelectedProducts([]);
-    setSelectedActionOption(null);
-  }
-
-
-  const MenusTemplate = (rowData) => {
-    const menus = []
-    rowData?.rowData?.menus?.forEach(menu => {
-      menus.push({
-        name: menu.name,
-        id: menu.id,
-        type: menu.type,
-      })
-    })
-
-    return <div>{menus.map((menu, idx) => (
-      <Link className="font-normal" key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
-        {menu.name} {idx === menus.length - 1 ? '' : ' | '}
-      </Link>
-    ))}</div>
-  };
-
   const handleCreate = () => {
     navigate('/restaurant/regular/new')
   }
-
-  useEffect(() => {
-    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
-      confirm1()
-    }
-  }, [selectedActionOption])
-
-  const confirm1 = () => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => handleItemsDelete(),
-      reject: () => setSelectedActionOption(null)
-    });
-  };
 
   const handleItemsDelete = async () => {
     setIsLoadingAction(true);
     const updatedQuery = applyMatchModeMap(query);
     await dispatch(archiveEntities({
-      ids: selectedProducts.map(p => p.id),
+      ids: itemsToAction.map(p => p.id),
       query: updatedQuery,
     })).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
+    setShowDeleteDialog(false);
   }
-
-  useEffect(() => {
-    if (selectedActionOption?.code === "EXPORT") {
-      confirmBulkExport()
-    }
-  }, [selectedActionOption])
-
-  const confirmBulkExport = () => {
-    confirmDialog({
-      message: `Are you sure you want to export ${selectedProducts.length} selected items?`,
-      header: 'Export Selected Items',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => handleExportItems(),
-      reject: () => setSelectedActionOption(null)
-    });
-  };
-
-  const confirm2 = () => {
-    confirmDialog({
-      message: 'Are you sure you want to export all items?',
-      header: 'Export All Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => handleExportAll(),
-      reject: () => {}
-    });
-  };
 
   const handleExportAll = async () => {
     setIsLoadingAction(true);
     try {
-      // Pass empty array to export all items
       const result = await dispatch(exportEntities([]));
       const payload = result.payload as any;
-      
+
       if (payload?.data) {
         const jobData = payload.data;
         setExportJob(jobData);
         persistExportJob(jobData);
-        
-        // Start polling for status updates
+
         const interval = setInterval(() => {
           pollExportStatus(jobData.id);
-        }, 2000); // Poll every 2 seconds
-        
+        }, 2000);
+
         setPollingInterval(interval);
       }
     } catch (error) {
       console.error('Export all failed:', error);
     } finally {
       setIsLoadingAction(false);
+      setShowExportAllDialog(false);
     }
   };
 
@@ -473,17 +240,16 @@ export const RegularItem = () => {
     try {
       const result = await dispatch(exportEntities(selectedProducts.map(product => product.id)));
       const payload = result.payload as any;
-      
+
       if (payload?.data) {
         const jobData = payload.data;
         setExportJob(jobData);
         persistExportJob(jobData);
-        
-        // Start polling for status updates
+
         const interval = setInterval(() => {
           pollExportStatus(jobData.id);
-        }, 2000); // Poll every 2 seconds
-        
+        }, 2000);
+
         setPollingInterval(interval);
       }
     } catch (error) {
@@ -492,63 +258,46 @@ export const RegularItem = () => {
       setIsLoadingAction(false);
       setSelectedProducts([]);
       setSelectedActionOption(null);
+      setShowExportDialog(false);
     }
   };
 
-  const duplicateColumnTemplate = (rowData) => {
-    return (
-      <Button
-        className="d-flex justify-content-center w-100"
-        onClick={() => confirmDialog({
-          message: 'Are you sure you want to duplicate this product?',
-          header: 'Duplicate Product',
-          icon: 'pi pi-exclamation-triangle',
-          accept() {
-            const { id, ...entityWithoutId } = rowData;
-            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
-              ...variantWithoutId,
-            }));
-            dispatch(createEntity(entityWithoutId)).then(res => {
-              const payload = res?.payload as any;
-              const newProductId = payload?.data?.id;
+  const handlePurgeItems = async () => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(purgeEntities({
+      ids: itemsToAction.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+    setShowPurgeDialog(false);
+  }
 
-              // @ts-expect-error -- unknown type
-              if (!res?.error) {
-                navigate(`/restaurant/regular/${newProductId}/edit`)
-              }
-            });
-          }
-        })}
-        text
-      >
-        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
-      </Button>
-    );
-  };
+  const handleUnArchiveItems = async () => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(unArchiveEntities({
+      ids: itemsToAction.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+    setShowRestoreDialog(false);
+  }
 
-  const nameFilterTemplate = () => {
-    return (
-      <InputText
-        type="text"
-        value={localNameFilter}
-        onChange={(e) => {
-          setLocalNameFilter(e.target.value);
-          const newQuery = {
-            ...query,
-            filters: {
-              ...query.filters,
-              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
-            }
-          };
-          debouncedFilter(newQuery);
-        }}
-        className="p-inputtext-sm"
-        placeholder="Search by Name"
-        style={{
-          width: '150px',
-        }}
-      />
-    );
+  const duplicateItem = (rowData) => {
+    const { id, ...entityWithoutId } = rowData;
+    entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+      ...variantWithoutId,
+    }));
+    dispatch(createEntity(entityWithoutId)).then(res => {
+      const payload = res?.payload as any;
+      const newProductId = payload?.data?.id;
+
+      // @ts-expect-error -- unknown type
+      if (!res?.error) {
+        navigate(`/restaurant/regular/${newProductId}/edit`)
+      }
+    });
   };
 
   useEffect(() => {
@@ -581,7 +330,6 @@ export const RegularItem = () => {
 
       const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
       visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
-      console.log(visibleColumnsData);
       localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
 
       return updatedColumns;
@@ -607,7 +355,6 @@ export const RegularItem = () => {
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
 
-  // Download file function
   const downloadFile = (filePath: string) => {
     const link = document.createElement('a');
     link.href = filePath;
@@ -617,86 +364,119 @@ export const RegularItem = () => {
     document.body.removeChild(link);
   };
 
-  // Export Status Header Component
   const ExportStatusHeader = () => {
     if (!exportJob) return null;
 
     const getStatusColor = () => {
       switch (exportJob.status) {
-        case 'COMPLETED': return 'text-success';
-        case 'FAILED': return 'text-danger';
-        case 'CANCELLED': return 'text-warning';
-        case 'PROCESSING': return 'text-info';
-        default: return 'text-info';
+        case 'COMPLETED': return 'text-green-600';
+        case 'FAILED': return 'text-destructive';
+        case 'CANCELLED': return 'text-yellow-600';
+        case 'PROCESSING': return 'text-blue-600';
+        default: return 'text-blue-600';
       }
     };
 
     const getStatusIcon = () => {
       switch (exportJob.status) {
-        case 'COMPLETED': return 'pi pi-check-circle';
-        case 'FAILED': return 'pi pi-times-circle';
-        case 'CANCELLED': return 'pi pi-exclamation-triangle';
-        case 'PROCESSING': return 'pi pi-spin pi-spinner';
-        default: return 'pi pi-clock';
+        case 'COMPLETED': return <CheckCircle2 className="h-5 w-5" />;
+        case 'FAILED': return <XCircle className="h-5 w-5" />;
+        case 'CANCELLED': return <AlertTriangle className="h-5 w-5" />;
+        case 'PROCESSING': return <RefreshCw className="h-5 w-5 animate-spin" />;
+        default: return <Clock className="h-5 w-5" />;
       }
     };
 
     return (
-      <div className="bg-light border p-3 mb-3 d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center">
-          <i className={`${getStatusIcon()} ${getStatusColor()} me-2`} style={{ fontSize: '1.2rem' }}></i>
+      <div className="bg-muted border p-3 mb-3 flex items-center justify-between rounded">
+        <div className="flex items-center gap-3">
+          <div className={getStatusColor()}>
+            {getStatusIcon()}
+          </div>
           <div>
-            <span className="fw-bold me-2">Export Status: {exportJob.status}</span>
-            <small className="text-muted">{exportJob.message}</small>
+            <span className="font-semibold text-xs mr-2">Export Status: {exportJob.status}</span>
+            <small className="text-muted-foreground text-xs">{exportJob.message}</small>
             {exportJob.status === 'PROCESSING' && (
-              <div className="mt-1">
-                <ProgressBar 
-                  value={exportJob.progress} 
-                  style={{ width: '200px', height: '8px' }}
-                  className="me-2"
-                />
-                <small>{exportJob.progress}%</small>
+              <div className="mt-1 flex items-center gap-2">
+                <Progress value={exportJob.progress} className="w-48 h-2" />
+                <small className="text-xs">{exportJob.progress}%</small>
               </div>
             )}
           </div>
         </div>
-        
-        <div className="d-flex gap-2">
+
+        <div className="flex gap-2">
           {exportJob.status === 'COMPLETED' && exportJob.path && (
             <Button
-              label="Download"
-              icon="pi pi-download"
-              size="small"
-              className="p-button-success"
+              size="sm"
+              className="h-7 text-xs"
               onClick={() => downloadFile(exportJob.path)}
-            />
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Download
+            </Button>
           )}
-          
+
           {exportJob.status === 'FAILED' && exportJob.errorMessage && (
-            <small className="text-danger">{exportJob.errorMessage}</small>
+            <small className="text-destructive text-xs">{exportJob.errorMessage}</small>
           )}
-          
+
           {(exportJob.status === 'COMPLETED' || exportJob.status === 'FAILED' || exportJob.status === 'CANCELLED') && (
             <Button
-              icon="pi pi-times"
-              size="small"
-              className="p-button-text p-button-secondary"
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
               onClick={() => {
                 setExportJob(null);
                 persistExportJob(null);
               }}
-              tooltip="Dismiss"
-            />
+            >
+              <XCircle className="h-3 w-3" />
+            </Button>
           )}
         </div>
       </div>
     );
   };
-  
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      setItemsToAction(selectedProducts);
+      setShowDeleteDialog(true);
+    } else if (selectedActionOption?.code === "EXPORT") {
+      setShowExportDialog(true);
+    } else if (selectedActionOption?.code === "PURGE") {
+      setItemsToAction(selectedProducts);
+      setShowPurgeDialog(true);
+    } else if (selectedActionOption?.code === "RESTORE") {
+      setItemsToAction(selectedProducts);
+      setShowRestoreDialog(true);
+    }
+  }, [selectedActionOption]);
+
+  const handlePageChange = (newPage: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      first: newPage * query.rows,
+      page: newPage
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const handleRowsPerPageChange = (newRows: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      rows: newRows,
+      first: 0,
+      page: 0
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
   return (
-    <div>
+    <PageWrapper>
       <ExportStatusHeader />
-      
+
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
         <BulkEdit
           products={regularItemsList}
@@ -709,276 +489,465 @@ export const RegularItem = () => {
           isRetail={false}
         />
       )}
-      
-      {/* Header moved outside of DataTable */}
-      <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
-        <span className="text-xl d-flex align-items-center">
-          <Dropdown
+
+      <div className="bg-muted/50 p-2 flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <Select
+            key={`bulk-actions-${selectedProducts.length > 0 ? 'enabled' : 'disabled'}`}
             value={selectedActionOption}
-            onChange={(e) => setSelectedActionOption(e.value)}
+            onChange={(option) => setSelectedActionOption(option)}
             options={query?.filters?.isArchived?.value ? archivedActionOptions : actionOptions}
-            optionLabel="name"
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.code}
             placeholder="Bulk Actions"
-            className="w-full md:w-14rem"
-            disabled={selectedProducts.length < 1}
-            optionDisabled={(option) => option.disabled}
+            isDisabled={selectedProducts.length < 1}
+            styles={{
+              control: (base) => ({
+                ...base,
+                minHeight: '32px',
+                fontSize: '0.75rem',
+                minWidth: '140px',
+              }),
+              menu: (base) => ({
+                ...base,
+                fontSize: '0.75rem',
+              }),
+            }}
           />
-        </span>
+        </div>
 
         {!query?.filters?.isArchived?.value ? (
-          <div className="flex align-items-center justify-content-end gap-3">
+          <div className="flex items-center gap-2">
             <Button
-              icon="pi pi-sync"
-              raised severity="info"
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
               onClick={handleSyncList}
               disabled={loading}
-              loading={loading}
-              data-pr-position="top"
-              tooltip={translate('items.view.actions.refreshList')}
-            />
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              {translate('items.view.actions.refreshList')}
+            </Button>
             <Button
-              icon="pi pi-file-export"
-              raised
-              onClick={confirm2}
-              tooltip="Export All"
-              data-pr-position="top"
-            />
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={() => setShowExportAllDialog(true)}
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Export All
+            </Button>
             <ImportButton type={"REGULAR_RESTAURANT"} />
             <Button
-              icon="pi pi-plus"
-              raised
+              size="sm"
+              className="h-7 text-xs"
               onClick={handleCreate}
-              // disabled={loading}
-              data-pr-position="top"
-              tooltip={translate('items.view.actions.createRegular')}
-            />
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              {translate('items.view.actions.createRegular')}
+            </Button>
           </div>
         ) : (
-          <h4 className="text-center text-danger">
+          <h4 className="text-center text-destructive text-sm font-semibold">
             Now viewing Recycle Bin
           </h4>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="relative d-flex justify-end mr-auto">
-            <Menu
-              model={[
-                {
-                  label: "Select Columns",
-                  items: columnOptions.map((col) => ({
-                    template: () => (
-                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          inputId={col.field}
-                          checked={visibleColumns[col.field]}
-                          onChange={() => onColumnToggle(col.field)}
-                        />
-                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                      </div>
-                    ),
-                  })),
-                },
-              ]}
-              popup
-              ref={menu}
-            />
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={query?.filters?.isArchived?.value ? "default" : "outline"}
+            className="h-7 text-xs"
+            onClick={() => handleIsArchivedChange(!query?.filters?.isArchived?.value)}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
 
-            <ToggleButton
-              tooltip="Recycle Bin"
-              data-pr-position="top"
-              checked={query?.filters?.isArchived?.value}
-              onChange={(e) => {
-                if (query?.filters?.isArchived?.value) {
-                  handleIsArchivedChange(false)
-                } else {
-                  handleIsArchivedChange(true)
-                }
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="h-7 text-xs">
+                <Settings className="h-3 w-3 mr-1" />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {columnOptions.map((col) => (
+                <DropdownMenuCheckboxItem
+                  key={col.field}
+                  checked={visibleColumns[col.field]}
+                  onCheckedChange={() => onColumnToggle(col.field)}
+                  className="text-xs"
+                >
+                  {col.header}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="border rounded">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-12 p-2">
+                <Checkbox
+                  checked={selectedProducts.length === regularItemsList.length && regularItemsList.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedProducts(regularItemsList);
+                    } else {
+                      setSelectedProducts([]);
+                    }
+                  }}
+                />
+              </TableHead>
+              {visibleColumns.name && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.name')}</TableHead>}
+              {visibleColumns.categories && <TableHead className="text-xs h-8 font-semibold p-2">Category</TableHead>}
+              {visibleColumns.image && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.image')}</TableHead>}
+              {visibleColumns.menus && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.menus')}</TableHead>}
+              {visibleColumns.desc && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.description")}</TableHead>}
+              {visibleColumns.productionCenter && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.productionCenter")}</TableHead>}
+              {visibleColumns.addonGroups && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.addOnGroups")}</TableHead>}
+              {visibleColumns.tags && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.tags")}</TableHead>}
+              {visibleColumns.discounts && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.discounts")}</TableHead>}
+              <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.actions')}</TableHead>
+            </TableRow>
+            <TableRow>
+              <TableHead className="p-1"></TableHead>
+              {visibleColumns.name && (
+                <TableHead className="p-1">
+                  <Input
+                    placeholder={translate('items.view.filters.name')}
+                    value={localNameFilter}
+                    onChange={(e) => {
+                      setLocalNameFilter(e.target.value);
+                      const newQuery = {
+                        ...query,
+                        filters: {
+                          ...query.filters,
+                          name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+                        }
+                      };
+                      debouncedFilter(newQuery);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+              )}
+              {visibleColumns.categories && (
+                <TableHead className="p-1">
+                  <DropDownFilter
+                    dropDownOptionType={"RESTAURANT_CATEGORY"}
+                    selectedOption={query?.filters?.["categories.id"]?.value}
+                    fieldName={"categories.id"}
+                    handleDropdownChange={handleDropdownChange}
+                  />
+                </TableHead>
+              )}
+              {visibleColumns.image && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.menus && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.desc && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.productionCenter && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.addonGroups && (
+                <TableHead className="p-1">
+                  <DropDownFilter
+                    dropDownOptionType={"ADDON_GROUP"}
+                    selectedOption={query?.filters?.["addonGroups.addonGroup.id"]?.value}
+                    fieldName={"addonGroups.addonGroup.id"}
+                    handleDropdownChange={handleDropdownChange}
+                  />
+                </TableHead>
+              )}
+              {visibleColumns.tags && (
+                <TableHead className="p-1">
+                  <DropDownFilter
+                    dropDownOptionType={"TAG"}
+                    selectedOption={query?.filters?.["tags.id"]?.value}
+                    fieldName={"tags.id"}
+                    handleDropdownChange={handleDropdownChange}
+                  />
+                </TableHead>
+              )}
+              {visibleColumns.discounts && <TableHead className="p-1"></TableHead>}
+              <TableHead className="p-1"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading || isLoadingAction ? (
+              <TableRow>
+                <TableCell colSpan={12} className="text-center p-4">
+                  <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : regularItemsList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={12} className="text-center p-4 text-xs text-muted-foreground">
+                  No items found
+                </TableCell>
+              </TableRow>
+            ) : (
+              regularItemsList.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="p-2">
+                    <Checkbox
+                      checked={selectedProducts.some(p => p.id === item.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedProducts([...selectedProducts, item]);
+                        } else {
+                          setSelectedProducts(selectedProducts.filter(p => p.id !== item.id));
+                        }
+                      }}
+                    />
+                  </TableCell>
+                  {visibleColumns.name && (
+                    <TableCell className="text-xs p-2">
+                      <Link to={`/restaurant/regular/${item.id}/edit`} className="text-primary hover:underline">
+                        {item.name}
+                        <br />
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1 mt-1">
+                          #{item?.variants?.length}
+                        </Badge>
+                      </Link>
+                    </TableCell>
+                  )}
+                  {visibleColumns.categories && (
+                    <TableCell className="text-xs p-2">
+                      {item?.categories?.map(cat => cat?.name).join(" | ")}
+                    </TableCell>
+                  )}
+                  {visibleColumns.image && (
+                    <TableCell className="text-xs p-2">
+                      <ImageDisplay
+                        imageType={"product"}
+                        imageUrl={item?.attachments?.[0]?.url || item?.variants?.[0]?.attachments?.[0]?.url}
+                        height={50}
+                        width={50}
+                      />
+                    </TableCell>
+                  )}
+                  {visibleColumns.menus && (
+                    <TableCell className="text-xs p-2">
+                      {item?.menus?.map((menu, idx) => (
+                        <span key={idx}>
+                          <Link to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`} className="text-primary hover:underline">
+                            {menu.name}
+                          </Link>
+                          {idx < item.menus.length - 1 ? ' | ' : ''}
+                        </span>
+                      ))}
+                    </TableCell>
+                  )}
+                  {visibleColumns.desc && <TableCell className="text-xs p-2">{item.desc}</TableCell>}
+                  {visibleColumns.productionCenter && (
+                    <TableCell className="text-xs p-2">
+                      <SummarizeText>{item?.productionCenter?.name}</SummarizeText>
+                    </TableCell>
+                  )}
+                  {visibleColumns.addonGroups && (
+                    <TableCell className="text-xs p-2">
+                      {item?.addonGroups?.length === 0 ? "No Addons" : item?.addonGroups?.map((addon, index) => (
+                        <span key={index}>
+                          <Link to={`/addon-groups/${addon?.addonGroup?.id}/edit`} className="text-primary hover:underline">
+                            {addon?.addonGroup?.name}
+                          </Link>
+                          {index < item.addonGroups.length - 1 && ' | '}
+                        </span>
+                      ))}
+                    </TableCell>
+                  )}
+                  {visibleColumns.tags && (
+                    <TableCell className="text-xs p-2">
+                      {!item?.tags || item.tags.length === 0 ? "No Tags" : item?.tags?.map((tag, index) => (
+                        <span key={index}>
+                          <Link to={`/tag/${tag.id}/edit`} className="text-primary hover:underline">
+                            {tag.name}
+                          </Link>
+                          {index < item.tags.length - 1 && ' | '}
+                        </span>
+                      ))}
+                    </TableCell>
+                  )}
+                  {visibleColumns.discounts && (
+                    <TableCell className="text-xs p-2">
+                      {!item?.discounts || item.discounts.length === 0 ? "No Discounts" : item?.discounts?.map((discount, index) => (
+                        <span key={index}>
+                          <Link to={`/discount/${discount.id}/edit`} className="text-primary hover:underline">
+                            {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
+                          </Link>
+                          {index < item.discounts.length - 1 && ' | '}
+                        </span>
+                      ))}
+                    </TableCell>
+                  )}
+                  <TableCell className="text-xs p-2">
+                    <div className="flex gap-1">
+                      {!query?.filters?.isArchived?.value ? (
+                        <>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => duplicateItem(item)}>
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                          <Link to={`/restaurant/regular/${item.id}/edit`}>
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </Link>
+                          <Link to={`/restaurant/regular/${item.id}/delete`}>
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-destructive hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => { setItemsToAction([item]); setShowRestoreDialog(true); }}>
+                            <RotateCcw className="h-3 w-3 text-green-600" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => { setItemsToAction([item]); setShowPurgeDialog(true); }}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+
+        <div className="flex items-center justify-between p-2 border-t">
+          <div className="text-xs text-muted-foreground">
+            Showing {query.first + 1} to {Math.min(query.first + query.rows, totalItems)} of {totalItems} entries
+          </div>
+          <div className="flex items-center gap-2">
+            <Select
+              value={{ label: query.rows.toString(), value: query.rows }}
+              onChange={(option) => handleRowsPerPageChange(option.value)}
+              options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  minHeight: '28px',
+                  fontSize: '0.75rem',
+                  minWidth: '70px',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  fontSize: '0.75rem',
+                }),
               }}
-              onIcon={<FaTrash className="text-xl" />}
-              offIcon={<FaTrash className="text-xl" />}
-              onLabel=""
-              offLabel=""
-              className="p-button-text mr-auto"
             />
-
-            <Button
-              data-pr-position="top"
-              icon={<FaCog className="text-xl" />}
-              tooltip='Select Columns'
-              className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
-              onClick={(event) => menu.current.toggle(event)}
-            />
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => handlePageChange(query.page - 1)}
+                disabled={query.page === 0}
+              >
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => handlePageChange(query.page + 1)}
+                disabled={query.first + query.rows >= totalItems}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-      
-      <DataTable
-        value={regularItemsList}
-        loading={loading || isLoadingAction}
-        editMode="row"
-        removableSort
-        filters={query.filters}
-        filterDisplay="row"
-        paginator
-        totalRecords={totalItems}
-        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        rows={query?.rows}
-        lazy
-        first={query.first}
-        onPage={onPage}
-        onFilter={onFilter}
-        onSort={onSort}
-        sortField={query.sortField}
-        sortOrder={query.sortOrder}
-        showGridlines
-        selectionMode='checkbox'
-        selection={selectedProducts}
-        onSelectionChange={(e) => setSelectedProducts(e.value)}
-      >
-        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
 
-        {visibleColumns.name && (
-          <Column
-            field="name"
-            header={translate('items.view.fields.name')}
-            filter
-            filterField="name"
-            filterElement={nameFilterTemplate}
-            body={nameColumnTemplate}
-            filterPlaceholder={translate('items.view.filters.name')}
-            sortable
-            headerStyle={{ width: '300px' }}
-            style={{ width: '300px' }}
-          />
-        )}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Move to Trash</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to move {itemsToAction.length} item(s) to trash?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleItemsDelete} className="h-8 text-xs bg-destructive hover:bg-destructive/90">
+              Move to Trash
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {visibleColumns.categories && (
-          <Column
-            header="Category"
-            field="categories"
-            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
-            sortable
-            filter
-            showFilterMatchModes={false}
-            filterElement={
-              <DropDownFilter
-                dropDownOptionType={"RESTAURANT_CATEGORY"}
-                selectedOption={query?.filters?.["categories.id"]?.value}
-                fieldName={"categories.id"}
-                handleDropdownChange={handleDropdownChange}
-              />
-            }
-            headerStyle={{ width: '150px' }}
-            style={{ width: '150px' }}
-          />
-        )}
+      <AlertDialog open={showPurgeDialog} onOpenChange={setShowPurgeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Permanent Delete</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to permanently delete {itemsToAction.length} item(s)? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePurgeItems} className="h-8 text-xs bg-destructive hover:bg-destructive/90">
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {visibleColumns.image && (
-          <Column
-            header={translate('items.view.fields.image')}
-            body={(rowData) =>
-              <ImageDisplay
-                imageType={"product"}
-                imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-                height={50}
-                width={50}
-              />
-            }
-          />
-        )}
+      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Restore Items</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to restore {itemsToAction.length} item(s)?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnArchiveItems} className="h-8 text-xs">
+              Restore
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {visibleColumns.menus && (
-          <Column
-            header={translate('items.view.fields.menus')}
-            body={(rowData) =>
-              <MenusTemplate rowData={rowData} />
-            }
-          />
-        )}
+      <AlertDialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Export Selected Items</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to export {selectedProducts.length} selected items?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExportItems} className="h-8 text-xs">
+              Export
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {visibleColumns.desc && (
-          <Column
-            header={translate("items.view.fields.description")}
-            field='desc'
-          />
-        )}
-
-        {visibleColumns.productionCenter && (
-          <Column
-            header={translate("items.view.fields.productionCenter")}
-            body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>}
-            field='productionCenter'
-          />
-        )}
-
-        {visibleColumns.addonGroups && (
-          <Column
-            header={translate("items.view.fields.addOnGroups")}
-            body={AddonGroupsBody}
-            field='addOnGroups'
-            filter
-            filterElement={
-              <DropDownFilter
-                dropDownOptionType={"ADDON_GROUP"}
-                selectedOption={query?.filters?.["addonGroups.addonGroup.id"]?.value}
-                fieldName={"addonGroups.addonGroup.id"}
-                handleDropdownChange={handleDropdownChange}
-              />
-            }
-            headerStyle={{ width: '150px' }}
-            style={{ width: '150px' }}
-          />
-        )}
-
-        {visibleColumns.tags && (
-          <Column
-            header={translate("items.view.fields.tags")}
-            body={TagsBody}
-            field='tags'
-            filter
-            filterElement={
-              <DropDownFilter
-                dropDownOptionType={"TAG"}
-                selectedOption={query?.filters?.["tags.id"]?.value}
-                fieldName={"tags.id"}
-                handleDropdownChange={handleDropdownChange}
-              />
-            }
-            headerStyle={{ width: '150px' }}
-            style={{ width: '150px' }}
-          />
-        )}
-
-        {visibleColumns.discounts && (
-          <Column
-            sortable={true}
-            header={translate("items.view.fields.discounts")}
-            body={DiscountBody}
-            field='discounts'
-          />
-        )}
-
-        <Column
-          header={translate('items.view.fields.actions')}
-          body={(rowData) =>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              {!query?.filters?.isArchived?.value ? (
-                <>
-                  {duplicateColumnTemplate(rowData)}
-                  {editColumnTemplate(rowData)}
-                  {archiveColumnTemplate(rowData)}
-                </>
-              ) : (
-                <>
-                  {unArchiveColumnTemplate(rowData)}
-                  {purgeColumnTemplate(rowData)}
-                </>
-              )}
-            </div>
-          }
-        />
-      </DataTable>
-    </div>
+      <AlertDialog open={showExportAllDialog} onOpenChange={setShowExportAllDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Export All Items</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to export all items?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExportAll} className="h-8 text-xs">
+              Export All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageWrapper>
   );
 };
 

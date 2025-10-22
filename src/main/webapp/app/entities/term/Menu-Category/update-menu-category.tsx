@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {getSortState, Translate, translate} from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import {overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, createEntity,getEntities, reset } from './menu-category.reducer';
+import { getEntity, updateEntity, createEntity,getEntities, reset, changeEntityField } from './menu-category.reducer';
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
-import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const UpdateMenuCategory = () => {
   const dispatch = useAppDispatch();
@@ -134,21 +137,20 @@ export const UpdateMenuCategory = () => {
 
   console.log(selectedAttachments)
 console.log(termEntity)
-  const saveEntity = values => {
+  const handleChange = e => {
+    const { name, value } = e.target;
+    dispatch(changeEntityField({ name, value }));
+  };
+
+  const saveEntity = () => {
     setSelectedImage('')
     setSelectedAttachments([])
 
-    console.log(values, 'lol')
-
     const entity = {
       ...termEntity,
-      ...values,
-      // taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
       parents: selectedParent.map(parent => ({id :parent.id})),
       attachments: selectedAttachments,
-
     };
-    console.log(entity, 'entity')
 
     if (isNew) {
       dispatch(createEntity(entity));
@@ -163,83 +165,95 @@ console.log(termEntity)
     );
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {
-        // taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Menu Category')?.id,
-      }
-      : {
-        ...termEntity,
-        // taxonomy: termEntity?.taxonomy?.id,
-      };
-  console.log(termEntity?.parents, 'ddd')
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2  data-cy="TermCreateUpdateHeading">
+    <PageWrapper>
+      <Card className="max-w-2xl">
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm font-semibold">
             {isNew ?
               <Translate contentKey={'menus.category.update.create.title'}>Create a Menu Category</Translate> :
               <Translate contentKey={'menus.category.update.edit.title'}>Edit Menu Category</Translate>}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3">
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-xs">Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {/* {!isNew ? ( */}
-              {/*   <ValidatedField */}
-              {/*     name="id" */}
-              {/*     required */}
-              {/*     readOnly */}
-              {/*     id="term-id" */}
-              {/*     label={translate('global.field.id')} */}
-              {/*     validate={{ required: true }} */}
-              {/*   /> */}
-              {/* ) : null} */}
-              <ValidatedField
-                label={translate('menus.category.update.name')}
-                id="term-name"
-                name="name"
-                data-cy="name"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
+            <form>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="term-name" className="text-xs">
+                    {translate('menus.category.update.name')}
+                  </Label>
+                  <Input
+                    id="term-name"
+                    name="name"
+                    data-cy="name"
+                    type="text"
+                    required
+                    value={termEntity?.name || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
 
+                <div className="space-y-1">
+                  <Label className="text-xs">
+                    <Translate contentKey={'common.image'}>Image</Translate>
+                  </Label>
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => setSelectedAttachments((prevAttachments) => [transformAttachmentStructure(files, 'toIAttachment')[0]])}
+                    defaultValues={transformAttachmentStructure(selectedAttachments ? selectedAttachments : [], 'toFileLibraryListItem')}
+                  />
+                </div>
 
-              <div className="mb-3">
-                <MediaLibrary
-                  handleFilesSelectCallback={(files) => setSelectedAttachments((prevAttachments) => [transformAttachmentStructure(files, 'toIAttachment')[0]])}
-                  defaultValues={transformAttachmentStructure(selectedAttachments ? selectedAttachments : [], 'toFileLibraryListItem')}
-                />
+                <div className="space-y-1">
+                  <Label className="text-xs">
+                    <Translate contentKey={'menus.category.update.parents'}>Parents</Translate>
+                  </Label>
+                  <Select
+                    options={termOptions}
+                    value={selectedParent}
+                    isClearable
+                    onChange={handleParentChange}
+                    styles={{
+                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                      option: (base) => ({ ...base, fontSize: '0.75rem' })
+                    }}
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
+                    <Link to="/category/menus" id="cancel-save" data-cy="entityCreateCancelButton">
+                      <ArrowLeft className="h-4 w-4 mr-1" />
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </Link>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                </div>
               </div>
-              <div className="my-4 p-1">
-                <label><Translate contentKey={'menus.category.update.parents'}>Parents</Translate></label>
-                <Select options={termOptions} value={selectedParent} isClearable onChange={handleParentChange} />
-              </div>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/menus" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </ValidatedForm>
+            </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

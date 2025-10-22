@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Ban, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './discount.reducer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const DiscountDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +24,7 @@ export const DiscountDeleteDialog = () => {
   const { id } = useParams<'id'>();
 
   const [loadModal, setLoadModal] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     dispatch(getEntity(id));
@@ -25,6 +35,7 @@ export const DiscountDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.discount.updateSuccess);
 
   const handleClose = () => {
+    setOpen(false);
     navigate(-1);
   };
 
@@ -40,28 +51,35 @@ export const DiscountDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="discountDeleteDialogHeading">
-        <Translate contentKey="common.deleteTitle">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.discount.delete.question">
-        <Translate contentKey="tempApp.discount.delete.question" interpolate={{ id: discountEntity.id }}>
-          Are you sure you want to delete this Discount?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-discount" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={open} onOpenChange={handleClose}>
+      <AlertDialogContent className="text-xs">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-sm">
+            <Translate contentKey="common.deleteTitle">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            <Translate contentKey="tempApp.discount.delete.question" interpolate={{ id: discountEntity.id }}>
+              Are you sure you want to delete this Discount?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Ban className="h-4 w-4" />
+            <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDelete}
+            id="jhi-confirm-delete-discount"
+            data-cy="entityConfirmDeleteButton"
+            className="h-8 text-xs bg-red-600 hover:bg-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+            <Translate contentKey="entity.action.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

@@ -1,11 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {InputNumber} from "primereact/inputnumber";
-import {Button} from "reactstrap";
-import {Link, useNavigate, useParams} from "react-router-dom";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {translate, Translate} from "react-jhipster";
-import {useAppDispatch, useAppSelector} from "app/config/store";
-import {getEntity, updateEntities} from "app/entities/loyalty/loyalty-records.reducer";
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { translate, Translate } from "react-jhipster";
+import { ArrowLeft, Save } from 'lucide-react';
+
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { getEntity, updateEntities } from "app/entities/loyalty/loyalty-records.reducer";
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const LoyaltyUpdate = () => {
   const { id: customerId } = useParams<'id'>();
@@ -19,72 +23,103 @@ export const LoyaltyUpdate = () => {
   const navigate = useNavigate();
 
   const [points, setPoints] = useState<number>(0);
+
   const handlePointsChange = (e) => {
-    setPoints(+(e.value));
+    setPoints(Number(e.target.value));
   }
+
   const onSave = (e) => {
     e.preventDefault();
-    dispatch(updateEntities({id:record.id, points}));
+    dispatch(updateEntities({ id: record.id, points }));
   }
-  useEffect(()=>{
+
+  useEffect(() => {
     dispatch(getEntity(customerId));
   }, [])
-  useEffect(()=>{
+
+  useEffect(() => {
     setPoints(record.points);
   }, [record])
 
-  useEffect(()=>{
-    if (updateSuccess){
+  useEffect(() => {
+    if (updateSuccess) {
       navigate('/loyalty');
     }
   }, [updateSuccess])
 
   return (
-    <>
-      <form onSubmit={onSave}>
-        <div className="flex flex-column gap-5">
-          <h2><Translate contentKey={'loyalty.update.title'}>Edit Loyalty Points</Translate></h2>
-          {loading? (
-            <p>Loading...</p>
-          ) : (
-            <>
-              <div>
-                <div>
-                  <label className="font-bold block mb-2"><Translate contentKey={'loyalty.update.name'}>Name</Translate></label>
-                  <p>{record.customer?.firstName} {record.customer?.lastName}</p>
-                </div>
-                &nbsp;
-                <div>
-                  <label className="font-bold block mb-2"><Translate contentKey={'loyalty.update.email'}>Email</Translate></label>
-                  <p>{record.customer?.email}</p>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="points" className="font-bold block mb-2"><Translate contentKey={'loyalty.update.points'}>Points</Translate></label>
-                <InputNumber inputId='points' placeholder={translate('loyalty.update.points')} minFractionDigits={2} maxFractionDigits={5} showButtons onChange={handlePointsChange} value={points}/>
-              </div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">
+          <Translate contentKey={'loyalty.update.title'}>Edit Loyalty Points</Translate>
+        </h2>
 
-              <div>
-                <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/loyalty" replace color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                       <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
-                </Button>
-                &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </div>
-            </>
-          )}
+        {loading ? (
+          <p className="text-xs">Loading...</p>
+        ) : (
+          <div className="max-w-2xl">
+            <Card>
+              <CardContent className="space-y-4 pt-6">
+                <form className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold">
+                      <Translate contentKey={'loyalty.update.name'}>Name</Translate>
+                    </Label>
+                    <p className="text-xs">{record.customer?.firstName} {record.customer?.lastName}</p>
+                  </div>
 
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold">
+                      <Translate contentKey={'loyalty.update.email'}>Email</Translate>
+                    </Label>
+                    <p className="text-xs">{record.customer?.email}</p>
+                  </div>
 
-        </div>
-      </form>
-    </>
+                  <div className="space-y-2">
+                    <Label htmlFor="points" className="text-xs font-semibold">
+                      <Translate contentKey={'loyalty.update.points'}>Points</Translate>
+                    </Label>
+                    <Input
+                      type="number"
+                      id="points"
+                      placeholder={translate('loyalty.update.points')}
+                      value={points || 0}
+                      onChange={handlePointsChange}
+                      className="h-7 text-xs"
+                      step="0.00001"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      asChild
+                    >
+                      <Link to="/loyalty">
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        <Translate contentKey="entity.action.back">Back</Translate>
+                      </Link>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={onSave}
+                      disabled={updating}
+                    >
+                      <Save className="h-4 w-4 mr-1" />
+                      <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </PageWrapper>
   );
 }

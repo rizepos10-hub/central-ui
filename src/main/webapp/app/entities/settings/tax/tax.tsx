@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getSortState, } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil } from 'lucide-react';
 
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities, resetEntity } from "./tax.reducer";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import AddTaxModal from "app/entities/settings/tax/add-tax-modal";
 import { ITax } from "app/shared/model/TAX/tax.model";
 
@@ -52,10 +51,9 @@ export const Tax = () => {
 
 
   const [filters, setFilters] = useState({
-    code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    value: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
+    code: '',
+    description: '',
+    value: '',
   });
 
 
@@ -72,88 +70,114 @@ export const Tax = () => {
   }, []);
 
 
-  const codeColumnTemplate = (rowData) => {
-    return (
-      <Link to={'#'} onClick={() => handleEdit(rowData.id)} >
-        {rowData.code}
-      </Link>
-    );
+  const handleFilterChange = (field: keyof typeof filters, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNameFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        code: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = (rowData) => {
-    return (
-      <Link to={"#"} type={"button"} onClick={() => handleEdit(rowData.id)}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
+  const filteredTaxList = taxList.filter((tax) => {
+    const matchCode = !filters.code || tax.code?.toLowerCase().includes(filters.code.toLowerCase());
+    const matchDescription = !filters.description || tax.description?.toLowerCase().includes(filters.description.toLowerCase());
+    const matchValue = !filters.value || tax.value?.toString().includes(filters.value);
+    return matchCode && matchDescription && matchValue;
+  });
 
-    );
-  };
-
-  // const deleteColumnTemplate = (rowData) => {
-  //   const deleteUrl = `/tax/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-  //   return (
-  //     <Link to={deleteUrl}>
-  //       <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-  //     </Link>
-  //   );
-  // };
-
-
-
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Taxes</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getTaxes} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create new Tax" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
   return (
-    <div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-xs">Taxes</h1>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={getTaxes}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create new Tax
+            </Button>
+          </div>
+        </div>
 
-        <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-          <Column
-            field="code" header="Code" filter
-            body={codeColumnTemplate}
-            filterElement={ <InputText  placeholder="Search by Code" onChange={handleNameFilterChange}/> }
-            filterField="code"  sortable
-          />
-          <Column field="value" header="Value" filter filterPlaceholder="Search by value"  sortable   />
-
-          <Column field="description" header="Description"   sortable   />
-
-
-          {/* <Column header="Tax Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
-          {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
-        </DataTable>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="h-8">
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold">Code</div>
+                    <Input
+                      placeholder="Search by Code"
+                      value={filters.code || ''}
+                      onChange={(e) => handleFilterChange('code', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="h-8">
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold">Value</div>
+                    <Input
+                      placeholder="Search by value"
+                      value={filters.value || ''}
+                      onChange={(e) => handleFilterChange('value', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Description</TableHead>
+                <TableHead className="h-8 w-16 text-xs font-semibold">Edit</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTaxList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-4">
+                    No taxes found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredTaxList.map((tax) => (
+                  <TableRow key={tax.id}>
+                    <TableCell className="text-xs">
+                      <Link
+                        to="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleEdit(tax.id);
+                        }}
+                        className="text-primary hover:underline"
+                      >
+                        {tax.code}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">{tax.value}</TableCell>
+                    <TableCell className="text-xs">{tax.description}</TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => handleEdit(tax.id)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
         {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId} />}
       </div>
+    </PageWrapper>
   );
 };
 

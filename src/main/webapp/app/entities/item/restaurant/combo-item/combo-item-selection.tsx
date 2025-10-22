@@ -1,15 +1,3 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  Col,
-  ListGroup,
-  ListGroupItem, Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  Row, Spinner
-} from "reactstrap";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { filterEntities } from "app/entities/item/restaurant/combo-item/items-for-combo.reducer";
@@ -28,9 +16,21 @@ import { translate, Translate } from "react-jhipster";
 import { FilterMatchMode } from "primereact/api";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import PaginationFilter from "app/shared/components/pagination/pagination-filter";
-import { Dropdown } from "primereact/dropdown";
-import { InputText } from "primereact/inputtext";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+
 const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) => {
 
   const dispatch = useAppDispatch();
@@ -54,11 +54,10 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
 
   const [selectedVariants, setSelectedVariants] = useState({})
 
-  const handleVariantSelection = (e, item, variant) => {
-    const isChecked = e.target.checked;
+  const handleVariantSelection = (checked, item, variant) => {
     const isPizzaItem = item?.itemVariantType === "RESTAURANT_PIZZA";
 
-    if (isChecked) {
+    if (checked) {
       const pizzaPackage = {
         pizzaSize: sizesList?.[0],
         crustThickness: crustThicknessList?.[0],
@@ -184,18 +183,24 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
 
 
   return (
-    <Modal isOpen={isOpen} toggle={toggleModal} className=" modal-lg">
-      <ModalHeader toggle={toggleModal}><Translate contentKey={'items.update.combo.addItemModal.title'}>Add New Item</Translate></ModalHeader>
-      <ModalBody>
-        <Row>
-          <Col md="12" className="d-flex align-items-center justify-content-between">
-            <InputText
-              value={filters.name.value}
+    <Dialog open={isOpen} onOpenChange={toggleModal}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-sm">
+            <Translate contentKey={'items.update.combo.addItemModal.title'}>Add New Item</Translate>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Input
+              value={filters.name.value || ''}
               onChange={(e) => {
                 setFilters(prev => ({ ...prev, name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS } }))
                 navigate(createQueryString('page', '1'))
               }}
               placeholder="Search by Name"
+              className="h-8 text-xs flex-1"
             />
             <Select
               options={categoriesList}
@@ -207,61 +212,81 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                 navigate(createQueryString('page', '1'))
               }}
               placeholder="Select Category"
-              className="w-full md:w-14rem"
+              className="flex-1"
               isClearable
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  minHeight: '32px',
+                  fontSize: '0.75rem',
+                }),
+                input: (base) => ({
+                  ...base,
+                  fontSize: '0.75rem',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  fontSize: '0.75rem',
+                }),
+              }}
             />
-          </Col>
+          </div>
+
           {loading ? (
-            <Spinner />
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
           ) : (
-            <Col md="12">
-              <Row className="justify-content-center mt-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {itemList?.map((item: IItem) => (
-                  <Col key={item.id} sm="6" md="4" lg="4" className="mb-4">
-                    <div>
-                      <Card
-                        style={{ background: `url(${item.attachments[0]?.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                        className={`border-4 shadow-sm h-100`}
-                      >
-                        <CardBody>
-                          <div
-                            className="overlay d-flex justify-content-center align-items-center top-0 left-0 right-0 bottom-0 absolute"
-                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)', }}
-                          >
-                            <h5 style={{ color: '#fff' }}>{item.name}</h5>
-                          </div>
-                        </CardBody>
-                      </Card>
-                    </div>
-                    <div className="mt-2">
+                  <div key={item.id} className="space-y-2">
+                    <Card
+                      style={{
+                        backgroundImage: `url(${item.attachments[0]?.url})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                      className="border-4 shadow-sm h-32 relative overflow-hidden"
+                    >
+                      <CardContent className="p-2 h-full">
+                        <div
+                          className="absolute inset-0 flex justify-center items-center"
+                          style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+                        >
+                          <h5 className="text-white text-sm font-semibold">{item.name}</h5>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="space-y-1">
                       {item?.itemVariantType === "RESTAURANT_PIZZA" ?
                         (
                           <>
                             {item?.variants?.map((variant: any) => {
                               return (
+                                <div key={variant.id} className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Checkbox
+                                      id={`variant-${variant?.id}`}
+                                      checked={selectedVariants?.[`${item.id}~${variant.id}`]?.variant?.id === variant?.id}
+                                      onCheckedChange={(checked) => handleVariantSelection(checked, item, variant)}
+                                    />
+                                    <Label htmlFor={`variant-${variant.id}`} className="text-xs cursor-pointer">
+                                      {variant.name}
+                                    </Label>
+                                  </div>
 
-                                <div key={variant.id} className="form-check">
-                                  <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id={`variant-${variant?.id}`}
-                                    name={`variant-${item?.id}`}
-                                    checked={selectedVariants?.[`${item.id}~${variant.id}`]?.variant?.id === variant?.id}
-                                    onChange={e => handleVariantSelection(e, item, variant)}
-                                  />
-                                  <label className="form-check-label" htmlFor={`variant-${variant.id}`}>
-                                    {variant.name}
-                                  </label>
                                   {selectedVariants?.[`${item.id}~${variant.id}`]?.variant?.id === variant?.id ?
                                     variant?.multiplePizzaDetails ? (
-                                      <div className="d-flex flex-column gap-2">
-                                        <div>Number of  Pizzas : {variant?.multiplePizzaDetails?.numberOfPizza}</div>
-                                        <div>Free Toppings Number : {variant?.multiplePizzaDetails?.freeToppingsNumber}</div>
+                                      <div className="flex flex-col gap-1 pl-6 text-xs">
+                                        <div>Number of Pizzas: {variant?.multiplePizzaDetails?.numberOfPizza}</div>
+                                        <div>Free Toppings Number: {variant?.multiplePizzaDetails?.freeToppingsNumber}</div>
                                       </div>
                                     ) : (
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <div>
-                                          <label>Select Size</label>
+                                      <div className="flex flex-col gap-2 pl-6">
+                                        <div className="space-y-1">
+                                          <Label className="text-xs">Select Size</Label>
                                           <Select
                                             options={sizesList}
                                             getOptionLabel={(option: IPizzaSize) => option.name}
@@ -270,11 +295,26 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'pizzaSize', selectedOption, variant)
                                             }
+                                            styles={{
+                                              control: (base) => ({
+                                                ...base,
+                                                minHeight: '32px',
+                                                fontSize: '0.75rem',
+                                              }),
+                                              input: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                              menu: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                            }}
                                           />
                                         </div>
 
-                                        <div >
-                                          <label>Select Crust Type</label>
+                                        <div className="space-y-1">
+                                          <Label className="text-xs">Select Crust Type</Label>
                                           <Select
                                             options={crustTypeList}
                                             getOptionLabel={(option: ICrustType) => option.name}
@@ -283,11 +323,26 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'crustType', selectedOption, variant)
                                             }
+                                            styles={{
+                                              control: (base) => ({
+                                                ...base,
+                                                minHeight: '32px',
+                                                fontSize: '0.75rem',
+                                              }),
+                                              input: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                              menu: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                            }}
                                           />
                                         </div>
 
-                                        <div>
-                                          <label>Select Crust Thickness</label>
+                                        <div className="space-y-1">
+                                          <Label className="text-xs">Select Crust Thickness</Label>
                                           <Select
                                             options={crustThicknessList}
                                             getOptionLabel={(option: ICrustThickness) => option.name}
@@ -296,6 +351,21 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'crustThickness', selectedOption, variant)
                                             }
+                                            styles={{
+                                              control: (base) => ({
+                                                ...base,
+                                                minHeight: '32px',
+                                                fontSize: '0.75rem',
+                                              }),
+                                              input: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                              menu: (base) => ({
+                                                ...base,
+                                                fontSize: '0.75rem',
+                                              }),
+                                            }}
                                           />
                                         </div>
                                       </div>
@@ -309,46 +379,45 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                         :
                         (
                           <>
-                            <h6>{translate('items.update.regular.variants')}:</h6>
+                            <h6 className="text-xs font-semibold">{translate('items.update.regular.variants')}:</h6>
                             {item?.variants?.map(variant => {
                               return (
-                                <div key={variant?.id} className="form-check">
-                                  <input
-                                    type="checkbox"
-                                    className="form-check-input"
+                                <div key={variant?.id} className="flex items-center gap-2">
+                                  <Checkbox
                                     id={`variant-${variant?.id}`}
-                                    name={`variant-${item?.id}`}
                                     checked={selectedVariants?.[`${item.id}~${variant.id}`]?.variant?.id === variant?.id}
-                                    onChange={e => handleVariantSelection(e, item, variant)}
+                                    onCheckedChange={(checked) => handleVariantSelection(checked, item, variant)}
                                   />
-                                  <label className="form-check-label text-opacity-100 font-bold" htmlFor={`variant-${variant?.id}`}>
+                                  <Label htmlFor={`variant-${variant?.id}`} className="text-xs font-bold cursor-pointer">
                                     {variant.name}
-                                  </label>
+                                  </Label>
                                 </div>
                               )
                             })}
                           </>
                         )}
                     </div>
-                  </Col>
+                  </div>
                 ))}
-              </Row>
-              <div className="d-flex justify-content-center mt-3">
+              </div>
+
+              <div className="flex justify-center">
                 <PaginationFilter totalPages={Math.ceil(totalItems / 12)} />
               </div>
-            </Col>
+            </div>
           )}
-        </Row >
-      </ModalBody >
-      <ModalFooter>
-        <Button color="secondary" onClick={toggleModal}>
-          <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
-        </Button>
-        <Button color="primary" onClick={handleAddItems}>
-          <Translate contentKey={'items.update.combo.addItemModal.addItems'}>Add Items</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal >
+        </div>
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={toggleModal} className="h-7 text-xs">
+            <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
+          </Button>
+          <Button onClick={handleAddItems} className="h-7 text-xs">
+            <Translate contentKey={'items.update.combo.addItemModal.addItems'}>Add Items</Translate>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

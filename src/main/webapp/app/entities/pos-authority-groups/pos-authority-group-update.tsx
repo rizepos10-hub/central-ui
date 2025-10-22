@@ -2,11 +2,15 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
 import { changeEntityField, createEntity, getEntity, reset, updateEntity } from './pos-authority-group.reducer';
 import { IPosAuthorityGroup, POSAuthorityEnum } from 'app/shared/model/pos-authority-group';
 import Select from 'react-select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Save } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PosAuthorityGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -29,6 +33,11 @@ export const PosAuthorityGroupUpdate = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (updateSuccess) {
+      navigate('/pos-authority-group');
+    }
+  }, [updateSuccess]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -52,16 +61,14 @@ export const PosAuthorityGroupUpdate = () => {
 
   const authorityOptions = Object.values(POSAuthorityEnum).map((authority) => ({
     value: authority,
-    label: authority.replace('_', ' '), // Optionally format the label
+    label: authority.replace('_', ' '),
   }));
 
-  // Map current authorities to selected options
   const selectedOptions = authorityOptions.filter((option) =>
     posAuthorityGroupEntity?.authorities?.includes(option.value)
   );
 
   const handleChange = (selected) => {
-    // `selected` is an array of selected options
     const selectedAuthorities = selected ? selected.map((opt) => opt.value) : [];
     dispatch(
       changeEntityField({
@@ -72,79 +79,97 @@ export const PosAuthorityGroupUpdate = () => {
   };
 
   return (
-    <div>
-      <div className="col-8">
-        <h2>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">
           {isNew ? <Translate contentKey={'tempApp.pos-authority-group.home.createLabel'} /> : <Translate contentKey={'tempApp.pos-authority-group.home.editLabel'} />}
         </h2>
+
+        <Card>
+          <CardContent className="pt-6">
+            <form  className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-xs">
+                  <Translate contentKey={'tempApp.pos-authority-group.name'} />
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={posAuthorityGroupEntity?.name || ''}
+                  onChange={handleInputChange}
+                  required
+                  placeholder={translate("tempApp.pos-authority-group.name")}
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-xs">
+                  <Translate contentKey={'tempApp.pos-authority-group.description'} />
+                </Label>
+                <Input
+                  id="description"
+                  name="description"
+                  value={posAuthorityGroupEntity?.description || ''}
+                  onChange={handleInputChange}
+                  required
+                  placeholder={translate("tempApp.pos-authority-group.description")}
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="authorities" className="text-xs">
+                  <Translate contentKey={'tempApp.pos-authority-group.authorities'} />
+                </Label>
+                <Select
+                  isMulti
+                  options={authorityOptions}
+                  value={selectedOptions}
+                  onChange={handleChange}
+                  placeholder="Select authorities"
+                  className="text-xs"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: '32px',
+                      fontSize: '0.75rem',
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      fontSize: '0.75rem',
+                    })
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => navigate('/pos-authority-group')}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <Translate contentKey={'common.buttons.back'} />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleSubmit}
+                  disabled={updating}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  <Translate contentKey={'common.buttons.save'} />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-      <div className="col-8">
-        <div className="p-grid d-flex flex-column p-3  bg-white">
-
-          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-          <form onSubmit={handleSubmit}>
-
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="name">
-                <Translate contentKey={'tempApp.pos-authority-group.name'} />
-              </label>
-              <InputText
-                id="name"
-                name="name"
-                value={posAuthorityGroupEntity?.name || ''}
-                onChange={handleInputChange}
-                required
-                placeholder={translate("tempApp.pos-authority-group.name")}
-              />
-            </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="description">
-                <Translate contentKey={'tempApp.pos-authority-group.description'} />
-              </label>
-              <InputText
-                id="description"
-                name="description"
-                value={posAuthorityGroupEntity?.description || ''}
-                onChange={handleInputChange}
-                required
-                placeholder={translate("tempApp.pos-authority-group.description")}
-              />
-            </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="authorities">
-                <Translate contentKey={'tempApp.pos-authority-group.authorities'} />
-              </label>
-              <Select
-                isMulti
-                options={authorityOptions}
-                value={selectedOptions}
-                onChange={handleChange}
-                placeholder="Select authorities"
-              />
-            </div>
-
-            <div className="p-field d-flex gap-2 align-items-center mb-3">
-              <Button
-                id="cancel-save"
-                icon="pi pi-arrow-left"
-                className="p-button-secondary"
-                onClick={() => navigate('/pos-authority-group')}
-              >
-                <Translate contentKey={'common.buttons.back'} />
-              </Button>
-              <Button
-                id="save-entity"
-                type="submit"
-                disabled={updating}
-                icon="pi pi-save"
-              >
-                <Translate contentKey={'common.buttons.save'} />
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    </PageWrapper>
   );
 };
 

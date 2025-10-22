@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './table.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { InputText } from "primereact/inputtext";
 import { getSortState, Translate } from "react-jhipster";
-import Attachment from "app/shared/components/attachment/attachment";
 import Select from "react-select";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { InputNumber } from "primereact/inputnumber";
 import { IFloorPlanTable } from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Save } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 const FloorPlanTableUpdate = () => {
   const dispatch = useAppDispatch();
@@ -38,7 +38,7 @@ const FloorPlanTableUpdate = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  console.log(floorPlanTable, 'floorPlanTable')
+
   const handleClose = () => {
     navigate(-1);
   };
@@ -71,28 +71,18 @@ const FloorPlanTableUpdate = () => {
     setFloorPlanTable(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const handleDimensionChange = (type, e) => {
+  const handleDimensionChange = (type, value) => {
     setFloorPlanTable((prevState) => ({
-      ...prevState, dimensions: { ...prevState.dimensions, [type]: e.value, },
+      ...prevState, dimensions: { ...prevState.dimensions, [type]: parseFloat(value) || 0, },
     }));
   };
 
-  const removeImage = () => {
-    setFloorPlanTable(prev => ({
-      ...prev,
-      image: null
-    }))
-  }
-
-
   const addImage = (imageInfo) => {
-    console.log(imageInfo, 'imageInfo')
     setFloorPlanTable(prev => ({
       ...prev,
       image: imageInfo
     }))
   }
-
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault()
@@ -124,74 +114,79 @@ const FloorPlanTableUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? "Add New Foor Plan" : "Edit Foor Plan"}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+    <PageWrapper>
+      <div className="max-w-2xl">
+        <h2 className="text-2xl font-bold mb-6">{isNew ? "Add New Floor Plan Table" : "Edit Floor Plan Table"}</h2>
+      </div>
+      <div className="max-w-2xl">
+        <div className="bg-white p-6 rounded-lg shadow space-y-6">
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column gap-0"}>
-                  <label className={"mt-5"}>
+            <form >
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
                     <Translate contentKey={"tempApp.table.name"}>Name</Translate>
-                  </label>
-                  <InputText
+                  </Label>
+                  <Input
                     type="text"
                     name="name"
                     required={true}
                     id="floor-plan-name"
                     value={floorPlanTable.name || ''}
                     onChange={handleChange}
+                    className="h-7 text-xs"
                   />
                 </div>
-                <div className={"d-flex flex-column"}>
-                  <label className={"mt-5"}>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">
                     <Translate contentKey={"tempApp.table.dimensions"}>Dimensions</Translate>
-                  </label>
-                  <div className={"d-flex flex-column gap-3 my-2"}>
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
+                  </Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
                         <Translate contentKey={"tempApp.table.width"}>Width</Translate>
                       </span>
-                      <InputNumber
-                        size={3}
-                        maxFractionDigits={2}
+                      <Input
+                        type="number"
+                        step="0.01"
                         name="dimension-width"
                         required={true}
-                        value={floorPlanTable?.dimensions?.width || 0}
-                        onChange={(e) => handleDimensionChange("width", e)}
+                        value={floorPlanTable?.dimensions?.width || ''}
+                        onChange={(e) => handleDimensionChange("width", e.target.value)}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
-                      <span className="p-inputgroup-addon">px</span>
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
                     </div>
 
-                    <div className="p-inputgroup w-full md:w-14rem">
-                      <span className="p-inputgroup-addon">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-r-0 border-border rounded-l-md h-7">
                         <Translate contentKey={"tempApp.table.height"}>Height</Translate>
                       </span>
-                      <InputNumber
-                        size={3}
-                        maxFractionDigits={2}
-                        name="dimension-width"
+                      <Input
+                        type="number"
+                        step="0.01"
+                        name="dimension-height"
                         required={true}
-                        value={floorPlanTable?.dimensions?.height || 0}
-                        onChange={(e) => handleDimensionChange("height", e)}
+                        value={floorPlanTable?.dimensions?.height || ''}
+                        onChange={(e) => handleDimensionChange("height", e.target.value)}
+                        className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
-                      <span className="p-inputgroup-addon">px</span>
-
+                      <span className="inline-flex items-center px-3 text-xs text-muted-foreground bg-muted border border-l-0 border-border rounded-r-md h-7">
+                        px
+                      </span>
                     </div>
                   </div>
-
                 </div>
-                <div className={"d-flex flex-column"}>
-                  <label className={"mt-2"}>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">
                     <Translate contentKey={"tempApp.table.branch"}>Branch</Translate>
-                  </label>
+                  </Label>
                   <Select
                     options={branchList}
                     onChange={handleBranchChange}
@@ -201,40 +196,61 @@ const FloorPlanTableUpdate = () => {
                     value={floorPlanTable.branch || null}
                   />
                 </div>
-                <div className={"d-flex flex-column"}>
-                  <label className={"mt-2"}>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">
                     <Translate contentKey={"tempApp.table.image"}>Image</Translate>
-                  </label>
+                  </Label>
                   <MediaLibrary
                     handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
                     defaultValues={transformAttachmentStructure(floorPlanTable.image ? [floorPlanTable.image] : [], 'toFileLibraryListItem')}
                   />
                 </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
+              </div>
+
+              <div className="flex gap-2 mt-6">
+                <Button
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                  onClick={() => navigate(-1)}
+                  variant="secondary"
+                  type="button"
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
+                </Button>
+                <Button
+                  onClick={saveEntity}
+                  id="save-entity"
+                  data-cy="entityCreateSaveButton"
+                  type="button"
+                  disabled={updating}
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                <Button
+                  onClick={(e) => saveEntity(e, true)}
+                  id="save-entity-new"
+                  data-cy="entityCreateSaveButton"
+                  type="button"
+                  disabled={updating}
+                  size="sm"
+                  className="h-7 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </div>
             </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

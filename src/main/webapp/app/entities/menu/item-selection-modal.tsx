@@ -1,23 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Spinner } from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Translate } from 'react-jhipster';
 import { getEntities } from 'app/entities/item/all-items.reducer';
 import Select from "react-select";
-import { Tag } from "primereact/tag";
-import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
-import { Checkbox } from 'primereact/checkbox';
-// import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
 import { ITerm } from 'app/shared/model/term.model';
 import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { getEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
-import { Dropdown } from 'primereact/dropdown';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import PaginationFilterStateVals from 'app/shared/components/pagination/pagination-filter-state-vals';
 import { useRef } from 'react';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Check, X } from 'lucide-react';
+import {
+  Select as SelectUI,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -132,35 +143,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
     c.name.toLowerCase().includes(restaurantFilter.toLowerCase())
   );
 
-  const panelItemTemplate = () => {
-    return (
-      <div className="w-full">
-        <TabView
-          onClick={e => e.stopPropagation()}
-          activeIndex={activeIndex}
-          onTabChange={(e) => setActiveIndex(e.index)}
-        >
-          <TabPanel header="Retail Categories" >
-            <input
-              type="text"
-              className="mb-2 border rounded p-1 w-full"
-              placeholder="Filter Retail Categories..."
-              value={retailFilter}
-              onChange={(e) => setRetailFilter(e.target.value)}
-            />
-          </TabPanel>
-          <TabPanel header="Restaurant Categories">
-            <input
-              type="text"
-              className="mb-2 border rounded p-1 w-full"
-              placeholder="Filter Restaurant Categories..."
-              value={restaurantFilter}
-              onChange={(e) => setRestaurantFilter(e.target.value)}
-            />
-          </TabPanel>
-        </TabView>
-      </div>
-    );
+  const getCategoryOptions = () => {
+    return activeIndex === 0 ? filteredRetail : filteredRestaurant;
   };
 
   const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id);
@@ -170,15 +154,17 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   };
 
   return (
-    <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
-      <ModalHeader toggle={toggle}>
-        <Translate contentKey={'menus.pos.update.modals.item.title'}>Add Existing Items</Translate>
-      </ModalHeader>
-      <ModalBody>
-        <FormGroup>
-          <div className='d-flex gap-2 align-items-baseline'>
-            <div className='w-100'>
-              <Label for="searchItem">
+    <Dialog open={isOpen} onOpenChange={toggle}>
+      <DialogContent className="max-w-5xl p-3 max-h-[90vh] overflow-auto">
+        <DialogHeader className="p-2">
+          <DialogTitle className="text-sm font-semibold">
+            <Translate contentKey={'menus.pos.update.modals.item.title'}>Add Existing Items</Translate>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 px-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="searchItem" className="text-xs">
                 <Translate contentKey={'menus.pos.update.modals.item.search'}>Search Item</Translate>
               </Label>
               <Input
@@ -186,141 +172,200 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                 id="searchItem"
                 onChange={(e) => {
                   setItemName(e.target.value || '');
-                  setPage(1); // reset to first page on new search term
+                  setPage(1);
                 }}
                 value={itemName}
                 placeholder="Start Searching"
-                className='w-100'
+                className="h-8 text-xs"
               />
             </div>
-            <div className='w-100'>
-              <Label for="searchCategory">
+            <div className="space-y-1">
+              <Label htmlFor="searchCategory" className="text-xs">
                 <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
               </Label>
-              <Dropdown
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.value)}
-                options={activeIndex === 0 ? filteredRetail : filteredRestaurant}
-                optionLabel={"name"}
-                optionValue={"id"}
-                filter
-                filterTemplate={panelItemTemplate}
-                placeholder="Select a Category"
-                className="w-full"
-                showClear
-              />
+              <Tabs value={activeIndex === 0 ? 'retail' : 'restaurant'} onValueChange={(v) => setActiveIndex(v === 'retail' ? 0 : 1)} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-8">
+                  <TabsTrigger value="retail" className="text-xs h-7">Retail</TabsTrigger>
+                  <TabsTrigger value="restaurant" className="text-xs h-7">Restaurant</TabsTrigger>
+                </TabsList>
+                <TabsContent value="retail" className="mt-1">
+                  <Input
+                    type="text"
+                    placeholder="Filter Retail Categories..."
+                    value={retailFilter}
+                    onChange={(e) => setRetailFilter(e.target.value)}
+                    className="h-8 text-xs mb-1"
+                  />
+                  <SelectUI value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Select a Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {filteredRetail.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id} className="text-xs">
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </SelectUI>
+                </TabsContent>
+                <TabsContent value="restaurant" className="mt-1">
+                  <Input
+                    type="text"
+                    placeholder="Filter Restaurant Categories..."
+                    value={restaurantFilter}
+                    onChange={(e) => setRestaurantFilter(e.target.value)}
+                    className="h-8 text-xs mb-1"
+                  />
+                  <SelectUI value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Select a Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {filteredRestaurant.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id} className="text-xs">
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </SelectUI>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
-          <div className='d-flex justify-content-between mt-2'>
-            <div className='d-flex gap-2 align-items-start'>
-              <Label for="filterByUnassignedItems">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="filterByUnassignedItems"
+                checked={unassignedItems}
+                onCheckedChange={(checked) => setUnassignedItems(!!checked)}
+              />
+              <Label htmlFor="filterByUnassignedItems" className="text-xs cursor-pointer">
                 <Translate contentKey={'menus.pos.update.modals.item.filterByUnassignedItems'}>Filter By Unassigned Items</Translate>
               </Label>
-              <Checkbox
-                inputId="filterByUnassignedItems"
-                checked={unassignedItems}
-                onChange={(e) => setUnassignedItems(e.checked)}
-              />
             </div>
-            <div className='d-flex gap-2 align-items-start'>
-              <Label for="selectAllItems">
-                <Translate contentKey={'menus.pos.update.modals.item.selectAll'}>Select All</Translate>
-              </Label>
+            <div className="flex items-center space-x-2">
               <Checkbox
-                inputId="selectAllItems"
+                id="selectAllItems"
                 checked={
                   itemList.length > 0 &&
                   itemList.every(iItem => selectedItems.some(sItem => sItem.id === iItem.id))
                 }
-                onChange={(e) => {
-                  if (e.checked) {
+                onCheckedChange={(checked) => {
+                  if (checked) {
                     const notSelected = itemList.filter(i => !selectedItems.some(s => s.id === i.id));
                     handleToggleSelect(notSelected);
                   }
-                  if (!e.checked && !disbaleUnselect) {
+                  if (!checked && !disbaleUnselect) {
                     const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
                     handleToggleSelect(currentlySelectedFromList);
                   }
                 }}
               />
+              <Label htmlFor="selectAllItems" className="text-xs cursor-pointer">
+                <Translate contentKey={'menus.pos.update.modals.item.selectAll'}>Select All</Translate>
+              </Label>
             </div>
           </div>
-        </FormGroup>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>
-                <Translate contentKey={'menus.pos.update.modals.item.table.category'}>Category</Translate>
-              </th>
-              <th>
-                <Translate contentKey={'menus.pos.update.modals.item.table.menus'}>Menus</Translate>
-              </th>
-              <th>
-                <Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate>
-              </th>
-              <th>
-                <Translate contentKey={'menus.pos.update.modals.item.table.action'}>Action</Translate>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <div className="d-flex my-5">
-                <Spinner />
-              </div>
-            ) : (
-              itemList.map(item => (
-                <tr key={item.id}>
-                  <td>
-                    {item.categories && item.categories.length > 0
-                      ? item.categories.map((cat, index) => (
-                        <React.Fragment key={index}>
-                          <Tag value={cat.name} />
-                          {index < item.categories.length - 1 && <span style={{ margin: '0 5px' }}>&nbsp;</span>}
-                        </React.Fragment>
-                      ))
-                      : 'Uncategorized'}
-                  </td>
-                  <td>{item.menus?.map((menu) => menu.name).join(", ")}</td>
-                  <td>
-                    <div>
-                      <div>{item.name}</div>
-                      <span style={{ fontSize: '0.9em', color: 'gray' }}>
-                        {item?.variants?.length > 0
-                          ? `${item.variants.length} ${item.variants.length > 1 ? 'variants' : 'variant'}`
-                          : 'No variants'}
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <Button
-                      color={isItemSelected(item.id) ? disbaleUnselect ? 'success' : 'danger' : 'primary'}
-                      onClick={() => disbaleUnselect ? !isItemSelected(item.id) && handleToggleSelect([item]) : handleToggleSelect([item])}
-                    >
-                      {isItemSelected(item.id)
-                        ? disbaleUnselect ? 'Selected' : 'Unselect'
-                        : <Translate contentKey='menus.pos.update.modals.item.buttons.select'>Select</Translate>}
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        <div className="d-flex justify-content-center mt-3">
+        </div>
+        <div className="border rounded-md mt-2">
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">
+                    <Translate contentKey={'menus.pos.update.modals.item.table.category'}>Category</Translate>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Translate contentKey={'menus.pos.update.modals.item.table.menus'}>Menus</Translate>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <Translate contentKey={'menus.pos.update.modals.item.table.action'}>Action</Translate>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {itemList.map(item => (
+                  <TableRow key={item.id}>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {item.categories && item.categories.length > 0
+                          ? item.categories.map((cat, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {cat.name}
+                            </Badge>
+                          ))
+                          : <span className="text-muted-foreground">Uncategorized</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs">{item.menus?.map((menu) => menu.name).join(", ")}</TableCell>
+                    <TableCell className="text-xs">
+                      <div>
+                        <div className="font-medium">{item.name}</div>
+                        <span className="text-xs text-muted-foreground">
+                          {item?.variants?.length > 0
+                            ? `${item.variants.length} ${item.variants.length > 1 ? 'variants' : 'variant'}`
+                            : 'No variants'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant={isItemSelected(item.id) ? (disbaleUnselect ? 'default' : 'destructive') : 'default'}
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => disbaleUnselect ? !isItemSelected(item.id) && handleToggleSelect([item]) : handleToggleSelect([item])}
+                      >
+                        {isItemSelected(item.id) ? (
+                          <>
+                            {disbaleUnselect ? (
+                              <>
+                                <Check className="h-3 w-3 mr-1" />
+                                Selected
+                              </>
+                            ) : (
+                              <>
+                                <X className="h-3 w-3 mr-1" />
+                                Unselect
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <Translate contentKey='menus.pos.update.modals.item.buttons.select'>Select</Translate>
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+        <div className="flex justify-center mt-2">
           <PaginationFilterStateVals
             totalPages={Math.ceil(totalItems / size)}
             currentPage={page}
             setCurrentPage={(newPage) => setPage(newPage)}
           />
         </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="primary" onClick={handleSave}>
-          <Translate contentKey={'entity.action.save'}>Save</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+        <DialogFooter className="pt-2">
+          <Button size="sm" className="h-8 text-xs" onClick={handleSave}>
+            <Translate contentKey={'entity.action.save'}>Save</Translate>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

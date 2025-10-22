@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Ban, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './addon.reducer';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const AddonDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -40,28 +50,30 @@ export const AddonDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="addonDeleteDialogHeading">
-        <Translate contentKey="common.deleteTitle">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="addons.delete.question">
-        <Translate contentKey="addons.delete.question" interpolate={{ param: addonEntity.name }}>
-          Are you sure you want to delete this Addon?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="common.buttons.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-addon" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="common.buttons.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={true} onOpenChange={handleClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            <Translate contentKey="common.deleteTitle">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            <Translate contentKey="addons.delete.question" interpolate={{ param: addonEntity.name }}>
+              Are you sure you want to delete this Addon?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Ban className="h-4 w-4 mr-1" />
+            <Translate contentKey="common.buttons.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete} className="h-8 text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Trash2 className="h-4 w-4 mr-1" />
+            <Translate contentKey="common.buttons.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

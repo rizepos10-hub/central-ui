@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText, FormGroup, Label } from "reactstrap";
-import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './printer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from "react-select";
 import { IBranch } from "app/shared/model/branch.model";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { InputNumber } from "primereact/inputnumber";
 import { IPrinter } from "app/shared/model/PRINTER/printer.model";
-import { InputText } from "primereact/inputtext";
-import { SelectButton } from "primereact/selectbutton";
-import { Checkbox } from "primereact/checkbox";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 export const PrinterUpdate = () => {
@@ -54,8 +52,7 @@ export const PrinterUpdate = () => {
 
   }, []);
 
-  const saveEntity = (e, createNew = false) => {
-    e.preventDefault();
+  const saveEntity = (createNew = false) => {
     const entity = {
       ...printerEntity,
     };
@@ -84,172 +81,194 @@ export const PrinterUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="tempApp.printer.home.createOrEditLabel" data-cy="PrinterCreateUpdateHeading">
-            <Translate contentKey="tempApp.printer.home.createOrEditLabel">Create or edit a Printer</Translate>
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3  bg-white">
-          {loading ? (
-            <p>Loading...</p>
+    <div className="p-4 max-w-3xl">
+      <h2 className="text-xl font-bold mb-4">
+        <Translate contentKey="tempApp.printer.home.createOrEditLabel">Create or edit a Printer</Translate>
+      </h2>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="space-y-4 bg-white p-4 rounded-md border">
+          <div className="space-y-2">
+            <Label htmlFor="printer-name" className="text-sm">{translate('tempApp.printer.name')}</Label>
+            <Input
+              id="printer-name"
+              value={printerEntity.name || ""}
+              onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
+              required
+              className="h-7 text-xs"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-brand" className="text-sm">{translate('tempApp.printer.brand')}</Label>
+            <Input
+              id="printer-brand"
+              value={printerEntity.brand || ""}
+              onChange={e => dispatch(changeEntityField({ name: 'brand', value: e.target.value }))}
+              required
+              className="h-7 text-xs"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-model" className="text-sm">{translate('tempApp.printer.model')}</Label>
+            <Input
+              id="printer-model"
+              value={printerEntity.model || ""}
+              onChange={e => dispatch(changeEntityField({ name: 'model', value: e.target.value }))}
+              required
+              className="h-7 text-xs"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-connectionType" className="text-sm">{translate('tempApp.printer.connectionType')}</Label>
+            <ShadcnSelect
+              value={printerEntity?.connectionType || "NETWORK"}
+              onValueChange={(value) => {
+                dispatch(changeEntityField({ name: 'connectionType', value: value as IPrinter["connectionType"] }));
+                dispatch(changeEntityField({ name: 'ipAddress', value: null }));
+                dispatch(changeEntityField({ name: 'port', value: null }));
+                dispatch(changeEntityField({ name: 'serviceName', value: null }));
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs min-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONNECTION_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </ShadcnSelect>
+          </div>
+
+          {printerEntity?.connectionType === "NETWORK" ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="printer-ipAddress" className="text-sm">{translate('tempApp.printer.ipAddress')}</Label>
+                <Input
+                  id="printer-ipAddress"
+                  value={printerEntity.ipAddress || ""}
+                  onChange={e => dispatch(changeEntityField({ name: 'ipAddress', value: e.target.value }))}
+                  required
+                  className="h-7 text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="printer-port" className="text-sm">{translate('tempApp.printer.port')}</Label>
+                <Input
+                  id="printer-port"
+                  type="number"
+                  value={printerEntity.port || 0}
+                  onChange={e => dispatch(changeEntityField({ name: 'port', value: parseInt(e.target.value) || 0 }))}
+                  required
+                  className="h-7 text-xs"
+                />
+              </div>
+            </>
           ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-name">{translate('tempApp.printer.name')}</Label>
-                  <InputText
-                    id="printer-name"
-                    value={printerEntity.name || ""}
-                    onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-brand">{translate('tempApp.printer.brand')}</Label>
-                  <InputText
-                    id="printer-brand"
-                    value={printerEntity.brand || ""}
-                    onChange={e => dispatch(changeEntityField({ name: 'brand', value: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-model">{translate('tempApp.printer.model')}</Label>
-                  <InputText
-                    id="printer-model"
-                    value={printerEntity.model || ""}
-                    onChange={e => dispatch(changeEntityField({ name: 'model', value: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-connectionType">{translate('tempApp.printer.connectionType')}</Label>
-                  <SelectButton
-                    value={printerEntity?.connectionType || "NETWORK"}
-                    allowEmpty={false}
-                    onChange={(e) => {
-                      dispatch(changeEntityField({ name: 'connectionType', value: e.value }));
-                      dispatch(changeEntityField({ name: 'ipAddress', value: null }));
-                      dispatch(changeEntityField({ name: 'port', value: null }));
-                      dispatch(changeEntityField({ name: 'serviceName', value: null }));
-                    }}
-                    options={CONNECTION_TYPES} />
-                </div>
-
-                {
-                  printerEntity?.connectionType === "NETWORK" ? (
-                    <>
-                      <div className={"d-flex flex-column mb-3"}>
-                        <Label htmlFor="printer-ipAddress">{translate('tempApp.printer.ipAddress')}</Label>
-                        <InputText
-                          id="printer-ipAddress"
-                          value={printerEntity.ipAddress || ""}
-                          onChange={e => dispatch(changeEntityField({ name: 'ipAddress', value: e.target.value }))}
-                          required
-                        />
-                      </div>
-
-                      <div className={"d-flex flex-column mb-3"}>
-                        <Label htmlFor="printer-port">{translate('tempApp.printer.port')}</Label>
-                        <InputNumber
-                          id="printer-port"
-                          value={printerEntity.port || 0}
-                          onChange={e => dispatch(changeEntityField({ name: 'port', value: e.value }))}
-                          required
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className={"d-flex flex-column mb-3"}>
-                      <Label htmlFor="printer-serviceName">{translate('tempApp.printer.serviceName')}</Label>
-                      <InputText
-                        id="printer-serviceName"
-                        value={printerEntity.serviceName || ""}
-                        onChange={e => dispatch(changeEntityField({ name: 'serviceName', value: e.target.value }))}
-                        required
-                      />
-                    </div>
-                  )
-                }
-
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-printSpeed">{translate('tempApp.printer.printSpeed')}</Label>
-                  <InputNumber
-                    id="printer-printSpeed"
-                    value={printerEntity.printSpeed || 0}
-                    onChange={e => dispatch(changeEntityField({ name: 'printSpeed', value: e.value }))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-branch">{translate('tempApp.printer.branch')}</Label>
-                  <Select
-                    name={"printer-branch"}
-                    options={branchList}
-                    getOptionLabel={(option: IBranch) => option.name}
-                    getOptionValue={(option: IBranch) => option.id}
-                    value={printerEntity?.branch || null}
-                    placeholder="Branch Name"
-                    onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-size">{translate('tempApp.printer.size')}</Label>
-                  <SelectButton
-                    value={printerEntity?.size || "mm72"}
-                    allowEmpty={false}
-                    onChange={(e) => dispatch(changeEntityField({ name: 'size', value: e.value }))}
-                    options={SIZES} />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-colorPrinter">{translate('tempApp.printer.colorPrinter')}</Label>
-                  <Checkbox
-                    checked={printerEntity?.colorPrinter}
-                    onChange={(e) => dispatch(changeEntityField({ name: 'colorPrinter', value: e.checked }))} />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-colorPrinter">{translate('tempApp.printer.reverse')}</Label>
-                  <Checkbox
-                    checked={printerEntity?.reverse}
-                    onChange={(e) => dispatch(changeEntityField({ name: 'reverse', value: e.checked }))} />
-                </div>
-
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
-            </form>
+            <div className="space-y-2">
+              <Label htmlFor="printer-serviceName" className="text-sm">{translate('tempApp.printer.serviceName')}</Label>
+              <Input
+                id="printer-serviceName"
+                value={printerEntity.serviceName || ""}
+                onChange={e => dispatch(changeEntityField({ name: 'serviceName', value: e.target.value }))}
+                required
+                className="h-7 text-xs"
+              />
+            </div>
           )}
-        </Col>
-      </Row>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-printSpeed" className="text-sm">{translate('tempApp.printer.printSpeed')}</Label>
+            <Input
+              id="printer-printSpeed"
+              type="number"
+              value={printerEntity.printSpeed || 0}
+              onChange={e => dispatch(changeEntityField({ name: 'printSpeed', value: parseInt(e.target.value) || 0 }))}
+              required
+              className="h-7 text-xs"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-branch" className="text-sm">{translate('tempApp.printer.branch')}</Label>
+            <Select
+              name={"printer-branch"}
+              options={branchList}
+              getOptionLabel={(option: IBranch) => option.name}
+              getOptionValue={(option: IBranch) => option.id}
+              value={printerEntity?.branch || null}
+              placeholder="Branch Name"
+              onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
+              styles={{
+                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-size" className="text-sm">{translate('tempApp.printer.size')}</Label>
+            <ShadcnSelect
+              value={printerEntity?.size || "mm72"}
+              onValueChange={(value) => dispatch(changeEntityField({ name: 'size', value: value as IPrinter["size"] }))}
+            >
+              <SelectTrigger className="h-7 text-xs min-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SIZES.map((size) => (
+                  <SelectItem key={size} value={size}>{size}</SelectItem>
+                ))}
+              </SelectContent>
+            </ShadcnSelect>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="printer-colorPrinter"
+              checked={printerEntity?.colorPrinter === true}
+              onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'colorPrinter', value: checked === true }))}
+            />
+            <Label htmlFor="printer-colorPrinter" className="text-sm cursor-pointer">
+              {translate('tempApp.printer.colorPrinter')}
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="printer-reverse"
+              checked={printerEntity?.reverse === true}
+              onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'reverse', value: checked === true }))}
+            />
+            <Label htmlFor="printer-reverse" className="text-sm cursor-pointer">
+              {translate('tempApp.printer.reverse')}
+            </Label>
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={() => navigate(-1)} className="h-8 text-xs">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.back">Back</Translate>
+            </Button>
+            <Button onClick={() => saveEntity()} disabled={updating} className="h-8 text-xs">
+              <Save className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+            <Button onClick={() => saveEntity(true)} disabled={updating} className="h-8 text-xs">
+              <Save className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

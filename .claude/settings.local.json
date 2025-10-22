@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(for file in branch-pos-user/user-update.tsx pos-authority-groups/pos-authority-group-update.tsx settings/course-definition/course-definition-update.tsx)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(grep:*)",
+      "Bash(done)",
+      "Bash(npm run clean:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

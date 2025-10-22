@@ -3,6 +3,7 @@ import {IAttachment} from "app/shared/model/attachment.model";
 export interface IStockOrderedItem {
   id?: string; // Variant id
   itemId?: string;
+  name?: string;
   variantId?: string;
   sku?: string;
   itemName?: string;

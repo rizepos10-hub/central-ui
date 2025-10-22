@@ -1,22 +1,136 @@
-// Override Boostrap variables
-// Import Bootstrap source files from node_modules
-@import '~bootstrap/scss/bootstrap';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 217.2193 91.2195% 59.8039%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220.0000 14.2857% 95.8824%;
+    --secondary-foreground: 215 13.7931% 34.1176%;
+    --muted: 210 20.0000% 98.0392%;
+    --muted-foreground: 220 8.9362% 46.0784%;
+    --accent: 204.0000 93.7500% 93.7255%;
+    --accent-foreground: 224.4444 64.2857% 32.9412%;
+    --destructive: 0 84.2365% 60.1961%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13.0435% 90.9804%;
+    --input: 220 13.0435% 90.9804%;
+    --ring: 217.2193 91.2195% 59.8039%;
+    --chart-1: 217.2193 91.2195% 59.8039%;
+    --chart-2: 221.2121 83.1933% 53.3333%;
+    --chart-3: 224.2781 76.3265% 48.0392%;
+    --chart-4: 225.9310 70.7317% 40.1961%;
+    --chart-5: 224.4444 64.2857% 32.9412%;
+    --sidebar: 210 20.0000% 98.0392%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --font-sans: Inter, sans-serif;
+    --font-serif: Source Serif 4, serif;
+    --font-mono: JetBrains Mono, monospace;
+    --radius: 0.375rem;
+    --shadow-x: 0;
+    --shadow-y: 1px;
+    --shadow-blur: 3px;
+    --shadow-spread: 0px;
+    --shadow-opacity: 0.1;
+    --shadow-color: oklch(0 0 0);
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
+    --sidebar-background: 0 0% 98%;
+  }
+  
+  .dark {
+    --background: 0 0% 9.0196%;
+    --foreground: 0 0% 89.8039%;
+    --card: 0 0% 14.9020%;
+    --card-foreground: 0 0% 89.8039%;
+    --popover: 0 0% 14.9020%;
+    --popover-foreground: 0 0% 89.8039%;
+    --primary: 217.2193 91.2195% 59.8039%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 14.9020%;
+    --secondary-foreground: 0 0% 89.8039%;
+    --muted: 0 0% 12.1569%;
+    --muted-foreground: 0 0% 63.9216%;
+    --accent: 224.4444 64.2857% 32.9412%;
+    --accent-foreground: 213.3333 96.9231% 87.2549%;
+    --destructive: 0 84.2365% 60.1961%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 25.0980%;
+    --input: 0 0% 25.0980%;
+    --ring: 217.2193 91.2195% 59.8039%;
+    --chart-1: 213.1169 93.9024% 67.8431%;
+    --chart-2: 217.2193 91.2195% 59.8039%;
+    --chart-3: 221.2121 83.1933% 53.3333%;
+    --chart-4: 224.2781 76.3265% 48.0392%;
+    --chart-5: 225.9310 70.7317% 40.1961%;
+    --sidebar: 0 0% 9.0196%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --font-sans: Inter, sans-serif;
+    --font-serif: Source Serif 4, serif;
+    --font-mono: JetBrains Mono, monospace;
+    --radius: 0.375rem;
+    --shadow-x: 0;
+    --shadow-y: 1px;
+    --shadow-blur: 3px;
+    --shadow-spread: 0px;
+    --shadow-opacity: 0.1;
+    --shadow-color: oklch(0 0 0);
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --sidebar-background: 240 5.9% 10%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Base styles */
 body {
-  background: #fafafa;
   margin: 0;
 }
 
-a {
-  color: #533f03;
-  font-weight: bold;
-}
-
 * {
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
   &:after,
   &::before {
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
   }
 }
@@ -29,9 +143,6 @@ a {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 1rem;
-    .card {
-      padding: 1rem;
-    }
     .view-routes {
       height: 100%;
       > div {
@@ -52,10 +163,7 @@ a {
   padding: 5px 25px 50px 25px !important;
 }
 
-/* ==========================================================================
-Browser Upgrade Prompt
-========================================================================== */
-
+/* Browser Upgrade Prompt */
 .browserupgrade {
   margin: 0.2em 0;
   background: #ccc;
@@ -63,10 +171,7 @@ Browser Upgrade Prompt
   padding: 0.2em 0;
 }
 
-/* ==========================================================================
-Custom button styles
-========================================================================== */
-
+/* Custom button styles */
 .icon-button > .btn {
   background-color: transparent;
   border-color: transparent;
@@ -77,22 +182,11 @@ Custom button styles
     border-color: transparent;
   }
   &:focus {
-    -webkit-box-shadow: none;
     box-shadow: none;
   }
 }
 
-/* ==========================================================================
-Generic styles
-========================================================================== */
-
-/* Temporary workaround for availity-reactstrap-validation */
-.invalid-feedback {
-  display: inline;
-}
-
-/* other generic styles */
-
+/* Generic styles */
 .title {
   font-size: 1.25em;
   margin: 1px 10px 1px 10px;
@@ -127,135 +221,14 @@ Generic styles
   white-space: pre-wrap;
 }
 
-/* padding helpers */
-
-@mixin pad($size, $side) {
-  @if $size== '' {
-    @if $side== '' {
-      .pad {
-        padding: 10px !important;
-      }
-    } @else {
-      .pad {
-        padding-#{$side}: 10px !important;
-      }
-    }
-  } @else {
-    @if $side== '' {
-      .pad-#{$size} {
-        padding: #{$size}px !important;
-      }
-    } @else {
-      .pad-#{$side}-#{$size} {
-        padding-#{$side}: #{$size}px !important;
-      }
-    }
-  }
-}
-
-@include pad('', '');
-@include pad('2', '');
-@include pad('3', '');
-@include pad('5', '');
-@include pad('10', '');
-@include pad('20', '');
-@include pad('25', '');
-@include pad('30', '');
-@include pad('50', '');
-@include pad('75', '');
-@include pad('100', '');
-@include pad('4', 'top');
-@include pad('5', 'top');
-@include pad('10', 'top');
-@include pad('20', 'top');
-@include pad('25', 'top');
-@include pad('30', 'top');
-@include pad('50', 'top');
-@include pad('75', 'top');
-@include pad('100', 'top');
-@include pad('4', 'bottom');
-@include pad('5', 'bottom');
-@include pad('10', 'bottom');
-@include pad('20', 'bottom');
-@include pad('25', 'bottom');
-@include pad('30', 'bottom');
-@include pad('50', 'bottom');
-@include pad('75', 'bottom');
-@include pad('100', 'bottom');
-@include pad('5', 'right');
-@include pad('10', 'right');
-@include pad('20', 'right');
-@include pad('25', 'right');
-@include pad('30', 'right');
-@include pad('50', 'right');
-@include pad('75', 'right');
-@include pad('100', 'right');
-@include pad('5', 'left');
-@include pad('10', 'left');
-@include pad('20', 'left');
-@include pad('25', 'left');
-@include pad('30', 'left');
-@include pad('50', 'left');
-@include pad('75', 'left');
-@include pad('100', 'left');
-
-@mixin no-padding($side) {
-  @if $side== 'all' {
-    .no-padding {
-      padding: 0 !important;
-    }
-  } @else {
-    .no-padding-#{$side} {
-      padding-#{$side}: 0 !important;
-    }
-  }
-}
-
-@include no-padding('left');
-@include no-padding('right');
-@include no-padding('top');
-@include no-padding('bottom');
-@include no-padding('all');
-
-/* end of padding helpers */
-
+/* Utility classes - keep these for legacy code compatibility */
 .no-margin {
   margin: 0px;
 }
-@mixin voffset($size) {
-  @if $size== '' {
-    .voffset {
-      margin-top: 2px !important;
-    }
-  } @else {
-    .voffset-#{$size} {
-      margin-top: #{$size}px !important;
-    }
-  }
-}
-
-@include voffset('');
-@include voffset('5');
-@include voffset('10');
-@include voffset('15');
-@include voffset('30');
-@include voffset('40');
-@include voffset('60');
-@include voffset('80');
-@include voffset('100');
-@include voffset('150');
 
 .readonly {
   background-color: #eee;
   opacity: 1;
-}
-
-/* ==========================================================================
-make sure browsers use the pointer cursor for anchors, even with no href
-========================================================================== */
-
-a:hover {
-  cursor: pointer;
 }
 
 .hand {
@@ -275,10 +248,7 @@ a.anchor-btn:hover {
   text-decoration: none;
 }
 
-/* ==========================================================================
-Metrics and Health styles
-========================================================================== */
-
+/* Metrics and Health styles */
 #threadDump .popover,
 #healthCheck .popover {
   top: inherit;
@@ -302,12 +272,6 @@ Metrics and Health styles
   min-width: 400px;
 }
 
-
-/* bootstrap 3 input-group 100% width
-http://stackoverflow.com/questions/23436430/bootstrap-3-input-group-100-width */
-
 .width-min {
   width: 1% !important;
 }
-
-/* jhipster-needle-scss-add-main JHipster will add new css style */

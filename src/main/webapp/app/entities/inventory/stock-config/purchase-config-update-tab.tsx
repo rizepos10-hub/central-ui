@@ -1,13 +1,15 @@
 // PurchaseConfigUpdateTab.tsx
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Row, Col, FormGroup, Label, Table, Button } from 'reactstrap';
+import { Trash2 } from 'lucide-react';
 import { useAppSelector } from 'app/config/store';
 import { IPurchaseConfig } from 'app/shared/model/STOCK/purchase-config.model';
 import { translate } from 'react-jhipster';
-import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PurchaseConfigUpdateTabProps {
   id?: string;
@@ -35,7 +37,8 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     );
   }, [purchaseConfig?.supplierConfigurations, suppliers]);
 
-  const handleNumberChange = (field: string, num: number | null) => {
+  const handleNumberChange = (field: string, value: string) => {
+    const num = value === '' ? null : parseFloat(value);
     const newConfig = { ...purchaseConfig, [field]: num };
     onConfigChange(newConfig, variantIndex);
   };
@@ -53,7 +56,8 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     onConfigChange(newConfig, variantIndex);
   };
 
-  const handleSupplierConfigChange = (configIndex: number, price: number | null) => {
+  const handleSupplierConfigChange = (configIndex: number, value: string) => {
+    const price = value === '' ? null : parseFloat(value);
     const updatedConfigurations = purchaseConfig?.supplierConfigurations?.map((supConfig, index) =>
       index === configIndex ? { ...supConfig, defaultPrice: price } : supConfig
     );
@@ -76,115 +80,104 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew
-              ? translate('tempApp.stockConfig.addNewPurchaseConfig')
-              : translate('tempApp.stockConfig.editPurchaseConfig')}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col className="d-flex flex-column p-3">
-          <FormGroup>
-            <Row>
-              <Col md="6">
-                <div className="d-flex flex-column mt-2">
-                  <strong>
-                    <Label for="defaultPrice">{translate('tempApp.stockConfig.defaultPrice')}</Label>
-                  </strong>
-                  <InputNumber
-                    name="defaultPrice"
-                    id="defaultPrice"
-                    value={purchaseConfig?.defaultPrice}
-                    onChange={(e) => handleNumberChange('defaultPrice', e.value)}
-                    minFractionDigits={2}
-                    maxFractionDigits={2}
-                    // inputStyle={{
-                    //   borderColor:
-                    //     (purchaseConfig?.supplierConfigurations?.length > 0 &&
-                    //       purchaseConfig?.defaultPrice == null) ||
-                    //       (purchaseConfig?.minOrderQuantity != null && purchaseConfig?.defaultPrice == null)
-                    //       ? 'red'
-                    //       : ''
-                    // }}
-                  />
-                </div>
-              </Col>
-              <Col md="6">
-                <div className="d-flex flex-column mt-2">
-                  <strong>
-                    <Label for="minOrderQuantity">{translate('tempApp.stockConfig.minOrderQuantity')}</Label>
-                  </strong>
-                  <InputNumber
-                    name="minOrderQuantity"
-                    id="minOrderQuantity"
-                    value={purchaseConfig?.minOrderQuantity}
-                    onChange={(e) => handleNumberChange('minOrderQuantity', e.value)}
-                  />
-                </div>
-              </Col>
-            </Row>
-            <div className="d-flex flex-column mt-2">
-              <strong>
-                <Label>{translate('tempApp.stockConfig.supplierConfig')}</Label>
-              </strong>
-              <div className="d-flex flex-column border p-3">
-                <Label>{translate('tempApp.stockConfig.selectSupplier')}</Label>
-                <Dropdown
-                  options={filteredSuppliers}
-                  placeholder={translate('tempApp.stockConfig.selectSupplier')}
-                  className="w-full md:w-14rem"
-                  optionLabel="name"
-                  filter
-                  onChange={handleAddSupplier}
-                />
-                <Table bordered className="mt-2">
-                  <thead>
-                    <tr>
-                      <th>{translate('common.supplier')}</th>
-                      <th>{translate('common.costPrice')}</th>
-                      <th>{translate('common.supplierCode')}</th>
-                      <th>{translate('common.delete')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
-                      <tr key={supConfig.supplier.id}>
-                        <td>{supConfig.supplier.name}</td>
-                        <td>
-                          <InputNumber
-                            required
-                            onWheel={(e: any) => e.target.blur()}
-                            size={20}
-                            value={supConfig?.defaultPrice}
-                            onChange={(e) => handleSupplierConfigChange(index, e.value)}
-                            minFractionDigits={2}
-                            maxFractionDigits={2}
-                          />
-                        </td>
-                        <td>
-                          <InputText
-                            value={supConfig.code}
-                            onChange={(e) => handleSupplierCodeChange(index, e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <Button color="danger" onClick={() => handleDeleteSupplier(index)}>
-                            {translate('common.delete')}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </div>
-          </FormGroup>
-        </Col>
-      </Row>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="defaultPrice" className="font-semibold text-xs">
+            {translate('tempApp.stockConfig.defaultPrice')}
+          </Label>
+          <Input
+            type="number"
+            name="defaultPrice"
+            id="defaultPrice"
+            className="h-8 text-xs"
+            step="0.01"
+            value={purchaseConfig?.defaultPrice ?? ''}
+            onChange={(e) => handleNumberChange('defaultPrice', e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="minOrderQuantity" className="font-semibold text-xs">
+            {translate('tempApp.stockConfig.minOrderQuantity')}
+          </Label>
+          <Input
+            type="number"
+            name="minOrderQuantity"
+            id="minOrderQuantity"
+            className="h-8 text-xs"
+            step="1"
+            value={purchaseConfig?.minOrderQuantity ?? ''}
+            onChange={(e) => handleNumberChange('minOrderQuantity', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="font-semibold">{translate('tempApp.stockConfig.supplierConfig')}</Label>
+        <div className="border rounded-md p-4 space-y-3">
+          <div className="space-y-2">
+            <Label className="text-xs">{translate('tempApp.stockConfig.selectSupplier')}</Label>
+            <Dropdown
+              options={filteredSuppliers}
+              placeholder={translate('tempApp.stockConfig.selectSupplier')}
+              className="w-full"
+              optionLabel="name"
+              filter
+              onChange={handleAddSupplier}
+            />
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">{translate('common.supplier')}</TableHead>
+                  <TableHead className="text-xs">{translate('common.costPrice')}</TableHead>
+                  <TableHead className="text-xs">{translate('common.supplierCode')}</TableHead>
+                  <TableHead className="text-xs">{translate('common.delete')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
+                  <TableRow key={supConfig.supplier.id}>
+                    <TableCell className="text-xs">{supConfig.supplier.name}</TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        className="h-7 text-xs w-32"
+                        required
+                        value={supConfig?.defaultPrice ?? ''}
+                        onChange={(e) => handleSupplierConfigChange(index, e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="text"
+                        className="h-7 text-xs w-32"
+                        value={supConfig.code ?? ''}
+                        onChange={(e) => handleSupplierCodeChange(index, e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => handleDeleteSupplier(index)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        {translate('common.delete')}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

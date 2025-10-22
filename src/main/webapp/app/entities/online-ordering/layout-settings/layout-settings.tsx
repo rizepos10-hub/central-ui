@@ -64,7 +64,7 @@ const LayoutSettingsUpdate = () => {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <form onSubmit={saveEntity}>
+          <form >
             <Card>
               <TabView>
                 <TabPanel header={translate('tempApp.layoutSettings.tabs.contactInfo.label')}>

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IMenu } from 'app/shared/model/menu.model';
-import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { IBranch } from 'app/shared/model/branch.model';
-import { getEntity, updateEntity, createEntity, reset } from './branch.reducer';
+import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './branch.reducer';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const BranchUpdate = () => {
   const dispatch = useAppDispatch();
@@ -44,12 +45,14 @@ export const BranchUpdate = () => {
     }
   }, [updateSuccess]);
 
-  const saveEntity = values => {
+  const handleChange = e => {
+    const { name, value } = e.target;
+    dispatch(changeEntityField({ name, value: name === 'numberOfEmployees' ? parseInt(value) || 0 : value }));
+  };
 
+  const saveEntity = () => {
     const entity = {
       ...branchEntity,
-      ...values,
-      // menu: menus.find(it => it.id.toString() === values.menu.toString()),
     };
 
     if (isNew) {
@@ -59,86 +62,83 @@ export const BranchUpdate = () => {
     }
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-          ...branchEntity,
-          menu: branchEntity?.menu?.id,
-        };
-
   return (
-    <div >
-      <Row >
-        <Col md="8">
-          <h2 id="tempApp.branch.home.createOrEditLabel" data-cy="BranchCreateUpdateHeading">
-            {isNew ? `Create New Branch` : `Edit ${branchEntity.name}`}
-          </h2>
-        </Col>
-      </Row>
-      <Row >
-        <Col md="8" className="bg-white p-3">
+    <PageWrapper>
+      <Card>
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm font-semibold">
+            {isNew ? 'Create New Branch' : `Edit ${branchEntity.name}`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3">
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-xs">Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {/* {!isNew ? ( */}
-              {/*   <ValidatedField */}
-              {/*     name="id" */}
-              {/*     required */}
-              {/*     readOnly */}
-              {/*     id="branch-id" */}
-              {/*     label={translate('global.field.id')} */}
-              {/*     validate={{ required: true }} */}
-              {/*   /> */}
-              {/* ) : null} */}
-              <ValidatedField
-                label={translate('tempApp.branch.name')}
-                id="branch-name"
-                name="name"
-                data-cy="name"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                }}
-              />
-              {/* <ValidatedField label={translate('tempApp.branch.appId')} id="branch-appId" name="appId" data-cy="appId" type="text" /> */}
-              <ValidatedField
-                label={translate('tempApp.branch.numberOfEmployees')}
-                id="branch-numberOfEmployees"
-                name="numberOfEmployees"
-                data-cy="numberOfEmployees"
-                type="text"
-              />
-              {/* <ValidatedField id="branch-menu" name="menu" data-cy="menu" label={translate('tempApp.branch.menu')} type="select"> */}
-              {/*   <option value="" key="0" /> */}
-              {/*   {menus */}
-              {/*     ? menus.map(otherEntity => ( */}
-              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*           {otherEntity.name} */}
-              {/*         </option> */}
-              {/*       )) */}
-              {/*     : null} */}
-              {/* </ValidatedField> */}
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/branch" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </ValidatedForm>
+            <form>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="branch-name" className="text-xs">
+                    {translate('tempApp.branch.name')}
+                  </Label>
+                  <Input
+                    id="branch-name"
+                    name="name"
+                    data-cy="name"
+                    type="text"
+                    required
+                    maxLength={100}
+                    value={branchEntity?.name || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="branch-numberOfEmployees" className="text-xs">
+                    {translate('tempApp.branch.numberOfEmployees')}
+                  </Label>
+                  <Input
+                    id="branch-numberOfEmployees"
+                    name="numberOfEmployees"
+                    data-cy="numberOfEmployees"
+                    type="number"
+                    value={branchEntity?.numberOfEmployees || ''}
+                    onChange={handleChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
+                    <Link to="/branch" id="cancel-save" data-cy="entityCreateCancelButton">
+                      <ArrowLeft className="h-4 w-4 mr-1" />
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </Link>
+                  </Button>
+                  <Button
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="button"
+                    onClick={saveEntity}
+                    disabled={updating}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                </div>
+              </div>
+            </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

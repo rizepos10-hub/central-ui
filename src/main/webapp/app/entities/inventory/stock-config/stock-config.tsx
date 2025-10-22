@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './inventory-items.reducer';
-import { DataTable, DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { Chip } from "primereact/chip";
-import { FilterMatchMode } from "primereact/api";
-import { Card as PrimeCard } from 'primereact/card'
 import { IQueryParams } from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Wallet, Ban, Settings, Plus, RefreshCw, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const StockConfig = () => {
   const dispatch = useAppDispatch();
@@ -35,11 +42,10 @@ export const StockConfig = () => {
   const totalItems = useAppSelector(state => state.inventoryItem.totalItems);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    desc: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: '',
   });
 
-  const [expandedRows, setExpandedRows] = useState(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
 
   const getAllEntities = () => {
@@ -55,39 +61,36 @@ export const StockConfig = () => {
   }, [queryParams.page, queryParams.sort, queryParams.size, queryParams.query]);
 
   const expandAll = () => {
-    const _expandedRows = {};
-
-    inventoryItemList.forEach((p) => (_expandedRows[`${p.id}`] = true));
-
+    const _expandedRows = new Set<string>();
+    inventoryItemList.forEach((p) => _expandedRows.add(p.id));
     setExpandedRows(_expandedRows);
   };
 
   const collapseAll = () => {
-    setExpandedRows(null);
+    setExpandedRows(new Set());
+  };
+
+  const toggleRow = (id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
   };
 
 
-  const onPage = (event: DataTablePageEvent) => {
-    const { page, first } = event;
-
+  const onPage = (page: number) => {
     setQueryParams(prevState => ({
       ...prevState,
-      first,
+      first: page * queryParams.size,
       page
     }));
   };
 
-
-  const onSort = (event: DataTableSortEvent) => {
-    // setQueryParams();
-  };
-
-  const onFilter = _.debounce((event) => {
-    const keys: any = Object.keys(event.filters);
-    const newQuery = keys
-      .map((key) => event.filters[key].value ? `${key}=${event.filters[key].value}` : null)
-      .filter((queryPart) => queryPart !== null)
-      .join('&');
+  const onFilterChange = _.debounce((name: string, value: string) => {
+    const newQuery = value ? `name=${value}` : null;
 
     setQueryParams((prevState) => ({
       ...prevState,
@@ -103,14 +106,15 @@ export const StockConfig = () => {
 
   const quantityConfigBodyTemplate = (rowData) => {
     const { stockQuantities: quantity } = rowData;
-    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&variantName=${rowData?.name}&page=${queryParams.page}
-    &sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
+    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&variantName=${rowData?.name}&page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
-    const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
+    const icon = quantity?.length > 0 ? <Wallet className="h-4 w-4" /> : <Ban className="h-4 w-4 text-muted-foreground" />;
     const handleClick = () => {
       navigate(editUrl)
     }
-    return quantity?.length > 0 ? <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem' }} />;
+    return quantity?.length > 0 ?
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button> :
+      <span className="inline-flex items-center justify-center">{icon}</span>;
   };
 
   const purchaseConfigBodyTemplate = (rowData) => {
@@ -119,7 +123,7 @@ export const StockConfig = () => {
     const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
     const editUrl = `/inventory/stock/purchase-config/${config?.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
-    const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
+    const icon = config ? <Settings className="h-4 w-4" /> : <Plus className="h-4 w-4" />;
 
     const handleClick = () => {
       if (!config) {
@@ -129,58 +133,190 @@ export const StockConfig = () => {
       }
     }
 
-    return <Button icon={icon} onClick={handleClick} />;
+    return <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button>;
   };
 
-  const rowExpansionTemplate = (data, idx) => {
+  const renderVariantRow = (data) => {
     const variantsWithItemId = data.variants.map(variant => ({
       ...variant,
       itemId: data.id
     }));
 
     return (
-      <div className="p-3 bg-light">
-        <h4>{data.name} Variants</h4>
-        <DataTable value={variantsWithItemId} showGridlines>
-          <Column className={'bg-light'} body={data => formatVariant(data?.name, data?.attributeValues)} header={translate("common.variantName")} sortable />
-          <Column className={'bg-light'} field="price" header={translate("common.price")} sortable />
-          <Column className={'bg-light'} field="sku" header={translate("common.sku")} sortable />
-          <Column className={'bg-light'} headerStyle={{ width: '9rem' }} header={translate("common.details")} body={quantityConfigBodyTemplate} />
-          <Column className={'bg-light'} headerStyle={{ width: '9rem' }} header={translate("tempApp.stockConfig.purchaseConfig")} body={purchaseConfigBodyTemplate} />
-        </DataTable>
-      </div>
+      <TableRow>
+        <TableCell colSpan={2} className="bg-muted/50">
+          <div className="p-3">
+            <h4 className="text-sm font-semibold mb-2">{data.name} Variants</h4>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs bg-muted/30">{translate("common.variantName")}</TableHead>
+                  <TableHead className="text-xs bg-muted/30">{translate("common.price")}</TableHead>
+                  <TableHead className="text-xs bg-muted/30">{translate("common.sku")}</TableHead>
+                  <TableHead className="text-xs bg-muted/30 w-24">{translate("common.details")}</TableHead>
+                  <TableHead className="text-xs bg-muted/30 w-24">{translate("tempApp.stockConfig.purchaseConfig")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {variantsWithItemId.map((variant) => (
+                  <TableRow key={variant.id}>
+                    <TableCell className="text-xs bg-muted/30">{formatVariant(variant?.name, variant?.attributeValues)}</TableCell>
+                    <TableCell className="text-xs bg-muted/30">{variant.price}</TableCell>
+                    <TableCell className="text-xs bg-muted/30">{variant.sku}</TableCell>
+                    <TableCell className="text-xs bg-muted/30 text-center">{quantityConfigBodyTemplate(variant)}</TableCell>
+                    <TableCell className="text-xs bg-muted/30 text-center">{purchaseConfigBodyTemplate(variant)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TableCell>
+      </TableRow>
     );
   };
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.title'}>StockConfigs</Translate></span>
-      <div className="ms-auto">
-        <div className="flex flex-wrap justify-content-end gap-2">
-          <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-            &nbsp;
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+  return (
+    <PageWrapper>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <span className="text-xl font-bold"><Translate contentKey={'tempApp.stockConfig.title'}>StockConfigs</Translate></span>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            {translate("common.refreshList")}
           </Button>
-
-          <Button icon="pi pi-plus" label={translate("common.expandAll")} onClick={expandAll} text />
-          <Button icon="pi pi-minus" label={translate("common.collapseAll")} onClick={collapseAll} text />
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={expandAll}>
+            <ChevronDown className="h-4 w-4 mr-2" />
+            {translate("common.expandAll")}
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={collapseAll}>
+            <ChevronRight className="h-4 w-4 mr-2" />
+            {translate("common.collapseAll")}
+          </Button>
         </div>
       </div>
-    </div>
-  );
 
-  return (
-    <div >
-      <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator showGridlines
-        rowExpansionTemplate={rowExpansionTemplate} onRowToggle={(e) => setExpandedRows(e.data)}
-        expandedRows={expandedRows} onSort={onSort} header={header}
-        first={queryParams.first} rows={10} totalRecords={totalItems} onPage={onPage}
-        onFilter={onFilter} filters={filters} loading={loading} tableStyle={{ minWidth: '75rem' }} >
-        <Column expander style={{ width: '5rem' }} />
-        <Column field="name" header="Item Name" sortable filter filterPlaceholder="Search" />
-        {/* <Column field="desc" header="Description"  /> */}
-      </DataTable>
-    </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-xs w-12"></TableHead>
+            <TableHead className="text-xs">
+              <div className="space-y-1">
+                <div>Item Name</div>
+                <Input
+                  type="text"
+                  className="h-7 text-xs"
+                  placeholder="Search"
+                  value={filters.name}
+                  onChange={(e) => {
+                    setFilters({ ...filters, name: e.target.value });
+                    onFilterChange('name', e.target.value);
+                  }}
+                />
+              </div>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {inventoryItemList?.map((item) => (
+            <React.Fragment key={item.id}>
+              <TableRow>
+                <TableCell className="text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => toggleRow(item.id)}
+                  >
+                    {expandedRows.has(item.id) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                  </Button>
+                </TableCell>
+                <TableCell className="text-xs">{item.name}</TableCell>
+              </TableRow>
+              {expandedRows.has(item.id) && renderVariantRow(item)}
+            </React.Fragment>
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalItems > queryParams.size && (
+        <div className="flex items-center justify-between px-2 py-3 border-t mt-4">
+          <div className="text-xs text-muted-foreground">
+            Showing {queryParams.first + 1} - {Math.min(queryParams.first + queryParams.size, totalItems)} of {totalItems}
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (queryParams.page > 0) onPage(queryParams.page - 1);
+                  }}
+                  className={queryParams.page === 0 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+
+              {(() => {
+                const totalPages = Math.ceil(totalItems / queryParams.size);
+                const currentPage = queryParams.page;
+                const pages = [];
+
+                if (totalPages <= 7) {
+                  for (let i = 0; i < totalPages; i++) {
+                    pages.push(i);
+                  }
+                } else {
+                  if (currentPage < 3) {
+                    pages.push(0, 1, 2, 3, -1, totalPages - 1);
+                  } else if (currentPage > totalPages - 4) {
+                    pages.push(0, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1);
+                  } else {
+                    pages.push(0, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages - 1);
+                  }
+                }
+
+                return pages.map((pageNum, idx) => {
+                  if (pageNum === -1) {
+                    return (
+                      <PaginationItem key={`ellipsis-${idx}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPage(pageNum);
+                        }}
+                        isActive={queryParams.page === pageNum}
+                      >
+                        {pageNum + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                });
+              })()}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (queryParams.page < Math.ceil(totalItems / queryParams.size) - 1) {
+                      onPage(queryParams.page + 1);
+                    }
+                  }}
+                  className={queryParams.page >= Math.ceil(totalItems / queryParams.size) - 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </PageWrapper>
   );
 };
 

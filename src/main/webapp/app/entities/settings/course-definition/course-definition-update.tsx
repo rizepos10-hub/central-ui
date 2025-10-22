@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
 import { changeEntityField, createEntity, getEntity, reset, updateEntity } from './course-definition.reducer';
 import { ICourseDefinition } from 'app/shared/model/COURSE-DEFINITION/course-definition';
-import { InputNumber } from 'primereact/inputnumber';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Save } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const CourseDefinitionUpdate = () => {
   const dispatch = useAppDispatch();
@@ -51,85 +53,92 @@ export const CourseDefinitionUpdate = () => {
   };
 
   return (
-    <div>
-      <div className="col-8">
-        <h2>
+    <PageWrapper>
+      <div className="max-w-2xl">
+        <h2 className="text-2xl font-bold mb-6">
           {isNew ? <Translate contentKey={'tempApp.course.home.createLabel'} /> : <Translate contentKey={'tempApp.course.home.editLabel'} />}
         </h2>
       </div>
-      <div className="col-8">
-        <div className="p-grid d-flex flex-column p-3  bg-white">
-
-          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-          <form onSubmit={handleSubmit}>
-
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="name">
+      <div className="max-w-2xl">
+        <div className="bg-white p-6 rounded-lg shadow space-y-4">
+          <form >
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="name" className="text-xs">
                 <Translate contentKey={'tempApp.course.name'} />
-              </label>
-              <InputText
+              </Label>
+              <Input
                 id="name"
                 name="name"
                 value={courseDefinitionEntity?.name || ''}
                 onChange={handleInputChange}
                 required
                 placeholder={translate("tempApp.course.name")}
+                className="h-7 text-xs"
               />
             </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="description">
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="description" className="text-xs">
                 <Translate contentKey={'tempApp.course.description'} />
-              </label>
-              <InputText
+              </Label>
+              <Input
                 id="description"
                 name="description"
                 value={courseDefinitionEntity?.description || ''}
                 onChange={handleInputChange}
                 required
                 placeholder={translate("tempApp.course.description")}
+                className="h-7 text-xs"
               />
             </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="order">
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="order" className="text-xs">
                 <Translate contentKey={'tempApp.course.order'} />
-              </label>
-              <InputNumber
+              </Label>
+              <Input
                 id="order"
                 name="order"
-                value={courseDefinitionEntity?.order}
+                type="number"
+                value={courseDefinitionEntity?.order || ''}
                 onChange={(e) => {
                   dispatch(changeEntityField({
                     name: "order",
-                    value: e.value
+                    value: parseInt(e.target.value, 10)
                   }));
                 }}
                 required
                 placeholder={translate("tempApp.course.order")}
+                className="h-7 text-xs"
               />
             </div>
 
-            <div className="p-field d-flex gap-2 align-items-center mb-3">
+            <div className="flex gap-2 items-center mt-6">
               <Button
                 id="cancel-save"
-                icon="pi pi-arrow-left"
-                className="p-button-secondary"
+                variant="secondary"
                 onClick={() => navigate('/course-definition')}
+                type="button"
+                size="sm"
+                className="h-7 text-xs"
               >
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 <Translate contentKey={'common.buttons.back'} />
               </Button>
               <Button
                 id="save-entity"
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={updating}
-                icon="pi pi-save"
+                size="sm"
+                className="h-7 text-xs"
               >
+                <Save className="h-4 w-4 mr-2" />
                 <Translate contentKey={'common.buttons.save'} />
               </Button>
             </div>
           </form>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

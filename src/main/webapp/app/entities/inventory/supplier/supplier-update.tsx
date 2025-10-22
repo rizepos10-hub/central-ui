@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './supplier.reducer';
-import { InputText } from "primereact/inputtext";
 import { ISupplier } from "app/shared/model/STOCK/supplier.model";
 import { translate, Translate } from "react-jhipster";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const SupplierUpdate = () => {
   const dispatch = useAppDispatch();
@@ -82,99 +84,124 @@ export const SupplierUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? `${translate("tempApp.supplier.createNew")}` : `${translate("tempApp.supplier.edit")}`}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+    <PageWrapper>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">
+          {isNew ? `${translate("tempApp.supplier.createNew")}` : `${translate("tempApp.supplier.edit")}`}
+        </h2>
+      </div>
+
+      <Card>
+        <CardContent className="p-4">
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-xs">Loading...</p>
           ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column"}>
-                  <Label for="name">
-                    <Translate contentKey={"common.name"} />
-                  </Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="name"
-                    value={supplier.name || ''}
-                    onChange={handleChange}
-                  />
-                </div>
+            <form className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="name" className="text-xs font-medium">
+                  <Translate contentKey={"common.name"} />
+                </label>
+                <Input
+                  type="text"
+                  name="name"
+                  required={true}
+                  id="name"
+                  className="h-8 text-xs"
+                  value={supplier.name || ''}
+                  onChange={handleChange}
+                />
+              </div>
 
-                <div className={"d-flex flex-column mt-2"}>
+              <div className="space-y-1">
+                <label htmlFor="address" className="text-xs font-medium">
                   <Translate contentKey={"common.address"} />
-                  <InputText
-                    type="text"
-                    name="address"
-                    id="address"
-                    value={supplier.address || ''}
+                </label>
+                <Input
+                  type="text"
+                  name="address"
+                  id="address"
+                  className="h-8 text-xs"
+                  value={supplier.address || ''}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <strong className="text-sm font-semibold">
+                  <Translate contentKey={"common.contactInformation"} />
+                </strong>
+
+                <div className="space-y-1">
+                  <label htmlFor="email" className="text-xs font-medium">
+                    <Translate contentKey={"common.email"} />
+                  </label>
+                  <Input
+                    type="email"
+                    name="email"
+                    id="email"
+                    className="h-8 text-xs"
+                    value={supplier?.email || ''}
                     onChange={handleChange}
                   />
                 </div>
 
-
-                <div className={"d-flex flex-column gap-2 mt-2"}>
-                  <strong><label className={"text-xl"}>
-                    <Translate contentKey={"common.contactInformation"} />
-                  </label></strong>
-                  <div className={"d-flex flex-column"}>
-                    <Label for="email">
-                      <Translate contentKey={"common.email"} />
-                    </Label>
-                    <InputText
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={supplier?.email || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div className={"d-flex flex-column"}>
-                    <Label for="phoneNumber">
-                      <Translate contentKey={"common.phone"} />
-                    </Label>
-                    <InputText
-                      name="phoneNumber"
-                      id="phoneNumber"
-                      value={supplier?.phoneNumber || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label htmlFor="phoneNumber" className="text-xs font-medium">
+                    <Translate contentKey={"common.phone"} />
+                  </label>
+                  <Input
+                    name="phoneNumber"
+                    id="phoneNumber"
+                    className="h-8 text-xs"
+                    value={supplier?.phoneNumber || ''}
+                    onChange={handleChange}
+                  />
                 </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                  onClick={() => navigate(-1)}
+                  variant="outline"
+                  className="h-8 text-xs"
+                  type="button"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
+                </Button>
+
+                <Button
+                  onClick={saveEntity}
+                  id="save-entity"
+                  data-cy="entityCreateSaveButton"
+                  type="button"
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+
+                <Button
+                  onClick={(e) => saveEntity(e, true)}
+                  id="save-entity-new"
+                  type="button"
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </div>
             </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

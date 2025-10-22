@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
@@ -10,11 +10,10 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { searchEntities, getEntities } from './customer.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const Customer = () => {
   const dispatch = useAppDispatch();
@@ -32,11 +31,9 @@ export const Customer = () => {
   const totalItems = useAppSelector(state => state.customer.totalItems);
 
   const [filters, setFilters] = useState({
-    firstname: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    lastname: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: '',
+    email: '',
+    phone: '',
   });
 
 
@@ -142,103 +139,107 @@ export const Customer = () => {
     sortEntities();
   };
 
-  const firstNameColumnTemplate = rowData => {
-    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.firstName}
-      </Link>
-    );
-  };
-
-  const nameColumnTemplate = (rowData) => {
-    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {`${rowData.firstName ?? ''} ${rowData.lastName ?? ''}`}
-      </Link>
-    );
-  };
-
-  const handleNameFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-
-
-
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/customer/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
     navigate('/customer/new')
   }
-  console.log(customerList, 'customerList')
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'customers.view.table.title'}>Customers</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate('customers.view.table.buttons.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate('customers.view.table.buttons.createNewCustomer')} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
 
-  );
+  const filteredCustomerList = modifiedCustomerList.filter(customer => {
+    const matchesName = !filters.name || customer.name?.toLowerCase().includes(filters.name.toLowerCase());
+    const matchesEmail = !filters.email || customer.email?.toLowerCase().includes(filters.email.toLowerCase());
+    const matchesPhone = !filters.phone || customer.phone?.includes(filters.phone);
+    return matchesName && matchesEmail && matchesPhone;
+  });
 
 
   return (
-    <div>
+    <PageWrapper>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xl font-bold"><Translate contentKey={'customers.view.table.title'}>Customers</Translate></span>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={handleSyncList} disabled={loading} className="h-8 text-xs">
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            {translate('customers.view.table.buttons.refreshList')}
+          </Button>
+          <Button size="sm" onClick={handleCreate} disabled={loading} className="h-8 text-xs">
+            {translate('customers.view.table.buttons.createNewCustomer')}
+          </Button>
+        </div>
+      </div>
 
-        <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator showGridlines
-                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-
-          <Column
-            field="name" header={translate('common.name')} filter
-            filterElement={ <InputText  placeholder={translate('common.search.name')} onChange={handleNameFilterChange}/> }
-            filterField="name" body={nameColumnTemplate} sortable
-          />
-
-          <Column field="email" header={translate('common.email')} filter filterPlaceholder={translate('common.search.email')}  sortable   />
-          <Column field="phone" header={translate('common.phone')}  filter filterPlaceholder={translate('common..search.phone')}  sortable  />
-
-          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-    </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                <div className="space-y-1">
+                  <div>{translate('common.name')}</div>
+                  <Input
+                    placeholder={translate('common.search.name')}
+                    value={filters.name}
+                    onChange={(e) => setFilters({...filters, name: e.target.value})}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="space-y-1">
+                  <div>{translate('common.email')}</div>
+                  <Input
+                    placeholder={translate('common.search.email')}
+                    value={filters.email}
+                    onChange={(e) => setFilters({...filters, email: e.target.value})}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="space-y-1">
+                  <div>{translate('common.phone')}</div>
+                  <Input
+                    placeholder={translate('common..search.phone')}
+                    value={filters.phone}
+                    onChange={(e) => setFilters({...filters, phone: e.target.value})}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="w-[50px]">{translate('common.edit')}</TableHead>
+              <TableHead className="w-[50px]">{translate('common.delete')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCustomerList.map(customer => (
+              <TableRow key={customer.id}>
+                <TableCell className="text-xs">
+                  <Link
+                    to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    className="hover:underline"
+                  >
+                    {customer.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-xs">{customer.email}</TableCell>
+                <TableCell className="text-xs">{customer.phone}</TableCell>
+                <TableCell>
+                  <Link to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Pencil className="h-3 w-3 text-gray-400" />
+                    </Button>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link to={`/customer/${customer.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                      <Trash2 className="h-3 w-3 text-red-500" />
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </PageWrapper>
   );
 };
 

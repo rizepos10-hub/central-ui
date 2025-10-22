@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-topping.reducer';
-import { Card as PrimeCard } from 'primereact/card'
 
-import { InputText } from "primereact/inputtext";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { getSortState, Translate } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { ITopping } from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
 import { getEntities as getToppingGroups, createEntity as createToppingGroup } from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
-import Attachment from "app/shared/components/attachment/attachment";
 import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 import Select from "react-select";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { InputNumber } from 'primereact/inputnumber';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -67,13 +67,11 @@ export const PizzaToppingUpdate = () => {
     }));
   }, []);
 
-  console.log(pizzaToppingGroups, 'pizzaToppingGroups')
   useEffect(() => {
     if (pizzaToppingEntity) {
       setPizzaTopping(() => {
         const toppingGroup = { ...pizzaToppingEntity.group };
         const modifiedGroup = { ...toppingGroup, label: toppingGroup.name, value: toppingGroup?.id };
-        console.log(modifiedGroup, 'modifiedGroup')
         return {
           ...pizzaToppingEntity,
           group: modifiedGroup
@@ -92,7 +90,6 @@ export const PizzaToppingUpdate = () => {
   }
 
   const handleAddImage = (imageType, imageInfo) => {
-    console.log(imageInfo, 'imageInfo')
     setPizzaTopping((prevState) => ({ ...prevState, [imageType]: transformAttachmentStructure(imageInfo, 'toIAttachment')[0] }))
   }
 
@@ -139,33 +136,32 @@ export const PizzaToppingUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? "Add New Topping" : "Edit Topping"}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <PrimeCard>
+    <PageWrapper>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">{isNew ? "Add New Topping" : "Edit Topping"}</h2>
+      </div>
+      <div className="max-w-2xl">
+        <Card>
+          <CardContent className="p-6">
             {loading ? (
               <p>Loading...</p>
             ) : (
               <form>
-                <FormGroup>
-                  <div className={"d-flex flex-column"}>
-                    <Label for="pizza-topping-name">Name</Label>
-                    <InputText
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="pizza-topping-name" className="text-xs">Name</Label>
+                    <Input
                       type="text"
                       name="name"
                       required={true}
                       id="pizza-topping-name"
                       value={pizzaTopping.name || ''}
                       onChange={(e) => handleChange('name', e.target.value)}
+                      className="h-8 text-xs"
                     />
                   </div>
-                  <div className={"d-flex flex-column my-2"}>
-                    <Label for="pizza-topping-group">Topping Group</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="pizza-topping-group" className="text-xs">Topping Group</Label>
                     <CreatableSelect
                       isDisabled={updatingGroup}
                       isLoading={updatingGroup}
@@ -174,25 +170,35 @@ export const PizzaToppingUpdate = () => {
                       onCreateOption={handleCreate}
                       onChange={handleGroupChange}
                       isClearable={true}
-
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: '32px',
+                          fontSize: '0.75rem',
+                        }),
+                        option: (base) => ({
+                          ...base,
+                          fontSize: '0.75rem',
+                        }),
+                      }}
                     />
                   </div>
 
-                  <div className={"d-flex flex-column"}>
-                    <Label for="pizza-topping-weight">Weight</Label>
-                    <InputNumber
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="pizza-topping-weight" className="text-xs">Weight</Label>
+                    <Input
+                      type="number"
                       name="weight"
                       required={true}
                       id="pizza-topping-weight"
-                      value={pizzaTopping.weight}
-                      onChange={(e) => handleChange('weight', e.value)}
+                      value={pizzaTopping.weight || ''}
+                      onChange={(e) => handleChange('weight', parseFloat(e.target.value))}
+                      className="h-8 text-xs"
                     />
                   </div>
 
-                  <div className={"d-flex flex-column  my-2"}>
-                    <label>
-                      Pricing Class
-                    </label>
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs">Pricing Class</Label>
                     <Select
                       value={pizzaTopping?.pricingClass || null}
                       required
@@ -200,52 +206,76 @@ export const PizzaToppingUpdate = () => {
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
                       onChange={(toppingPriceOption) => setPizzaTopping((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: '32px',
+                          fontSize: '0.75rem',
+                        }),
+                        option: (base) => ({
+                          ...base,
+                          fontSize: '0.75rem',
+                        }),
+                      }}
                     />
                   </div>
 
 
-                  <div className={"d-flex flex-column my-2"}>
-                    <Label >Topping Image</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs">Topping Image</Label>
                     <MediaLibrary
                       handleFilesSelectCallback={(files) => handleAddImage("image", files)}
                       defaultValues={transformAttachmentStructure(pizzaTopping?.image ? [pizzaTopping?.image] : [], 'toFileLibraryListItem')}
                     />
                   </div>
 
-                  <div className={"d-flex flex-column my-2"}>
-                    <Label >Topping Icon</Label>
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs">Topping Icon</Label>
                     <MediaLibrary
                       handleFilesSelectCallback={(files) => handleAddImage("icon", files)}
                       defaultValues={transformAttachmentStructure(pizzaTopping?.icon ? [pizzaTopping?.icon] : [], 'toFileLibraryListItem')}
                     />
                   </div>
+                </div>
 
-                </FormGroup>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+                <div className="flex gap-2 mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => navigate(-1)}
+                    type="button"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
                     <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
-                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-                &nbsp;
-                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                </Button>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={saveEntity}
+                    type="button"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => saveEntity(e, true)}
+                    type="button"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
+                </div>
               </form>
             )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

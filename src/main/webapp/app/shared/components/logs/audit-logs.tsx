@@ -3,15 +3,11 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {IAuditLog} from "app/shared/model/audit-log.model";
 import {getEntityLogs} from "app/shared/components/logs/audit-logs.reducer";
 import {convertUtcToLocalDate} from "app/shared/util/date-utils";
-import {
-  Modal,
-  ModalBody,
-  ModalHeader, Spinner,
-} from "reactstrap";
-
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
 import { Translate } from "react-jhipster";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 type AuditLogsProps = {
   // entity: "PURCHASE_ORDER" | "ORDER" | "TRANSFER_REQUEST";
@@ -104,76 +100,92 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
   };
 
   return (
-    <div ref={containerRef} className="h-75 overflow-auto">
-      <h4>Audit Logs</h4>
+    <div ref={containerRef} className="h-3/4 overflow-auto">
+      <h4 className="text-sm font-semibold mb-3">Audit Logs</h4>
 
       {/* Filter Tags (Clickable Actions) */}
-      <div className="mb-3">
+      <div className="flex flex-wrap gap-2 mb-3">
         {actionOptions.map((action) => (
-          <span
+          <Badge
             key={action}
-            className={`badge px-3 py-2 me-2 cursor-pointer ${
-              selectedActions.includes(action) ? "bg-primary text-white" : "bg-light text-dark"
-            }`}
+            variant={selectedActions.includes(action) ? "default" : "outline"}
+            className="cursor-pointer text-xs h-7 px-3"
             onClick={() => toggleFilter(action)}
           >
             {action}
-          </span>
+          </Badge>
         ))}
       </div>
 
-      <ol className="list-group list-group-numbered shadow-sm rounded overflow-hidden">
+      <ol className="space-y-2 list-decimal list-inside">
         {allLogs.length === 0 ? (
-          <li className="list-group-item text-center py-3 text-muted">No logs available</li>
+          <li className="text-center py-3 text-xs text-muted-foreground border rounded p-2">No logs available</li>
         ) : (
           allLogs.map((log, index) => {
             const isChangeLog = true;
             return (
-            <li 
-            key={index} 
-            className={`list-group-item d-flex justify-content-between align-items-start p-3 ${
-              hoveredIndex === index ? 'border border-primary shadow-sm' : ''
-            } ${isChangeLog && "cursor-pointer"}`}
-            onMouseEnter={() => handleMouseEnter(index, isChangeLog)}
-            onMouseLeave={() => handleMouseLeave(isChangeLog)}
-            onClick={() =>  handleSelectLog(index, isChangeLog)}
+            <li
+              key={index}
+              className={`border rounded p-3 text-xs transition-all ${
+                hoveredIndex === index ? 'border-primary shadow-sm' : ''
+              } ${isChangeLog && "cursor-pointer hover:bg-muted/50"}`}
+              onMouseEnter={() => handleMouseEnter(index, isChangeLog)}
+              onMouseLeave={() => handleMouseLeave(isChangeLog)}
+              onClick={() =>  handleSelectLog(index, isChangeLog)}
             >
-              <div className="d-flex flex-column flex-grow-1 ms-2 me-auto">
-                <div className="fw-bold">{log.action}</div>
+              <div className="flex flex-col gap-1">
+                <div className="font-semibold">{log.action}</div>
 
-                <div className="text-end small text-secondary ms-auto">
-                {convertUtcToLocalDate(log.occurredAt)}
+                <div className="text-muted-foreground">
+                  {convertUtcToLocalDate(log.occurredAt)}
                 </div>
 
-                <div className="text-muted small">{log.actor}</div>
+                <div className="text-muted-foreground">{log.actor}</div>
                   {log?.userMessage && (
-                    <div className="text-secondary small mt-1">
-                      <Translate contentKey={'items.update.stockQuantity.stockQuantityUserMessage'}>User Message: </Translate>  {log.userMessage}</div>
+                    <div className="text-muted-foreground mt-1">
+                      <Translate contentKey={'items.update.stockQuantity.stockQuantityUserMessage'}>User Message: </Translate>  {log.userMessage}
+                    </div>
                   )}
               </div>
             </li>
           )})
         )}
       {loading && (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '100px' }}>
-          <Spinner />
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       )}
-      {showModal ? (
-        <Modal isOpen={showModal} toggle={toggleModal} className=" modal-xl modal-dialog-scrollable">
-          <ModalHeader toggle={toggleModal}>Log Changes</ModalHeader>
-          <ModalBody>
-            <DataTable scrollable scrollHeight="400px" value={allLogs?.[selectedLogIndex]?.changes}>
-              <Column header={'Property'} field={'propertyName'} />
-              <Column header={'Type'} field={'changeType'} />
-
-              <Column header={'From Value'} field={'fromValue'} />
-              <Column header={'To Value'} field={'fromValue'} />
-              <Column header={'Current Value'} field={'value'} />
-            </DataTable>
-          </ModalBody>
-        </Modal>
-      ) : null}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="max-w-4xl max-h-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Log Changes</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto max-h-[400px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Property</TableHead>
+                  <TableHead className="text-xs">Type</TableHead>
+                  <TableHead className="text-xs">From Value</TableHead>
+                  <TableHead className="text-xs">To Value</TableHead>
+                  <TableHead className="text-xs">Current Value</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allLogs?.[selectedLogIndex]?.changes?.map((change, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-xs">{change.propertyName}</TableCell>
+                    <TableCell className="text-xs">{change.changeType}</TableCell>
+                    <TableCell className="text-xs">{change.fromValue}</TableCell>
+                    <TableCell className="text-xs">{change.toValue}</TableCell>
+                    <TableCell className="text-xs">{change.value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

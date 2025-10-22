@@ -15,6 +15,8 @@ import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
 import { setTenant } from 'app/shared/tenant/TenantContext';
 import VersionUpdateChecker from "app/version/version-checker";
 import { APIProvider } from '@vis.gl/react-google-maps';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeProvider } from 'app/shared/hooks/use-theme';
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -43,16 +45,20 @@ export const App = () => {
 
   return (
     <BrowserRouter basename={baseHref}>
-      <LayoutProvider>
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <Layout>
-            <ErrorBoundary>
-              <VersionUpdateChecker />
-              <AppRoutes />
-            </ErrorBoundary>
-          </Layout>
-        </APIProvider>
-      </LayoutProvider>
+      <ThemeProvider>
+        <LayoutProvider>
+          <TooltipProvider delayDuration={1}>
+            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+              <Layout>
+                <ErrorBoundary>
+                  <VersionUpdateChecker />
+                  <AppRoutes />
+                </ErrorBoundary>
+              </Layout>
+            </APIProvider>
+          </TooltipProvider>
+        </LayoutProvider>
+      </ThemeProvider>
     </BrowserRouter>
 
   );

@@ -1,17 +1,19 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './pricing-point.reducer';
-import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { ApplicationTypes, AutomaticType, IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
-import Select from 'react-select'
+import ReactSelect from 'react-select'
 import { IBranch } from 'app/shared/model/branch.model';
 
 export const PricingPointUpdate = () => {
@@ -120,145 +122,193 @@ export const PricingPointUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="pricing-point.home.createOrEditLabel">
-            {isNew ? "Create New Pricing Point" : "Edit Pricing Point"}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="12" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="pricing-point-name">Name</Label>
-                    <InputText
-                      id="pricing-point-name"
-                      required
-                      value={pricingPoint.name ?? ''}
-                      onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
-                    />
-                  </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="pricing-point-automatic-type">Applicable branches</Label>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">
+          {isNew ? "Create New Pricing Point" : "Edit Pricing Point"}
+        </h2>
+
+        {loading ? (
+          <p className="text-xs">Loading...</p>
+        ) : (
+          <form  className="space-y-4">
+            <div className="bg-white p-4 rounded-md border space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="pricing-point-name" className="text-xs font-semibold">
+                    Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="pricing-point-name"
+                    required
+                    value={pricingPoint.name || ''}
+                    onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="pricing-point-branches" className="text-xs font-semibold">
+                    Applicable branches
+                  </Label>
+                  <ReactSelect
+                    inputId="pricing-point-branches"
+                    value={pricingPoint.applicableBranches || []}
+                    isMulti
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={selected => dispatch(
+                      changeEntityField({
+                        name: "applicableBranches",
+                        value: selected.map((option) => option)
+                      })
+                    )}
+                    options={branchList}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="pricing-point-type" className="text-xs font-semibold">
+                    Type
+                  </Label>
+                  <Select
+                    value={pricingPoint.type || ''}
+                    onValueChange={(value) => dispatch(changeEntityField({ name: 'type', value }))}
+                  >
+                    <SelectTrigger id="pricing-point-type" className="h-7 text-xs">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(PricingPointType).map(type => (
+                        <SelectItem key={type} value={type} className="text-xs">
+                          {formatPricingPointType(type)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {pricingPoint.type === PricingPointType.AUTOMATIC && (
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="pricing-point-automatic-type" className="text-xs font-semibold">
+                      Automatic Type
+                    </Label>
                     <Select
-                      value={pricingPoint.applicableBranches ?? []}
+                      value={pricingPoint.automaticType || ''}
+                      onValueChange={(value) => dispatch(changeEntityField({ name: 'automaticType', value }))}
+                    >
+                      <SelectTrigger id="pricing-point-automatic-type" className="h-7 text-xs">
+                        <SelectValue placeholder="Select automatic type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(AutomaticType).map(type => (
+                          <SelectItem key={type} value={type} className="text-xs">
+                            {formatPricingPointAutomaticType(type)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {pricingPoint.automaticType === AutomaticType.ORDER_TYPE && pricingPoint.type === PricingPointType.AUTOMATIC && (
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="pricing-point-order-types" className="text-xs font-semibold">
+                      Order Types
+                    </Label>
+                    <ReactSelect
+                      inputId="pricing-point-order-types"
+                      options={Object.values(OrderMethod).map(type => ({
+                        label: formatPricingPointOrderType(type),
+                        value: type
+                      }))}
+                      value={(pricingPoint.orderTypes || []).map(val => ({
+                        label: formatPricingPointOrderType(val),
+                        value: val
+                      }))}
+                      onChange={(selected) => {
+                        dispatch(
+                          changeEntityField({
+                            name: "orderTypes",
+                            value: selected.map((option) => option.value)
+                          })
+                        )
+                      }}
                       isMulti
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={selected => dispatch(
-                        changeEntityField({
-                          name: "applicableBranches",
-                          value: selected.map((option) => option)
-                        })
-                      )}
-                      options={branchList}
+                      className="text-xs"
                     />
                   </div>
-                </div>
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="pricing-point-type">Type</Label>
-                    <Dropdown
-                      id='pricing-point-type'
-                      options={Object.values(PricingPointType).map(type => ({ label: formatPricingPointType(type), value: type }))}
-                      value={pricingPoint.type ?? ''}
-                      onChange={e => dispatch(changeEntityField({ name: 'type', value: e.target.value }))}
+                )}
+
+                {pricingPoint.automaticType === AutomaticType.APP && pricingPoint.type === PricingPointType.AUTOMATIC && (
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="pricing-point-app-types" className="text-xs font-semibold">
+                      App Types
+                    </Label>
+                    <ReactSelect
+                      inputId="pricing-point-app-types"
+                      options={Object.values(ApplicationTypes).map(type => ({
+                        label: formatPricingPointAppType(type),
+                        value: type
+                      }))}
+                      value={(pricingPoint.applicationTypes || []).map(val => ({
+                        label: formatPricingPointAppType(val),
+                        value: val
+                      }))}
+                      onChange={(selected) => {
+                        dispatch(
+                          changeEntityField({
+                            name: "applicationTypes",
+                            value: selected.map((option) => option.value)
+                          })
+                        )
+                      }}
+                      isMulti
+                      className="text-xs"
                     />
                   </div>
-                  {pricingPoint.type === PricingPointType.AUTOMATIC && (
-                    <div className={"d-flex flex-column mb-3 w-100"}>
-                      <Label htmlFor="pricing-point-automatic-type">Automatic Type</Label>
-                      <Dropdown
-                        id='pricing-point-type'
-                        options={Object.values(AutomaticType).map(type => ({ label: formatPricingPointAutomaticType(type), value: type }))}
-                        value={pricingPoint.automaticType ?? ''}
-                        onChange={e => dispatch(changeEntityField({ name: 'automaticType', value: e.target.value }))}
-                      />
-                    </div>
-                  )}
-                  {pricingPoint.automaticType === AutomaticType.ORDER_TYPE && pricingPoint.type === PricingPointType.AUTOMATIC && (
-                    <div className={"d-flex flex-column mb-3 w-100"}>
-                      <Label htmlFor="pricing-point-automatic-type">Order Types</Label>
-                      <Select
-                        inputId="pricing-point-type"
-                        options={Object.values(OrderMethod).map(type => ({
-                          label: formatPricingPointOrderType(type),
-                          value: type
-                        }))}
-                        value={(pricingPoint.orderTypes ?? []).map(val => ({
-                          label: formatPricingPointOrderType(val),
-                          value: val
-                        }))}
-                        onChange={(selected) => {
-                          dispatch(
-                            changeEntityField({
-                              name: "orderTypes",
-                              value: selected.map((option) => option.value)
-                            })
-                          )
-                        }}
-                        isMulti
-                      />
-                    </div>
-                  )}
-                  {pricingPoint.automaticType === AutomaticType.APP && pricingPoint.type === PricingPointType.AUTOMATIC && (
-                    <div className={"d-flex flex-column mb-3 w-100"}>
-                      <Label htmlFor="pricing-point-automatic-type">App Types</Label>
-                      <Select
-                        inputId="pricing-point-type"
-                        options={Object.values(ApplicationTypes).map(type => ({
-                          label: formatPricingPointAppType(type),
-                          value: type
-                        }))}
-                        value={(pricingPoint.applicationTypes ?? []).map(val => ({
-                          label: formatPricingPointAppType(val),
-                          value: val
-                        }))}
-                        onChange={(selected) => {
-                          dispatch(
-                            changeEntityField({
-                              name: "applicationTypes",
-                              value: selected.map((option) => option.value)
-                            })
-                          )
-                        }}
-                        isMulti
-                      />
-                    </div>
-                  )}
-                </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => navigate(-1)}
+                type="button"
+                className="h-8 text-xs"
+                id="cancel-save"
+                data-cy="entityCreateCancelButton"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <Translate contentKey="entity.action.back">Back</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                type="button"
+                disabled={updating}
+                className="h-8 text-xs"
+                id="save-entity"
+                data-cy="entityCreateSaveButton"
+              >
+                <Save className="h-4 w-4 mr-2" />
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                onClick={(e) => saveEntity(e, true)}
+                disabled={updating}
+                className="h-8 text-xs"
+                type="button"
+              >
+                <Save className="h-4 w-4 mr-2" />
                 <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil } from 'lucide-react';
 
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './tax-profile.reducer';
-
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/entities/settings/tax/add-tax-modal";
-import taxProfiles from "app/entities/settings/tax-profile/tax-profile.reducer";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const Tax = () => {
   const dispatch = useAppDispatch();
@@ -44,10 +40,7 @@ export const Tax = () => {
 
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    value: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
+    name: '',
   });
 
 
@@ -69,78 +62,100 @@ export const Tax = () => {
 
 
 
-  const nameColumnTemplate = (rowData) => {
-    const editUrl = `/tax-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
+  const handleFilterChange = (value: string) => {
+    setFilters({ name: value });
   };
 
-  const handleNameFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/tax-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
+  const filteredTaxProfileList = taxProfileList.filter((profile) => {
+    const matchName = !filters.name || profile.name?.toLowerCase().includes(filters.name.toLowerCase());
+    return matchName;
+  });
 
-
-
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Tax Profiles</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getTaxes} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create New Tax Profile" raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
   return (
-    <div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-xs">Tax Profiles</h1>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={getTaxes}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh List
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={loading}
+              className="h-7 text-xs"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Tax Profile
+            </Button>
+          </div>
+        </div>
 
-        <DataTable value={taxProfileList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-          <Column
-            field="name" header="Name" filter
-            body={nameColumnTemplate}
-            filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
-            filterField="name"  sortable
-          />
-
-
-          <Column field="description" body={(rowData) => rowData?.taxRate?.description} header="Description" sortable />
-
-          <Column field="value" header="Value" body={(rowData) => `${rowData?.taxRate?.code}(${rowData?.taxRate?.value})`} filter filterPlaceholder="Search by value"  sortable   />
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
-          {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
-        </DataTable>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="h-8">
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold">Name</div>
+                    <Input
+                      placeholder="Search by Name"
+                      value={filters.name || ''}
+                      onChange={(e) => handleFilterChange(e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Description</TableHead>
+                <TableHead className="h-8 text-xs font-semibold">Value</TableHead>
+                <TableHead className="h-8 w-16 text-xs font-semibold">Edit</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTaxProfileList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-4">
+                    No tax profiles found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredTaxProfileList.map((profile) => (
+                  <TableRow key={profile.id}>
+                    <TableCell className="text-xs">
+                      <Link
+                        to={`/tax-profiles/${profile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        className="text-primary hover:underline"
+                      >
+                        {profile.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">{profile?.taxRate?.description}</TableCell>
+                    <TableCell className="text-xs">
+                      {profile?.taxRate?.code && profile?.taxRate?.value
+                        ? `${profile.taxRate.code}(${profile.taxRate.value})`
+                        : ''}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        to={`/tax-profiles/${profile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
+    </PageWrapper>
   );
 };
 

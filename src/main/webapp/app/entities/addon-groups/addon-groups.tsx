@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Translate, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Chip } from 'primereact/chip';
 import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { searchEntities } from 'app/entities/addon-groups/addon-groups.reducer';
-// import { exportEntities } from 'app/entities/addon-groups/addon-groups.reducer'; // TODO: Uncomment when backend is implemented
-// import { confirmDialog } from 'primereact/confirmdialog';
-// import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import _ from 'lodash';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import Select from 'react-select';
 
 const initialState = {
   first: 0,
@@ -30,16 +31,23 @@ const initialState = {
 
 export const AddonGroups = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
 
   const addonList = useAppSelector(state => state.addonGroups.entities);
   const loading = useAppSelector(state => state.addonGroups.loading);
   const totalItems = useAppSelector(state => state.addonGroups.totalItems);
-  const [searchParam, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParam.get('query')) || initialState;
-  // const [selectedAddonGroups, setSelectedAddonGroups] = useState<IAddonGroup[]>([]);
-  // const [isLoadingAction, setIsLoadingAction] = useState(false);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = JSON.parse(searchParams.get('query')) || initialState;
+
+  const debouncedFilter = useRef(_.debounce((event) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true });
+  }, 300)).current;
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -56,200 +64,202 @@ export const AddonGroups = () => {
 
   useEffect(() => {
     getAllEntities();
-  }, [searchParam, query?.rows]);
+  }, [searchParams]);
 
-  const onSort = event => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const onFilter = event => {
-    event['first'] = 0;
-    event['page'] = 0;
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const onPage = event => {
-    const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true });
-  };
-
-  const nameColumnTemplate = rowData => {
-    const editUrl = `/addon-groups/${rowData.id}/edit`;
-    return <Link to={editUrl}>{rowData.name}</Link>;
-  };
-  const editColumnTemplate = rowData => {
-    const editUrl = `/addon-groups/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = rowData => {
-    const deleteUrl = `/addon-groups/${rowData.id}/delete`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
     navigate('/addon-groups/new');
   };
 
-  // TODO: Uncomment export functions when backend is implemented
-  // const handleExportSelected = async () => {
-  //   setIsLoadingAction(true);
-  //   try {
-  //     const result = await dispatch(exportEntities(selectedAddonGroups.map(group => group.id)));
-  //     const payload = result.payload as any;
-  //     
-  //     if (payload?.data) {
-  //       console.log('Export started:', payload.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Export failed:', error);
-  //   } finally {
-  //     setIsLoadingAction(false);
-  //     setSelectedAddonGroups([]);
-  //   }
-  // };
+  const handlePageChange = (newPage: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      first: newPage * query.rows,
+      page: newPage
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
-  // const handleExportAll = async () => {
-  //   setIsLoadingAction(true);
-  //   try {
-  //     const result = await dispatch(exportEntities([]));
-  //     const payload = result.payload as any;
-  //     
-  //     if (payload?.data) {
-  //       console.log('Export all started:', payload.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Export all failed:', error);
-  //   } finally {
-  //     setIsLoadingAction(false);
-  //   }
-  // };
+  const handleRowsPerPageChange = (newRows: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      rows: newRows,
+      first: 0,
+      page: 0
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
-  // const confirmBulkExport = () => {
-  //   confirmDialog({
-  //     message: `Are you sure you want to export ${selectedAddonGroups.length} selected addon groups?`,
-  //     header: 'Export Selected Addon Groups',
-  //     icon: 'pi pi-exclamation-triangle',
-  //     defaultFocus: 'accept',
-  //     accept: () => handleExportSelected(),
-  //     reject: () => {}
-  //   });
-  // };
-
-  // const confirmExportAll = () => {
-  //   confirmDialog({
-  //     message: 'Are you sure you want to export all addon groups?',
-  //     header: 'Export All Confirmation',
-  //     icon: 'pi pi-exclamation-triangle',
-  //     defaultFocus: 'accept',
-  //     accept: () => handleExportAll(),
-  //     reject: () => {}
-  //   });
-  // };
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'common.addonGroups'}>Addon Groups</Translate>
-      </span>
-      <div className="ms-auto">
-        <ImportButton type={'ADDON_GROUPS'} />
-        &nbsp;
-        <Button
-          label={translate('common.refreshList')}
-          severity="secondary"
-          raised
-          className="me-2"
-          color="info"
-          onClick={handleSyncList}
-          disabled={loading}
-        >
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        {/* TODO: Uncomment export buttons when backend is implemented */}
-        {/* <Button label="Export Selected" severity="help" raised className="me-2" onClick={confirmBulkExport} disabled={selectedAddonGroups.length === 0 || isLoadingAction}>
-          <FontAwesomeIcon icon="download" className="me-1" />
-        </Button>
-        <Button label="Export All" severity="warning" raised className="me-2" onClick={confirmExportAll} disabled={loading || isLoadingAction}>
-          <FontAwesomeIcon icon="file-export" className="me-1" />
-        </Button> */}
-        <Button label={translate('tempApp.addonGroup.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
+  const filteredList = addonList;
 
   return (
-    <div>
-      <DataTable
-        value={addonList}
-        editMode="row"
-        header={header}
-        removableSort
-        filters={query.filters}
-        filterDisplay="row"
-        paginator
-        totalRecords={totalItems}
-        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        rows={query?.rows}
-        lazy
-        first={query.first}
-        onPage={onPage}
-        onFilter={onFilter}
-        filterDelay={500}
-        loading={loading}
-        onSort={onSort}
-        sortField={query.sortField}
-        sortOrder={query.sortOrder}
-        showGridlines
-        // TODO: Uncomment selection when export is implemented
-        // selectionMode="checkbox"
-        // selection={selectedAddonGroups}
-        // onSelectionChange={(e) => setSelectedAddonGroups(e.value)}
-      >
-        {/* TODO: Uncomment selection column when export is implemented */}
-        {/* <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} /> */}
-        <Column
-          field="name"
-          header={translate('common.name')}
-          filter
-          body={nameColumnTemplate}
-          filterPlaceholder={translate('common.search.name')}
-          sortable
-        />
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">
+              <Translate contentKey={'common.addonGroups'}>Addon Groups</Translate>
+            </h2>
+            <div className="flex gap-2">
+              <ImportButton type={'ADDON_GROUPS'} />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                {translate('common.refreshList')}
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCreate}
+                disabled={loading}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {translate('tempApp.addonGroup.createNewAddonGroup')}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs h-8 font-semibold p-2">
+                  {translate('common.name')}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">
+                  {translate('tempApp.addon.addons')}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">
+                  {translate('common.edit')}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold p-2">
+                  {translate('common.delete')}
+                </TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="p-1">
+                  <Input
+                    placeholder={translate('common.search.name')}
+                    value={localNameFilter}
+                    onChange={(e) => {
+                      setLocalNameFilter(e.target.value);
+                      const newQuery = {
+                        ...query,
+                        filters: {
+                          ...query.filters,
+                          name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+                        }
+                      };
+                      debouncedFilter(newQuery);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center p-4">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center p-4 text-xs text-muted-foreground">
+                    No addon groups found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredList.map((addonGroup, idx) => {
+                  const editUrl = `/addon-groups/${addonGroup.id}/edit`;
+                  const deleteUrl = `/addon-groups/${addonGroup.id}/delete`;
 
-        <Column
-          field="addons"
-          header={translate('tempApp.addon.addons')}
-          body={(rowData) => rowData.addons?.map(addon => addon.name).join(" | ")}
-        />
+                  return (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs p-2">
+                        <Link to={editUrl} className="text-primary hover:underline">
+                          {addonGroup.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        {addonGroup.addons?.map(addon => addon.name).join(" | ")}
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        <Link to={editUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs p-2">
+                        <Link to={deleteUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
 
-        <Column
-          header={translate('common.edit')}
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-
-        <Column
-          header={translate('common.delete')}
-          body={deleteColumnTemplate}
-          headerStyle={{ width: '1%' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-      </DataTable>
-    </div>
+          <div className="flex items-center justify-between p-2 border-t mt-4">
+            <div className="text-xs text-muted-foreground">
+              Showing {query.first + 1} to {Math.min(query.first + query.rows, totalItems)} of {totalItems} entries
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={{ label: query.rows.toString(), value: query.rows }}
+                onChange={(option) => handleRowsPerPageChange(option.value)}
+                options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '32px',
+                    fontSize: '0.75rem',
+                    minWidth: '70px',
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    fontSize: '0.75rem',
+                  }),
+                }}
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => handlePageChange(query.page - 1)}
+                  disabled={query.page === 0}
+                >
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => handlePageChange(query.page + 1)}
+                  disabled={query.first + query.rows >= totalItems}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

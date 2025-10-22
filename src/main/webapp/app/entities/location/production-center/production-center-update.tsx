@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate, getSortState } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { Card as PrimeCard } from 'primereact/card'
 
 import { getEntities as getPrintingProfiles } from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './production-center.reducer';
-import Select from "react-select";
+import ReactSelect from "react-select";
 import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { TabPanel, TabView } from 'primereact/tabview';
 import { ItemsTable } from 'app/shared/components/assign-to-item/assign-to-item';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
@@ -22,6 +19,12 @@ import { filterEntities as getProducts, updateEntity as updateProduct } from "ap
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const ProductionCenterUpdate = () => {
   const dispatch = useAppDispatch();
@@ -50,13 +53,15 @@ export const ProductionCenterUpdate = () => {
 
   const [selectedOrderMethod, setSelectedOrderMethod] = useState<{ value: string; label: string; id: string; } | undefined>();
 
+  const [formData, setFormData] = useState({
+    name: '',
+    virtual: false,
+  });
 
   const orderMethodOptions = [
     { label: 'ALL', value: null, id: 'all' },
     ...Object.keys(OrderMethod).map(method => ({ label: method, value: method, id: method }))
   ]
-
-  console.log(orderMethodOptions, 'orderMethodOptions')
 
   const handleClose = () => {
     navigate(-1);
@@ -79,20 +84,32 @@ export const ProductionCenterUpdate = () => {
   }, []);
 
   useEffect(() => {
+    if (productionCenterEntity.id) {
+      setFormData({
+        name: productionCenterEntity.name || '',
+        virtual: productionCenterEntity.virtual || false,
+      });
+    }
 
     if (productionCenterEntity.printingProfile) {
-      setSelectedPrintingProfile(productionCenterEntity.printingProfile)
+      setSelectedPrintingProfile({
+        value: productionCenterEntity.printingProfile.id,
+        label: productionCenterEntity.printingProfile.name,
+        id: productionCenterEntity.printingProfile.id
+      })
     }
     if (productionCenterEntity.orderMethod) {
-      setSelectedOrderMethod(productionCenterEntity.orderMethod)
+      setSelectedOrderMethod({
+        value: productionCenterEntity.orderMethod,
+        label: productionCenterEntity.orderMethod,
+        id: productionCenterEntity.orderMethod
+      })
     }
 
     if (updateSuccess) {
       handleClose();
     }
   }, [updateSuccess, productionCenterEntity]);
-
-  console.log(productionCenterEntity, 'productionCenterEntity')
 
   const handlePrinterChange = (selectedPrintingProfile) => {
     setSelectedPrintingProfile(selectedPrintingProfile);
@@ -102,11 +119,11 @@ export const ProductionCenterUpdate = () => {
     setSelectedOrderMethod(selectedOrderMethod);
   }
 
-  const saveEntity = values => {
+  const saveEntity = () => {
     const entity = {
       ...productionCenterEntity,
-      ...values,
-      printingProfile: { id: selectedPrintingProfile.value ? selectedPrintingProfile.value : selectedPrintingProfile.id },
+      ...formData,
+      printingProfile: selectedPrintingProfile ? { id: selectedPrintingProfile.value ? selectedPrintingProfile.value : selectedPrintingProfile.id } : null,
       orderMethod: selectedOrderMethod?.value || null,
     };
 
@@ -117,111 +134,149 @@ export const ProductionCenterUpdate = () => {
     }
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-        ...productionCenterEntity,
-        branch: productionCenterEntity.branch,
-      };
-
 
   return (
-    <div>
-      <Row>
-        <Col md={isNew ? "12" : "6"}>
-          <Row>
-            <h2 id="tempApp.productionCenter.home.createOrEditLabel" data-cy="PrinterCreateUpdateHeading">
-              <Translate contentKey="tempApp.productionCenter.home.createOrEditLabel">Create or edit a Printer</Translate>
-            </h2>
-          </Row>
-          <PrimeCard>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-                {!isNew ? (
-                  <ValidatedField
-                    name="id"
-                    required
-                    readOnly
-                    id="productionCenter-id"
-                    label={translate('global.field.id')}
-                    validate={{ required: true }}
-                  />
-                ) : null}
-                <ValidatedField
-                  label={translate('tempApp.productionCenter.name')}
-                  id="productionCenter-name"
-                  name="name"
-                  data-cy="name"
-                  type="text"
-                  validate={{
-                    required: { value: true, message: translate('entity.validation.required') },
-                  }}
-                />
-                <div className="mb-3">
-                  {translate('tempApp.productionCenter.orderMethod')}
-                  <Select
-                    defaultValue={initialOrderMethod}
-                    value={selectedOrderMethod}
-                    onChange={handleOrderMethodChange}
-                    options={orderMethodOptions}
-                    isClearable
-                  />
+    <div className="p-4">
+      <div className={`grid ${isNew ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold">
+            <Translate contentKey="tempApp.productionCenter.home.createOrEditLabel">Create or edit a Production Center</Translate>
+          </h2>
+
+          <Card>
+            <CardContent className="pt-4">
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <div className="space-y-4">
+                  {!isNew && (
+                    <div className="space-y-2">
+                      <Label htmlFor="productionCenter-id" className="text-sm">
+                        {translate('global.field.id')}
+                      </Label>
+                      <Input
+                        id="productionCenter-id"
+                        value={productionCenterEntity.id || ''}
+                        readOnly
+                        disabled
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="productionCenter-name" className="text-sm">
+                      {translate('tempApp.productionCenter.name')} <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="productionCenter-name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-7 text-xs"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">
+                      {translate('tempApp.productionCenter.orderMethod')}
+                    </Label>
+                    <ReactSelect
+                      value={selectedOrderMethod}
+                      onChange={handleOrderMethodChange}
+                      options={orderMethodOptions}
+                      isClearable
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                        valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                        input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                        indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">
+                      {translate('tempApp.productionCenter.printingProfile')}
+                    </Label>
+                    <ReactSelect
+                      value={selectedPrintingProfile}
+                      onChange={handlePrinterChange}
+                      options={printingProfilesList}
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
+                        valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
+                        input: (base) => ({ ...base, margin: '0', padding: '0' }),
+                        indicatorsContainer: (base) => ({ ...base, height: '28px' }),
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="productionCenter-virtual"
+                      checked={formData.virtual}
+                      onCheckedChange={(checked) => setFormData({ ...formData, virtual: checked === true })}
+                    />
+                    <Label htmlFor="productionCenter-virtual" className="text-sm">
+                      {translate('tempApp.productionCenter.virtual')}
+                    </Label>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={handleClose}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </Button>
+                    <Button
+                      className="h-8 text-xs"
+                      onClick={saveEntity}
+                      disabled={updating}
+                    >
+                      <Save className="h-4 w-4" />
+                      <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                  </div>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-                <div className="mb-3">
-                  {translate('tempApp.productionCenter.printingProfile')}
-                  <Select defaultValue={initialPrintingProfile}
-                    onChange={handlePrinterChange} options={printingProfilesList} />
-                </div>
-
-                <ValidatedField label={translate('tempApp.productionCenter.virtual')} id="productionCenter-virtual"
-                  className="d-flex gap-2 my-2" name="virtual" data-cy="virtual" type="checkbox" />
-
-                <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/productionCenter" replace color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </ValidatedForm>
-            )}
-          </PrimeCard>
-        </Col>
         {!isNew && (
-          <Col md="6">
-            <Row>
-              <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-                <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
-              </h2>
-            </Row>
-            <TabView>
-              <TabPanel header="Regular">
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold">
+              <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
+            </h2>
+
+            <Tabs defaultValue="regular" className="w-full">
+              <TabsList>
+                <TabsTrigger value="regular" className="text-xs">Regular</TabsTrigger>
+                <TabsTrigger value="pizza" className="text-xs">Pizza</TabsTrigger>
+                <TabsTrigger value="combo" className="text-xs">Combo</TabsTrigger>
+                <TabsTrigger value="retail" className="text-xs">Retails Products</TabsTrigger>
+              </TabsList>
+              <TabsContent value="regular">
                 <RegularItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Pizza">
+              </TabsContent>
+              <TabsContent value="pizza">
                 <PizzaItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Combo">
+              </TabsContent>
+              <TabsContent value="combo">
                 <ComboItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Retails Products">
+              </TabsContent>
+              <TabsContent value="retail">
                 <ProductsTable id={id} />
-              </TabPanel>
-            </TabView>
-          </Col>
+              </TabsContent>
+            </Tabs>
+          </div>
         )}
-      </Row>
-    </div >
+      </div>
+    </div>
   );
 };
 

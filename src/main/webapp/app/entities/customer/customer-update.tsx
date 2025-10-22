@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, Table, Label, FormGroup } from 'reactstrap';
 import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save, Pencil, Trash2, Plus, X } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -17,30 +16,31 @@ import {
   getPricesForCustomer,
   assignCard,
 } from './customer.reducer';
-import { Card as PrimeCard } from 'primereact/card';
 import { filterOrders } from 'app/entities/order/order.reducer';
 import Order from 'app/entities/order/order';
 import { getEntities } from 'app/entities/loyalty/loyalty-records.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { searchEntities as getLoyaltCards } from 'app/entities/loyalty-card/loyalty-card.reducer';
-import { InputNumber } from 'primereact/inputnumber';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import AsyncSelect from 'react-select/async';
 import { ILoyaltyCard } from 'app/shared/model/loyalty-card.model';
-import { confirmDialog } from 'primereact/confirmdialog';
-import { TabPanel, TabView } from 'primereact/tabview';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Dialog } from 'primereact/dialog';
 import { AddressTypeEnum, IAddress } from 'app/shared/model/address.model';
 import { v4 as uuidv4 } from 'uuid';
 import { COUNTRIES } from './customer-addresses';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { IBranch } from 'app/shared/model/branch.model';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Select from 'react-select';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const CustomerUpdate = ({
   firstName,
@@ -78,6 +78,8 @@ export const CustomerUpdate = ({
     address: null,
   });
   const [currentAddress, setCurrentAddress] = useState<IAddress | null>(null);
+  const [confirmAssignCardOpen, setConfirmAssignCardOpen] = useState(false);
+  const [deleteAddressConfirm, setDeleteAddressConfirm] = useState<{ open: boolean; address: IAddress | null }>({ open: false, address: null });
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
   useEffect(() => {
@@ -210,13 +212,7 @@ export const CustomerUpdate = ({
   };
 
   const confirmAssignCard = () => {
-    confirmDialog({
-      message: 'Are you sure you want to assign this card?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      accept: () => handleAssignCard(),
-    });
+    setConfirmAssignCardOpen(true);
   };
 
   const handleAssignCard = () => {
@@ -226,21 +222,7 @@ export const CustomerUpdate = ({
         cardRefNumber: selectedCardToAssign?.card?.referenceNumber,
       })
     );
-  };
-
-  const editColumnTemplate = rowData => {
-    return (
-      <FontAwesomeIcon
-        icon="pencil-alt"
-        style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }}
-        onClick={() => {
-          setAddressDialogOptions({
-            isOpen: true,
-            address: rowData,
-          });
-        }}
-      />
-    );
+    setConfirmAssignCardOpen(false);
   };
 
   const handleDeleteAddress = addressToDelete => {
@@ -253,52 +235,8 @@ export const CustomerUpdate = ({
         value: updatedAddresses,
       })
     );
+    setDeleteAddressConfirm({ open: false, address: null });
   };
-
-  const showDeleteConfirmDialog = addressToDelete => {
-    confirmDialog({
-      message: 'Are you sure you want to delete this address?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Yes',
-      rejectLabel: 'No',
-      accept() {
-        handleDeleteAddress(addressToDelete);
-      },
-    });
-  };
-
-  const deleteColumnTemplate = rowData => {
-    return (
-      <FontAwesomeIcon
-        icon="trash"
-        style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }}
-        onClick={() => showDeleteConfirmDialog(rowData)}
-      />
-    );
-  };
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'common.addresses'}>Addresses</Translate>
-      </span>
-      <div className="ms-auto">
-        <Button
-          label={translate('tempApp.addon.createNew')}
-          onClick={() => {
-            setAddressDialogOptions({
-              isOpen: true,
-              address: null,
-            });
-          }}
-          disabled={loading}
-        >
-          &nbsp; Add Address
-        </Button>
-      </div>
-    </div>
-  );
 
   const handleAddressChange = (fieldName, value) => {
     setCurrentAddress(prevState => ({
@@ -343,408 +281,533 @@ export const CustomerUpdate = ({
   }
 
   return (
-    <div>
-      <Row>
-        <Col md="12">
-          <h2 id="tempApp.customer.home.createOrEditLabel" data-cy="CustomerCreateUpdateHeading">
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
             {isNew ? (
               <Translate contentKey="tempApp.createNewCustomer">Create New Customer</Translate>
             ) : (
               <Translate contentKey="tempApp.editCustomer">Edit Customer</Translate>
             )}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="12" className="d-flex flex-column p-3">
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
           <form>
-            <TabView>
-              <TabPanel header="Personal Details">
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-firstName">{translate('tempApp.firstName')}</Label>
-                  <InputText
+            <Tabs defaultValue="personal">
+              <TabsList className="mb-4">
+                <TabsTrigger value="personal" className="text-xs h-7">Personal Details</TabsTrigger>
+                <TabsTrigger value="addresses" className="text-xs h-7">Addresses</TabsTrigger>
+                <TabsTrigger value="additional" className="text-xs h-7">{translate('common.additionalInfo')}</TabsTrigger>
+                <TabsTrigger value="pricing" className="text-xs h-7">Pricing Point</TabsTrigger>
+                <TabsTrigger value="orders" className="text-xs h-7">Customer Orders</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="personal" className="space-y-3">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-firstName" className="text-xs">{translate('tempApp.firstName')}</Label>
+                  <Input
                     id="customer-firstName"
+                    className="h-8 text-xs"
                     value={customerEntity?.firstName || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'firstName', value: e.target.value }))}
                     required={!customerEntity?.businessDetails?.businessName}
                   />
                 </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-lastName">{translate('tempApp.lastName')}</Label>
-                  <InputText
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-lastName" className="text-xs">{translate('tempApp.lastName')}</Label>
+                  <Input
                     id="customer-lastName"
+                    className="h-8 text-xs"
                     value={customerEntity?.lastName || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'lastName', value: e.target.value }))}
                   />
                 </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-phone">{translate('tempApp.phone')}</Label>
-                  <InputText
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-phone" className="text-xs">{translate('tempApp.phone')}</Label>
+                  <Input
                     id="customer-phone"
+                    className="h-8 text-xs"
                     value={customerEntity?.phone || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'phone', value: e.target.value }))}
                   />
                 </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-mobileNumber">{translate('tempApp.mobileNumber')}</Label>
-                  <InputText
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-mobileNumber" className="text-xs">{translate('tempApp.mobileNumber')}</Label>
+                  <Input
                     id="customer-mobileNumber"
+                    className="h-8 text-xs"
                     value={customerEntity?.mobileNumber || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'mobileNumber', value: e.target.value }))}
                   />
                 </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-fax">{translate('tempApp.fax')}</Label>
-                  <InputText
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-fax" className="text-xs">{translate('tempApp.fax')}</Label>
+                  <Input
                     id="customer-fax"
+                    className="h-8 text-xs"
                     value={customerEntity?.fax || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'fax', value: e.target.value }))}
                   />
                 </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="customer-phone">{translate('tempApp.email')}</Label>
-                  <InputText
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-email" className="text-xs">{translate('tempApp.email')}</Label>
+                  <Input
                     id="customer-email"
+                    className="h-8 text-xs"
                     value={customerEntity?.email || ''}
                     onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
                   />
                 </div>
 
                 {!isNew && (
-                  <div className={'d-flex flex-column mb-3 w-100'}>
-                    <Label htmlFor="customer-phone">{translate('tempApp.assignCard')}</Label>
-                    <div className="d-flex gap-2 align-items-center w-50">
-                      <AsyncSelect
-                        cacheOptions
-                        loadOptions={loadOptions}
-                        defaultOptions
-                        value={selectedCardToAssign}
-                        onChange={option => {
-                          console.log(option);
-                          setSelectedCardToAssign(option);
-                        }}
-                        placeholder="Select a Card"
-                        isClearable
-                        className="w-50"
-                      />
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="customer-card" className="text-xs">{translate('tempApp.assignCard')}</Label>
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1">
+                        <AsyncSelect
+                          cacheOptions
+                          loadOptions={loadOptions}
+                          defaultOptions
+                          value={selectedCardToAssign}
+                          onChange={option => {
+                            setSelectedCardToAssign(option);
+                          }}
+                          placeholder="Select a Card"
+                          isClearable
+                          styles={{
+                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                            option: (base) => ({ ...base, fontSize: '0.75rem' })
+                          }}
+                        />
+                      </div>
                       <Button
-                        label="Assign Card"
-                        className="p-button-link"
+                        type="button"
+                        size="sm"
+                        className="h-8 text-xs"
                         onClick={() => confirmAssignCard()}
                         disabled={!selectedCardToAssign}
                       >
+                        <Plus className="h-4 w-4 mr-1" />
                         {translate('tempApp.assignCard')}
-                        <i className="pi pi-plus ml-2" />
                       </Button>
                     </div>
                   </div>
                 )}
 
                 {!isNew && (
-                  <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-phone">{translate('tempApp.loyaltyRecord')}</Label>
-                    <InputNumber id="customer-loyaltyRecord" value={loyaltyRecord?.points ?? ''} disabled />
-                  </div>
-                )}
-              </TabPanel>
-
-              <TabPanel header="Addresses">
-                <Dialog
-                  header="Address Details"
-                  visible={addressDialogOptions.isOpen}
-                  style={{ width: '50vw' }}
-                  onHide={() => {
-                    setAddressDialogOptions({
-                      isOpen: false,
-                      address: null,
-                    });
-                  }}
-                >
-                  <Row>
-                    <Col md={12}>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Contact Person Name</label>
-                        <InputText
-                          value={currentAddress?.contactPersonName || ''}
-                          onChange={e => handleAddressChange('contactPersonName', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Phone Number</label>
-                        <InputText
-                          value={currentAddress?.phoneNumber || ''}
-                          onChange={e => handleAddressChange('phoneNumber', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Address</label>
-                        <InputText
-                          value={currentAddress?.address || ''}
-                          onChange={e => handleAddressChange('address', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Address Type</label>
-                        <Dropdown
-                          value={currentAddress?.addressType || ''}
-                          options={Object.values(AddressTypeEnum)}
-                          onChange={e => handleAddressChange('addressType', e.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Country/Region</label>
-                        <Dropdown
-                          value={currentAddress?.country || ''}
-                          options={COUNTRIES}
-                          optionValue="name"
-                          optionLabel="name"
-                          onChange={e => handleAddressChange('country', e.value)}
-                          style={{ width: '100%' }}
-                          filter
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>City</label>
-                        <InputText
-                          value={currentAddress?.city || ''}
-                          onChange={e => handleAddressChange('city', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Street</label>
-                        <InputText
-                          value={currentAddress?.street || ''}
-                          onChange={e => handleAddressChange('street', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>State</label>
-                        <InputText
-                          value={currentAddress?.state || ''}
-                          onChange={e => handleAddressChange('state', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Floor</label>
-                        <InputText
-                          value={currentAddress?.floor || ''}
-                          onChange={e => handleAddressChange('floor', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Postal Code</label>
-                        <InputText
-                          value={currentAddress?.postalCode || ''}
-                          onChange={e => handleAddressChange('postalCode', e.target.value)}
-                          style={{ width: '100%' }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Longitude</label>
-                        <InputNumber
-                          value={currentAddress?.longitude || null}
-                          onChange={e => handleAddressChange('longitude', e.value)}
-                          inputStyle={{ width: '100%' }}
-                          mode="decimal"
-                          minFractionDigits={2}
-                          maxFractionDigits={8}
-                        />
-                      </div>
-                      <div className="d-flex flex-column gap-1">
-                        <label>Latitude</label>
-                        <InputNumber
-                          value={currentAddress?.latitude || null}
-                          onChange={e => handleAddressChange('latitude', e.value)}
-                          inputStyle={{ width: '100%' }}
-                          mode="decimal"
-                          minFractionDigits={2}
-                          maxFractionDigits={8}
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <Button onClick={handleCloseAddressDialog} color="primary">
-                          Save
-                        </Button>
-                        &nbsp;
-                        <Button
-                          onClick={() =>
-                            setAddressDialogOptions({
-                              isOpen: false,
-                              address: null,
-                            })
-                          }
-                          color="secondary"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </Col>
-                  </Row>
-                </Dialog>
-
-                <DataTable value={customerEntity?.deliveryAddresses} header={header}>
-                  <Column field="contactPersonName" header={'Contact Person Name'} />
-                  <Column field="phoneNumber" header={'Phone Number'} />
-                  <Column field="address" header={'Address'} />
-                  <Column field="addressType" header={'Address Type'} />
-                  <Column field="country" header={'Country'} />
-                  <Column field="city" header={'City'} />
-                  <Column field="street" header={'Street'} />
-
-                  <Column
-                    header={translate('common.edit')}
-                    body={editColumnTemplate}
-                    headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-                    bodyStyle={{ textAlign: 'center', overflow: 'visible' }}
-                  />
-
-                  <Column
-                    header={translate('common.delete')}
-                    body={deleteColumnTemplate}
-                    headerStyle={{ width: '1%' }}
-                    bodyStyle={{ textAlign: 'center', overflow: 'visible' }}
-                  />
-                </DataTable>
-              </TabPanel>
-
-              <TabPanel header={translate('common.additionalInfo')}>
-                <>
-                  <h4>{translate('common.additionalInfo')}</h4>
-                  <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-businessName">{translate('tempApp.businessName')}</Label>
-                    <InputText
-                      id="customer-businessName"
-                      value={customerEntity?.businessDetails?.businessName || ''}
-                      onChange={e =>
-                        dispatch(
-                          changeEntityField({
-                            name: 'businessDetails',
-                            value: {
-                              ...customerEntity.businessDetails,
-                              businessName: e.target.value,
-                            },
-                          })
-                        )
-                      }
-                      required={!customerEntity?.firstName}
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="customer-loyaltyRecord" className="text-xs">{translate('tempApp.loyaltyRecord')}</Label>
+                    <Input
+                      id="customer-loyaltyRecord"
+                      className="h-8 text-xs"
+                      type="number"
+                      value={loyaltyRecord?.points ?? ''}
+                      disabled
                     />
                   </div>
-                </>
-              </TabPanel>
+                )}
+              </TabsContent>
 
-              <TabPanel header={'Pricing Point'}>
+              <TabsContent value="addresses" className="space-y-3">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold">
+                    <Translate contentKey={'common.addresses'}>Addresses</Translate>
+                  </h3>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => {
+                      setAddressDialogOptions({
+                        isOpen: true,
+                        address: null,
+                      });
+                    }}
+                    disabled={loading}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Address
+                  </Button>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Contact Person Name</TableHead>
+                      <TableHead className="text-xs">Phone Number</TableHead>
+                      <TableHead className="text-xs">Address</TableHead>
+                      <TableHead className="text-xs">Address Type</TableHead>
+                      <TableHead className="text-xs">Country</TableHead>
+                      <TableHead className="text-xs">City</TableHead>
+                      <TableHead className="text-xs">Street</TableHead>
+                      <TableHead className="text-xs w-20">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customerEntity?.deliveryAddresses?.map((address) => (
+                      <TableRow key={address.id}>
+                        <TableCell className="text-xs">{address.contactPersonName}</TableCell>
+                        <TableCell className="text-xs">{address.phoneNumber}</TableCell>
+                        <TableCell className="text-xs">{address.address}</TableCell>
+                        <TableCell className="text-xs">{address.addressType}</TableCell>
+                        <TableCell className="text-xs">{address.country}</TableCell>
+                        <TableCell className="text-xs">{address.city}</TableCell>
+                        <TableCell className="text-xs">{address.street}</TableCell>
+                        <TableCell className="text-xs">
+                          <div className="flex gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => {
+                                setAddressDialogOptions({
+                                  isOpen: true,
+                                  address: address,
+                                });
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-destructive"
+                              onClick={() => setDeleteAddressConfirm({ open: true, address })}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="additional" className="space-y-3">
+                <h4 className="text-sm font-semibold">{translate('common.additionalInfo')}</h4>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-businessName" className="text-xs">{translate('tempApp.businessName')}</Label>
+                  <Input
+                    id="customer-businessName"
+                    className="h-8 text-xs"
+                    value={customerEntity?.businessDetails?.businessName || ''}
+                    onChange={e =>
+                      dispatch(
+                        changeEntityField({
+                          name: 'businessDetails',
+                          value: {
+                            ...customerEntity.businessDetails,
+                            businessName: e.target.value,
+                          },
+                        })
+                      )
+                    }
+                    required={!customerEntity?.firstName}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="pricing" className="space-y-3">
                 {pricingPoints?.length > 0 ? (
-                  <>
-                    <Table>
-                      <thead>
-                        <tr>
-                          <th>
-                            <Translate contentKey={'common.branch'}>Branch</Translate>
-                          </th>
-                          <th>Pricing Point</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {branchList.map(branch => {
-                          return (
-                            <tr key={branch.id}>
-                              <td>{branch.name}</td>
-                              <td>
-                                <Dropdown
-                                  placeholder={'Enter Pricing Point'}
-                                  value={customerEntity?.pricingPoints?.[branch.id]?.id || ''}
-                                  options={getPricingPointsPerBranch(branch.id).map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
-                                  style={{ minWidth: '15rem' }}
-                                  onChange={event => handleBranchPricingPointChange(branch.id, pricingPoints.find(pricingPoint => pricingPoint.id === event.target.value))}
-                                  showClear
-                                />
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                  </>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">
+                          <Translate contentKey={'common.branch'}>Branch</Translate>
+                        </TableHead>
+                        <TableHead className="text-xs">Pricing Point</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {branchList.map(branch => {
+                        return (
+                          <TableRow key={branch.id}>
+                            <TableCell className="text-xs">{branch.name}</TableCell>
+                            <TableCell className="text-xs">
+                              <Select
+                                placeholder="Enter Pricing Point"
+                                value={getPricingPointsPerBranch(branch.id)
+                                  .map(pp => ({ label: pp.name, value: pp.id }))
+                                  .find(opt => opt.value === customerEntity?.pricingPoints?.[branch.id]?.id) || null}
+                                options={getPricingPointsPerBranch(branch.id).map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
+                                onChange={option => handleBranchPricingPointChange(branch.id, pricingPoints.find(pricingPoint => pricingPoint.id === option?.value))}
+                                isClearable
+                                styles={{
+                                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                  option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 ) : null}
-              </TabPanel>
+              </TabsContent>
 
-              <TabPanel header={'Customer Orders'}>
-                <h4>{translate('tempApp.customerOrders')}</h4>
+              <TabsContent value="orders" className="space-y-3">
                 {customerEntity?.id && (
                   <div>
                     <Order customer={customerEntity?.id} />
                   </div>
                 )}
-              </TabPanel>
-            </TabView>
+              </TabsContent>
+            </Tabs>
 
-            {!isPopUp ? (
-              <>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+            <div className="flex gap-2 mt-4">
+              {!isPopUp ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    onClick={() => navigate(-1)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
                     <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={e => saveEntity(e, true)}
+                    disabled={updating}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
+                </>
+              ) : (
                 <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
                   onClick={saveEntity}
-                  color="primary"
                   id="save-entity"
                   data-cy="entityCreateSaveButton"
-                  type="submit"
                   disabled={updating}
                 >
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
+                  <Save className="h-4 w-4 mr-1" />
                   <Translate contentKey="entity.action.save">Save</Translate>
                 </Button>
-                &nbsp;
-                <Button
-                  onClick={e => saveEntity(e, true)}
-                  color="primary"
-                  id="save-entity"
-                  data-cy="entityCreateSaveButton"
-                  type="submit"
-                  disabled={updating}
-                >
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={saveEntity}
-                color="primary"
-                id="save-entity"
-                data-cy="entityCreateSaveButton"
-                type="submit"
-                disabled={updating}
-              >
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            )}
+              )}
+            </div>
           </form>
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+
+      {/* Address Dialog */}
+      <Dialog open={addressDialogOptions.isOpen} onOpenChange={(open) => {
+        if (!open) {
+          setAddressDialogOptions({ isOpen: false, address: null });
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Address Details</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Contact Person Name</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.contactPersonName || ''}
+                onChange={e => handleAddressChange('contactPersonName', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Phone Number</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.phoneNumber || ''}
+                onChange={e => handleAddressChange('phoneNumber', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1 col-span-2">
+              <Label className="text-xs">Address</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.address || ''}
+                onChange={e => handleAddressChange('address', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Address Type</Label>
+              <Select
+                value={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val })).find(opt => opt.value === currentAddress?.addressType) || null}
+                options={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val }))}
+                onChange={option => handleAddressChange('addressType', option?.value)}
+                styles={{
+                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                  option: (base) => ({ ...base, fontSize: '0.75rem' })
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Country/Region</Label>
+              <Select
+                value={COUNTRIES.map(c => ({ label: c.name, value: c.name })).find(opt => opt.value === currentAddress?.country) || null}
+                options={COUNTRIES.map(c => ({ label: c.name, value: c.name }))}
+                onChange={option => handleAddressChange('country', option?.value)}
+                styles={{
+                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                  option: (base) => ({ ...base, fontSize: '0.75rem' })
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">City</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.city || ''}
+                onChange={e => handleAddressChange('city', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Street</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.street || ''}
+                onChange={e => handleAddressChange('street', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">State</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.state || ''}
+                onChange={e => handleAddressChange('state', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Floor</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.floor || ''}
+                onChange={e => handleAddressChange('floor', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Postal Code</Label>
+              <Input
+                className="h-8 text-xs"
+                value={currentAddress?.postalCode || ''}
+                onChange={e => handleAddressChange('postalCode', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Longitude</Label>
+              <Input
+                className="h-8 text-xs"
+                type="number"
+                step="0.00000001"
+                value={currentAddress?.longitude || ''}
+                onChange={e => handleAddressChange('longitude', e.target.value ? parseFloat(e.target.value) : null)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs">Latitude</Label>
+              <Input
+                className="h-8 text-xs"
+                type="number"
+                step="0.00000001"
+                value={currentAddress?.latitude || ''}
+                onChange={e => handleAddressChange('latitude', e.target.value ? parseFloat(e.target.value) : null)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setAddressDialogOptions({ isOpen: false, address: null })}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleCloseAddressDialog}
+            >
+              <Save className="h-4 w-4 mr-1" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Assign Card AlertDialog */}
+      <AlertDialog open={confirmAssignCardOpen} onOpenChange={setConfirmAssignCardOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirmation</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to assign this card?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="h-8 text-xs" onClick={handleAssignCard}>
+              Assign
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Address Confirmation AlertDialog */}
+      <AlertDialog open={deleteAddressConfirm.open} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteAddressConfirm({ open: false, address: null });
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirmation</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to delete this address?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">No</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-8 text-xs bg-destructive hover:bg-destructive/90"
+              onClick={() => deleteAddressConfirm.address && handleDeleteAddress(deleteAddressConfirm.address)}
+            >
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageWrapper>
   );
 };
 

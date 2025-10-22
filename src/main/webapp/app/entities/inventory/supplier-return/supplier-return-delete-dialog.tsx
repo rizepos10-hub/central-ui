@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './supplier-return.reducer';
@@ -40,28 +48,33 @@ export const SupplierReturnDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="supplierReturnDeleteDialogHeading">
-        <Translate contentKey="tempApp.supplierReturn.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="supplierReturns.delete.question">
-        <Translate contentKey="tempApp.supplierReturn.delete.question" interpolate={{ id: supplierReturnEntity.id }}>
-          Are you sure you want to delete this Supplier?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="common.buttons.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-supplierReturn" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="common.buttons.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={loadModal} onOpenChange={handleClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-base">
+            <Translate contentKey="tempApp.supplierReturn.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-sm">
+            <Translate contentKey="tempApp.supplierReturn.delete.question" interpolate={{ id: supplierReturnEntity.id }}>
+              Are you sure you want to delete this Supplier Return?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleClose} className="h-8 text-xs">
+            <Translate contentKey="common.buttons.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDelete}
+            className="h-8 text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            id="jhi-confirm-delete-supplierReturn"
+            data-cy="entityConfirmDeleteButton"
+          >
+            <Translate contentKey="common.buttons.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

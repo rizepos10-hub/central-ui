@@ -9,24 +9,34 @@ import { getEntities as getRestaurantItemCategories } from 'app/entities/term/re
 import { getEntities as getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { Col, Container, Row, Spinner, Table } from 'reactstrap';
-import { Button } from 'primereact/button';
-import { IoMdCloseCircle } from 'react-icons/io';
-import { OrderList } from 'primereact/orderlist';
+import { Button } from '@/components/ui/button';
+import { X, Loader2 } from 'lucide-react';
+import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
 import { IAddonGroup, IAddonGroups } from 'app/shared/model/ADDON/addon-groups.model';
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
+import { Input } from '@/components/ui/input';
 import { getSortState, Translate, translate } from 'react-jhipster';
-import { Checkbox } from 'primereact/checkbox';
-import { Dropdown } from 'primereact/dropdown';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
-import { SelectButton } from 'primereact/selectbutton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import { useSearchParams } from 'react-router-dom';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dropdown } from 'primereact/dropdown';
+import { Label } from '@/components/ui/label';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export const actionOptions = [
     { name: 'Edit', code: 'EDIT', disabled: false },
@@ -105,6 +115,7 @@ export const BulkEdit = ({
     const [addonGroupsActionValue, setAddonGroupsActionValue] = useState<'Append To Items' | 'Override'>('Append To Items');
 
     const [isloadingUpdate, setIsLoadingUpdate] = useState(false);
+    const [showOverrideConfirmation, setShowOverrideConfirmation] = useState(false);
 
     const selectedAddonGroupIds = addonGroups?.map(group => group.addonGroup.id);
     const filteredAddonGroupsOptions = addonGroupsOptions?.filter(
@@ -112,8 +123,20 @@ export const BulkEdit = ({
     );
 
     const handleSubmit = async (e) => {
-        setIsLoadingUpdate(true);
         e.preventDefault();
+
+        // Check if Override is selected and addon groups exist, show confirmation
+        if (!isRetail && addonGroupsActionValue === 'Override' && addonGroups.length > 0) {
+            setShowOverrideConfirmation(true);
+            return;
+        }
+
+        // Proceed with update
+        await performUpdate();
+    };
+
+    const performUpdate = async () => {
+        setIsLoadingUpdate(true);
 
         const newSelectedProducts = products.filter(product => selectedProducts.some(selectedProduct => selectedProduct.id === product.id));
 
@@ -162,7 +185,8 @@ export const BulkEdit = ({
         await refetchEntities();
 
         setIsLoadingUpdate(false);
-    }
+        setShowOverrideConfirmation(false);
+    };
 
     const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {
         const updatedAddonGroups = [...addonGroups];
@@ -274,86 +298,59 @@ export const BulkEdit = ({
     ) => {
         const [selected, setSelected] = useState(null);
         return (
-            <div className='d-flex gap-2 align-items-center'>
+            <div className="flex gap-2 items-center mb-2">
                 <Dropdown
                     value={selected}
                     onChange={e => setSelected(e.value)}
                     options={data}
                     placeholder=""
-                    className="w-full md:w-14rem"
+                    className="w-full"
                     onFocus={onFocus}
                     optionLabel={'name'}
                     optionValue={'id'}
                 />
                 <Button
                     disabled={!selected}
+                    size="sm"
+                    className="h-7 text-xs"
                     onClick={() => {
                         onChange(options?.find(g => g?.id === selected))
                         setSelected(null)
                     }}
-                    color="primary"
-                    className='p-1 mr-2'
                 >
                     Assign
                 </Button>
-                {/* <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
-                    <div>
-                        <Button type="button" onClick={openImportAddonModal}>
-                            <Translate contentKey={'items.update.importAddons'}>Import</Translate>
-                        </Button>
-                    </div>
-                </div> */}
             </div>
         )
     }
 
     return (
-        <Container className="p-0 m-0" style={{
-            height: '75vh',
-            overflow: 'auto'
-        }}>
+        <div className="p-0 h-[75vh] overflow-auto">
             {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-            <form onSubmit={handleSubmit}>
-                <Row>
-                    <Col md="4">
-                        <div className="fw-bold">Bulk Edit</div>
-                        <div style={{
-                            height: '30vh',
-                            width: '100%',
-                            border: '1px solid rgb(215 215 215)',
-                            overflowY: 'auto',
-                        }}>
+            <form>
+                <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-4">
+                        <div className="font-bold text-xs mb-2">Bulk Edit</div>
+                        <div className="h-[30vh] w-full border border-border overflow-y-auto">
                             {selectedProducts.map((prod, idx) => (
                                 <Button
                                     key={idx}
-                                    className="d-flex gap-2"
-                                    text
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs flex gap-2 w-full justify-start"
                                     onClick={() => setSelectedProducts(selectedProducts.filter(sp => sp.id !== prod.id))}
                                     type="button"
                                 >
-                                    <span>
-                                        <IoMdCloseCircle
-                                            style={{
-                                                cursor: 'pointer',
-                                            }}
-                                        />
-                                    </span>
-                                    <span>
-                                        {prod.name}
-                                    </span>
+                                    <X className="h-3 w-3" />
+                                    <span>{prod.name}</span>
                                 </Button>
                             ))}
                         </div>
-                    </Col>
-                    <Col md="3">
-                        <div className="fw-bold">Categories</div>
-                        <div style={{
-                            height: '30vh',
-                            width: '100%',
-                            border: '1px solid rgb(215 215 215)',
-                            overflowY: 'auto',
-                        }}>
-                            <div className={'d-flex flex-column gap-1 col p-0'}>
+                    </div>
+                    <div className="col-span-3">
+                        <div className="font-bold text-xs mb-2">Categories</div>
+                        <div className="h-[30vh] w-full border border-border overflow-y-auto">
+                            <div className="flex flex-col gap-1 p-0">
                                 <Select
                                     isMulti
                                     options={categories?.map(cat => ({ value: cat.id, label: cat.name }))}
@@ -383,324 +380,365 @@ export const BulkEdit = ({
                             {selectedCategories.map((selectedCategory, idx) => (
                                 <Button
                                     key={idx}
-                                    className="d-flex gap-2"
-                                    text type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs flex gap-2 w-full justify-start"
+                                    type="button"
                                     onClick={() => setSelectedCategories(selectedCategories.filter(sc => sc.value !== selectedCategory.value))}
                                 >
-                                    <span>
-                                        <IoMdCloseCircle style={{
-                                            cursor: 'pointer',
-                                        }} />
-                                    </span>
-                                    <span>
-                                        {selectedCategory.label}
-                                    </span>
+                                    <X className="h-3 w-3" />
+                                    <span>{selectedCategory.label}</span>
                                 </Button>
                             ))}
                         </div>
-                    </Col>
-                    <Col md="5">
-                        <Row>
-                            <Col md="6">
-                                <div className="fw-bold">Production Center</div>
-                                <div style={{}}>
-                                    <div className={'d-flex flex-column gap-1 col p-0'}>
-                                        <Select
-                                            options={productionCenters?.map(pc => ({ value: pc.id, label: pc.name }))}
-                                            isClearable
-                                            className="w-100"
-                                            onMenuOpen={() => {
-                                                dispatch(
-                                                    getProductionCenters({
-                                                        page: 0,
-                                                        size: 1000,
-                                                        sort: `id,desc`,
-                                                    })
-                                                );
-                                            }}
-                                            value={selectedProuctionCenter}
-                                            onChange={(e) => setSelectedProductionCenter(e)}
-                                            isLoading={productionCentersLoading}
-                                        />
-                                    </div>
+                    </div>
+                    <div className="col-span-5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <div className="font-bold text-xs mb-2">Production Center</div>
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        options={productionCenters?.map(pc => ({ value: pc.id, label: pc.name }))}
+                                        isClearable
+                                        className="w-full"
+                                        onMenuOpen={() => {
+                                            dispatch(
+                                                getProductionCenters({
+                                                    page: 0,
+                                                    size: 1000,
+                                                    sort: `id,desc`,
+                                                })
+                                            );
+                                        }}
+                                        value={selectedProuctionCenter}
+                                        onChange={(e) => setSelectedProductionCenter(e)}
+                                        isLoading={productionCentersLoading}
+                                    />
                                 </div>
-                            </Col>
-                            <Col md="6">
-                                <div className="fw-bold">Tags</div>
-                                <div style={{}}>
-                                    <div className={'d-flex flex-column gap-1 col p-0'}>
-                                        <Select
-                                            options={tags?.map(tag => ({ value: tag.id, label: tag.name }))}
-                                            isMulti
-                                            isClearable
-                                            className="w-100"
-                                            onMenuOpen={() => {
-                                                dispatch(
-                                                    getTags({
-                                                        page: 0,
-                                                        size: 1000,
-                                                        sort: `id,desc`,
-                                                    })
-                                                );
-                                            }}
-                                            value={selectedTags}
-                                            onChange={(e) => setSelectedTags(e)}
-                                            isLoading={tagsLoading}
-                                        />
-                                    </div>
+                            </div>
+                            <div>
+                                <div className="font-bold text-xs mb-2">Tags</div>
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        options={tags?.map(tag => ({ value: tag.id, label: tag.name }))}
+                                        isMulti
+                                        isClearable
+                                        className="w-full"
+                                        onMenuOpen={() => {
+                                            dispatch(
+                                                getTags({
+                                                    page: 0,
+                                                    size: 1000,
+                                                    sort: `id,desc`,
+                                                })
+                                            );
+                                        }}
+                                        value={selectedTags}
+                                        onChange={(e) => setSelectedTags(e)}
+                                        isLoading={tagsLoading}
+                                    />
                                 </div>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md="6">
-                                <div className="fw-bold">Discount</div>
-                                <div style={{}}>
-                                    <div className={'d-flex flex-column gap-1 col p-0'}>
-                                        <Select
-                                            options={discounts?.map(disc => ({ value: disc.id, label: `${disc.value} (${disc.type})` }))}
-                                            isClearable
-                                            className="w-100"
-                                            onMenuOpen={() => {
-                                                dispatch(
-                                                    getDiscounts({
-                                                        page: 0,
-                                                        size: 1000,
-                                                        sort: `id,desc`,
-                                                    })
-                                                );
-                                            }}
-                                            value={selectedDiscount}
-                                            onChange={(e) => setSelectedDiscount(e)}
-                                            isLoading={discountsLoading}
-                                        />
-                                    </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <div className="font-bold text-xs mb-2">Discount</div>
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        options={discounts?.map(disc => ({ value: disc.id, label: `${disc.value} (${disc.type})` }))}
+                                        isClearable
+                                        className="w-full"
+                                        onMenuOpen={() => {
+                                            dispatch(
+                                                getDiscounts({
+                                                    page: 0,
+                                                    size: 1000,
+                                                    sort: `id,desc`,
+                                                })
+                                            );
+                                        }}
+                                        value={selectedDiscount}
+                                        onChange={(e) => setSelectedDiscount(e)}
+                                        isLoading={discountsLoading}
+                                    />
                                 </div>
-                            </Col>
-                            <Col md="6">
-                                <div className="fw-bold">Profile Group</div>
-                                <div style={{}}>
-                                    <div className={'d-flex flex-column gap-1 col p-0'}>
-                                        <Select
-                                            options={profileGroups?.map(pg => ({ value: pg.id, label: pg.name }))}
-                                            isClearable
-                                            className="w-100"
-                                            onMenuOpen={() => {
-                                                dispatch(
-                                                    getProfileGroups({
-                                                        page: 0,
-                                                        size: 1000,
-                                                        sort: `id,desc`,
-                                                    })
-                                                );
-                                            }}
-                                            value={selectedProfileGroup}
-                                            onChange={(e) => setSelectedProfileGroup(e)}
-                                            isLoading={profileGroupsLoading}
-                                        />
-                                    </div>
+                            </div>
+                            <div>
+                                <div className="font-bold text-xs mb-2">Profile Group</div>
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        options={profileGroups?.map(pg => ({ value: pg.id, label: pg.name }))}
+                                        isClearable
+                                        className="w-full"
+                                        onMenuOpen={() => {
+                                            dispatch(
+                                                getProfileGroups({
+                                                    page: 0,
+                                                    size: 1000,
+                                                    sort: `id,desc`,
+                                                })
+                                            );
+                                        }}
+                                        value={selectedProfileGroup}
+                                        onChange={(e) => setSelectedProfileGroup(e)}
+                                        isLoading={profileGroupsLoading}
+                                    />
                                 </div>
-                            </Col>
-                        </Row>
+                            </div>
+                        </div>
                         {isRetail && (
-                            <Row>
-                                <Col md="6">
-                                    <div className="fw-bold">Brand</div>
-                                    <div style={{}}>
-                                        <div className={'d-flex flex-column gap-1 col p-0'}>
-                                            <Select
-                                                options={brands?.map(brand => ({ value: brand.id, label: brand.name }))}
-                                                isClearable
-                                                className="w-100"
-                                                onMenuOpen={() => {
-                                                    dispatch(
-                                                        getBrands({
-                                                            page: 0,
-                                                            size: 1000,
-                                                            sort: `id,desc`,
-                                                        })
-                                                    );
-                                                }}
-                                                value={selectedBrands}
-                                                onChange={(e) => setSelectedBrands(e)}
-                                                isLoading={brandsLoading}
-                                            />
-                                        </div>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <div className="font-bold text-xs mb-2">Brand</div>
+                                    <div className="flex flex-col gap-1">
+                                        <Select
+                                            options={brands?.map(brand => ({ value: brand.id, label: brand.name }))}
+                                            isClearable
+                                            className="w-full"
+                                            onMenuOpen={() => {
+                                                dispatch(
+                                                    getBrands({
+                                                        page: 0,
+                                                        size: 1000,
+                                                        sort: `id,desc`,
+                                                    })
+                                                );
+                                            }}
+                                            value={selectedBrands}
+                                            onChange={(e) => setSelectedBrands(e)}
+                                            isLoading={brandsLoading}
+                                        />
                                     </div>
-                                </Col>
-                            </Row>
+                                </div>
+                            </div>
                         )}
-                    </Col>
-                </Row>
+                    </div>
+                </div>
                 {!isRetail && (
-                    <Row className='mt-3 border mx-0 p-1'>
-                        <Col md={6}>
-                            <div className="fw-bold">Add ons</div>
-                            <OrderList
-                                value={addonGroups?.map(group => group.addonGroup) || []}
-                                onChange={handleAddonGroupReorder}
-                                style={{ padding: '0px' }}
-                                listStyle={{ padding: '0px' }}
-                                itemTemplate={(addonGroup: IAddonGroup) => {
-                                    const index = addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
+                    <div className="mt-3 border p-2">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="font-bold text-xs">Add ons</div>
+                            <div className="flex items-center gap-2">
+                                <Label className="text-xs text-muted-foreground">Action:</Label>
+                                <ToggleGroup
+                                    type="single"
+                                    value={addonGroupsActionValue}
+                                    onValueChange={(value) => value && setAddonGroupsActionValue(value as 'Append To Items' | 'Override')}
+                                    className="gap-1"
+                                >
+                                    <ToggleGroupItem value="Append To Items" className="text-xs h-7">
+                                        Append To Items
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="Override" className="text-xs h-7">
+                                        Override
+                                    </ToggleGroupItem>
+                                </ToggleGroup>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <DraggableList
+                                    value={addonGroups?.map(group => group.addonGroup) || []}
+                                    onChange={handleAddonGroupReorder}
+                                    dataKey="id"
+                                    dragdrop
+                                    selectable
+                                    showArrows
+                                    header={
+                                        reorderHeader(
+                                            filteredAddonGroupsOptions,
+                                            handleAddonGroupChange,
+                                            addonGroups?.map(group => ({
+                                                id: group?.addonGroup?.id,
+                                                name: group?.addonGroup?.name,
+                                            })),
+                                            addonGroupsOptions,
+                                            () => {
+                                                dispatch(getAddonGroups({
+                                                    page: paginationState.activePage - 1,
+                                                    size: paginationState.itemsPerPage,
+                                                    sort: `${paginationState.sort},${paginationState.order}`,
+                                                }))
+                                            }
+                                        )
+                                    }
+                                    itemTemplate={(addonGroup: IAddonGroup) => {
+                                        const index = addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
 
-                                    return (
-                                        <div
-                                            className="p-orderlist-item d-flex gap-2 align-items-end p-0"
-                                            onClick={() => setSelectedAddonGroup(addonGroups[index])}
-                                        >
-                                            <span className='d-flex flex-column gap-1'>
-                                                <label>{addonGroup?.name}</label>
-                                                <InputText
-                                                    value={addonGroups[index]?.name ?? addonGroup?.name}
-                                                    onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
-                                                    style={{ width: '120px' }}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === ' ') {
-                                                            e.stopPropagation();
-                                                        }
-                                                    }}
-                                                />
-                                            </span>
-                                            <span className='d-flex gap-1'>
-                                                <span className='d-flex flex-column gap-1'>
-                                                    <label>{translate('items.update.min')}</label>
-                                                    <InputNumber
-                                                        value={addonGroups[index]?.minQuantity}
-                                                        onChange={e => {
-                                                            handleAddonGroupFieldChange(index, 'minQuantity', e.value)
+                                        return (
+                                            <div
+                                                className="flex gap-2 items-end"
+                                                onClick={() => setSelectedAddonGroup(addonGroups[index])}
+                                            >
+                                                <span className="flex flex-col gap-1">
+                                                    <Label className="text-xs">{addonGroup?.name}</Label>
+                                                    <Input
+                                                        value={addonGroups[index]?.name ?? addonGroup?.name}
+                                                        onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
+                                                        className="w-[120px] h-7 text-xs"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === ' ') {
+                                                                e.stopPropagation();
+                                                            }
                                                         }}
-                                                        inputStyle={{ width: '40px' }}
                                                     />
                                                 </span>
-                                                <span className='d-flex flex-column gap-1'>
-                                                    <label>{translate('items.update.max')}</label>
-                                                    <InputNumber
-                                                        value={addonGroups[index]?.maxQuantity}
-                                                        onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.value)}
-                                                        inputStyle={{ width: '40px' }}
+                                                <span className="flex gap-1">
+                                                    <span className="flex flex-col gap-1">
+                                                        <Label className="text-xs">{translate('items.update.min')}</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={addonGroups[index]?.minQuantity ?? ''}
+                                                            onChange={e => {
+                                                                handleAddonGroupFieldChange(index, 'minQuantity', e.target.value === '' ? null : Number(e.target.value))
+                                                            }}
+                                                            className="w-[40px] h-7 text-xs"
+                                                        />
+                                                    </span>
+                                                    <span className="flex flex-col gap-1">
+                                                        <Label className="text-xs">{translate('items.update.max')}</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={addonGroups[index]?.maxQuantity ?? ''}
+                                                            onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.target.value === '' ? null : Number(e.target.value))}
+                                                            className="w-[40px] h-7 text-xs"
+                                                        />
+                                                    </span>
+                                                </span>
+                                                <span className="flex flex-col gap-1">
+                                                    <Label className="text-xs">{translate('items.update.addAutomatically')}</Label>
+                                                    <Checkbox
+                                                        checked={addonGroups[index]?.addAutomatically}
+                                                        onCheckedChange={(checked) => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
                                                     />
                                                 </span>
-                                            </span>
-                                            <span className='d-flex flex-column gap-1'>
-                                                <label>{translate('items.update.addAutomatically')}</label>
-                                                <Checkbox
-                                                    checked={addonGroups[index]?.addAutomatically}
-                                                    onChange={e => handleAddonGroupFieldChange(index, 'addAutomatically', e.checked)}
-                                                />
-                                            </span>
-                                            <Button color="danger" onClick={(e) => handleRemoveAddonGroup(e, addonGroup.id)}>
-                                                X
-                                            </Button>
-                                        </div>
-                                    )
-                                }}
-                                header={
-                                    reorderHeader(
-                                        filteredAddonGroupsOptions,
-                                        handleAddonGroupChange,
-                                        addonGroups?.map(group => ({
-                                            id: group?.addonGroup?.id,
-                                            name: group?.addonGroup?.name,
-                                        })),
-                                        addonGroupsOptions,
-                                        () => {
-                                            dispatch(getAddonGroups({
-                                                page: paginationState.activePage - 1,
-                                                size: paginationState.itemsPerPage,
-                                                sort: `${paginationState.sort},${paginationState.order}`,
-                                            }))
-                                        }
-                                    )
-                                }
-                                dragdrop
-                                dataKey="id"
-                            />
-                        </Col>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="h-7 text-xs"
+                                                    onClick={(e) => handleRemoveAddonGroup(e, addonGroup.id)}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        )
+                                    }}
+                                />
+                            </div>
                         {selectedAddonGroup && (
-                            <Col md={6}>
-                                <label className={'font-semibold'}>
+                            <div>
+                                <Label className="font-semibold text-xs mb-2">
                                     <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
-                                </label>
-                                <div className='border'>
+                                </Label>
+                                <div className="border rounded-md">
                                     <Table>
-                                        <thead>
-                                            <tr>
-                                                <th>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="text-xs">
                                                     <Translate contentKey={'items.update.name'}>Name</Translate>
-                                                </th>
-                                                <th>
+                                                </TableHead>
+                                                <TableHead className="text-xs">
                                                     <Translate contentKey={'items.update.price'}>Price</Translate>
-                                                </th>
-                                                <th>
+                                                </TableHead>
+                                                <TableHead className="text-xs">
                                                     <Translate contentKey={'items.update.include'}>Include</Translate>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {selectedAddonGroup?.addonGroup.addons?.map((addon, index) => (
-                                                <tr key={index}>
-                                                    <td className='align-content-center'>{addon.name}</td>
-                                                    <td className='align-content-center'>
-                                                        <InputNumber
-                                                            value={selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price}
+                                                <TableRow key={index}>
+                                                    <TableCell className="text-xs">{addon.name}</TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price ?? ''}
                                                             onChange={e => handleAddonGroupOverridedPriceChange(
                                                                 addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                                                                 addon.id,
-                                                                e.value
+                                                                e.target.value === '' ? null : Number(e.target.value)
                                                             )}
-                                                            inputStyle={{ width: '50px' }}
-                                                            mode="decimal"
-                                                            minFractionDigits={2}
-                                                            maxFractionDigits={2}
+                                                            className="w-[50px] h-7 text-xs"
                                                         />
-                                                    </td>
-                                                    <td className='align-content-center'>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <Checkbox
                                                             checked={!addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(excluded => excluded.id).includes(addon.id)}
-                                                            onChange={e => handleAddonGroupExcludedChange(
-                                                                e,
+                                                            onCheckedChange={(checked) => handleAddonGroupExcludedChange(
+                                                                { checked },
                                                                 addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                                                                 addon
                                                             )}
                                                         />
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
-                                        </tbody>
+                                        </TableBody>
                                     </Table>
                                 </div>
-                            </Col>
-                        )}
-                        <Row>
-                            <div className="flex justify-content-start">
-                                <SelectButton
-                                    value={addonGroupsActionValue}
-                                    onChange={(e) => setAddonGroupsActionValue(e.value)}
-                                    options={['Append To Items', 'Override']}
-                                />
                             </div>
-                        </Row>
-                    </Row>
-                )}
-                <Row>
-                    <Col md="12" className="d-flex justify-content-end">
-                        <div className="d-flex gap-2">
-                            <Button
-                                className="mt-3"
-                                label="Cancel"
-                                icon="pi pi-save"
-                                outlined
-                                onClick={() =>
-                                    setSelectedActionOption(null)
-                                }
-                            />
-                            <Button className="mt-3" icon="pi pi-save" type="submit" disabled={loading || isloadingUpdate}>
-                                {loading || isloadingUpdate ? <Spinner /> : "Update"}
-                            </Button>
+                        )}
                         </div>
-                    </Col>
-                </Row>
+                    </div>
+                )}
+                <div className="flex justify-end mt-3">
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() =>
+                                setSelectedActionOption(null)
+                            }
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            size="sm"
+                            className="h-8 text-xs"
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={loading || isloadingUpdate}
+                        >
+                            {loading || isloadingUpdate ? (
+                                <>
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                    Updating...
+                                </>
+                            ) : (
+                                "Update"
+                            )}
+                        </Button>
+                    </div>
+                </div>
             </form>
-        </Container>
+
+            <AlertDialog open={showOverrideConfirmation} onOpenChange={setShowOverrideConfirmation}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-sm">Confirm Override Action</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                             {/* eslint-disable-next-line react/no-unescaped-entities */}
+                            You have selected "Override" mode. This will completely replace all existing addon groups for the selected items with the new addon groups you've configured.
+                            <br /><br />
+                            Are you sure you want to proceed? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="h-8 text-xs"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                performUpdate();
+                            }}
+                        >
+                            Continue Override
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
     )
 }

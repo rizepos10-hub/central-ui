@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -9,12 +9,17 @@ import { getEntity, updateEntity, createEntity, reset } from './pizza-predefined
 
 import { getEntities as getToppings } from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
 
-import { InputText } from "primereact/inputtext";
 import { IPredefinedPizza } from "app/shared/model/PIZZA/predefined-pizza.model";
 import Select from "react-select";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { getSortState, Translate } from "react-jhipster";
+import { getSortState } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PredefinedPizzaUpdate = () => {
   const dispatch = useAppDispatch();
@@ -101,70 +106,89 @@ export const PredefinedPizzaUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? "Add New Predefined Pizza" : "Edit Predefined Pizza"}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label for="predefined-pizza-name">Name</Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="predefined-pizza-name"
-                    value={predefinedPizza.name || ''}
-                    onChange={handleChange}
-                  />
+    <PageWrapper>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">{isNew ? "Add New Predefined Pizza" : "Edit Predefined Pizza"}</h2>
+      </div>
+      <div className="max-w-2xl">
+        <Card>
+          <CardContent className="p-4">
+            {loading ? (
+              <p className="text-xs">Loading...</p>
+            ) : (
+              <form>
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="predefined-pizza-name" className="text-xs">Name</Label>
+                    <Input
+                      type="text"
+                      name="name"
+                      required={true}
+                      id="predefined-pizza-name"
+                      value={predefinedPizza.name || ''}
+                      onChange={handleChange}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="predefined-pizza-toppings" className="text-xs">Toppings</Label>
+                    <Select
+                      name="toppings"
+                      options={pizzaToppingList}
+                      isMulti
+                      getOptionLabel={(option) => option.name}
+                      getOptionValue={(option => option.id)}
+                      required={true}
+                      id="predefined-pizza-toppings"
+                      value={predefinedPizza.toppings || []}
+                      onChange={handleOptionChange}
+                      styles={{
+                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                        option: (base) => ({ ...base, fontSize: '0.75rem' })
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label for="predefined-pizza-toppings">Toppings</Label>
-                  <Select
-                    name="toppings"
-                    options={pizzaToppingList}
-                    isMulti
-                    getOptionLabel={(option) => option.name}
-                    getOptionValue={(option => option.id)}
-                    required={true}
-                    id="predefined-pizza-toppings"
-                    value={predefinedPizza.toppings || []}
-                    onChange={handleOptionChange}
-                  />
-
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    onClick={() => navigate(-1)}
+                    variant="outline"
+                    className="h-8 text-xs"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </Button>
+                  <Button
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="button"
+                    disabled={updating}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-3 w-3" />
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  <Button
+                    onClick={(e) => saveEntity(e, true)}
+                    id="save-entity-new"
+                    data-cy="entityCreateSaveButton"
+                    type="button"
+                    disabled={updating}
+                    className="h-8 text-xs"
+                  >
+                    <Save className="h-3 w-3" />
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
                 </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </PageWrapper>
   );
 };
 

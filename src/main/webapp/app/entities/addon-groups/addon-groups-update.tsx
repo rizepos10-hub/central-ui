@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate, } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState, Translate } from 'react-jhipster';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
+import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './addon-groups.reducer';
 import Select from 'react-select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { Card as PrimeCard } from 'primereact/card';
-import { Button as PrimeButton } from 'primereact/button';
+import { FilterMatchMode } from 'primereact/api';
+import axios from 'axios';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
-import { InputText } from 'primereact/inputtext';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { filterEntities as getComboItems, updateEntity as updateComboItem } from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
@@ -22,6 +20,12 @@ import { IItem } from 'app/shared/model/ITEM/item.model';
 import { ItemsTable } from 'app/shared/components/assign-to-item/assign-to-item';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -31,7 +35,6 @@ export const AddonGroupUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const addons = useAppSelector(state => state.addon.entities);
   const newAddon = useAppSelector(state => state.addon.entity);
 
   const addonGroupsEntity = useAppSelector(state => state.addonGroups.entity);
@@ -46,6 +49,8 @@ export const AddonGroupUpdate = () => {
 
   const [addonGroup, setAddonGroup] = useState<IAddonGroup>();
   const [showModal, setShowModal] = useState(false);
+  const [isLoadingAddons, setIsLoadingAddons] = useState(false);
+  const [addons, setAddons] = useState<IAddon[]>([]);
 
   const handleAddonChange = selectedAddons => {
     setAddonGroup(prev => ({
@@ -67,13 +72,35 @@ export const AddonGroupUpdate = () => {
     setShowModal(prev => !prev);
   };
 
+  const fetchAddons = async (searchTerm = '') => {
+    setIsLoadingAddons(true);
+    try {
+      const query = {
+        first: 0,
+        rows: 1000,
+        page: 0,
+        sortField: 'name',
+        sortOrder: 1,
+        filters: {
+          name: { value: searchTerm || null, matchMode: FilterMatchMode.CONTAINS }
+        }
+      };
+      const updatedQuery = applyMatchModeMap(query);
+
+      // Direct axios call to bypass redux loading state
+      const response = await axios.post<IAddon[]>('api/_search/addons', updatedQuery);
+      setAddons(response.data);
+    } catch (error) {
+      console.error('Error fetching addons:', error);
+      setAddons([]);
+    } finally {
+      setIsLoadingAddons(false);
+    }
+  };
+
   useEffect(() => {
-    dispatch(getAddons({
-      page: 0,
-      size: 1000,
-      sort: 'name,asc'
-    }));
-    
+    fetchAddons();
+
     if (isNew) {
       dispatch(reset());
     } else {
@@ -121,109 +148,153 @@ export const AddonGroupUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md={isNew ? "12" : "4"}>
-          <Row>
-            <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-              {isNew ? (
-                <Translate contentKey={'tempApp.addonGroup.createNewAddonGroup'}>Create New Addon Group</Translate>
+    <PageWrapper>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">
+          {isNew ? (
+            <Translate contentKey={'tempApp.addonGroup.createNewAddonGroup'}>Create New Addon Group</Translate>
+          ) : (
+            <Translate contentKey={'tempApp.addonGroup.editAddonGroup'}>Edit Addon Group</Translate>
+          )}
+        </h2>
+      </div>
+      <div className={isNew ? "" : "flex gap-4"}>
+        <div className={isNew ? "max-w-2xl" : "w-1/3"}>
+          <Card>
+            <CardContent className="p-6">
+              {loading ? (
+                <p>Loading...</p>
               ) : (
-                <Translate contentKey={'tempApp.addonGroup.editAddonGroup'}>Edit Addon Group</Translate>
+                <>
+                  <div className="flex justify-end mb-4">
+                    <Button onClick={handleShowModal} size="sm" className="h-8 text-xs">
+                      <Translate contentKey={'tempApp.addonGroup.createAndAddAddon'}>Create And Add Addon</Translate>
+                    </Button>
+                  </div>
+
+                  <CreateAddonModal
+                    isOpen={showModal}
+                    toggle={handleShowModal}
+                    addonGroup={addonGroup}
+                  />
+
+                  <form>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="addon-group-name" className="text-xs">
+                          <Translate contentKey={'common.name'}>Addon Name</Translate>
+                        </Label>
+                        <Input
+                          type="text"
+                          name="name"
+                          required={true}
+                          id="addon-group-name"
+                          value={addonGroup?.name || ''}
+                          onChange={handleChange}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label className="text-xs">
+                          <Translate contentKey="common.addons">Addons</Translate>
+                        </Label>
+                        <Select
+                          isMulti={true}
+                          value={addonGroup?.addons || []}
+                          onChange={handleAddonChange}
+                          onInputChange={(inputValue) => {
+                            // Fetch with search term or empty to show all
+                            fetchAddons(inputValue || '');
+                          }}
+                          options={addons}
+                          getOptionLabel={option => option.name}
+                          getOptionValue={option => option.id}
+                          placeholder="Search and select addons..."
+                          isLoading={isLoadingAddons}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '32px',
+                              fontSize: '0.75rem',
+                            }),
+                            option: (base) => ({
+                              ...base,
+                              fontSize: '0.75rem',
+                            }),
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-6">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => navigate(-1)}
+                        type="button"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        <Translate contentKey="entity.action.back">Back</Translate>
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={saveEntity}
+                        type="button"
+                        disabled={updating}
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        <Translate contentKey="entity.action.save">Save</Translate>
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={(e) => saveEntity(e, true)}
+                        type="button"
+                        disabled={updating}
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                      </Button>
+                    </div>
+                  </form>
+                </>
               )}
-            </h2>
-          </Row>
-          <PrimeCard>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <>
-                <div className={'d-flex justify-content-end'}>
-                  <PrimeButton onClick={handleShowModal}>
-                    <Translate contentKey={'tempApp.addonGroup.createAndAddAddon'}>Create And Add Addon</Translate>
-                  </PrimeButton>
-                </div>
-
-                <CreateAddonModal
-                  isOpen={showModal}
-                  toggle={handleShowModal}
-                  addonGroup={addonGroup}
-                />
-
-                <form>
-                  <FormGroup className={"d-flex flex-column gap-3"}>
-                    <div className={'d-flex flex-column'}>
-                      <Label for="addon-group-name">
-                        <Translate contentKey={'common.name'}>Addon Name</Translate>
-                      </Label>
-                      <InputText
-                        type="text"
-                        name="name"
-                        required={true}
-                        id="addon-group-name"
-                        value={addonGroup?.name || ''}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <Translate contentKey="common.addons">Addons</Translate>
-                      <Select
-                        isMulti={true}
-                        value={addonGroup?.addons || []}
-                        onChange={handleAddonChange}
-                        options={addons}
-                        getOptionLabel={option => option.name}
-                        getOptionValue={option => option.id}
-                      />
-                    </div>
-                  </FormGroup>
-
-                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                    <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp;
-                    <span className="d-none d-md-inline">
-                      <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
-                  </Button>
-                  &nbsp;
-                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </Button>
-                  &nbsp;
-                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
-                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                  </Button>
-                </form>
-              </>
-            )}
-          </PrimeCard>
-        </Col>
+            </CardContent>
+          </Card>
+        </div>
         {!isNew && (
-          <Col md="8">
-            <Row>
-              <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-                <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
-              </h2>
-            </Row>
-            <TabView>
-              <TabPanel header="Regular">
-                <RegularItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Pizza">
-                <PizzaItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Combo">
-                <ComboItemsTable id={id} />
-              </TabPanel>
-            </TabView>
-          </Col>
+          <div className="flex-1">
+            <Card>
+              <CardHeader>
+                <h2 className="text-base font-semibold">
+                  <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
+                </h2>
+              </CardHeader>
+              <CardContent className="p-4">
+                <Tabs defaultValue="regular">
+                  <TabsList>
+                    <TabsTrigger value="regular">Regular</TabsTrigger>
+                    <TabsTrigger value="pizza">Pizza</TabsTrigger>
+                    <TabsTrigger value="combo">Combo</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="regular">
+                    <RegularItemsTable id={id} />
+                  </TabsContent>
+                  <TabsContent value="pizza">
+                    <PizzaItemsTable id={id} />
+                  </TabsContent>
+                  <TabsContent value="combo">
+                    <ComboItemsTable id={id} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
         )}
-      </Row >
-    </div>
+      </div>
+    </PageWrapper>
   );
 };
 

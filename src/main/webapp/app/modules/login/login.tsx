@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login, loginFromToken } from 'app/shared/reducers/authentication';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { LayoutContext } from 'app/shared/sidebar/context/layoutcontext';
 import { getTenant } from 'app/shared/tenant/TenantContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Mail, Lock } from 'lucide-react';
 
 export const Login = () => {
   const dispatch = useAppDispatch();
@@ -34,10 +35,6 @@ export const Login = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleLogin();
-  };
 
   useEffect(() => {
     dispatch(getTenant);
@@ -54,75 +51,77 @@ export const Login = () => {
     }
   }, [])
 
-  const { layoutConfig } = useContext(LayoutContext);
-  const dark = layoutConfig.colorScheme !== 'light';
-
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
   console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
   return (
-    <div className='row p-0 m-0'>
-      <div className='col p-0 m-0'
-        style={{
-          display: window.innerWidth < 768 ? 'none' : 'block',
-        }}
-      >
+    <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen p-0 m-0">
+      <div className="hidden md:block p-0 m-0">
         <img
           src="/content/images/login-image.png"
           alt="login-image"
-          className="w-100 h-100"
-          style={{
-            objectFit: 'cover',
-          }}
+          className="w-full h-full object-cover"
         />
       </div>
-      <div className='col p-0 m-0'>
-        <div className="px-5 min-h-screen flex justify-content-center align-items-center ">
-          <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 z-1">
-            <div className="mb-4">
-              <div className="text-900 font-semibold mb-2">Log in</div>
-              <span className="text-600 font-medium">Please enter your details</span>
+      <div className="p-0 m-0">
+        <div className="px-5 min-h-screen flex justify-center items-center">
+          <div className="w-full max-w-md space-y-6 border rounded-lg p-8 shadow-sm">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-semibold tracking-tight">Log in</h1>
+              <p className="text-sm text-muted-foreground">Please enter your details</p>
             </div>
-            <div className="flex flex-column">
-              <form onSubmit={handleSubmit}>
-                <span className="p-input-icon-left w-full mb-4">
-                  <i className="pi pi-envelope"></i>
-                  <InputText
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
                     id="email"
                     type="text"
-                    className="w-full"
+                    className="pl-9"
                     placeholder="Email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                   />
-                </span>
-                <span className="p-input-icon-left w-full mb-4">
-                  <i className="pi pi-lock"></i>
-                  <InputText
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
                     id="password"
                     type="password"
-                    className="w-full"
+                    className="pl-9"
                     placeholder="Password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                   />
-                </span>
-                <div className="mb-4 flex flex-wrap justify-content-between">
-                  <div>
-                    {/* <Checkbox name="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.checked ?? false)} className="mr-2"></Checkbox> */}
-                    <label htmlFor="checkbox" className="text-900 font-medium mr-8">
-                      Remember Me
-                    </label>
-                  </div>
-                  
-                  <Link to="/account/reset/request" className="text-600 cursor-pointer hover:text-primary cursor-pointer transition-colors transition-duration-300">
-                    Reset password
-                  </Link>
                 </div>
-                <Button label="Log In" className="w-full" type="submit"></Button>
-              </form>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label htmlFor="rememberMe" className="text-sm font-medium cursor-pointer">
+                    Remember Me
+                  </Label>
+                </div>
+                <Link
+                  to="/account/reset/request"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Reset password
+                </Link>
+              </div>
+              <Button onClick={handleLogin} className="w-full">
+                Log In
+              </Button>
             </div>
           </div>
         </div>

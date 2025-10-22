@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col } from 'reactstrap';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const CatalogSection = (catalogRecords) => {
 
@@ -7,28 +7,28 @@ const CatalogSection = (catalogRecords) => {
 
     return (
         <>
-            <Col className="p-0">
-                <h3>Catalog Records</h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead>
-                            <tr>
-                                <th className="p-1 border-bottom">Name</th>
-                                <th className="p-1 border-bottom">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div className="p-0">
+                <h3 className="text-base font-semibold mb-2">Catalog Records</h3>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="text-xs">Name</TableHead>
+                                <TableHead className="text-xs text-right">Total</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {catalogRecords?.catalogRecords?.map((record, idx) => (
-                                <tr key={idx}>
-                                    <td className="p-1 border-bottom">{record.name}</td>
-                                    <td className="p-1 border-bottom">{record.total?.toFixed(2)}</td>
-                                </tr>
+                                <TableRow key={idx}>
+                                    <TableCell className="text-xs">{record.name}</TableCell>
+                                    <TableCell className="text-xs text-right">{record.total?.toFixed(2)}</TableCell>
+                                </TableRow>
                             ))}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 </div>
-            </Col>
-            <hr className='p-2' style={{ backgroundColor: 'gray' }} />
+            </div>
+            <hr className="my-2 border-gray-300" />
         </>
     );
 };

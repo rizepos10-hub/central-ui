@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Pencil } from 'lucide-react';
 
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { getEntity } from './tax-profile.reducer';
+import { Button } from '@/components/ui/button';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const TaxProfileDetail = () => {
   const dispatch = useAppDispatch();
@@ -18,58 +17,61 @@ export const TaxProfileDetail = () => {
     dispatch(getEntity(id));
   }, []);
 
-  const taxEntity = useAppSelector(state => state.tax.entity);
+  const taxProfileEntity = useAppSelector(state => state.taxProfiles.entity);
+
   return (
-    <Row>
-      <Col md="8">
-        <h2 data-cy="taxDetailsHeading">
-          <Translate contentKey="tempApp.tax.detail.title">Tax</Translate>
+    <PageWrapper>
+      <div className="space-y-4 max-w-3xl">
+        <h2 data-cy="taxDetailsHeading" className="text-base font-bold">
+          <Translate contentKey="tempApp.tax.detail.title">Tax Profile</Translate>
         </h2>
-        <dl className="jh-entity-details">
-          <dt>
-            <span id="id">
+
+        <div className="space-y-3 border rounded-lg p-4">
+          <div className="grid grid-cols-3 gap-4 py-2 border-b">
+            <dt className="text-xs font-semibold">
               <Translate contentKey="global.field.id">ID</Translate>
-            </span>
-          </dt>
-          <dd>{taxEntity.id}</dd>
-          <dt>
-            <span id="name">
+            </dt>
+            <dd className="col-span-2 text-xs">{taxProfileEntity.id}</dd>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 py-2 border-b">
+            <dt className="text-xs font-semibold">
               <Translate contentKey="tempApp.tax.name">Name</Translate>
-            </span>
-          </dt>
-          <dd>{taxEntity.name}</dd>
-          <dt>
-            <span id="desc">
-              <Translate contentKey="tempApp.tax.desc">Desc</Translate>
-            </span>
-          </dt>
-          <dd>{taxEntity.desc}</dd>
-          <dt>
-            <span id="price">
-              <Translate contentKey="tempApp.tax.price">Price</Translate>
-            </span>
-          </dt>
-          <dd>{taxEntity.price}</dd>
-          <dt>
-            <Translate contentKey="tempApp.tax.item">Item</Translate>
-          </dt>
-          <dd>{taxEntity.item ? taxEntity.item.id : ''}</dd>
-        </dl>
-        <Button tag={Link} to="/tax" replace color="info" data-cy="entityDetailsBackButton">
-          <FontAwesomeIcon icon="arrow-left" />{' '}
-          <span className="d-none d-md-inline">
-            <Translate contentKey="entity.action.back">Back</Translate>
-          </span>
-        </Button>
-        &nbsp;
-        <Button tag={Link} to={`/tax/${taxEntity.id}/edit`} replace color="primary">
-          <FontAwesomeIcon icon="pencil-alt" />{' '}
-          <span className="d-none d-md-inline">
-            <Translate contentKey="entity.action.edit">Edit</Translate>
-          </span>
-        </Button>
-      </Col>
-    </Row>
+            </dt>
+            <dd className="col-span-2 text-xs">{taxProfileEntity.name}</dd>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 py-2 border-b">
+            <dt className="text-xs font-semibold">
+              <Translate contentKey="tempApp.tax.desc">Description</Translate>
+            </dt>
+            <dd className="col-span-2 text-xs">{taxProfileEntity.description}</dd>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 py-2 border-b">
+            <dt className="text-xs font-semibold">Tax Rate</dt>
+            <dd className="col-span-2 text-xs">
+              {taxProfileEntity.taxRate ? `${taxProfileEntity.taxRate.code} (${taxProfileEntity.taxRate.value})` : ''}
+            </dd>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button asChild variant="secondary" className="h-8 text-xs">
+            <Link to="/tax-profiles" data-cy="entityDetailsBackButton">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.back">Back</Translate>
+            </Link>
+          </Button>
+          <Button asChild className="h-8 text-xs">
+            <Link to={`/tax-profiles/${taxProfileEntity.id}/edit`}>
+              <Pencil className="h-4 w-4 mr-2" />
+              <Translate contentKey="entity.action.edit">Edit</Translate>
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

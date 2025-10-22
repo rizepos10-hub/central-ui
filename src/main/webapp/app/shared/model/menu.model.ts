@@ -16,7 +16,6 @@ export interface IMenu {
   menuScreens?: IMenuScreen[];
   excludedItems?: IItem[];
   itemType?: "RETAIL" | "RESTAURANT" | null;
-  branch?: IBranch[];
   visibilities?: IVisibility[];
   type?: "POS" | "ONLINE_ORDERING";
   numberOfColumns?: number;

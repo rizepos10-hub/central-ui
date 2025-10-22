@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, archiveEntity } from './regular-item.reducer';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export const ItemDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -15,17 +14,20 @@ export const ItemDeleteDialog = () => {
   const { id } = useParams<'id'>();
 
   const [loadModal, setLoadModal] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     dispatch(getEntity(id));
     setLoadModal(true);
+    setIsOpen(true);
   }, []);
 
   const itemEntity = useAppSelector(state => state.regularItem.entity);
   const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
 
   const handleClose = () => {
-    navigate(-1);
+    setIsOpen(false);
+    setTimeout(() => navigate(-1), 150);
   };
 
   useEffect(() => {
@@ -40,28 +42,28 @@ export const ItemDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="itemDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="tempApp.item.delete.question">
-        <Translate contentKey="items.delete.question" interpolate={{ id: itemEntity.id }}>
-          Are you sure you want to delete this Item?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-item" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={isOpen} onOpenChange={handleClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-base">
+            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            <Translate contentKey="items.delete.question" interpolate={{ id: itemEntity.id }}>
+              Are you sure you want to delete this Item?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="h-8 text-xs">
+            <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete} className="h-8 text-xs bg-destructive hover:bg-destructive/90">
+            <Translate contentKey="entity.action.delete">Delete</Translate>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

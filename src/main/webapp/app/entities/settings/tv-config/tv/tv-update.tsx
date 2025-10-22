@@ -1,14 +1,21 @@
 /* eslint-disable complexity */
 
-
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { X, Trash2, AlertTriangle } from 'lucide-react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv.reducer';
@@ -2935,37 +2942,33 @@ export const TVUpdate = () => {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        visible={showDeleteDialog}
-        style={{ width: '400px' }}
-        header="Confirm Delete"
-        modal
-        onHide={cancelDelete}
-        footer={
-          <div>
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              className="p-button-text"
-              onClick={cancelDelete}
-            />
-            <Button
-              label="Delete"
-              icon="pi pi-trash"
-              className="p-button-danger"
+      <AlertDialog open={showDeleteDialog} onOpenChange={cancelDelete}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Confirm Delete
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Are you sure you want to delete {selectedElements.length} element{selectedElements.length === 1 ? '' : 's'}?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel onClick={cancelDelete} className="h-8 text-xs">
+              <X className="h-3 w-3 mr-1" />
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
               onClick={confirmDelete}
-            />
-          </div>
-        }
-      >
-        <div className="confirmation-content">
-          <i className="pi pi-exclamation-triangle" style={{ fontSize: '2rem', color: '#ff9800', marginRight: '10px' }}></i>
-          <span>
-            Are you sure you want to delete {selectedElements.length} element{selectedElements.length === 1 ? '' : 's'}?
-            This action cannot be undone.
-          </span>
-        </div>
-      </Dialog>
+              className="h-8 text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PreviewModal
         showPreview={showPreview}

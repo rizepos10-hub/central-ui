@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Col, Modal, ModalBody, ModalFooter, Row } from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import Select from 'react-select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntitiesRestaurant as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
-import debounce from 'lodash.debounce'; // Use lodash.debounce for debouncing
+import debounce from 'lodash.debounce';
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { confirmDialog } from 'primereact/confirmdialog';
 import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.model';
 import { IAddonGroups } from 'app/shared/model/ADDON/addon-groups.model';
+
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface IAddonImportProps {
   showModal: boolean;
@@ -22,12 +25,14 @@ const AddonImportModal = (props: IAddonImportProps) => {
   const dispatch = useAppDispatch();
   const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
   const [chosenItem, setChosenItem] = useState<IRegularItem>({});
-  // const [selectedItemToImport, setSelectedItemToImport] = useState({});
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedGroupsToImport, setSelectedGroupsToImport] = useState<IAddonGroups[]>([]);
+
   const [filterData, setFilterData] = useState({
     filters: {
       name: {
         value: '',
-        matchMode: 'contains', // Can change based on the requirement
+        matchMode: 'contains',
       },
     },
   });
@@ -38,20 +43,18 @@ const AddonImportModal = (props: IAddonImportProps) => {
     sort: 'id,asc',
   });
 
-  // Use debounce to limit the API call rate
   const handleFilterChange = debounce((inputValue) => {
-    // Pre-process the filter data to ensure valid values
     setFilterData(prevFilterData => ({
       ...prevFilterData,
       filters: {
         ...prevFilterData.filters,
         name: {
-          value: inputValue || '', // If inputValue is null or undefined, use empty string
+          value: inputValue || '',
           matchMode: 'contains',
         },
       },
     }));
-  }, 500); // Wait 500ms after the last change
+  }, 500);
 
   useEffect(() => {
     console.log(filterData, 'filterData')
@@ -71,122 +74,142 @@ const AddonImportModal = (props: IAddonImportProps) => {
     setChosenItem(selectedItem);
   };
 
-  // const handleSaveImportAddons = () => {
-  //   confirm1(selectedItemToImport);
-  // };
-
-  const handleImportAddons = (selectedGroupsToImport: IAddonGroups[]) => {
-    confirm1(selectedGroupsToImport);
+  const handleImportAddons = (selectedGroups: IAddonGroups[]) => {
+    setSelectedGroupsToImport(selectedGroups);
+    setShowConfirmDialog(true);
   };
 
-  const confirm1 = (selectedItemToImport: IAddonGroups[]) => {
-    confirmDialog({
-      message:
-        'Importing this item will override the existing addons. Are you sure you want to continue?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      accept: () => props.handleSave(selectedItemToImport, props.variantId),
-    });
+  const confirmImport = () => {
+    props.handleSave(selectedGroupsToImport, props.variantId);
+    setShowConfirmDialog(false);
   };
-
-  // const allAddonGroups = useMemo(() => {
-  //   const variantAddonGroups = chosenItem.variants.flatMap(variant => variant.addonGroups);
-  //   return [...chosenItem.addonGroups, ...variantAddonGroups];
-  // }, [])
 
   return (
     <>
-      <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" size="xl" autoFocus={false}>
-        <ModalBody>
-          <div className="col md-6">
-            <h2>
+      <Dialog open={props.showModal} onOpenChange={props.handleClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
               <Translate contentKey="items.update.importAddonsModal.title"></Translate>
-            </h2>
-            <h4>
-              <Translate contentKey="items.update.importAddonsModal.search"></Translate>
-            </h4>
-            <Select
-              isMulti={false}
-              onChange={handleSelectedItemChange}
-              onInputChange={handleFilterChange}
-              options={restaurantItemsOptions}
-              getOptionLabel={option => option.name}
-              getOptionValue={option => option.id}
-            />
-          </div>
-          <Row>
-            {chosenItem.addonGroups?.length > 0 && (
-              <Col md={4}>
-                <div className='d-flex flex-column gap-1'>
-                  <div className='border-bottom'>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold mb-2 block">
+                <Translate contentKey="items.update.importAddonsModal.search"></Translate>
+              </Label>
+              <Select
+                isMulti={false}
+                onChange={handleSelectedItemChange}
+                onInputChange={handleFilterChange}
+                options={restaurantItemsOptions}
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '32px',
+                    fontSize: '0.75rem',
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    fontSize: '0.75rem',
+                  }),
+                }}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {chosenItem.addonGroups?.length > 0 && (
+                <div className="border rounded p-3 space-y-3">
+                  <div className="font-semibold text-sm">Item Addons</div>
+                  <div className="space-y-2 border-t pt-2">
                     {chosenItem.addonGroups?.map((group, idx) => {
                       if (group.addonGroup.addons?.length === 0) return null
                       const addonNames = group.addonGroup.addons?.map(
                         addon => addon.name
                       )
                       return (
-                        <div key={idx}>
-                          <div className='fs-5 fw-bold'>
+                        <div key={idx} className="text-xs space-y-1">
+                          <div className="font-bold text-sm">
                             {group.addonGroup.name || group.name}
                           </div>
-                          <div>
-                            <div>
-                              {addonNames}
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  <div>
-                    <Button onClick={() => handleImportAddons(chosenItem?.addonGroups)}>
-                      Import
-                    </Button>
-                  </div>
-                </div>
-              </Col>
-            )}
-            {chosenItem.variants?.map((variant, vIndex) => {
-              if (!variant?.addonGroups || variant?.addonGroups?.length === 0) return null
-              return (
-                <Col md={4} key={vIndex}>
-                  <div className='border-bottom'>
-                    {variant.addonGroups?.map((group, idx) => {
-                      if (group?.addonGroup?.addons?.length === 0) return null
-                      const addonNames = group.addonGroup.addons?.map(addon => addon.name).join(", ")
-                      return (
-                        <div key={idx}>
-                          <div className='fs-5 fw-bold'>
-                            {group.addonGroup.name || group.name}
-                          </div>
-                          <div>
+                          <div className="text-muted-foreground">
                             {addonNames}
                           </div>
                         </div>
                       )
                     })}
-                    <div>
-                      <Button onClick={() => handleImportAddons(variant?.addonGroups)}>
-                        Import
-                      </Button>
-                    </div>
                   </div>
-                </Col>
-              )
-            })}
-          </Row>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs w-full"
+                    onClick={() => handleImportAddons(chosenItem?.addonGroups)}
+                  >
+                    Import
+                  </Button>
+                </div>
+              )}
 
-          <ModalFooter>
-            <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
+              {chosenItem.variants?.map((variant, vIndex) => {
+                if (!variant?.addonGroups || variant?.addonGroups?.length === 0) return null
+                return (
+                  <div key={vIndex} className="border rounded p-3 space-y-3">
+                    <div className="font-semibold text-sm">{variant.name}</div>
+                    <div className="space-y-2 border-t pt-2">
+                      {variant.addonGroups?.map((group, idx) => {
+                        if (group?.addonGroup?.addons?.length === 0) return null
+                        const addonNames = group.addonGroup.addons?.map(addon => addon.name).join(", ")
+                        return (
+                          <div key={idx} className="text-xs space-y-1">
+                            <div className="font-bold text-sm">
+                              {group.addonGroup.name || group.name}
+                            </div>
+                            <div className="text-muted-foreground">
+                              {addonNames}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs w-full"
+                      onClick={() => handleImportAddons(variant?.addonGroups)}
+                    >
+                      Import
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={props.handleClose}>
               <Translate contentKey="entity.action.cancel">Cancel</Translate>
-            </Button>{' '}
-            {/* <Button color="primary" onClick={handleSaveImportAddons}>
-              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
-            </Button> */}
-          </ModalFooter>
-        </ModalBody>
-      </Modal >
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirmation</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Importing this item will override the existing addons. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmImport} className="h-8 text-xs">
+              Import
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import {  getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getSortState } from 'react-jhipster';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
@@ -11,10 +10,11 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {  getEntities as getPizzaCrustThicknesses} from './pizza-crust-thickness.reducer';
 import {  getEntities as getPizzaCrustTypes} from './pizza-crust-type.reducer';
 
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
-import pizzaCrustType from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaCrust = () => {
   const dispatch = useAppDispatch();
@@ -33,14 +33,10 @@ export const PizzaCrust = () => {
   const crustTypeLoading = useAppSelector(state => state.pizzaCrustType.loading);
   const crustTypeTotalItems = useAppSelector(state => state.pizzaCrustType.totalItems);
 
-
-
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
+  const [thicknessFilter, setThicknessFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
 
   const getAllEntities = () => {
-
     dispatch(
       getPizzaCrustThicknesses({
         page: paginationState.activePage - 1,
@@ -57,143 +53,196 @@ export const PizzaCrust = () => {
     );
   };
 
-
-
-
   useEffect(() => {
     getAllEntities();
   }, [paginationState.activePage, paginationState.order, paginationState.sort]);
-
-
-
-
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
-
-  const crustTypeNameTemplate = rowData => {
-    const editUrl = `/pizza-crust-type/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-  const crustTypeEditColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-crust-type/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const crustTypeDeleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-crust-type/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCrustTypeCreate = () => {
     navigate('/pizza-crust-type/new')
   }
-  const crustTypeHeader = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Crust Types</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={crustTypeLoading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={crustTypeLoading} />{' '}
-        </Button>
-        <Button label="Add New Crust Type" raised onClick={handleCrustTypeCreate} disabled={crustTypeLoading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
 
-
-
-
-  const thicknessNameColumnTemplate = rowData => {
-    const editUrl = `/pizza-crust-thickness/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-  const thicknessEditColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-crust-thickness/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const thicknessDeleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-crust-thickness/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleThicknessCreate = () => {
     navigate('/pizza-crust-thickness/new')
   }
-  const thicknessHeader = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Crust Thickness</span>
-      <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={crustThicknessLoading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={crustThicknessLoading} />{' '}
-        </Button>
-        <Button label="Add New Crust Thickness" raised onClick={handleThicknessCreate} disabled={crustThicknessLoading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
+
+  const filteredThicknessList = crustThicknessList.filter(thickness =>
+    thickness.name?.toLowerCase().includes(thicknessFilter.toLowerCase())
   );
 
-
+  const filteredTypeList = crustTypeList.filter(type =>
+    type.name?.toLowerCase().includes(typeFilter.toLowerCase())
+  );
 
   return (
-    <div>
-      <div className={"card"} >
-      <DataTable  value={crustThicknessList} editMode="row" header={thicknessHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustThicknessTotalItems}
-                  rows={20}>
-          <Column field="name" header="Name" filter body={thicknessNameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+    <PageWrapper>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Crust Thickness</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={crustThicknessLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${crustThicknessLoading ? 'animate-spin' : ''}`} />
+                Refresh List
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleThicknessCreate}
+                disabled={crustThicknessLoading}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New Crust Thickness
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="mb-4">
+            <Input
+              placeholder="Search by name..."
+              value={thicknessFilter}
+              onChange={(e) => setThicknessFilter(e.target.value)}
+              className="max-w-sm h-8 text-xs"
+            />
+          </div>
 
-          <Column field="hiddenOnSizes" header="Hidden On Sizes"  body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">Name</TableHead>
+                <TableHead className="text-xs">Hidden On Sizes</TableHead>
+                <TableHead className="text-xs w-20">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredThicknessList.map((thickness) => {
+                const editUrl = `/pizza-crust-thickness/${thickness.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                const deleteUrl = `/pizza-crust-thickness/${thickness.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-          <Column header="Edit"  body={thicknessEditColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+                return (
+                  <TableRow key={thickness.id}>
+                    <TableCell className="text-xs">
+                      <Link to={editUrl} className="hover:underline">
+                        {thickness.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {thickness?.hiddenOnSizes?.map(size => size.name).join(" | ")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Link to={editUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </Link>
+                        <Link to={deleteUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-          <Column  header="Delete" body={thicknessDeleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-        </DataTable>
-      </div>
-      <div className={"card mt-3"} >
-        <DataTable  value={crustTypeList} editMode="row" header={crustTypeHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustTypeTotalItems}
-                    rows={20}>
-          <Column field="name" header="Name" filter body={crustTypeNameTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column field="hiddenOnSizes" header="Hidden On Sizes" body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Crust Types</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleSyncList}
+                disabled={crustTypeLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${crustTypeLoading ? 'animate-spin' : ''}`} />
+                Refresh List
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 text-xs"
+                onClick={handleCrustTypeCreate}
+                disabled={crustTypeLoading}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New Crust Type
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="mb-4">
+            <Input
+              placeholder="Search by name..."
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="max-w-sm h-8 text-xs"
+            />
+          </div>
 
-          <Column header="Edit"  body={crustTypeEditColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">Name</TableHead>
+                <TableHead className="text-xs">Hidden On Sizes</TableHead>
+                <TableHead className="text-xs w-20">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTypeList.map((type) => {
+                const editUrl = `/pizza-crust-type/${type.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                const deleteUrl = `/pizza-crust-type/${type.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-          <Column  header="Delete" body={crustTypeDeleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-        </DataTable>
-      </div>
-    </div>
+                return (
+                  <TableRow key={type.id}>
+                    <TableCell className="text-xs">
+                      <Link to={editUrl} className="hover:underline">
+                        {type.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {type?.hiddenOnSizes?.map(size => size.name).join(" | ")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Link to={editUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </Link>
+                        <Link to={deleteUrl}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

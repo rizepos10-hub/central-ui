@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './warehouse.reducer';
-import { InputText } from "primereact/inputtext";
-import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
-import { Checkbox } from "primereact/checkbox";
-import { translate, Translate } from "react-jhipster";
+import { IWarehouse } from 'app/shared/model/STOCK/warehouse.model';
+import { translate, Translate } from 'react-jhipster';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const WarehouseUpdate = () => {
   const dispatch = useAppDispatch();
@@ -72,69 +74,97 @@ export const WarehouseUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? `${translate('tempApp.warehouse.createNew')}` : `${translate('tempApp.warehouse.edit')}`}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+    <PageWrapper>
+      <Card>
+        <CardContent className="p-4">
+          <h2 className="text-lg font-bold mb-4">
+            {isNew ? `${translate('tempApp.warehouse.createNew')}` : `${translate('tempApp.warehouse.edit')}`}
+          </h2>
+
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-xs">Loading...</p>
           ) : (
             <form>
-              <FormGroup>
-                <div className={'d-flex flex-column'}>
-                  <Label for="name">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label htmlFor="name" className="text-xs font-medium">
                     <Translate contentKey={'common.name'}>Name</Translate>
-                  </Label>
-                  <InputText type="text" name="name" required={true} id="name" value={warehouse.name || ''} onChange={handleChange} />
+                  </label>
+                  <Input
+                    type="text"
+                    name="name"
+                    required
+                    id="name"
+                    className="h-8 text-xs"
+                    value={warehouse.name || ''}
+                    onChange={handleChange}
+                  />
                 </div>
 
-                <div className={'d-flex flex-column mt-2'}>
-                  <Label for="location">
+                <div className="space-y-1">
+                  <label htmlFor="location" className="text-xs font-medium">
                     <Translate contentKey={'common.location'}>Location</Translate>
-                  </Label>
-                  <InputText type="text" name="location" id="location" value={warehouse.location || ''} onChange={handleChange} />
+                  </label>
+                  <Input
+                    type="text"
+                    name="location"
+                    id="location"
+                    className="h-8 text-xs"
+                    value={warehouse.location || ''}
+                    onChange={handleChange}
+                  />
                 </div>
 
-                <div className={'d-flex mt-2 gap-2'}>
-                  <Label for="main">
-                    <Translate contentKey={'tempApp.warehouse.main'}>Main Warehouse</Translate>
-                  </Label>
+                <div className="flex items-center gap-2">
                   <Checkbox
                     name="main"
                     id="main"
-                    checked={warehouse?.main}
-                    onChange={e => setWarehouse(prev => ({ ...prev, main: e.checked }))}
+                    checked={warehouse?.main === true}
+                    onCheckedChange={(checked) => setWarehouse(prev => ({ ...prev, main: checked === true }))}
                   />
+                  <label htmlFor="main" className="text-xs font-medium cursor-pointer">
+                    <Translate contentKey={'tempApp.warehouse.main'}>Main Warehouse</Translate>
+                  </label>
                 </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
+              </div>
+
+              <div className="flex gap-2 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
                   <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-              </Button>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={saveEntity}
+                  disabled={updating}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={(e) => saveEntity(e, true)}
+                  disabled={updating}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </div>
             </form>
           )}
-        </Col>
-      </Row>
-    </div>
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

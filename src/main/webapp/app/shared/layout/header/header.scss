@@ -1,17 +1,10 @@
-$header-color: #fff;
-$header-color-secondary: #bbb;
-$header-color-hover: darken($header-color, 20%);
-
+// Header using Tailwind CSS variables
 /* ==========================================================================
-Developement Ribbon
+Development Ribbon
 ========================================================================== */
 .ribbon {
   background-color: rgba(170, 0, 0, 0.5);
   left: -3.5em;
-  -moz-transform: rotate(-45deg);
-  -ms-transform: rotate(-45deg);
-  -o-transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
   transform: rotate(-45deg);
   overflow: hidden;
   position: absolute;
@@ -21,10 +14,9 @@ Developement Ribbon
   z-index: 99999;
   pointer-events: none;
   opacity: 0.75;
+
   a {
-    color: #fff;
-    display: block;
-    font-weight: 400;
+    @apply text-white block font-normal;
     margin: 1px 0;
     padding: 10px 50px;
     text-align: center;
@@ -38,66 +30,64 @@ Developement Ribbon
 Navbar styles
 ========================================================================== */
 .jh-navbar {
-  background-color: #353d47;
-  padding: 0.2em 1em;
+  background: hsl(var(--primary));
+  height: 7vh;
+
   .profile-image {
+    @apply h-10 w-10 rounded-full;
     margin: -10px 0px;
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
   }
+
   .dropdown-item.active,
   .dropdown-item.active:focus,
   .dropdown-item.active:hover {
-    background-color: #353d47;
+    background: hsl(var(--primary));
   }
+
   .dropdown-toggle::after {
     margin-left: 0.15em;
   }
-  ul.navbar-nav {
-    padding: 0.5em;
-    .nav-item {
-      margin-left: 1.5rem;
-    }
-  }
+
   a.nav-link {
-    font-weight: 400;
-    > span {
-      margin-left: 5px;
-    }
-  }
-  .jh-navbar-toggler {
-    color: #ccc;
-    font-size: 1.5em;
-    padding: 10px;
+    @apply font-normal text-white/80;
+
     &:hover {
-      color: #fff;
+      @apply text-white;
+    }
+
+    > span {
+      @apply ml-1;
     }
   }
-}
-.navbar-brand {
-  overflow: hidden;
+
+  .jh-navbar-toggler {
+    @apply text-white/80 p-2 cursor-pointer border-0 bg-transparent;
+    font-size: 1.5em;
+
+    &:hover {
+      @apply text-white;
+    }
+  }
 }
 
-.jh-navbar .navbar-nav .nav-link {
-  padding-right: 0;
-  padding-left: 0;
+.navbar-brand {
+  @apply overflow-hidden;
 }
 
 .navbar-version {
-  font-size: 10px;
-  color: $header-color-secondary;
-  padding: 0 0 0 10px;
+  @apply text-xs text-white/60 pl-2;
 }
 
 .brand-logo {
   &:hover {
-    text-decoration: none;
+    @apply no-underline;
   }
+
   .brand-icon {
+    @apply inline-block;
     height: 35px;
     width: auto;
-    display: inline-block;
+
     img {
       height: 45px;
     }
@@ -105,18 +95,16 @@ Navbar styles
 }
 
 .brand-title {
-  font-size: 24px;
-  color: $header-color;
+  @apply text-2xl text-white;
+
   &:hover {
-    color: $header-color-hover;
-    text-decoration: none;
+    @apply no-underline;
+    color: hsl(var(--primary-foreground));
   }
 }
 
 .loading-bar {
+  @apply absolute top-0 z-[1031];
   height: 3px;
-  background-color: #009cd8;
-  position: absolute;
-  top: 0px;
-  z-index: 1031;
+  background-color: hsl(var(--primary) / 0.6);
 }

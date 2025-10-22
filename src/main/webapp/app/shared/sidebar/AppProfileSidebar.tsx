@@ -1,206 +1,66 @@
-import { Badge } from 'primereact/badge';
-import { Sidebar } from 'primereact/sidebar';
-import React, { useContext } from 'react';
-import { LayoutContext } from './context/layoutcontext';
+import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/config/store";
 import { toast } from "react-toastify";
-import { Button } from "primereact/button";
 import { logout } from "app/shared/reducers/authentication";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { KeyRound, CreditCard, Settings2, LogOut } from 'lucide-react';
 
-const AppProfileSidebar = () => {
+interface AppProfileSidebarProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
 
-  const navigate = useNavigate()
-
-  const { layoutState, setLayoutState } = useContext(LayoutContext);
-
-  const onProfileSidebarHide = () => {
-    setLayoutState((prevState) => ({ ...prevState, profileSidebarVisible: false }));
-  };
+const AppProfileSidebar = ({ isOpen, setIsOpen }: AppProfileSidebarProps) => {
+  const navigate = useNavigate();
   const account = useAppSelector(state => state.authentication.account);
-
-  const { firstName, lastName } = account
-
+  const { firstName, lastName } = account;
   const dispatch = useAppDispatch();
 
-  const handleSignOut = () => {
-    const toastId = toast.info(
-      <div>
-        <span>Are you sure you want to sign out?</span>
-        <div className="d-flex mt-2 h-2rem">
-          <Button
-            label="Yes"
-            onClick={() => {
-              onProfileSidebarHide()
-              toast.dismiss(toastId);
-              navigate('/logout');
-            }}
-            className="p-button-sm"
-          />
-
-          <Button
-            label="No"
-            className="p-button-secondary p-button-sm ms-2"
-            onClick={() => {
-              toast.dismiss(toastId);
-            }}
-          />
-        </div>
-      </div>,
-      {
-        position: toast.POSITION.TOP_RIGHT,
-        autoClose: false,
-        closeButton: false,
-        closeOnClick: false,
-        draggable: false,
-      }
-    );
-  };
   const handleSignOutImmediate = () => {
-    onProfileSidebarHide();
+    setIsOpen(false);
     dispatch(logout());
     navigate('/login');
-  }
+  };
 
   return (
-    <Sidebar visible={layoutState.profileSidebarVisible} onHide={onProfileSidebarHide} position="right" className="layout-profile-sidebar w-full sm:w-25rem">
-      <div className="flex flex-column mx-auto md:mx-0">
-        <span className="mb-2 font-semibold">Welcome</span>
-        <span className="text-color-secondary font-medium mb-5">{firstName} {lastName}</span>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetHeader className="mb-6">
+          <SheetTitle className="text-left">Profile</SheetTitle>
+          <div className="text-left">
+            <p className="text-sm font-medium text-muted-foreground">Welcome</p>
+            <p className="text-base font-semibold">{firstName} {lastName}</p>
+          </div>
+        </SheetHeader>
 
-        <ul className="list-none m-0 p-0">
-          <li>
-            <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
-              <span>
-                <i className="pi pi-money-bill text-xl text-primary"></i>
-              </span>
-              <div className="ml-3">
-                <span className="mb-2 font-semibold">Change Password</span>
-                {/* <p className="text-color-secondary m-0">Amet mimin mıollit</p> */}
-              </div>
-            </a>
-          </li>
-          <li>
-            <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
-              <span>
-                <i className="pi pi-cog text-xl text-primary"></i>
-              </span>
-              <div className="ml-3">
-                <span className="mb-2 font-semibold">Subscription</span>
-                {/* <p className="text-color-secondary m-0">Exercitation veniam</p> */}
-              </div>
-            </a>
-          </li>
-          <li>
-            <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
-              <span>
-                <i className="pi pi-money-bill text-xl text-primary"></i>
-              </span>
-              <div className="ml-3">
-                <span className="mb-2 font-semibold">Preferences</span>
-                {/* <p className="text-color-secondary m-0">Amet mimin mıollit</p> */}
-              </div>
-            </a>
-          </li>
-          <li onClick={handleSignOutImmediate}>
-            <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
-              <span>
-                <i className="pi pi-power-off text-xl text-primary"></i>
-              </span>
-              <div className="ml-3">
-                <span className="mb-2 font-semibold">Sign Out</span>
-                {/* <p className="text-color-secondary m-0">Sed ut perspiciatis</p> */}
-              </div>
-            </a>
-          </li>
-        </ul>
-      </div>
+        <div className="space-y-2">
+          <button className="w-full flex items-center gap-3 p-3 rounded-md border hover:bg-accent transition-colors">
+            <KeyRound className="h-5 w-5 text-primary flex-shrink-0" />
+            <span className="font-medium text-sm">Change Password</span>
+          </button>
 
-      {/* <div className="flex flex-column mt-5 mx-auto md:mx-0"> */}
-      {/*     <span className="mb-2 font-semibold">Notifications</span> */}
-      {/*     <span className="text-color-secondary font-medium mb-5">You have 3 notifications</span> */}
+          <button className="w-full flex items-center gap-3 p-3 rounded-md border hover:bg-accent transition-colors">
+            <CreditCard className="h-5 w-5 text-primary flex-shrink-0" />
+            <span className="font-medium text-sm">Subscription</span>
+          </button>
 
-      {/*     <ul className="list-none m-0 p-0"> */}
-      {/*         <li> */}
-      {/*             <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*                 <span> */}
-      {/*                     <i className="pi pi-comment text-xl text-primary"></i> */}
-      {/*                 </span> */}
-      {/*                 <div className="ml-3"> */}
-      {/*                     <span className="mb-2 font-semibold">Your post has new comments</span> */}
-      {/*                     <p className="text-color-secondary m-0">5 min ago</p> */}
-      {/*                 </div> */}
-      {/*             </a> */}
-      {/*         </li> */}
-      {/*         <li> */}
-      {/*             <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*                 <span> */}
-      {/*                     <i className="pi pi-trash text-xl text-primary"></i> */}
-      {/*                 </span> */}
-      {/*                 <div className="ml-3"> */}
-      {/*                     <span className="mb-2 font-semibold">Your post has been deleted</span> */}
-      {/*                     <p className="text-color-secondary m-0">15min ago</p> */}
-      {/*                 </div> */}
-      {/*             </a> */}
-      {/*         </li> */}
-      {/*         <li> */}
-      {/*             <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*                 <span> */}
-      {/*                     <i className="pi pi-folder text-xl text-primary"></i> */}
-      {/*                 </span> */}
-      {/*                 <div className="ml-3"> */}
-      {/*                     <span className="mb-2 font-semibold">Post has been updated</span> */}
-      {/*                     <p className="text-color-secondary m-0">3h ago</p> */}
-      {/*                 </div> */}
-      {/*             </a> */}
-      {/*         </li> */}
-      {/*     </ul> */}
-      {/* </div> */}
+          <button className="w-full flex items-center gap-3 p-3 rounded-md border hover:bg-accent transition-colors">
+            <Settings2 className="h-5 w-5 text-primary flex-shrink-0" />
+            <span className="font-medium text-sm">Preferences</span>
+          </button>
 
-      {/* <div className="flex flex-column mt-5 mx-auto md:mx-0"> */}
-      {/*     <span className="mb-2 font-semibold">Messages</span> */}
-      {/*     <span className="text-color-secondary font-medium mb-5">You have new messages</span> */}
-
-      {/*     <ul className="list-none m-0 p-0"> */}
-      {/*         <li> */}
-      {/*             <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*                 <span> */}
-      {/*                     <img src="/demo/images/avatar/circle/avatar-m-8.png" alt="Avatar" className="w-2rem h-2rem" /> */}
-      {/*                 </span> */}
-      {/*                 <div className="ml-3"> */}
-      {/*                     <span className="mb-2 font-semibold">James Robinson</span> */}
-      {/*                     <p className="text-color-secondary m-0">10 min ago</p> */}
-      {/*                 </div> */}
-      {/*                 <Badge value="3" className="ml-auto"></Badge> */}
-      {/*             </a> */}
-      {/*         </li> */}
-      {/*         <li> */}
-      {/*             <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*                 <span> */}
-      {/*                     <img src="/demo/images/avatar/circle/avatar-f-8.png" alt="Avatar" className="w-2rem h-2rem" /> */}
-      {/*                 </span> */}
-      {/*                 <div className="ml-3"> */}
-      {/*                     <span className="mb-2 font-semibold">Mary Watson</span> */}
-      {/*                     <p className="text-color-secondary m-0">15min ago</p> */}
-      {/*                 </div> */}
-      {/*                 <Badge value="1" className="ml-auto"></Badge> */}
-      {/*             </a> */}
-      {/*         </li> */}
-      {/* <li> */}
-      {/*     <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
-      {/*         <span> */}
-      {/*             <img src="/demo/images/avatar/circle/avatar-f-4.png" alt="Avatar" className="w-2rem h-2rem" /> */}
-      {/*         </span> */}
-      {/*         <div className="ml-3"> */}
-      {/*             <span className="mb-2 font-semibold">Aisha Webb</span> */}
-      {/*             <p className="text-color-secondary m-0">3h ago</p> */}
-      {/*         </div> */}
-      {/*         <Badge value="2" className="ml-auto"></Badge> */}
-      {/*     </a> */}
-      {/* </li> */}
-      {/*     </ul> */}
-      {/* </div> */}
-    </Sidebar>
+          <button
+            onClick={handleSignOutImmediate}
+            className="w-full flex items-center gap-3 p-3 rounded-md border hover:bg-accent transition-colors"
+          >
+            <LogOut className="h-5 w-5 text-primary flex-shrink-0" />
+            <span className="font-medium text-sm">Sign Out</span>
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
