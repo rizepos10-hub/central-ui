@@ -115,7 +115,7 @@ const AddTaxModal = ({ visible, onHide, taxId = null }) => {
                 type="number"
                 step="0.01"
                 placeholder="Enter value"
-                value={taxEntity.value || ''}
+                value={taxEntity.value || 0}
                 onChange={(e) => handleChange('value', parseFloat(e.target.value))}
                 className="h-7 text-xs"
               />
