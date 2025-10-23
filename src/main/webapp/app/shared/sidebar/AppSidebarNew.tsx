@@ -35,6 +35,7 @@ import {
   ChevronDown,
   Command,
   Circle,
+  Newspaper,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GlobalSearch from '../components/global-search/global-search';
@@ -55,7 +56,8 @@ const iconMap: Record<string, React.ElementType> = {
   'pi pi-users': Users,
   'pi pi-dollar': DollarSign,
   'pi pi-wallet': Wallet,
-  'pi pi-chart-bar': BarChart3,
+  'pi pi-chart-bar': Newspaper,
+  ' pi pi-chart-bar': Newspaper,
   'pi pi-tablet': Tablet,
   'pi pi-money-bill': Banknote,
   'pi pi-cog': Settings,
