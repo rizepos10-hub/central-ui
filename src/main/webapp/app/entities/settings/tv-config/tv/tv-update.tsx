@@ -23,7 +23,7 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getTvDisplays } from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
 import { getEntities as getRegularItems } from "app/entities/item/restaurant/regular-item/regular-item.reducer";
 import { Translate, getSortState } from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { ICarouselPage, ICarouselItemElement } from 'app/shared/model/TV/tv.model';

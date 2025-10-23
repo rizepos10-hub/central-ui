@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import Attachment from 'app/shared/components/attachment/attachment';
-import { Checkbox } from 'primereact/checkbox';
-import { Button } from 'primereact/button';
-import {Translate} from "react-jhipster";
+import { Translate } from "react-jhipster";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
-const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions}) => {
+const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
   console.log(initialDimensions, 'initialDimensions')
   const [newSection, setNewSection] = useState({
     name: '',
     dimensions: {
-     ...initialDimensions
+      ...initialDimensions
     },
     visible: false,
     backgroundImage: null,
@@ -52,105 +57,107 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions}) => {
   };
 
   return (
-    <Modal isOpen={isOpen} contentlabel="Tables Modal">
-      <ModalHeader toggle={onClose}>Add New Section</ModalHeader>
-      <ModalBody>
-        <ModalBody>
-          <div className="d-flex flex-column" style={{minWidth: "50%"}}>
-            <div className={"d-flex flex-column w-75"}>
-              <div className={"d-flex flex-column justify-content-between"}>
-                <label  className={"mt-5"}>
-                  Section Name
-                </label>
-                <InputText
-                  type="text"
-                  name="name"
-                  required={true}
-                  id="floor-plan-name"
-                  value={newSection?.name || ''}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add New Section</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="section-name">Section Name</Label>
+            <Input
+              type="text"
+              id="section-name"
+              className="h-8 text-xs"
+              value={newSection?.name || ''}
+              onChange={(e) =>
+                setNewSection((prev) => ({
+                  ...prev,
+                  name: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dimensions</Label>
+            <div className="flex gap-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="width" className="text-xs">Width</Label>
+                <Input
+                  type="number"
+                  id="width"
+                  placeholder="Width"
+                  className="h-8 text-xs"
+                  value={newSection?.dimensions?.width || ''}
                   onChange={(e) =>
                     setNewSection((prev) => ({
                       ...prev,
-                      name: e.target.value,
-                    }))}
+                      dimensions: {
+                        ...prev?.dimensions,
+                        width: parseInt(e.target.value) || null,
+                      },
+                    }))
+                  }
                 />
               </div>
-              <div className={"d-flex flex-column justify-content-between mt-5"}>
-                <label>
-                  Dimensions
-                </label>
-                <div className={"d-flex gap-4"}>
-                  <InputNumber
-                    size={12}
-                    placeholder={"Width"}
-                    maxFractionDigits={2}
-                    className={"mb-5 "}
-                    name="dimension-width"
-                    required={true}
-                    value={newSection?.dimensions?.width || null}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          ...prev?.dimensions,
-                          width: e.value,
-                        },
-                      }))
-                    }
-                  />
-                  <InputNumber
-                    placeholder={"Height"}
-                    size={12}
-                    className={"mb-5 "}
-                    maxFractionDigits={2}
-                    required={true}
-                    value={newSection?.dimensions?.height || null}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          ...prev?.dimensions,
-                          height: e.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div className={"d-flex flex-column"}>
-                <label  className={"mt-2"}>
-                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
-                </label>
-                <MediaLibrary
-                    handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
-                    defaultValues={transformAttachmentStructure(newSection?.backgroundImage ? [newSection?.backgroundImage] : [], 'toFileLibraryListItem')}
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="height" className="text-xs">Height</Label>
+                <Input
+                  type="number"
+                  id="height"
+                  placeholder="Height"
+                  className="h-8 text-xs"
+                  value={newSection?.dimensions?.height || ''}
+                  onChange={(e) =>
+                    setNewSection((prev) => ({
+                      ...prev,
+                      dimensions: {
+                        ...prev?.dimensions,
+                        height: parseInt(e.target.value) || null,
+                      },
+                    }))
+                  }
                 />
-              </div>
-              <div className={"d-flex flex-column"}>
-                <label className={"mt-2"}>
-                  Visible
-                </label>
-                <div className={"mt-1"}>
-                  <Checkbox
-                    checked={newSection?.visible}
-                    className={"mt-1"}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                        ...prev,
-                        visible: e.checked,
-                      }))
-                    }
-                  />
-                </div>
               </div>
             </div>
           </div>
-        </ModalBody>
-      </ModalBody>
-      <ModalFooter>
-        <Button label="Add" onClick={handleAddSection} />
-      </ModalFooter>
-    </Modal>
+
+          <div className="space-y-2">
+            <Label>
+              <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+            </Label>
+            <MediaLibrary
+              handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+              defaultValues={transformAttachmentStructure(newSection?.backgroundImage ? [newSection?.backgroundImage] : [], 'toFileLibraryListItem')}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="visible"
+              checked={newSection?.visible}
+              onCheckedChange={(checked) =>
+                setNewSection((prev) => ({
+                  ...prev,
+                  visible: checked as boolean,
+                }))
+              }
+            />
+            <Label htmlFor="visible" className="text-sm cursor-pointer">
+              Visible
+            </Label>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={handleAddSection} className="h-8 text-xs">
+            Add
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

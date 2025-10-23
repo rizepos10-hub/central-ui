@@ -12,7 +12,7 @@ import { FilterMatchMode } from "primereact/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { Plus, Minus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const ItemsTable = ({
@@ -169,10 +169,6 @@ export const ItemsTable = ({
                         onChange={onAssignmentFilterChange}
                         placeholder="Filter by assignment"
                         isClearable
-                        styles={{
-                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                        }}
                     />
                 </div>
             </div>

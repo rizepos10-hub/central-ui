@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 import { searchEntities, getEntities } from './supplier-return.reducer';
 import { ISupplierReturn } from 'app/shared/model/STOCK/supplier-return.model';
@@ -188,11 +188,6 @@ export const SupplierReturn = () => {
                     onChange={(option) => setFilters({ ...filters, status: option?.value })}
                     placeholder={translate('common.search.points')}
                     isClearable
-                    styles={{
-                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                      option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    }}
                   />
                 </div>
               </TableHead>

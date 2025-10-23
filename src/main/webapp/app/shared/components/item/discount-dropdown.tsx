@@ -1,5 +1,5 @@
 import { getSortState, Translate } from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import React, { useState } from "react";
 import { IDiscount } from "app/shared/model/discount.model";
 import { useAppDispatch, useAppSelector } from "app/config/store";
@@ -48,17 +48,6 @@ const DiscountDropdown = ({ discounts, handleChange, variantIndex, handleVariant
               sort: `${paginationState.sort},${paginationState.order}`,
             })
           );
-        }}
-        styles={{
-          control: (base) => ({
-            ...base,
-            minHeight: '32px',
-            fontSize: '0.75rem',
-          }),
-          menu: (base) => ({
-            ...base,
-            fontSize: '0.75rem',
-          }),
         }}
       />
     </div>

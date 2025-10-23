@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IDiscount } from 'app/shared/model/discount.model';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './discount.reducer';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { DiscountType } from "app/shared/model/ENUMS/discount-type.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,10 +90,6 @@ export const DiscountUpdate = () => {
                 options={discountTypeValuesOptions}
                 value={discountEntity?.type ? { label: discountEntity?.type, value: discountEntity?.type } : null}
                 onChange={(selectedType: { label: string, value: string }) => dispatch(changeEntityField({ name: 'type', value: selectedType?.value }))}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                }}
               />
             </div>
 

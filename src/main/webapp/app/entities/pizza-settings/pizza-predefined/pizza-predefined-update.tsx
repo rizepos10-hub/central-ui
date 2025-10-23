@@ -10,7 +10,7 @@ import { getEntity, updateEntity, createEntity, reset } from './pizza-predefined
 import { getEntities as getToppings } from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
 
 import { IPredefinedPizza } from "app/shared/model/PIZZA/predefined-pizza.model";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { getSortState } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -142,10 +142,6 @@ export const PredefinedPizzaUpdate = () => {
                       id="predefined-pizza-toppings"
                       value={predefinedPizza.toppings || []}
                       onChange={handleOptionChange}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
                 </div>

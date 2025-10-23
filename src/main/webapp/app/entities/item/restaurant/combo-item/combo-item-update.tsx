@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -472,17 +472,6 @@ export const ComboItemUpdate = () => {
                               size: paginationState.itemsPerPage,
                               sort: `${paginationState.sort},${paginationState.order}`,
                             }));
-                          }}
-                          styles={{
-                            control: (base) => ({
-                              ...base,
-                              minHeight: '32px',
-                              fontSize: '0.75rem',
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              fontSize: '0.75rem',
-                            }),
                           }}
                         />
                       </div>

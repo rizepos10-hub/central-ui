@@ -5,7 +5,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './addon-groups.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { FilterMatchMode } from 'primereact/api';
@@ -211,17 +211,6 @@ export const AddonGroupUpdate = () => {
                           getOptionValue={option => option.id}
                           placeholder="Search and select addons..."
                           isLoading={isLoadingAddons}
-                          styles={{
-                            control: (base) => ({
-                              ...base,
-                              minHeight: '32px',
-                              fontSize: '0.75rem',
-                            }),
-                            option: (base) => ({
-                              ...base,
-                              fontSize: '0.75rem',
-                            }),
-                          }}
                         />
                       </div>
                     </div>

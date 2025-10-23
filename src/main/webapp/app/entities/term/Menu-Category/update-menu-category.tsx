@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity,getEntities, reset, changeEntityField } from './menu-category.reducer';
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
@@ -216,10 +216,6 @@ console.log(termEntity)
                     value={selectedParent}
                     isClearable
                     onChange={handleParentChange}
-                    styles={{
-                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                      option: (base) => ({ ...base, fontSize: '0.75rem' })
-                    }}
                   />
                 </div>
 

@@ -17,7 +17,7 @@ import { ColorPicker } from 'primereact/colorpicker';
 import { searchEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { ITerm } from 'app/shared/model/term.model';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { translate } from 'react-jhipster';
 import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-settings';
 import { IAttachment } from 'app/shared/model/attachment.model';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppDispatch } from 'app/config/store';
 import { addBalance } from './loyalty-card.reducer';
 import { toast } from 'react-toastify';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { ILoyaltyCardBalance, PaymentType } from 'app/shared/model/loyalty-card.model';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -88,17 +88,6 @@ const AddBalance = ({
               options={Object.values(PaymentType).map(type => ({ label: type, value: type }))}
               onChange={e => setBalanceEntity(prev => ({ ...prev, paymentType: e.value }))}
               value={{ label: balanceEntity.paymentType, value: balanceEntity.paymentType }}
-              styles={{
-                control: base => ({
-                  ...base,
-                  minHeight: '28px',
-                  fontSize: '0.75rem',
-                }),
-                menu: base => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-              }}
             />
           </div>
         </div>

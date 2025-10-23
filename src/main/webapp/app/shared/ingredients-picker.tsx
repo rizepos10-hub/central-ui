@@ -117,17 +117,6 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
           cacheOptions
           onChange={setSelectedItemWithVariant}
           placeholder="Search to add a product"
-          styles={{
-            control: (base) => ({
-              ...base,
-              minHeight: '32px',
-              fontSize: '0.75rem',
-            }),
-            menu: (base) => ({
-              ...base,
-              fontSize: '0.75rem',
-            }),
-          }}
         />
         <Input
           type="number"

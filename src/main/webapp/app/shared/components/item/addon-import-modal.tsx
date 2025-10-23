@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Translate } from 'react-jhipster';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntitiesRestaurant as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
@@ -106,17 +106,6 @@ const AddonImportModal = (props: IAddonImportProps) => {
                 options={restaurantItemsOptions}
                 getOptionLabel={option => option.name}
                 getOptionValue={option => option.id}
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    minHeight: '32px',
-                    fontSize: '0.75rem',
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    fontSize: '0.75rem',
-                  }),
-                }}
               />
             </div>
 

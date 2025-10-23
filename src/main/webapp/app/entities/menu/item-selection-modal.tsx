@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Translate } from 'react-jhipster';
 import { getEntities } from 'app/entities/item/all-items.reducer';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { ITerm } from 'app/shared/model/term.model';

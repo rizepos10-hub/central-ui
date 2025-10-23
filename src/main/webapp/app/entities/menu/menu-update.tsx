@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Translate, translate } from 'react-jhipster';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { Save, X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IMenu } from 'app/shared/model/menu.model';
@@ -117,17 +117,6 @@ const MenuUpdate = ({
                             data-cy="branch"
                             isMulti
                             isClearable
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    minHeight: '32px',
-                                    fontSize: '0.75rem',
-                                }),
-                                option: (base) => ({
-                                    ...base,
-                                    fontSize: '0.75rem',
-                                }),
-                            }}
                         />
                     </div>
 
