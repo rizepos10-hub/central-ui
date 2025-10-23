@@ -289,6 +289,7 @@ export const PricingPointUpdate = () => {
                 type="button"
                 disabled={updating}
                 className="h-8 text-xs"
+                onClick={(e) => saveEntity(e, false)}
                 id="save-entity"
                 data-cy="entityCreateSaveButton"
               >
