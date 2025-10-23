@@ -9,7 +9,7 @@ import { IFloorPlanTable } from "app/shared/model/FLOOR-PLAN/floor-plan-table.mo
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { getSortState } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import SectionModal from "app/entities/settings/floor-plans/floor-plan/floor-plan-new-section-modal";
 import { isEqual } from "lodash";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -585,10 +585,6 @@ const FloorPlanManageUpdate = () => {
                   ...prev,
                   table: option
                 }))}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                }}
               />
             </div>
             <div className="space-y-2">

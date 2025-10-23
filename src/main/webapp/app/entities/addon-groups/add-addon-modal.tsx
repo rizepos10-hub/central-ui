@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { createEntity, reset } from '../addon/addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
@@ -231,15 +231,6 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
                       value={addon?.discounts}
                       options={discountsOptions}
                       onChange={handleDiscountsChange}
-                      menuPortalTarget={document.body}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                        valueContainer: (base) => ({ ...base, padding: '0 8px' }),
-                        input: (base) => ({ ...base, margin: 0, padding: 0 }),
-                        menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                        menuPortal: (base) => ({ ...base, zIndex: 9999 })
-                      }}
                     />
                   </div>
                 </div>

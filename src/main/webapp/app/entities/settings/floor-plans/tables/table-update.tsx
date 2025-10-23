@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './table.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getSortState, Translate } from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { IFloorPlanTable } from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";

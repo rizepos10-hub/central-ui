@@ -19,7 +19,7 @@ import { InputText } from "primereact/inputtext";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getMeasures } from "app/entities/item-measure/item-measure.reducer";
 import { CascadeSelect } from "primereact/cascadeselect";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { getEntities as getAttributes } from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { ITaxonomy } from "app/shared/model/taxonomy.model";
@@ -515,12 +515,6 @@ export const SimpleItemUpdate = () => {
                                     <Select
                                       value={itemAttribute?.attributeTax || null}
                                       isClearable
-                                      styles={{
-                                        control: (baseStyles) => ({
-                                          ...baseStyles,
-                                          minWidth: '15rem'
-                                        }),
-                                      }}
                                       options={filteredAvailableAttributes()}
                                       getOptionValue={option => option.id}
                                       getOptionLabel={option => option.key}

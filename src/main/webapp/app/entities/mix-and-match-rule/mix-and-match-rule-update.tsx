@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './mix-and-match-rule.reducer';
 import { IMixAndMatchRule, IQuantityConfigurationProperties } from "app/shared/model/mix-and-match-rule.model";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
@@ -255,11 +255,6 @@ export const MixAndMatchRuleUpdate = () => {
                                   getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                   getOptionValue={option => option.id}
                                   onChange={(discount) => setNewQuantityConfig(prev => ({ ...prev, discount }))}
-                                  menuPortalTarget={document.body}
-                                  styles={{
-                                    ...customSelectStyles,
-                                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
-                                  }}
                                 />
                               ) : newQuantityConfig?.type === "PRICE" ? (
                                 <Input
@@ -336,11 +331,6 @@ export const MixAndMatchRuleUpdate = () => {
                             getOptionLabel={option => option.name}
                             getOptionValue={option => option.id}
                             onChange={(selectedOption) => handleRuleChange('accountingGroup', selectedOption)}
-                            menuPortalTarget={document.body}
-                            styles={{
-                              ...customSelectStyles,
-                              menuPortal: (base) => ({ ...base, zIndex: 9999 })
-                            }}
                           />
                         </div>
                         <span className="text-xs">Profile Group</span>

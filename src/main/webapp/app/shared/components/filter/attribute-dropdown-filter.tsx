@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { ITerm } from 'app/shared/model/term.model';
 import {
@@ -117,12 +117,6 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           value={itemAttribute?.attributeTax || null}
           options={availableAttributes}
           placeholder={"Select Attribute"}
-          styles={{
-            control: (baseStyles) => ({
-              ...baseStyles,
-              minWidth: "18rem"
-            })
-          }}
           isClearable
           getOptionValue={option => option.id}
           getOptionLabel={option => option.name}
@@ -135,12 +129,6 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           isDisabled={!itemAttribute?.attributeTax}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.id}
-          styles={{
-            control: (baseStyles) => ({
-              ...baseStyles,
-              minWidth: "18rem"
-            })
-          }}
           placeholder={"Select Attribute Value"}
           isLoading={loadingAttributesValues}
           onFocus={() => loadOptions(itemAttribute?.attributeTax?.id)}

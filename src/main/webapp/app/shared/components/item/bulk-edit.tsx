@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Select, { ActionMeta } from 'react-select';
+import Select from 'app/shared/components/select/select';
+import { ActionMeta } from 'react-select';
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
@@ -10,7 +11,8 @@ import { getEntities as getRetailItemCategories } from 'app/entities/term/retail
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Plus, FileDown } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
 import { IAddonGroup, IAddonGroups } from 'app/shared/model/ADDON/addon-groups.model';
 import { Input } from '@/components/ui/input';
@@ -298,28 +300,37 @@ export const BulkEdit = ({
     ) => {
         const [selected, setSelected] = useState(null);
         return (
-            <div className="flex gap-2 items-center mb-2">
+            <div className="flex gap-2 items-center mb-2 flex-wrap">
                 <Dropdown
                     value={selected}
                     onChange={e => setSelected(e.value)}
                     options={data}
-                    placeholder=""
-                    className="w-full"
+                    placeholder="Select addon group..."
+                    className="min-w-[180px] flex-1"
                     onFocus={onFocus}
                     optionLabel={'name'}
                     optionValue={'id'}
+                    appendTo="self"
+                    panelStyle={{ zIndex: 9999 }}
                 />
-                <Button
-                    disabled={!selected}
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                        onChange(options?.find(g => g?.id === selected))
-                        setSelected(null)
-                    }}
-                >
-                    Assign
-                </Button>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            disabled={!selected}
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => {
+                                onChange(options?.find(g => g?.id === selected))
+                                setSelected(null)
+                            }}
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Assign selected group</p>
+                    </TooltipContent>
+                </Tooltip>
             </div>
         )
     }
@@ -535,8 +546,8 @@ export const BulkEdit = ({
                                 </ToggleGroup>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                            <div className="min-w-0">
                                 <DraggableList
                                     value={addonGroups?.map(group => group.addonGroup) || []}
                                     onChange={handleAddonGroupReorder}
@@ -567,55 +578,59 @@ export const BulkEdit = ({
 
                                         return (
                                             <div
-                                                className="flex gap-2 items-end"
+                                                className="flex flex-wrap gap-2 items-end p-2"
                                                 onClick={() => setSelectedAddonGroup(addonGroups[index])}
                                             >
-                                                <span className="flex flex-col gap-1">
-                                                    <Label className="text-xs">{addonGroup?.name}</Label>
+                                                <div className="flex flex-col gap-1 min-w-[140px] flex-1">
+                                                    <Label className="text-xs font-medium">{addonGroup?.name}</Label>
                                                     <Input
                                                         value={addonGroups[index]?.name ?? addonGroup?.name}
                                                         onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
-                                                        className="w-[120px] h-7 text-xs"
+                                                        className="h-8 text-xs min-w-[80px]"
+                                                        placeholder="Display name"
                                                         onKeyDown={(e) => {
                                                             if (e.key === ' ') {
                                                                 e.stopPropagation();
                                                             }
                                                         }}
                                                     />
-                                                </span>
-                                                <span className="flex gap-1">
-                                                    <span className="flex flex-col gap-1">
-                                                        <Label className="text-xs">{translate('items.update.min')}</Label>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <div className="flex flex-col gap-1">
+                                                        <Label className="text-xs font-medium">{translate('items.update.min')}</Label>
                                                         <Input
                                                             type="number"
                                                             value={addonGroups[index]?.minQuantity ?? ''}
                                                             onChange={e => {
                                                                 handleAddonGroupFieldChange(index, 'minQuantity', e.target.value === '' ? null : Number(e.target.value))
                                                             }}
-                                                            className="w-[40px] h-7 text-xs"
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
                                                         />
-                                                    </span>
-                                                    <span className="flex flex-col gap-1">
-                                                        <Label className="text-xs">{translate('items.update.max')}</Label>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <Label className="text-xs font-medium">{translate('items.update.max')}</Label>
                                                         <Input
                                                             type="number"
                                                             value={addonGroups[index]?.maxQuantity ?? ''}
                                                             onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.target.value === '' ? null : Number(e.target.value))}
-                                                            className="w-[40px] h-7 text-xs"
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
                                                         />
-                                                    </span>
-                                                </span>
-                                                <span className="flex flex-col gap-1">
-                                                    <Label className="text-xs">{translate('items.update.addAutomatically')}</Label>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
                                                     <Checkbox
                                                         checked={addonGroups[index]?.addAutomatically}
                                                         onCheckedChange={(checked) => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
+                                                        className="mt-1"
                                                     />
-                                                </span>
+                                                </div>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    className="h-7 text-xs"
+                                                    className="h-8 w-8 text-xs shrink-0"
                                                     onClick={(e) => handleRemoveAddonGroup(e, addonGroup.id)}
                                                 >
                                                     <X className="h-3 w-3" />
@@ -626,7 +641,7 @@ export const BulkEdit = ({
                                 />
                             </div>
                         {selectedAddonGroup && (
-                            <div>
+                            <div className="min-w-0 overflow-auto">
                                 <Label className="font-semibold text-xs mb-2">
                                     <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
                                 </Label>
@@ -659,7 +674,7 @@ export const BulkEdit = ({
                                                                 addon.id,
                                                                 e.target.value === '' ? null : Number(e.target.value)
                                                             )}
-                                                            className="w-[50px] h-7 text-xs"
+                                                            className="w-[80px] h-7 text-xs"
                                                         />
                                                     </TableCell>
                                                     <TableCell>

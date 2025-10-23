@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 export const ToBeStocked = () => {
   const dispatch = useAppDispatch();
@@ -206,31 +206,6 @@ export const ToBeStocked = () => {
                     onInputChange={(inputValue) => setSearchSupplier(inputValue)}
                     placeholder="Select Supplier"
                     isClearable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '28px',
-                        fontSize: '0.75rem',
-                        borderColor: 'hsl(var(--input))',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      }),
-                      input: (base) => ({
-                        ...base,
-                        margin: 0,
-                        padding: 0,
-                      }),
-                      valueContainer: (base) => ({
-                        ...base,
-                        padding: '0 8px',
-                      }),
-                      indicatorsContainer: (base) => ({
-                        ...base,
-                        height: '28px',
-                      }),
-                    }}
                   />
                 </TableHead>
               </TableRow>

@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 
 const initialState = {
   first: 0,
@@ -216,10 +216,6 @@ export const Addon = () => {
                 className="w-48"
                 isDisabled={selectedAddons.length < 1}
                 isOptionDisabled={(option) => option.disabled}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                }}
               />
             </div>
             <div className="flex items-center gap-1">
@@ -274,10 +270,6 @@ export const Addon = () => {
               isClearable
               isLoading={loadingGroups}
               className="w-64"
-              styles={{
-                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                option: (base) => ({ ...base, fontSize: '0.75rem' })
-              }}
             />
           </div>
 

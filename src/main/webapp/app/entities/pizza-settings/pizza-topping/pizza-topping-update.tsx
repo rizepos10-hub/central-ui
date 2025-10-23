@@ -13,7 +13,7 @@ import { ITopping } from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
 import { getEntities as getToppingGroups, createEntity as createToppingGroup } from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Button } from '@/components/ui/button';
@@ -170,17 +170,6 @@ export const PizzaToppingUpdate = () => {
                       onCreateOption={handleCreate}
                       onChange={handleGroupChange}
                       isClearable={true}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          minHeight: '32px',
-                          fontSize: '0.75rem',
-                        }),
-                        option: (base) => ({
-                          ...base,
-                          fontSize: '0.75rem',
-                        }),
-                      }}
                     />
                   </div>
 
@@ -206,17 +195,6 @@ export const PizzaToppingUpdate = () => {
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
                       onChange={(toppingPriceOption) => setPizzaTopping((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          minHeight: '32px',
-                          fontSize: '0.75rem',
-                        }),
-                        option: (base) => ({
-                          ...base,
-                          fontSize: '0.75rem',
-                        }),
-                      }}
                     />
                   </div>
 

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw } from 'lucide-react';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 export const RestaurantCategories = ({
     restuarantCategorySetting,
@@ -114,17 +114,6 @@ export const RestaurantCategories = ({
                             className="text-xs"
                             isOptionDisabled={() => (restuarantCategorySetting.categories?.length || 0) >= 5}
                             onInputChange={(value) => setFilterValue(value)}
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    minHeight: '32px',
-                                    fontSize: '0.75rem',
-                                }),
-                                menu: (base) => ({
-                                    ...base,
-                                    fontSize: '0.75rem',
-                                })
-                            }}
                         />
                     </div>
 

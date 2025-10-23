@@ -4,7 +4,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { Checkbox } from "primereact/checkbox";
 import './required-option.css';
 import CustomCreatableSelect from "app/entities/pizza-settings/custome-select";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { useAppDispatch } from "app/config/store";
 import {
   deleteDefinitionGroupOption,

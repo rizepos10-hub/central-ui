@@ -14,7 +14,7 @@ import { IMeasurementUnit } from "app/shared/model/STOCK/measurement-unit.model"
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IAddonGroups } from "app/shared/model/ADDON/addon-groups.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 type DropDownFilterProps = {
   selectedOption: string;
@@ -110,15 +110,6 @@ const DropDownFilter = ({
       isClearable
       placeholder={placeholder}
       className={classname}
-      menuPortalTarget={document.body}
-      styles={{
-        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-        valueContainer: (base) => ({ ...base, padding: '0 8px' }),
-        input: (base) => ({ ...base, margin: 0, padding: 0 }),
-        menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-        menuPortal: (base) => ({ ...base, zIndex: 9999 })
-      }}
     />
   );
 };

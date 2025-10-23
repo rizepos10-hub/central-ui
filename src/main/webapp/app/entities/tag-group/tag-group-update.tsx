@@ -4,7 +4,7 @@ import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tag-group.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -130,17 +130,6 @@ export const TagGroupUpdate = () => {
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
                     className="text-xs"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '32px',
-                        fontSize: '0.75rem',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      })
-                    }}
                   />
                 </div>
 

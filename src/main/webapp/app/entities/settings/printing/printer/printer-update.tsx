@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './printer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { IBranch } from "app/shared/model/branch.model";
 import { IPrinter } from "app/shared/model/PRINTER/printer.model";
 import { Button } from '@/components/ui/button';
@@ -205,12 +205,6 @@ export const PrinterUpdate = () => {
               value={printerEntity?.branch || null}
               placeholder="Branch Name"
               onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
-              styles={{
-                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-              }}
             />
           </div>
 

@@ -7,7 +7,7 @@ import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { getEntities as getAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
 import { getEntities as getSuppliers } from 'app/entities/inventory/supplier/supplier.reducer';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
@@ -1025,21 +1025,6 @@ export const ProductUpdate = () => {
               getOptionLabel={option => option.name}
               getOptionValue={option => option.id}
               isLoading={loadingAttributesValues}
-              styles={{
-                ...customSelectStyles,
-                control: (baseStyles) => ({
-                  ...baseStyles,
-                  ...customSelectStyles.control(baseStyles),
-                  minWidth: '12rem',
-                  borderColor:
-                    showFormErrors &&
-                      !product.variants[variantIndex]?.attributeValues[
-                      attribute?.attributeTax?.id
-                      ]
-                      ? 'red'
-                      : baseStyles.borderColor
-                })
-              }}
               onFocus={() => loadOptions(attribute?.attributeTax?.id)}
               defaultOptions={attribute?.attributeTerms}
               onChange={selectedOption =>

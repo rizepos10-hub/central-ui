@@ -4,7 +4,7 @@ import { Translate, translate } from 'react-jhipster';
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import Select, { MultiValue } from 'react-select';
+import Select from 'app/shared/components/select/select';
 import {
   getEntity,
   updateEntity,
@@ -227,17 +227,6 @@ export const UserUpdate = () => {
                   onChange={e => updateUserFieldvalue('branches', e)}
                   options={branchList}
                   className="text-xs"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: '32px',
-                      fontSize: '0.75rem',
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      fontSize: '0.75rem',
-                    })
-                  }}
                 />
               </div>
 

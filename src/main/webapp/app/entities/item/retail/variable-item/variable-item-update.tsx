@@ -15,7 +15,7 @@ import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { getEntities as getAttributes } from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import { ITaxonomy } from "app/shared/model/taxonomy.model";
 import { ITerm } from "app/shared/model/term.model";

@@ -97,17 +97,6 @@ const TransferFunds = ({ transferDialogVisibile, onCloseHandle }) => {
               value={transferFunds.fromCard}
               onChange={option => setTransferFunds(prev => ({ ...prev, fromCard: option }))}
               placeholder="Select a Card"
-              styles={{
-                control: base => ({
-                  ...base,
-                  minHeight: '28px',
-                  fontSize: '0.75rem',
-                }),
-                menu: base => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-              }}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -122,17 +111,6 @@ const TransferFunds = ({ transferDialogVisibile, onCloseHandle }) => {
               value={transferFunds.toCard}
               onChange={option => setTransferFunds(prev => ({ ...prev, toCard: option }))}
               placeholder="Select a Card"
-              styles={{
-                control: base => ({
-                  ...base,
-                  minHeight: '28px',
-                  fontSize: '0.75rem',
-                }),
-                menu: base => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-              }}
             />
           </div>
           <div className="flex flex-col gap-1">

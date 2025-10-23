@@ -4,7 +4,7 @@ import { getSortState, Translate, translate } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import MediaLibrary from '../media-library/media-library';
@@ -98,35 +98,6 @@ export const SharedVirtualItemUpdate = ({ item, onFieldChange }: SharedItemProps
                 sort: `${paginationState.sort},${paginationState.order}`,
               })
             );
-          }}
-          styles={{
-            control: (base) => ({
-              ...base,
-              minHeight: '28px',
-              fontSize: '0.75rem',
-              borderColor: 'hsl(var(--input))',
-            }),
-            menu: (base) => ({
-              ...base,
-              fontSize: '0.75rem',
-            }),
-            multiValue: (base) => ({
-              ...base,
-              fontSize: '0.75rem',
-            }),
-            input: (base) => ({
-              ...base,
-              margin: 0,
-              padding: 0,
-            }),
-            valueContainer: (base) => ({
-              ...base,
-              padding: '0 8px',
-            }),
-            indicatorsContainer: (base) => ({
-              ...base,
-              height: '28px',
-            }),
           }}
         />
       </div>

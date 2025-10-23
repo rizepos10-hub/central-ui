@@ -11,7 +11,7 @@ import { getEntity, updateEntity, createEntity, reset, changeEntityField } from 
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 
 
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities } from "app/entities/term/retail-item-category/retail-item-category.reducer";

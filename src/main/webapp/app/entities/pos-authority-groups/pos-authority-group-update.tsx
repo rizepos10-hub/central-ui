@@ -4,7 +4,7 @@ import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeEntityField, createEntity, getEntity, reset, updateEntity } from './pos-authority-group.reducer';
 import { IPosAuthorityGroup, POSAuthorityEnum } from 'app/shared/model/pos-authority-group';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -129,17 +129,6 @@ export const PosAuthorityGroupUpdate = () => {
                   onChange={handleChange}
                   placeholder="Select authorities"
                   className="text-xs"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: '32px',
-                      fontSize: '0.75rem',
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      fontSize: '0.75rem',
-                    })
-                  }}
                 />
               </div>
 

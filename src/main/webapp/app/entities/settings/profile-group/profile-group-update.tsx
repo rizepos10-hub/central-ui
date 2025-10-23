@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './profile-group.reducer';
 import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { getSortState, Translate } from "react-jhipster";
 import { Save, ArrowLeft } from 'lucide-react';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
@@ -114,10 +114,6 @@ export const ProfileGroupUpdate = () => {
               onChange={(profiles) => handleChange('profiles', profiles as IProfileGroup["profiles"])}
               isClearable={true}
               className="text-xs"
-              styles={{
-                control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                option: (base) => ({ ...base, fontSize: '0.75rem' }),
-              }}
             />
           </div>
         </div>

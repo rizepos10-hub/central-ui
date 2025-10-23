@@ -7,7 +7,7 @@ import { getEntity, updateEntity, createEntity, changeEntityField, reset } from 
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as getPrinters } from 'app/entities/settings/printing/printer/printer.reducer';
 
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { getSortState, Translate } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -154,12 +154,6 @@ export const PrintingProfileUpdate = () => {
               getOptionValue={(option: IBranch) => option.id}
               required
               onChange={(selectedBranch: IBranch) => dispatch(changeEntityField({ name: 'branch', value: selectedBranch }))}
-              styles={{
-                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-              }}
             />
           </div>
 

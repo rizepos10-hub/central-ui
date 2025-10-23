@@ -4,7 +4,7 @@ import { getSortState, Translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset, deleteEntity, getEntities as categoryEntitiesTree, searchEntities as categorySearchEntitiesTree, changeEntityField } from './item-restaurant-category-tree.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
@@ -162,7 +162,6 @@ export const UpdateItemRestaurantCategoryTree: React.FC<UpdateItemRestaurantCate
                 options={profileGroupsOptions}
                 getOptionLabel={(option) => option.name}
                 getOptionValue={(option) => option.id}
-                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }), menu: (base) => ({ ...base, fontSize: '0.75rem' }) }}
               />
             </div>
 
@@ -178,7 +177,6 @@ export const UpdateItemRestaurantCategoryTree: React.FC<UpdateItemRestaurantCate
                 getOptionLabel={(option) => option.name}
                 getOptionValue={(option) => option.id}
                 onInputChange={handleSearch}
-                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }), menu: (base) => ({ ...base, fontSize: '0.75rem' }) }}
               />
             </div>
 

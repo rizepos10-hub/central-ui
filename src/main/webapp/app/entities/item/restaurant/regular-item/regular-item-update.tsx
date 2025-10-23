@@ -11,7 +11,7 @@ import { IRegularItem, IRegularItemVariant } from "app/shared/model/ITEM/restaur
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
 import Visibility from 'app/shared/Visibility/Visibility';
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
@@ -47,7 +47,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, GripVertical, Save, PlusCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Save, PlusCircle, ArrowLeft, Loader2, FileDown } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const RegularItemUpdate = () => {
@@ -463,44 +464,46 @@ export const RegularItemUpdate = () => {
     variantIndex
   ) => {
     return (
-      <div className='flex gap-2 items-center'>
+      <div className='flex gap-2 items-center flex-wrap'>
         <Select
           value={selected ? data.find(item => item.id === selected) : null}
           onChange={selectedOption => setSelected(selectedOption?.id || null)}
           options={data}
-          placeholder=""
+          placeholder="Select addon group..."
           onFocus={onFocus}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.id}
           isClearable
-          styles={{
-            control: (base) => ({
-              ...base,
-              minHeight: '32px',
-              fontSize: '0.75rem',
-              width: '14rem',
-            }),
-            menu: (base) => ({
-              ...base,
-              fontSize: '0.75rem',
-            }),
-          }}
         />
-        <Button
-          type="button"
-          disabled={!selected}
-          onClick={() => {
-            onChange(options?.find(g => g?.id === selected), variant, variantIndex)
-            setSelected(null)
-          }}
-          size="sm"
-          className='h-7 text-xs'
-        >
-          Assign
-        </Button>
-        <Button type="button" size="sm" className="h-7 text-xs" onClick={() => openImportAddonModal(variant.id)}>
-          <Translate contentKey="items.update.importAddons">Import Addons</Translate>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              disabled={!selected}
+              onClick={() => {
+                onChange(options?.find(g => g?.id === selected), variant, variantIndex)
+                setSelected(null)
+              }}
+              size="sm"
+              className='h-7 w-7 p-0'
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Assign selected group</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button type="button" size="sm" className="h-7 w-7 p-0" onClick={() => openImportAddonModal(variant.id)}>
+              <FileDown className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Import addon groups</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     )
   }
@@ -944,17 +947,6 @@ export const RegularItemUpdate = () => {
                                                   profileGroup ? [profileGroup] : []
                                                 )
                                               }
-                                              styles={{
-                                                control: (base) => ({
-                                                  ...base,
-                                                  minHeight: '32px',
-                                                  fontSize: '0.75rem',
-                                                }),
-                                                menu: (base) => ({
-                                                  ...base,
-                                                  fontSize: '0.75rem',
-                                                }),
-                                              }}
                                             />
                                           </div>
 
@@ -979,17 +971,6 @@ export const RegularItemUpdate = () => {
                                               onChange={mixAndMatchRule =>
                                                 handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
                                               }
-                                              styles={{
-                                                control: (base) => ({
-                                                  ...base,
-                                                  minHeight: '32px',
-                                                  fontSize: '0.75rem',
-                                                }),
-                                                menu: (base) => ({
-                                                  ...base,
-                                                  fontSize: '0.75rem',
-                                                }),
-                                              }}
                                             />
                                           </div>
                                         </div>
@@ -1009,8 +990,8 @@ export const RegularItemUpdate = () => {
                                       </TabsContent>
 
                                       <TabsContent value="addons" className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                          <div>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                                          <div className="min-w-0">
                                             <Label className="text-xs font-semibold">
                                               <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
                                             </Label>
@@ -1025,58 +1006,60 @@ export const RegularItemUpdate = () => {
 
                                                   return (
                                                     <div
-                                                      className="p-orderlist-item flex justify-between items-end p-0"
+                                                      className="p-orderlist-item flex flex-wrap gap-2 items-end p-2"
                                                       onClick={() => setSelectedAddonGroup(variant?.addonGroups[index])}
                                                     >
-                                                      <span className='flex flex-col gap-1'>
-                                                        <Label className="text-xs">{addonGroup.name}</Label>
+                                                      <div className='flex flex-col gap-1 min-w-[140px] flex-1'>
+                                                        <Label className="text-xs font-medium">{addonGroup.name}</Label>
                                                         <Input
                                                           value={variant?.addonGroups[index]?.name ?? addonGroup.name}
                                                           onChange={e => handleVariantAddonGroupFieldChange(index, 'name', e.target.value, variantIndex)}
-                                                          className="w-[120px] h-7 text-xs"
+                                                          className="h-8 text-xs min-w-[80px]"
+                                                          placeholder="Display name"
                                                           onKeyDown={(e) => {
                                                             if (e.key === ' ') {
                                                               e.stopPropagation();
                                                             }
                                                           }}
                                                         />
-                                                      </span>
-                                                      <span className='flex gap-1'>
-                                                        <span className='flex flex-col gap-1'>
-                                                          <Label className="text-xs">{translate('items.update.min')}</Label>
+                                                      </div>
+                                                      <div className='flex gap-2'>
+                                                        <div className='flex flex-col gap-1'>
+                                                          <Label className="text-xs font-medium">{translate('items.update.min')}</Label>
                                                           <Input
                                                             type="number"
                                                             value={variant?.addonGroups[index]?.minQuantity ?? ''}
                                                             onChange={e => {
                                                               handleVariantAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) || null, variantIndex)
                                                             }}
-                                                            className="w-[40px] h-7 text-xs"
-                                                            max={variant?.addonGroups?.[index]?.addonGroup?.addons?.length}
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
                                                           />
-                                                        </span>
-                                                        <span className='flex flex-col gap-1'>
-                                                          <Label className="text-xs">{translate('items.update.max')}</Label>
+                                                        </div>
+                                                        <div className='flex flex-col gap-1'>
+                                                          <Label className="text-xs font-medium">{translate('items.update.max')}</Label>
                                                           <Input
                                                             type="number"
                                                             value={variant?.addonGroups[index]?.maxQuantity ?? ''}
                                                             onChange={e => handleVariantAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) || null, variantIndex)}
-                                                            max={variant?.addonGroups?.[index]?.addonGroup?.addons?.length}
-                                                            className="w-[40px] h-7 text-xs"
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
                                                           />
-                                                        </span>
-                                                      </span>
-                                                      <span className='flex flex-col gap-1'>
-                                                        <Label className="text-xs">{translate('items.update.addAutomatically')}</Label>
+                                                        </div>
+                                                      </div>
+                                                      <div className='flex flex-col gap-1 items-center'>
+                                                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
                                                         <Checkbox
                                                           checked={variant?.addonGroups[index]?.addAutomatically}
                                                           onCheckedChange={checked => handleVariantAddonGroupFieldChange(index, 'addAutomatically', checked, variantIndex)}
+                                                          className="mt-1"
                                                         />
-                                                      </span>
+                                                      </div>
                                                       <Button
                                                         type="button"
                                                         variant="destructive"
                                                         size="sm"
-                                                        className="h-7 text-xs"
+                                                        className="h-8 w-8 text-xs shrink-0"
                                                         onClick={() => handleRemoveAddonGroup(addonGroup.id, variant, variantIndex)}
                                                       >
                                                         X
@@ -1108,8 +1091,8 @@ export const RegularItemUpdate = () => {
                                           {variant?.addonGroups.some(
                                             (group) => group.addonGroup.id === selectedAddonGroup?.addonGroup.id
                                           ) && (
-                                              <div>
-                                                <Label className="text-xs font-semibold flex justify-between">
+                                              <div className="min-w-0 overflow-auto">
+                                                <Label className="text-xs font-semibold flex flex-wrap justify-between gap-2">
                                                   <span>
                                                     <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
                                                   </span>
@@ -1158,7 +1141,7 @@ export const RegularItemUpdate = () => {
                                                                 parseFloat(e.target.value) || null,
                                                                 variantIndex
                                                               )}
-                                                              className={`w-[50px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}
+                                                              className={`w-[80px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}
                                                               step={0.01}
                                                             />
                                                           </TableCell>

@@ -4,7 +4,7 @@ import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, Debit
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity, getEntity} from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import Printer from '../printing/printer/printer';
 import { getEntities } from '../tv-config/tv/tv.reducer';
 import { ITv } from 'app/shared/model/TV/tv.model';

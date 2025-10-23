@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './item-restaurant-category.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { getEntities } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
@@ -136,17 +136,6 @@ export const UpdateItemRestaurantCategory = () => {
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
                     className="text-xs"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '32px',
-                        fontSize: '0.75rem',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      })
-                    }}
                   />
                 </div>
 
@@ -162,17 +151,6 @@ export const UpdateItemRestaurantCategory = () => {
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
                     className="text-xs"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '32px',
-                        fontSize: '0.75rem',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      })
-                    }}
                   />
                 </div>
 

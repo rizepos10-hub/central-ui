@@ -11,7 +11,7 @@ import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { toast } from 'react-toastify';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -773,10 +773,6 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
           <div className="flex items-center space-x-2">
             <Label className="text-xs">Rows per page:</Label>
             <Select
-              styles={{
-                ...selectStyles,
-                control: (base: any) => ({ ...base, minHeight: '28px', width: '80px', fontSize: '0.75rem' }),
-              }}
               value={{ label: String(lazyState.rows), value: lazyState.rows }}
               options={[10, 20, 30, 40, 50, 100, 200].map((size) => ({ label: String(size), value: size }))}
               onChange={(option) =>

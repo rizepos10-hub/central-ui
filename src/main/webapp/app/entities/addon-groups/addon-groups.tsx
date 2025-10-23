@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 const initialState = {
   first: 0,
@@ -222,18 +222,6 @@ export const AddonGroups = () => {
                 value={{ label: query.rows.toString(), value: query.rows }}
                 onChange={(option) => handleRowsPerPageChange(option.value)}
                 options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    minHeight: '32px',
-                    fontSize: '0.75rem',
-                    minWidth: '70px',
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    fontSize: '0.75rem',
-                  }),
-                }}
               />
               <div className="flex gap-1">
                 <Button
