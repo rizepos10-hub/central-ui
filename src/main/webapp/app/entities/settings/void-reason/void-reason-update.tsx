@@ -144,6 +144,7 @@ export const VoidReasonUpdate = () => {
               type="button"
               id="save-entity"
               data-cy="entityCreateSaveButton"
+              onClick={(e) => saveEntity(e, false)}
               disabled={updating}
               className="h-8 text-xs"
             >
