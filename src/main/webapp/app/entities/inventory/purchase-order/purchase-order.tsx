@@ -12,7 +12,7 @@ import { searchEntities as searchWarehouses, getEntities as getWarehouses } from
 import { IPurchaseOrder } from "app/shared/model/STOCK/purchase-order.model";
 import { FilterMatchMode } from "primereact/api";
 import _ from "lodash";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { toLocalISOString } from "app/shared/util/date-utils";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { Loader2 } from 'lucide-react';
@@ -239,11 +239,6 @@ export const PurchaseOrder = () => {
                       isClearable
                       placeholder={translate('tempApp.purchaseOrder.search.warehouse')}
                       onInputChange={(value) => setSearchTermWarehouse(value)}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
                 </TableHead>
@@ -260,11 +255,6 @@ export const PurchaseOrder = () => {
                       isClearable
                       placeholder={translate('tempApp.purchaseOrder.search.supplier')}
                       onInputChange={(value) => setSearchTermSupplier(value)}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
                 </TableHead>
@@ -322,11 +312,6 @@ export const PurchaseOrder = () => {
                       getOptionValue={(option) => option.id}
                       isClearable
                       placeholder={translate("common.search.points")}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                        menu: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
                 </TableHead>

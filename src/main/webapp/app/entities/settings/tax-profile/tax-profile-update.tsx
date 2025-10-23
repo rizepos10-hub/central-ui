@@ -4,7 +4,7 @@ import { getSortState, Translate } from 'react-jhipster';
 import { Save, ArrowLeft, Trash2, Plus } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './tax-profile.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { getEntities as getTaxRates } from 'app/entities/settings/tax/tax.reducer';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -172,10 +172,6 @@ export const TaxProfileUpdate = () => {
                       onChange={selectedOption => handleChange('taxRate', selectedOption)}
                       placeholder="Select a tax rate..."
                       className="text-xs"
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      }}
                     />
                   </div>
 

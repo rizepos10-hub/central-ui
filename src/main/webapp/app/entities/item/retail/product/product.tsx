@@ -75,9 +75,12 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Circle as CircleIcon
+  Circle as CircleIcon,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { FilterMatchMode } from "primereact/api";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 
@@ -241,7 +244,7 @@ export const Product = () => {
     return () => {
       searchParams.set("query", "")
     }
-  }, [query?.first, query?.page, query?.rows]);
+  }, [query?.first, query?.page, query?.rows, query?.sortField, query?.sortOrder]);
 
   useEffect(() => {
     onFilter(localFilters)
@@ -829,7 +832,7 @@ export const Product = () => {
         width: "100px",
       },
       {
-        field: "categories",
+        field: "categories.id",
         key: "categories",
         header: "Category",
         body: (rowData) => (
@@ -910,12 +913,13 @@ export const Product = () => {
         width: "300px",
       },
       {
-        field: "productionCenter",
+        field: "productionCenter.id",
         key: "productionCenter",
         header: translate("items.view.fields.productionCenter"),
         body: (rowData) => (
           <div className="text-xs"><SummarizeText>{rowData?.productionCenter?.name}</SummarizeText></div>
         ),
+        sortable: true,
         seq: 7,
         visible: true,
         width: "100px",
@@ -1064,6 +1068,34 @@ export const Product = () => {
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
 
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+    }
+
+    const newQuery = {
+      ...query,
+      sortField: newSortOrder === null ? null : field,
+      sortOrder: newSortOrder
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="h-3 w-3 ml-1 inline" />;
+    }
+    return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+  };
+
   const downloadFile = (filePath: string) => {
     const link = document.createElement('a');
     link.href = filePath;
@@ -1168,10 +1200,6 @@ export const Product = () => {
             value={{ value: query.rows, label: query.rows.toString() }}
             onChange={(option) => handleRowsPerPageChange(option.value)}
             options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
-            styles={{
-              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-              menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-            }}
             className="w-20"
           />
         </div>
@@ -1234,10 +1262,6 @@ export const Product = () => {
             placeholder="Bulk Actions"
             isDisabled={selectedProducts.length < 1}
             isOptionDisabled={(option) => option.disabled}
-            styles={{
-              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem', minWidth: '200px' }),
-              menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-            }}
           />
         </div>
 
@@ -1495,8 +1519,14 @@ export const Product = () => {
               </TableHead>
               <TableHead className="text-xs w-10"></TableHead>
               {visibleColumns.map((col) => (
-                <TableHead key={col.field} className="text-xs" style={{ width: col.width }}>
+                <TableHead
+                  key={col.field}
+                  className={`text-xs ${col.sortable ? 'cursor-pointer' : ''}`}
+                  style={{ width: col.width }}
+                  onClick={() => col.sortable && col.field && handleSort(col.field)}
+                >
                   {col.header}
+                  {col.sortable && col.field && getSortIcon(col.field)}
                 </TableHead>
               ))}
             </TableRow>

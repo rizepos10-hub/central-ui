@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { Translate } from "react-jhipster";
 import { changeEntityField, getEntity, updateEntity } from './pizza-settings.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
@@ -155,10 +155,6 @@ export const PizzaSettings = () => {
                                         }}
                                         value={selectedBasePizzaOption}
                                         placeholder="Select a base pizza"
-                                        styles={{
-                                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                        }}
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
@@ -171,10 +167,6 @@ export const PizzaSettings = () => {
                                         }}
                                         value={selectedMakeYourOwnPizzaOption}
                                         placeholder="Select a make your own pizza"
-                                        styles={{
-                                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                        }}
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
@@ -203,10 +195,6 @@ export const PizzaSettings = () => {
                                                             onChange={option => handleBranchSettingChange(branch, 'selectedPizzaFallbackOption', option.value)}
                                                             value={selectedFallback}
                                                             placeholder="Select fallback default"
-                                                            styles={{
-                                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                                            }}
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2">

@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
@@ -164,12 +164,6 @@ export const TransferRequest = () => {
                     value={statusOptions.find(opt => opt.value === filters.status)}
                     onChange={(option) => setFilters({ ...filters, status: option?.value })}
                     placeholder={translate("common.search.status")}
-                    styles={{
-                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                      option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    }}
                   />
                 </div>
               </TableHead>

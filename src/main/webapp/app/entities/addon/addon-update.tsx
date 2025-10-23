@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
 import { IDiscount } from "app/shared/model/discount.model";
@@ -205,10 +205,6 @@ export const AddonUpdate = () => {
                     value: selectedProfileGroup ? [selectedProfileGroup] : []
                   }))}
                   isClearable
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
 
@@ -227,10 +223,6 @@ export const AddonUpdate = () => {
                     name: 'tags',
                     value: selectedTags as ITag[]
                   }))}
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
 
@@ -262,10 +254,6 @@ export const AddonUpdate = () => {
                       name: 'discounts',
                       value: selectedDiscount ? [selectedDiscount] : []
                     }))}
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
 

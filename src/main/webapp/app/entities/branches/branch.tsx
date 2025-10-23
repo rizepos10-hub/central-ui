@@ -516,10 +516,6 @@ export const Branches = () => {
                       onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
                       placeholder="Select Ending Type.."
                       className="text-xs"
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
 
@@ -531,10 +527,6 @@ export const Branches = () => {
                       onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
                       options={endOfDayReportSectionOptions}
                       className="text-xs"
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
 
@@ -557,10 +549,6 @@ export const Branches = () => {
                       getOptionValue={option => option.id}
                       onChange={(e) => handleZoneChange(e, activeIndex)}
                       className="text-xs"
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                      }}
                     />
                   </div>
 

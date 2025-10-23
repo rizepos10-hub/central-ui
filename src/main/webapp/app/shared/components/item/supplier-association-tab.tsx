@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InputText } from "primereact/inputtext";
 import { translate } from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 import { ISupplier } from "app/shared/model/STOCK/supplier.model";
 import { Button } from "primereact/button";

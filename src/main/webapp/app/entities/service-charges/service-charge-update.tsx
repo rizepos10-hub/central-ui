@@ -131,10 +131,6 @@ export const ServiceChargeUpdate = () => {
                   options={serviceChargeKeys}
                   placeholder="Select a Key"
                   isClearable
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -159,10 +155,6 @@ export const ServiceChargeUpdate = () => {
                   options={typeOptions}
                   placeholder="Select a Setting"
                   isClearable
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -173,10 +165,6 @@ export const ServiceChargeUpdate = () => {
                   value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value)) || null}
                   onChange={handleApplicableOnChange}
                   isMulti
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
             </div>
@@ -191,10 +179,6 @@ export const ServiceChargeUpdate = () => {
                   onChange={(option) => handleValueChange('whenToApply', option?.value)}
                   placeholder="Select When To Apply"
                   isClearable
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -206,10 +190,6 @@ export const ServiceChargeUpdate = () => {
                   options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
                   placeholder="Select a Branch"
                   isClearable
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                  }}
                 />
               </div>
             </div>

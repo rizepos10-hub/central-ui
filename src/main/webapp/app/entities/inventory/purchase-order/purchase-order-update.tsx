@@ -8,7 +8,7 @@ import {getEntity, updateEntity, createEntity, reset, splitOrder} from './purcha
 import {CostLine, IPurchaseOrder, OrderLine} from "app/shared/model/STOCK/purchase-order.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {translate, Translate} from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import {IBranch} from "app/shared/model/branch.model";
 import {  getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import {  getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
@@ -382,10 +382,6 @@ export const PurchaseOrderUpdate = () => {
                         getOptionLabel={(option: ISupplier) => option.name}
                         getOptionValue={option => option.id}
                         onChange={selectedSupplier => setPurchaseOrder(prev => ({ ...prev, supplier: selectedSupplier }))}
-                        styles={{
-                          control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                          option: (base) => ({ ...base, fontSize: '0.75rem' })
-                        }}
                       />
                     </div>
 
@@ -403,10 +399,6 @@ export const PurchaseOrderUpdate = () => {
                         getOptionLabel={(option: IWarehouse) => option.name}
                         getOptionValue={option => option.id}
                         onChange={selectedWarehouse => setPurchaseOrder(prev => ({ ...prev, warehouse: selectedWarehouse }))}
-                        styles={{
-                          control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                          option: (base) => ({ ...base, fontSize: '0.75rem' })
-                        }}
                       />
                     </div>
                   </div>
@@ -505,10 +497,6 @@ export const PurchaseOrderUpdate = () => {
                             value={selectedItem || null}
                             isDisabled={isDisabled}
                             isLoading={loadingItems}
-                            styles={{
-                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                              option: (base) => ({ ...base, fontSize: '0.75rem' })
-                            }}
                           />
                         </div>
 
@@ -521,10 +509,6 @@ export const PurchaseOrderUpdate = () => {
                             onChange={handleSelectVariant}
                             isDisabled={isDisabled || !selectedItem}
                             value={selectedVariant || null}
-                            styles={{
-                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                              option: (base) => ({ ...base, fontSize: '0.75rem' })
-                            }}
                           />
                         </div>
 
@@ -719,10 +703,6 @@ export const PurchaseOrderUpdate = () => {
                             onChange={supplier => setPurchaseCostLine(prevState => ({ ...prevState, supplier }))}
                             value={purchaseCostLine?.supplier || null}
                             isDisabled={isDisabled}
-                            styles={{
-                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                              option: (base) => ({ ...base, fontSize: '0.75rem' })
-                            }}
                           />
                         </div>
 

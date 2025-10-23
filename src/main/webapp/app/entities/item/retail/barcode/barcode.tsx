@@ -511,10 +511,6 @@ const Barcode = () => {
                                             ]}
                                             onChange={(option) => setPrintSettings({ ...printSettings, barcodePosition: option?.value as 'TOP' | 'BOTTOM' })}
                                             placeholder="Position"
-                                            styles={{
-                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                            }}
                                         />
                                     </div>
                                     <div className="flex flex-col items-center gap-2">
@@ -524,10 +520,6 @@ const Barcode = () => {
                                             options={barcodeFormats}
                                             onChange={(option) => setPrintSettings({ ...printSettings, barcodeFormat: option?.value as any })}
                                             placeholder="Format"
-                                            styles={{
-                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                            }}
                                         />
                                     </div>
                                 </div>
@@ -743,10 +735,6 @@ const Barcode = () => {
                                 onChange={option => handleNavigation(createQueryString('rows', option?.value || '25'))}
                                 placeholder="Rows"
                                 className="w-full"
-                                styles={{
-                                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                    option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                }}
                             />
                         </div>
                     </div>

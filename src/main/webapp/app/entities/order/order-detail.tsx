@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import OrderedItems from './ordered-items';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
@@ -412,10 +412,6 @@ export const OrderDetail = () => {
                             changeProcessingStatusConfirm(option.value);
                           }}
                           placeholder="Select a status"
-                          styles={{
-                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                            option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                          }}
                           className="w-40"
                         />
                       ) : (
@@ -437,10 +433,6 @@ export const OrderDetail = () => {
                               changeDeliveryStatusConfirm(option.value);
                             }}
                             placeholder="Select a status"
-                            styles={{
-                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                              option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                            }}
                             className="w-40"
                           />
                         ) : (

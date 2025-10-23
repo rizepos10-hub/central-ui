@@ -25,9 +25,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { RefreshCw, Plus, Download, Settings, Trash2, Edit, Copy, RotateCcw, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import { RefreshCw, Plus, Download, Settings, Trash2, Edit, Copy, RotateCcw, CheckCircle2, XCircle, AlertTriangle, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -485,6 +485,33 @@ export const PizzaItem = () => {
     setSearchParams({ query: queryParams }, { replace: true });
   };
 
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+    }
+
+    const queryParams = JSON.stringify({
+      ...query,
+      sortField: newSortOrder === null ? null : field,
+      sortOrder: newSortOrder
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="h-3 w-3 ml-1 inline" />;
+    }
+    return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+  };
+
   return (
     <PageWrapper>
       <ExportStatusHeader />
@@ -513,18 +540,6 @@ export const PizzaItem = () => {
             getOptionValue={(option) => option.code}
             placeholder="Bulk Actions"
             isDisabled={selectedProducts.length < 1}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-                minWidth: '140px',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
-            }}
           />
         </div>
 
@@ -613,13 +628,33 @@ export const PizzaItem = () => {
                   }}
                 />
               </TableHead>
-              {visibleColumns.name && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.name')}</TableHead>}
-              {visibleColumns.categories && <TableHead className="text-xs h-8 font-semibold p-2">Category</TableHead>}
+              {visibleColumns.name && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('name')}>
+                  {translate('items.view.fields.name')}
+                  {getSortIcon('name')}
+                </TableHead>
+              )}
+              {visibleColumns.categories && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('categories.id')}>
+                  Category
+                  {getSortIcon('categories.id')}
+                </TableHead>
+              )}
               {visibleColumns.image && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.image')}</TableHead>}
               {visibleColumns.menus && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.menus')}</TableHead>}
-              {visibleColumns.type && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.type')}</TableHead>}
+              {visibleColumns.type && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('variants.id')}>
+                  {translate('items.view.fields.type')}
+                  {getSortIcon('variants.id')}
+                </TableHead>
+              )}
               {visibleColumns.desc && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.description")}</TableHead>}
-              {visibleColumns.productionCenter && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.productionCenter")}</TableHead>}
+              {visibleColumns.productionCenter && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('productionCenter.id')}>
+                  {translate("items.view.fields.productionCenter")}
+                  {getSortIcon('productionCenter.id')}
+                </TableHead>
+              )}
               {visibleColumns.addonGroups && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.addOnGroups")}</TableHead>}
               {visibleColumns.tags && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.tags")}</TableHead>}
               {visibleColumns.discounts && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.discounts")}</TableHead>}
@@ -675,18 +710,6 @@ export const PizzaItem = () => {
                     }))}
                     isClearable
                     placeholder="Pizza Type"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '28px',
-                        fontSize: '0.75rem',
-                        minWidth: '100px',
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      }),
-                    }}
                   />
                 </TableHead>
               )}
@@ -870,18 +893,6 @@ export const PizzaItem = () => {
               value={{ label: query.rows.toString(), value: query.rows }}
               onChange={(option) => handleRowsPerPageChange(option.value)}
               options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  minHeight: '28px',
-                  fontSize: '0.75rem',
-                  minWidth: '70px',
-                }),
-                menu: (base) => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-              }}
             />
             <div className="flex gap-1">
               <Button

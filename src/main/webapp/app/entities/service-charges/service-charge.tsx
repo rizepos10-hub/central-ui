@@ -10,7 +10,7 @@ import { IServiceCharge, ServiceChargeKey, ServiceChargeSettingType, ServiceChar
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ServiceCharge = () => {
@@ -153,10 +153,6 @@ export const ServiceCharge = () => {
             placeholder="Select a Key"
             isClearable
             className="flex-1"
-            styles={{
-              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-              option: (base) => ({ ...base, fontSize: '0.75rem' })
-            }}
           />
 
           <Select
@@ -166,10 +162,6 @@ export const ServiceCharge = () => {
             placeholder="Select When To Apply"
             isClearable
             className="flex-1"
-            styles={{
-              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-              option: (base) => ({ ...base, fontSize: '0.75rem' })
-            }}
           />
 
           <Select
@@ -179,10 +171,6 @@ export const ServiceCharge = () => {
             placeholder="Select a Branch"
             isClearable
             className="flex-1"
-            styles={{
-              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-              option: (base) => ({ ...base, fontSize: '0.75rem' })
-            }}
           />
         </div>
       </div>

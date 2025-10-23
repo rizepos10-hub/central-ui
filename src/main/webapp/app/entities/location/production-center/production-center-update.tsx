@@ -186,12 +186,6 @@ export const ProductionCenterUpdate = () => {
                       onChange={handleOrderMethodChange}
                       options={orderMethodOptions}
                       isClearable
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                        valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                        input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                        indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-                      }}
                     />
                   </div>
 
@@ -203,12 +197,6 @@ export const ProductionCenterUpdate = () => {
                       value={selectedPrintingProfile}
                       onChange={handlePrinterChange}
                       options={printingProfilesList}
-                      styles={{
-                        control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                        valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                        input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                        indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-                      }}
                     />
                   </div>
 

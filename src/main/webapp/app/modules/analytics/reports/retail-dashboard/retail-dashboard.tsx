@@ -4,7 +4,7 @@ import { translate } from 'react-jhipster';
 import { Chart } from 'primereact/chart';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { DateSlotPeriod, IRetailDashboard } from 'app/shared/model/retail-dashboard.model';
 import { getReportData } from './retail-dashboard.reducer';
 import { List, Grid2X2, Grid3X3, Grid } from 'lucide-react';
@@ -246,18 +246,6 @@ const RetialDashboard: React.FC = () => {
                         <Select
                             options={branches?.map(branch => ({ value: branch.id, label: branch.name }))}
                             isClearable
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    minHeight: '28px',
-                                    fontSize: '0.75rem',
-                                    borderColor: 'hsl(var(--input))',
-                                }),
-                                menu: (base) => ({
-                                    ...base,
-                                    fontSize: '0.75rem',
-                                }),
-                            }}
                             onChange={handleBranchChange}
                             onMenuOpen={() => {
                                 dispatch(getBranches({ page: 0, size: 1000, sort: 'id,desc' }));

@@ -39,7 +39,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const CustomerUpdate = ({
@@ -380,10 +380,6 @@ export const CustomerUpdate = ({
                           }}
                           placeholder="Select a Card"
                           isClearable
-                          styles={{
-                            control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                          }}
                         />
                       </div>
                       <Button
@@ -541,10 +537,6 @@ export const CustomerUpdate = ({
                                 options={getPricingPointsPerBranch(branch.id).map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
                                 onChange={option => handleBranchPricingPointChange(branch.id, pricingPoints.find(pricingPoint => pricingPoint.id === option?.value))}
                                 isClearable
-                                styles={{
-                                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                }}
                               />
                             </TableCell>
                           </TableRow>
@@ -662,10 +654,6 @@ export const CustomerUpdate = ({
                 value={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val })).find(opt => opt.value === currentAddress?.addressType) || null}
                 options={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val }))}
                 onChange={option => handleAddressChange('addressType', option?.value)}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                }}
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -674,10 +662,6 @@ export const CustomerUpdate = ({
                 value={COUNTRIES.map(c => ({ label: c.name, value: c.name })).find(opt => opt.value === currentAddress?.country) || null}
                 options={COUNTRIES.map(c => ({ label: c.name, value: c.name }))}
                 onChange={option => handleAddressChange('country', option?.value)}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                  option: (base) => ({ ...base, fontSize: '0.75rem' })
-                }}
               />
             </div>
             <div className="flex flex-col gap-1">

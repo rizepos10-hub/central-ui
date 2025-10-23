@@ -468,41 +468,6 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
         showProgress
         showSkipButton
         callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#696cff',
-            textColor: '#333',
-            backgroundColor: 'white',
-            overlayColor: 'rgba(0, 0, 0, 0.4)',
-            arrowColor: 'white',
-            zIndex: 10000,
-          },
-          buttonNext: {
-            backgroundColor: '#696cff',
-            fontSize: '14px',
-            padding: '8px 16px',
-          },
-          buttonBack: {
-            color: '#696cff',
-            fontSize: '14px',
-            padding: '8px 16px',
-          },
-          buttonSkip: {
-            color: '#999',
-            fontSize: '14px',
-          },
-          tooltip: {
-            fontSize: '14px',
-          },
-          tooltipContent: {
-            padding: '16px',
-          },
-          tooltipTitle: {
-            fontSize: '16px',
-            fontWeight: 'bold',
-            marginBottom: '8px',
-          },
-        }}
         locale={{
           back: 'Previous',
           close: 'Close',

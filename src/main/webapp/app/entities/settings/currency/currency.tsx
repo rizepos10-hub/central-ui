@@ -174,12 +174,6 @@ export const Currency = () => {
               getOptionLabel={option => option.name}
               getOptionValue={option => option.code}
               className="min-w-[200px]"
-              styles={{
-                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-              }}
             />
             {currencySettings?.defaultCurrency === null && (
               <Button
@@ -205,12 +199,6 @@ export const Currency = () => {
               getOptionValue={option => option.code}
               placeholder="Select a Currency"
               className="min-w-[200px]"
-              styles={{
-                control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-              }}
             />
           </div>
 
@@ -247,12 +235,6 @@ export const Currency = () => {
                           placeholder="Select a Currency"
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.code}
-                          styles={{
-                            control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                            valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                            input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                            indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-                          }}
                         />
                       </TableCell>
                       <TableCell className="text-xs">
@@ -311,12 +293,6 @@ export const Currency = () => {
                           isClearable
                           getOptionLabel={(option: ICurrency) => option.name}
                           getOptionValue={(option: ICurrency) => option.id}
-                          styles={{
-                            control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '12px' }),
-                            valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
-                            input: (base) => ({ ...base, margin: '0', padding: '0' }),
-                            indicatorsContainer: (base) => ({ ...base, height: '28px' }),
-                          }}
                         />
                       </TableCell>
                     </TableRow>

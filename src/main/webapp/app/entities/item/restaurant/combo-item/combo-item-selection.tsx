@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "app/config/store";
 import { filterEntities } from "app/entities/item/restaurant/combo-item/items-for-combo.reducer";
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { IComboPackage } from "app/shared/model/ITEM/restaurant/combo-item.model";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { ICrustThicknessPricingItem, ICrustTypePricingItem, IPizzaItem, PizzaVariantTypeEnum } from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import { ICrustThickness } from "app/shared/model/PIZZA/crust-thickness.model";
 import { ICrustType } from "app/shared/model/PIZZA/crust-type.model";
@@ -214,21 +214,6 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
               placeholder="Select Category"
               className="flex-1"
               isClearable
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  minHeight: '32px',
-                  fontSize: '0.75rem',
-                }),
-                input: (base) => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-                menu: (base) => ({
-                  ...base,
-                  fontSize: '0.75rem',
-                }),
-              }}
             />
           </div>
 
@@ -295,21 +280,6 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'pizzaSize', selectedOption, variant)
                                             }
-                                            styles={{
-                                              control: (base) => ({
-                                                ...base,
-                                                minHeight: '32px',
-                                                fontSize: '0.75rem',
-                                              }),
-                                              input: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                              menu: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                            }}
                                           />
                                         </div>
 
@@ -323,21 +293,6 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'crustType', selectedOption, variant)
                                             }
-                                            styles={{
-                                              control: (base) => ({
-                                                ...base,
-                                                minHeight: '32px',
-                                                fontSize: '0.75rem',
-                                              }),
-                                              input: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                              menu: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                            }}
                                           />
                                         </div>
 
@@ -351,21 +306,6 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             onChange={(selectedOption) =>
                                               handlePizzaPackageSelection(item, 'crustThickness', selectedOption, variant)
                                             }
-                                            styles={{
-                                              control: (base) => ({
-                                                ...base,
-                                                minHeight: '32px',
-                                                fontSize: '0.75rem',
-                                              }),
-                                              input: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                              menu: (base) => ({
-                                                ...base,
-                                                fontSize: '0.75rem',
-                                              }),
-                                            }}
                                           />
                                         </div>
                                       </div>

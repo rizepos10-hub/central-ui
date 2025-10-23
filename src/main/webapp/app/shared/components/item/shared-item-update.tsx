@@ -11,7 +11,7 @@ import { getEntities as getProfileGroups } from 'app/entities/settings/profile-g
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import Select, { ActionMeta, MultiValue } from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import Attachment from 'app/shared/components/attachment/attachment';
 import { cloneDeep } from 'lodash';
@@ -249,17 +249,6 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
                 })
               );
             }}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
-            }}
           />
         </div>
 
@@ -282,17 +271,6 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
                   sort: `${paginationState.sort},${paginationState.order}`,
                 })
               );
-            }}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
             }}
           />
         </div>
@@ -335,17 +313,6 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
                 )
               }
             }}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
-            }}
           />
         </div>
 
@@ -368,17 +335,6 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
                   sort: `${paginationState.sort},${paginationState.order}`,
                 })
               );
-            }}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
             }}
           />
         </div>
@@ -407,17 +363,6 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
             getOptionLabel={option => option.name}
             getOptionValue={option => option.id}
             onChange={brand => onFieldChange('brand', brand)}
-            styles={{
-              control: (base) => ({
-                ...base,
-                minHeight: '32px',
-                fontSize: '0.75rem',
-              }),
-              menu: (base) => ({
-                ...base,
-                fontSize: '0.75rem',
-              }),
-            }}
           />
         </div>
       ) : null}

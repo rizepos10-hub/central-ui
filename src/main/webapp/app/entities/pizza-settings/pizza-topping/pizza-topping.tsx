@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const PizzaTopping = () => {
@@ -187,17 +187,6 @@ export const PizzaTopping = () => {
                     getOptionValue={(option) => option.id}
                     isClearable
                     placeholder="Filter by group"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '32px',
-                        fontSize: '0.75rem',
-                      }),
-                      option: (base) => ({
-                        ...base,
-                        fontSize: '0.75rem',
-                      }),
-                    }}
                   />
                 </TableHead>
                 <TableHead className="p-1"></TableHead>
@@ -283,18 +272,6 @@ export const PizzaTopping = () => {
                 value={{ label: query.rows.toString(), value: query.rows }}
                 onChange={(option) => handleRowsPerPageChange(option.value)}
                 options={[10, 20, 30, 40, 50, 100, 200].map(num => ({ label: num.toString(), value: num }))}
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    minHeight: '32px',
-                    fontSize: '0.75rem',
-                    minWidth: '70px',
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    fontSize: '0.75rem',
-                  }),
-                }}
               />
               <div className="flex gap-1">
                 <Button

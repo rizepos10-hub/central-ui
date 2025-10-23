@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { IWarehouse } from 'app/shared/model/STOCK/warehouse.model';
-import Select from 'react-select';
+import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const Warehouse = () => {

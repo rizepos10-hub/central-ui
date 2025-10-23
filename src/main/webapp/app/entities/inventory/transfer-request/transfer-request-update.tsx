@@ -13,7 +13,7 @@ import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { searchEntities as getStockItems } from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import AsyncSelect from "react-select/async";
 import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
 import AuditLogs from "app/shared/components/logs/audit-logs";
@@ -274,12 +274,6 @@ export const TransferRequestUpdate = () => {
                   id="source"
                   isDisabled={transferRequestEntity.status === 'CONFIRMED'}
                   onChange={source => setTransferRequest(prv => ({ ...prv, source, transferItems: [] }))}
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                  }}
                 />
               </div>
 
@@ -295,12 +289,6 @@ export const TransferRequestUpdate = () => {
                   id="destination"
                   isDisabled={isDisabled}
                   onChange={destination => setTransferRequest(prv => ({ ...prv, destination }))}
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                  }}
                 />
               </div>
 
@@ -340,12 +328,6 @@ export const TransferRequestUpdate = () => {
                               onChange={handleSelectItem}
                               value={transferRequestItem?.item || null}
                               isDisabled={isDisabled}
-                              styles={{
-                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                                menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                                singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                              }}
                             />
                           </TableCell>
                           <TableCell className="text-xs">
@@ -478,12 +460,6 @@ export const TransferRequestUpdate = () => {
                               onChange={supplier => setCostLines(prevState => ({ ...prevState, supplier }))}
                               value={costLines?.supplier || null}
                               isDisabled={isDisabled}
-                              styles={{
-                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                                menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                                singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                              }}
                             />
                           </TableCell>
                           <TableCell className="text-xs">
@@ -595,12 +571,6 @@ export const TransferRequestUpdate = () => {
                     id="status"
                     isDisabled={isDisabled}
                     onChange={e => setTransferRequest(prv => ({ ...prv, status: e.value as "PLACED" | "CONFIRMED" }))}
-                    styles={{
-                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                      option: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      menu: (base) => ({ ...base, fontSize: '0.75rem' }),
-                      singleValue: (base) => ({ ...base, fontSize: '0.75rem' }),
-                    }}
                   />
                 </div>
                 <div className="flex gap-2">

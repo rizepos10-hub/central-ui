@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Translate, getSortState } from "react-jhipster";
 import { ArrowLeft, Save } from 'lucide-react';
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-thickness.reducer';
@@ -144,22 +144,6 @@ export const PizzaCrustThicknessUpdate = () => {
                       id="pizza-curstThickness-hiddenOn"
                       value={pizzaCrustThickness?.hiddenOnSizes || []}
                       onChange={handleHiddenChange}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          minHeight: '32px',
-                          fontSize: '0.75rem'
-                        }),
-                        valueContainer: (base) => ({
-                          ...base,
-                          padding: '0 8px'
-                        }),
-                        input: (base) => ({
-                          ...base,
-                          margin: 0,
-                          padding: 0
-                        })
-                      }}
                     />
                   </div>
 
@@ -174,22 +158,6 @@ export const PizzaCrustThicknessUpdate = () => {
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
                       onChange={(toppingPriceOption) => setPizzaCrustThickness((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          minHeight: '32px',
-                          fontSize: '0.75rem'
-                        }),
-                        valueContainer: (base) => ({
-                          ...base,
-                          padding: '0 8px'
-                        }),
-                        input: (base) => ({
-                          ...base,
-                          margin: 0,
-                          padding: 0
-                        })
-                      }}
                     />
                   </div>
 

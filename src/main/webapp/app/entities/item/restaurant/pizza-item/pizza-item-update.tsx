@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { IBasePizzaDetail, IPizzaItem, IPizzaItemVariant, PizzaVariantTypeEnum } from "app/shared/model/ITEM/restaurant/pizza-item.model";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { getEntitiesForPizzaItem as getPredefinedPizzas, reset as resetPredefined } from "app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer";
 import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer"
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
@@ -770,10 +770,6 @@ export const PizzaItemUpdate = () => {
                                     getOptionLabel={option => option.name}
                                     getOptionValue={option => option.id}
                                     onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
-                                    styles={{
-                                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                    }}
                                   />
                                 </div>
                               </div> : null}
@@ -821,10 +817,6 @@ export const PizzaItemUpdate = () => {
                                           sort: `${paginationState.sort},${paginationState.order}`,
                                         }));
                                       }}
-                                      styles={{
-                                        control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                      }}
                                     />
                                   </div> : null}
 
@@ -846,10 +838,6 @@ export const PizzaItemUpdate = () => {
                                         sort: `${paginationState.sort},${paginationState.order}`,
                                       }));
                                     }}
-                                    styles={{
-                                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                    }}
                                   />
                                 </div>
 
@@ -870,10 +858,6 @@ export const PizzaItemUpdate = () => {
                                         size: paginationState.itemsPerPage,
                                         sort: `${paginationState.sort},${paginationState.order}`,
                                       }));
-                                    }}
-                                    styles={{
-                                      control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
-                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
                                     }}
                                   />
                                 </div>
@@ -972,10 +956,6 @@ export const PizzaItemUpdate = () => {
                                                           sort: `${paginationState.sort},${paginationState.order}`,
                                                         }));
                                                       }}
-                                                      styles={{
-                                                        control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                        option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                                      }}
                                                     />
                                                   </TableCell>
                                                   <TableCell>
@@ -1021,10 +1001,6 @@ export const PizzaItemUpdate = () => {
                                               sort: `${paginationState.sort},${paginationState.order}`,
                                             }));
                                           }}
-                                          styles={{
-                                            control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                          }}
                                         />
                                         <Table>
                                           <TableHeader>
@@ -1052,10 +1028,6 @@ export const PizzaItemUpdate = () => {
                                                         size: paginationState.itemsPerPage,
                                                         sort: `${paginationState.sort},${paginationState.order}`,
                                                       }));
-                                                    }}
-                                                    styles={{
-                                                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
                                                     }}
                                                   />
                                                 </TableCell>
@@ -1088,10 +1060,6 @@ export const PizzaItemUpdate = () => {
                                               sort: `${paginationState.sort},${paginationState.order}`,
                                             }));
                                           }}
-                                          styles={{
-                                            control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                          }}
                                         />
                                         <Table>
                                           <TableHeader>
@@ -1119,10 +1087,6 @@ export const PizzaItemUpdate = () => {
                                                         size: paginationState.itemsPerPage,
                                                         sort: `${paginationState.sort},${paginationState.order}`,
                                                       }));
-                                                    }}
-                                                    styles={{
-                                                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
                                                     }}
                                                   />
                                                 </TableCell>
@@ -1155,10 +1119,6 @@ export const PizzaItemUpdate = () => {
                                               sort: `${paginationState.sort},${paginationState.order}`,
                                             }));
                                           }}
-                                          styles={{
-                                            control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                            option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                          }}
                                         />
                                         <Table>
                                           <TableHeader>
@@ -1186,10 +1146,6 @@ export const PizzaItemUpdate = () => {
                                                         size: paginationState.itemsPerPage,
                                                         sort: `${paginationState.sort},${paginationState.order}`,
                                                       }));
-                                                    }}
-                                                    styles={{
-                                                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                      option: (base) => ({ ...base, fontSize: '0.75rem' })
                                                     }}
                                                   />
                                                 </TableCell>
@@ -1266,10 +1222,6 @@ export const PizzaItemUpdate = () => {
                                                   sort: `${paginationState.sort},${paginationState.order}`,
                                                 }));
                                               }}
-                                              styles={{
-                                                control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                              }}
                                             />
                                           </TableCell>
                                           <TableCell>
@@ -1286,10 +1238,6 @@ export const PizzaItemUpdate = () => {
                                                   sort: `${paginationState.sort},${paginationState.order}`,
                                                 }));
                                               }}
-                                              styles={{
-                                                control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
-                                              }}
                                             />
                                           </TableCell>
                                           <TableCell>
@@ -1305,10 +1253,6 @@ export const PizzaItemUpdate = () => {
                                                   size: paginationState.itemsPerPage,
                                                   sort: `${paginationState.sort},${paginationState.order}`,
                                                 }));
-                                              }}
-                                              styles={{
-                                                control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
-                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
                                               }}
                                             />
                                           </TableCell>

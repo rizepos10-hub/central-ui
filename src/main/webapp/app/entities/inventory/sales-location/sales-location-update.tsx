@@ -8,7 +8,7 @@ import { getEntity, updateEntity, createEntity, reset } from './sales-location.r
 import { ISalesLocation } from "app/shared/model/STOCK/sales-location.model";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { translate, Translate } from "react-jhipster";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import { IBranch } from "app/shared/model/branch.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

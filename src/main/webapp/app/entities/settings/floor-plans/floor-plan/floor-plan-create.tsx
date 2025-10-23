@@ -5,7 +5,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState, Translate} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import Select from "react-select";
+import Select from 'app/shared/components/select/select';
 import {IBranch} from "app/shared/model/branch.model";
 import {createEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useNavigate} from "react-router-dom";
@@ -170,10 +170,6 @@ const CreateFloorPlan = () => {
                   value={newFloorPlan?.branch}
                   placeholder="Branch Name"
                   onChange={(selectedBranch: IBranch) => setNewFloorPlan((prev) => ({...prev, branch: selectedBranch}))}
-                  styles={{
-                    control: (base) => ({ ...base, minHeight: '40px', fontSize: '0.875rem' }),
-                    option: (base) => ({ ...base, fontSize: '0.875rem' })
-                  }}
                 />
                 <div className="flex items-center gap-3">
                   <Label className="text-sm font-semibold">
