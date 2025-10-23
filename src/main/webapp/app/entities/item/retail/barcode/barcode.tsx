@@ -270,14 +270,6 @@ const Barcode = () => {
         { label: "GenericBarcode" as const, value: "GenericBarcode" as const },
     ] as const
 
-    if (products.length === 0) {
-        return (
-            <div>
-                No items found
-            </div>
-        )
-    }
-
     return (
         <div className="flex flex-col items-center p-5">
             <div className="w-full mb-4">

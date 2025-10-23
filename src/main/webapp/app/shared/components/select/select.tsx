@@ -37,15 +37,16 @@ const customStyles = {
   }),
   menu: (base: any) => ({
     ...base,
-    zIndex: 9999,
+    zIndex: 99999,
     borderRadius: '0.375rem',
     border: '1px solid hsl(var(--border))',
     backgroundColor: 'hsl(var(--popover))',
     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+    pointerEvents: 'auto',
   }),
   menuPortal: (base: any) => ({
     ...base,
-    zIndex: 9999,
+    zIndex: 99999,
   }),
   menuList: (base: any) => ({
     ...base,
@@ -148,7 +149,15 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >(props: SelectProps<Option, IsMulti, Group>) {
-  const { styles, className, menuPortalTarget, menuPosition, ...rest } = props;
+  const {
+    styles,
+    className,
+    menuPortalTarget,
+    menuPosition,
+    menuShouldBlockScroll,
+    closeMenuOnSelect,
+    ...rest
+  } = props;
 
   return (
     <ReactSelect
@@ -156,8 +165,10 @@ function Select<
       className={cn('react-select-container', className)}
       classNamePrefix="react-select"
       styles={mergeStyles(styles)}
-      menuPortalTarget={menuPortalTarget || document.body}
+      menuPortalTarget={menuPortalTarget !== undefined ? menuPortalTarget : document.body}
       menuPosition={menuPosition || 'fixed'}
+      menuShouldBlockScroll={menuShouldBlockScroll !== undefined ? menuShouldBlockScroll : false}
+      closeMenuOnSelect={closeMenuOnSelect !== undefined ? closeMenuOnSelect : true}
     />
   );
 }
