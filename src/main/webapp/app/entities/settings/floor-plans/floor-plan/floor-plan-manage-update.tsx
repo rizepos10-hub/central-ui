@@ -74,6 +74,9 @@ const FloorPlanManageUpdate = () => {
   const [initialState, setInitialState] = useState<any>()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sectionToDelete, setSectionToDelete] = useState<{section: any, index: number} | null>(null);
+  const [editCapacityModalOpen, setEditCapacityModalOpen] = useState(false);
+  const [selectedTableForEdit, setSelectedTableForEdit] = useState<{tableDetail: any, index: number} | null>(null);
+  const [newCapacity, setNewCapacity] = useState<number | null>(null);
 
   const [sectionDimensions, setSectionDimensions]: any = useState({
     width: null,
@@ -297,6 +300,45 @@ const FloorPlanManageUpdate = () => {
         sections: updatedSections,
       };
     });
+  };
+
+  const openEditCapacityModal = (e, tableDetail, index) => {
+    e.stopPropagation();
+    setSelectedTableForEdit({ tableDetail, index });
+    setNewCapacity(tableDetail.numberOfSeats);
+    setEditCapacityModalOpen(true);
+  };
+
+  const handleUpdateCapacity = () => {
+    if (!selectedTableForEdit || !newCapacity || newCapacity < 1) {
+      alert("Please enter a valid capacity");
+      return;
+    }
+
+    const sectionIdx = parseInt(selectedSectionIndex);
+    setFloorPlan((prev) => {
+      const updatedSections = [...(prev.sections || [])];
+      const updatedTableDetails = [...(updatedSections[sectionIdx]?.tableDetails || [])];
+
+      updatedTableDetails[selectedTableForEdit.index] = {
+        ...updatedTableDetails[selectedTableForEdit.index],
+        numberOfSeats: newCapacity,
+      };
+
+      updatedSections[sectionIdx] = {
+        ...updatedSections[sectionIdx],
+        tableDetails: updatedTableDetails,
+      };
+
+      return {
+        ...prev,
+        sections: updatedSections,
+      };
+    });
+
+    setEditCapacityModalOpen(false);
+    setSelectedTableForEdit(null);
+    setNewCapacity(null);
   };
 
   const handleMouseDown = (e, clickedTable, index) => {
@@ -536,7 +578,7 @@ const FloorPlanManageUpdate = () => {
                   {floorPlan?.sections?.[sectionIdx]?.tableDetails?.map((tableDetail: any, idx) => (
                     <div
                       key={idx}
-                      className="absolute bg-blue-500 cursor-grab flex justify-center items-center text-white"
+                      className="absolute bg-blue-500 cursor-grab flex flex-col justify-center items-center text-white"
                       style={{
                         left: `${tableDetail.position?.x}px`,
                         top: `${tableDetail.position?.y}px`,
@@ -548,8 +590,13 @@ const FloorPlanManageUpdate = () => {
                       onMouseEnter={() => setHoveredTableIndex(idx)}
                       onMouseLeave={() => setHoveredTableIndex(null)}
                     >
-                      <div className="overflow-hidden whitespace-nowrap text-ellipsis">
+                      <div className="overflow-hidden whitespace-nowrap text-ellipsis text-sm font-semibold">
                         {tableDetail?.table?.name}
+                      </div>
+                      <div className="text-xs mt-1 flex items-center gap-1">
+                        <span className="cursor-pointer hover:underline" onClick={(e) => openEditCapacityModal(e, tableDetail, idx)}>
+                          {tableDetail?.numberOfSeats} {tableDetail?.numberOfSeats === 1 ? 'seat' : 'seats'}
+                        </span>
                       </div>
                       {hoveredTableIndex === idx && (
                         <button
@@ -621,6 +668,43 @@ const FloorPlanManageUpdate = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Capacity Modal */}
+      <Dialog open={editCapacityModalOpen} onOpenChange={setEditCapacityModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Table Capacity</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-xs">Table: {selectedTableForEdit?.tableDetail?.table?.name}</Label>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Number of Seats</Label>
+              <Input
+                type="number"
+                min={1}
+                className="h-8 text-xs"
+                value={newCapacity || ''}
+                onChange={(e) => setNewCapacity(parseInt(e.target.value) || null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleUpdateCapacity();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCapacityModalOpen(false)} className="h-8 text-xs">
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCapacity} className="h-8 text-xs">
+              Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* New Section Modal */}
       {sectionModalIsOpen && (
