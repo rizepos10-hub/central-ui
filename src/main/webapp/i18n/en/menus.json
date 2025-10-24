@@ -66,6 +66,8 @@
             "title": "Add New Main Screen",
             "name": "Main Screen Name",
             "color": "Select Color Theme",
+            "isPizza": "Is Pizza",
+            "image": "Image",
             "add": "Add Main Screen"
           },
           "subScreen": {
