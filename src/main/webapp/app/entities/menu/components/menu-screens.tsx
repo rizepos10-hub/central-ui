@@ -71,6 +71,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [subScreenStack, setSubScreenStack] = useState([]);
     const [newMainScreenName, setNewMainScreenName] = useState('');
     const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
+    const [newMainScreenIsPizza, setNewMainScreenIsPizza] = useState(false);
+    const [newMainScreenImage, setNewMainScreenImage] = useState<IAttachment>();
     const [editingSubScreenId, setEditingSubScreenId] = useState(null);
 
     const [mainScreen, setMainScreen] = useState<IMenuScreen>({
@@ -869,6 +871,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             subScreens: [],
             rowHeight: [],
             empty,
+            isPizza: newMainScreenIsPizza,
+            attachment: newMainScreenImage,
         };
         const newMenuScreens = [...data.menuScreens, newMainScreen];
         const newGroupedMainScreens = groupMainScreens(newMenuScreens, data.numberOfColumns);
@@ -885,6 +889,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenName('');
         setSelectedColorTheme('');
         setNewMainScreenCols(1);
+        setNewMainScreenIsPizza(false);
+        setNewMainScreenImage(undefined);
         setGroupedMainScreens(newGroupedMainScreens);
     };
 
@@ -1361,6 +1367,33 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 }}
                                 className="h-9 text-sm"
                             />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="newMainScreenIsPizza"
+                                checked={newMainScreenIsPizza}
+                                onCheckedChange={(checked) => setNewMainScreenIsPizza(!!checked)}
+                            />
+                            <Label htmlFor="newMainScreenIsPizza" className="text-sm font-medium cursor-pointer">
+                                <Translate contentKey={'menus.pos.update.modals.mainScreen.isPizza'}>Is Pizza</Translate>
+                            </Label>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="newMainScreenImage" className="text-xs font-medium">
+                                <Translate contentKey={'menus.pos.update.modals.mainScreen.image'}>Image</Translate>
+                            </Label>
+                            <div className="flex flex-wrap">
+                                <MediaLibrary
+                                    handleFilesSelectCallback={files =>
+                                        setNewMainScreenImage(
+                                            transformAttachmentStructure(files, 'toIAttachment')[0]
+                                        )
+                                    }
+                                    defaultValues={transformAttachmentStructure(newMainScreenImage ? [newMainScreenImage] : [], 'toFileLibraryListItem')}
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-2">
