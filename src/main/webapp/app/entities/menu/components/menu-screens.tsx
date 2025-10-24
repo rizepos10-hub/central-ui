@@ -111,8 +111,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         if (data?.menuScreens && selectedMainScreenIndex !== null && data?.menuScreens?.[selectedMainScreenIndex]) {
             const selectedScreen = data?.menuScreens?.[selectedMainScreenIndex];
             setMainScreen(selectedScreen);
-            setSubScreenStack([selectedScreen]);
-            setBreadcrumb([selectedScreen.name]);
+
+            // Only reset subScreenStack if it's empty or if we're changing the selected main screen
+            // Don't reset if we're navigated into sub-screens (subScreenStack.length > 1)
+            if (subScreenStack.length === 0 || (subScreenStack.length === 1 && subScreenStack[0]?.id !== selectedScreen.id)) {
+                setSubScreenStack([selectedScreen]);
+                setBreadcrumb([selectedScreen.name]);
+            } else if (subScreenStack.length >= 1) {
+                // Update the existing subScreenStack with fresh data from the updated menuScreens
+                const updatedSubScreenStack = subScreenStack.map(screen => {
+                    const updatedScreen = findScreenById([selectedScreen], screen.id);
+                    return updatedScreen || screen;
+                });
+                setSubScreenStack(updatedSubScreenStack);
+            }
         }
     }, [data, selectedMainScreenIndex])
 
@@ -395,7 +407,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             });
 
 
-            setSubScreenStack([updatedMenuScreens[selectedMainScreenIndex]])
+            // Update subScreenStack with fresh data instead of resetting it
+            const updatedSubScreenStack = subScreenStack.map(screen => {
+                const updatedScreen = findScreenById([updatedMenuScreens[selectedMainScreenIndex]], screen.id);
+                return updatedScreen || screen;
+            });
+            setSubScreenStack(updatedSubScreenStack);
+
             return {
                 ...prevData,
                 menuScreens: updatedMenuScreens,
@@ -769,15 +787,17 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const mainScreenItems = useMemo(() => {
-        return mainScreen?.subScreens
+    const currentScreenItems = useMemo(() => {
+        // Get items from the current screen level (either main screen or current sub-screen)
+        const currentScreen = subScreenStack[subScreenStack.length - 1];
+        return currentScreen?.subScreens
             ?.filter(item => item.componentType === 'ITEM')
             .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
-    }, [mainScreen])
+    }, [subScreenStack])
 
     useEffect(() => {
-        setSelectedItems(mainScreenItems || []);
-    }, [mainScreenItems])
+        setSelectedItems(currentScreenItems || []);
+    }, [currentScreenItems])
 
     const handleMainDragStart = (index: number) => {
         setSelectedMainScreenIndex(index);
@@ -1228,14 +1248,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     // Update using the existing updateSubScreenById
                     updatedData.menuScreens = updateSubScreenById(updatedData.menuScreens, updatedSubScreen);
 
-                    // Update the subScreenStack
+                    // Update the subScreenStack with the updated sub-screen
                     const updatedSubScreenStack = subScreenStack.map(subScreen =>
                         subScreen.id === editingSubScreenId ? updatedSubScreen : subScreen
                     );
-                    // setSubScreenStack(updatedSubScreenStack);
+                    setSubScreenStack(updatedSubScreenStack);
                 }
             }
-            setSubScreenStack([updatedData?.menuScreens?.[selectedMainScreenIndex]])
 
             return updatedData;
         });
