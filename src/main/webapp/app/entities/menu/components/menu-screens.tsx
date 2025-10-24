@@ -229,9 +229,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             if (areObjectsEqual(subScreen, targetSubScreen)) {
                 return {
                     ...subScreen,
-                    subScreens: (subScreen.subScreens || []).filter(sub => {
-                        sub.component?.item?.id !== itemId;
-                    }),
+                    subScreens: (subScreen.subScreens || []).filter(sub =>
+                        sub.component?.item?.id !== itemId
+                    ),
                 };
             } else if (subScreen.subScreens) {
                 const updatedNestedSubScreens = findAndRemoveItem(subScreen.subScreens, targetSubScreen, itemId);
@@ -1484,11 +1484,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 <ItemSelectionModal
                     isOpen={isModalOpen.isItemModalOpen}
                     toggle={() => setIsModalOpen({ ...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen })}
-                    // filter selected items by componentType and choose the component item 
+                    // filter selected items by componentType and choose the component item
                     selectedItems={selectedItems}
                     handleToggleSelect={handleToggleSelect}
                     setSelectedItems={setSelectedItems}
-                    disbaleUnselect
                 />
             )}
 
