@@ -218,7 +218,7 @@ export const UpdateItemRestaurantCategoryTree: React.FC<UpdateItemRestaurantCate
                 <RotateCcw className="h-4 w-4 mr-2" />
                 <Translate contentKey="entity.action.reset">Reset</Translate>
               </Button>
-              <Button type="submit" size="sm" className="h-8 text-xs" disabled={updating}>
+              <Button onClick={saveEntity} type="submit" size="sm" className="h-8 text-xs" disabled={updating}>
                 <Save className="h-4 w-4 mr-2" />
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>

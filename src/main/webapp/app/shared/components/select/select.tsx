@@ -7,7 +7,6 @@ const customStyles = {
   control: (base: any, state: any) => ({
     ...base,
     minHeight: '28px',
-    height: '28px',
     fontSize: '0.75rem',
     borderRadius: '0.375rem',
     borderColor: state.isFocused ? 'hsl(var(--ring))' : 'hsl(var(--input))',
@@ -19,8 +18,8 @@ const customStyles = {
   }),
   valueContainer: (base: any) => ({
     ...base,
-    height: '28px',
-    padding: '0 6px',
+    minHeight: '28px',
+    padding: '2px 6px',
   }),
   input: (base: any) => ({
     ...base,
