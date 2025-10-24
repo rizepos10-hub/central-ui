@@ -286,8 +286,10 @@ export const Currency = () => {
                       </TableCell>
                       <TableCell className="text-xs">
                         <ReactSelect
-                          value={currencies?.find(c => c.id === branchCurrency?.currency)}
-                          onChange={(selectedCurrency: ICurrency) => handleBranchCurrencyChange(index, 'currency', selectedCurrency?.id || '')}
+                          value={typeof branchCurrency?.currency === 'string'
+                            ? currencies?.find(c => c.id === branchCurrency?.currency)
+                            : branchCurrency?.currency}
+                          onChange={(selectedCurrency: ICurrency) => handleBranchCurrencyChange(index, 'currency', selectedCurrency || null)}
                           options={currencies}
                           placeholder="Select a Currency"
                           isClearable
