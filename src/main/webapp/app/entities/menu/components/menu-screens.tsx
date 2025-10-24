@@ -108,10 +108,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     // }, [mainScreen])
 
     useEffect(() => {
-        if (data?.menuScreens) {
-            setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
+        if (data?.menuScreens && selectedMainScreenIndex !== null && data?.menuScreens?.[selectedMainScreenIndex]) {
+            const selectedScreen = data?.menuScreens?.[selectedMainScreenIndex];
+            setMainScreen(selectedScreen);
+            setSubScreenStack([selectedScreen]);
+            setBreadcrumb([selectedScreen.name]);
         }
-    }, [data])
+    }, [data, selectedMainScreenIndex])
 
 
     const [draggedItem, setDraggedItem] = useState(null)
