@@ -100,13 +100,26 @@ export const UserUpdate = () => {
       } else {
         const { userRole, ...rest } = userEntity;
 
-        const updatedUser: IBackOfficeUser = {
-          ...rest,
-          branches: userEntity.branches.map(branch => branch),
-          // @ts-expect-error -- ignore
+        const updatedUser = {
+          user: {
+            id: rest.user.id,
+            firstName: rest.user.firstName,
+            lastName: rest.user.lastName,
+            email: rest.user.email,
+            emailVerified: true,
+            enabled: rest.user.enabled,
+            username: rest.user.username,
+          },
+          credential: {
+            type: 'password',
+            temporary: false,
+            value: rest.user.password,
+          },
+          branches: userEntity.branches,
           roles: authoritiesWithAssignedTrue,
         };
 
+        // @ts-expect-error -- update uses different structure with credential
         dispatch(updateEntity(updatedUser));
       }
     } catch (error) {
@@ -198,22 +211,20 @@ export const UserUpdate = () => {
                 />
               </div>
 
-              {isNew && (
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-xs">
-                    <Translate contentKey="tempApp.password" />
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={userEntity?.user?.password || ''}
-                    onChange={e => updateUserFieldvalue('user.password', e.target.value)}
-                    required
-                    className="h-8 text-xs"
-                  />
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-xs">
+                  <Translate contentKey="tempApp.password" />
+                </Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={userEntity?.user?.password || ''}
+                  onChange={e => updateUserFieldvalue('user.password', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label className="text-xs">
