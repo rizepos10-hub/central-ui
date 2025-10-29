@@ -8,6 +8,7 @@ import { fetchSalesReportRedux } from 'app/modules/analytics/reports/sales-repor
 import { ICurrency } from 'app/shared/model/CURRENCY/currency.model';
 import { getEntities as getCurrencies } from 'app/entities/settings/currency/currencies.reducer';
 import { getEntity as getCurrencySettings } from 'app/entities/settings/currency/currency-settings.reducer';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { formatPrice } from 'app/shared/util/price-utils';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { useParams } from 'react-router-dom';
@@ -101,6 +102,7 @@ export const SalesReport = () => {
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<any | null>({
     from: toLocalISOString(startOfYear(currentDate)),
     to: toLocalISOString(currentDate),
@@ -112,6 +114,7 @@ export const SalesReport = () => {
   const salesReportData = useAppSelector(state => state.salesReportReducer.data);
   const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
   const salesReportError = useAppSelector(state => state.salesReportReducer.error);
+  const branchList = useAppSelector(state => state.branch.entities);
 
   const [displayCurrency, setDisplayCurrency] = useState<ICurrency>();
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
@@ -146,6 +149,7 @@ export const SalesReport = () => {
       dateRange: dateRange || defaultDateRange,
       measure: selectedMeasure,
       type: reportType ? capitalizeString(reportType) : selectedType,
+      branchId: selectedBranchId,
     };
     // const resp = await fetchSalesReport(formRequest);
     // setReportData(resp)
@@ -161,6 +165,13 @@ export const SalesReport = () => {
       })
     );
     dispatch(getCurrencySettings());
+    dispatch(
+      getBranches({
+        page: 0,
+        size: 100,
+        sort: 'id,desc',
+      })
+    );
 
     if (currencySettingsEntity?.displayCurrency) {
       setDisplayCurrency(currencySettingsEntity?.displayCurrency);
@@ -171,7 +182,7 @@ export const SalesReport = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, [selectedMeasure, selectedType, dateRange, reportType]);
+  }, [selectedMeasure, selectedType, dateRange, reportType, selectedBranchId]);
 
 
   const sortedHeaderSlots = salesReportData?.headerSlots?.slice().sort((a, b) => a?.order - b?.order);
@@ -537,6 +548,25 @@ export const SalesReport = () => {
               {filteredDisplayCurrencies.map(currency => (
                 <SelectItem key={currency.code} value={currency.code} className="text-xs">
                   {currency.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs">Branch (Optional)</Label>
+          <Select
+            value={selectedBranchId || 'all'}
+            onValueChange={(value) => setSelectedBranchId(value === 'all' ? null : value)}
+          >
+            <SelectTrigger className="h-8 text-xs w-[180px]">
+              <SelectValue placeholder="All Branches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Branches</SelectItem>
+              {branchList.map(branch => (
+                <SelectItem key={branch.id} value={branch.id} className="text-xs">
+                  {branch.name}
                 </SelectItem>
               ))}
             </SelectContent>
