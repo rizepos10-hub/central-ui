@@ -36,6 +36,8 @@ import {
   Command,
   Circle,
   Newspaper,
+  Utensils,
+  MonitorSmartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GlobalSearch from '../components/global-search/global-search';
@@ -51,6 +53,7 @@ const iconMap: Record<string, React.ElementType> = {
   'pi pi-user': Users,
   'pi pi-ticket': Tag,
   'pi pi-book': BookOpen,
+  'pi pi-utensils': Utensils,
   'pi pi-tags': Tags,
   'pi pi-box': Package,
   'pi pi-users': Users,
@@ -59,6 +62,7 @@ const iconMap: Record<string, React.ElementType> = {
   'pi pi-chart-bar': Newspaper,
   ' pi pi-chart-bar': Newspaper,
   'pi pi-tablet': Tablet,
+  'pi pi-monitor': MonitorSmartphone,
   'pi pi-money-bill': Banknote,
   'pi pi-cog': Settings,
 };
