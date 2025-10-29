@@ -14,7 +14,7 @@ import { searchEntities as getStockItems } from "app/entities/inventory/stock-co
 import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import Select from 'app/shared/components/select/select';
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { ISupplier } from 'app/shared/model/STOCK/supplier.model';

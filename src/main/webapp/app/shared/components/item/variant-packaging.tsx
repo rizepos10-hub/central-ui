@@ -1,6 +1,6 @@
 import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import React, { useState } from 'react';
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { useAppDispatch } from 'app/config/store';
 import { Package, ArrowRight, Trash2, Plus } from 'lucide-react';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';

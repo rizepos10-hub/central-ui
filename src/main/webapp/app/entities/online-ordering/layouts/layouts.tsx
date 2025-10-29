@@ -29,7 +29,7 @@ import { searchEntities } from 'app/entities/item/all-items.reducer';
 import CategoriesLayout from '../layout-settings/components/categories/categories';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { searchEntities as SearchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
-import AsyncSelect from 'react-select/async';
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Carousel, CarouselItem, CarouselControl } from 'reactstrap';
 

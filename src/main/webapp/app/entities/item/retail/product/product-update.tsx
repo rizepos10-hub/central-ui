@@ -16,7 +16,7 @@ import {
   getEntities as getAttributeValues,
   reset as resetAttributeValues,
 } from 'app/entities/item/retail/attributes/retail-attribute-values.reducer';
-import AsyncSelect from 'react-select/async';
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
 import _, { isEqual } from 'lodash';
 import Visibility from 'app/shared/Visibility/Visibility';

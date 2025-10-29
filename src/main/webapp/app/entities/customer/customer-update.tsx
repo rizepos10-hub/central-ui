@@ -23,7 +23,7 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { searchEntities as getLoyaltCards } from 'app/entities/loyalty-card/loyalty-card.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
-import AsyncSelect from 'react-select/async';
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { ILoyaltyCard } from 'app/shared/model/loyalty-card.model';
 import { AddressTypeEnum, IAddress } from 'app/shared/model/address.model';
 import { v4 as uuidv4 } from 'uuid';

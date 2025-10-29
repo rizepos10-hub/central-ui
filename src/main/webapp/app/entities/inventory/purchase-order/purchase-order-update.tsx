@@ -14,7 +14,7 @@ import {  getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import {  getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
 import {toLocalISOString} from "app/shared/util/date-utils";
