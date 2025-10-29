@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Translate } from "react-jhipster";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
@@ -13,17 +13,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { toast } from 'react-toastify';
 
-const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
+const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions, existingSection = null, isEditMode = false }) => {
   console.log(initialDimensions, 'initialDimensions')
-  const [newSection, setNewSection] = useState({
-    name: '',
-    dimensions: {
-      ...initialDimensions
-    },
-    visible: false,
-    backgroundImage: null,
-  });
+  const [newSection, setNewSection] = useState(
+    existingSection || {
+      name: '',
+      dimensions: {
+        ...initialDimensions
+      },
+      visible: false,
+      backgroundImage: null,
+    }
+  );
+
+  useEffect(() => {
+    if (existingSection) {
+      setNewSection(existingSection);
+    }
+  }, [existingSection]);
 
   const removeImage = () => {
     setNewSection((prev) => ({
@@ -41,26 +50,37 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
 
   const handleAddSection = () => {
     if (newSection.name.trim() === '') {
-      alert('Please enter section name');
+      toast.error("Please enter section name.");
+      return;
+    }
+    if (!newSection.dimensions.width || newSection.dimensions.width < 1) {
+      toast.error("Please enter a valid width (minimum 1).");
+      return;
+    }
+    if (!newSection.dimensions.height || newSection.dimensions.height < 1) {
+      toast.error("Please enter a valid height (minimum 1).");
       return;
     }
     onAddSection(newSection);
-    setNewSection({
-      name: '',
-      dimensions: {
-        width: null,
-        height: null,
-      },
-      visible: false,
-      backgroundImage: null,
-    });
+
+    if (!isEditMode) {
+      setNewSection({
+        name: '',
+        dimensions: {
+          width: null,
+          height: null,
+        },
+        visible: false,
+        backgroundImage: null,
+      });
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add New Section</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Section' : 'Add New Section'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -77,6 +97,11 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
                   name: e.target.value,
                 }))
               }
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddSection();
+                }
+              }}
             />
           </div>
 
@@ -152,8 +177,11 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
         </div>
 
         <DialogFooter>
+          <Button variant="outline" onClick={onClose} className="h-8 text-xs">
+            Cancel
+          </Button>
           <Button onClick={handleAddSection} className="h-8 text-xs">
-            Add
+            {isEditMode ? 'Update' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

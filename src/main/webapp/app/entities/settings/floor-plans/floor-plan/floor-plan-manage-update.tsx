@@ -35,7 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const FloorPlanManageUpdate = () => {
   const { id } = useParams();
@@ -77,6 +78,8 @@ const FloorPlanManageUpdate = () => {
   const [editCapacityModalOpen, setEditCapacityModalOpen] = useState(false);
   const [selectedTableForEdit, setSelectedTableForEdit] = useState<{tableDetail: any, index: number} | null>(null);
   const [newCapacity, setNewCapacity] = useState<number | null>(null);
+  const [editSectionModalOpen, setEditSectionModalOpen] = useState(false);
+  const [sectionToEdit, setSectionToEdit] = useState<{section: any, index: number} | null>(null);
 
   const [sectionDimensions, setSectionDimensions]: any = useState({
     width: null,
@@ -92,7 +95,7 @@ const FloorPlanManageUpdate = () => {
 
   const openTableModal = () => {
     if (filteredTablesList?.length === 0) {
-      alert("No Tables To Add");
+      toast.error("There are no tables available to add to this section.");
       return;
     }
     setTableModalIsOpen(true);
@@ -116,16 +119,53 @@ const FloorPlanManageUpdate = () => {
 
   const handleAddSection = (newSection) => {
     if (newSection?.name.trim() === "") {
-      alert("Please enter section name")
-      return
+      toast.error("Please enter section name.");
+      return;
     }
-    closeSectionModal()
+    closeSectionModal();
 
-    const updatedSections = [...floorPlan.sections, newSection]
+    const updatedSections = [...floorPlan.sections, newSection];
     setFloorPlan((prev) => ({
       ...prev,
       sections: updatedSections
-    }))
+    }));
+  };
+
+  const openEditSectionModal = (e, section, index) => {
+    e.stopPropagation();
+    setSectionToEdit({ section, index });
+    setEditSectionModalOpen(true);
+  };
+
+  const handleUpdateSection = (updatedSection) => {
+    if (!sectionToEdit) return;
+
+    if (updatedSection?.name.trim() === "") {
+      toast.error("Please enter section name.");
+      return;
+    }
+
+    setFloorPlan((prev) => {
+      const updatedSections = [...prev.sections];
+      updatedSections[sectionToEdit.index] = updatedSection;
+      return {
+        ...prev,
+        sections: updatedSections,
+      };
+    });
+
+    // Update the section dimensions state as well
+    setSectionDimensions((prev) => {
+      const updatedDimensions = [...prev];
+      updatedDimensions[sectionToEdit.index] = {
+        width: updatedSection.dimensions.width.toString(),
+        height: updatedSection.dimensions.height.toString(),
+      };
+      return updatedDimensions;
+    });
+
+    setEditSectionModalOpen(false);
+    setSectionToEdit(null);
   }
 
   const handleKeyDown = (e) => {
@@ -162,7 +202,7 @@ const FloorPlanManageUpdate = () => {
     });
 
     if (tablesOutsideBounds) {
-      alert("Cannot change width, some tables are outside the new bounds.");
+      toast.error("Cannot change width, some tables are outside the new bounds.");
     } else {
       setFloorPlan((prev) => ({
         ...prev,
@@ -191,7 +231,7 @@ const FloorPlanManageUpdate = () => {
     });
 
     if (tablesOutsideBounds) {
-      alert("Cannot change height, some tables are outside the new bounds.");
+      toast.error("Cannot change height, some tables are outside the new bounds.");
     } else {
       setFloorPlan((prev) => ({
         ...prev,
@@ -251,7 +291,11 @@ const FloorPlanManageUpdate = () => {
 
   const handleAddTable = () => {
     if (!selectedTableDetail || !selectedTableDetail.table || !selectedTableDetail.numberOfSeats) {
-      alert("Please fill in all the fields");
+      toast.error("Please fill in all the fields.");
+      return;
+    }
+    if (selectedTableDetail.numberOfSeats < 1) {
+      toast.error("Capacity must be at least 1.");
       return;
     }
     closeTableModal();
@@ -311,7 +355,7 @@ const FloorPlanManageUpdate = () => {
 
   const handleUpdateCapacity = () => {
     if (!selectedTableForEdit || !newCapacity || newCapacity < 1) {
-      alert("Please enter a valid capacity");
+      toast.error("Please enter a valid capacity (minimum 1).");
       return;
     }
 
@@ -491,11 +535,19 @@ const FloorPlanManageUpdate = () => {
         <Tabs value={selectedSectionIndex} onValueChange={handleSectionChange}>
           <TabsList className="mb-4">
             {floorPlan?.sections?.map((section, index) => (
-              <TabsTrigger key={index} value={index.toString()} className="relative group">
+              <TabsTrigger key={index} value={index.toString()} className="relative group pr-8">
                 {section.name}
                 <button
-                  className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
+                  className="absolute top-1/2 -translate-y-1/2 right-6 h-4 w-4 rounded-full bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
+                  onClick={(e) => openEditSectionModal(e, section, index)}
+                  title="Edit section"
+                >
+                  <Pencil className="h-2.5 w-2.5" />
+                </button>
+                <button
+                  className="absolute top-1/2 -translate-y-1/2 right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
                   onClick={(e) => confirmRemoveSection(e, section, index)}
+                  title="Delete section"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -638,16 +690,25 @@ const FloorPlanManageUpdate = () => {
               <Label className="text-xs">Choose Capacity</Label>
               <Input
                 type="number"
+                min={1}
                 className="h-8 text-xs"
                 onChange={(e) => setSelectedTableDetail((prev) => ({
                   ...prev,
                   numberOfSeats: parseInt(e.target.value)
                 }))}
-                value={selectedTableDetail?.numberOfSeats ?? ''}
+                value={selectedTableDetail?.numberOfSeats || ''}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddTable();
+                  }
+                }}
               />
             </div>
           </div>
           <DialogFooter>
+            <Button variant="outline" onClick={closeTableModal} className="h-8 text-xs">
+              Cancel
+            </Button>
             <Button onClick={handleAddTable} className="h-8 text-xs">Add</Button>
           </DialogFooter>
         </DialogContent>
@@ -713,6 +774,21 @@ const FloorPlanManageUpdate = () => {
           onClose={closeSectionModal}
           initialDimensions={defaultSectionsDimensions}
           onAddSection={handleAddSection}
+        />
+      )}
+
+      {/* Edit Section Modal */}
+      {editSectionModalOpen && sectionToEdit && (
+        <SectionModal
+          isOpen={editSectionModalOpen}
+          onClose={() => {
+            setEditSectionModalOpen(false);
+            setSectionToEdit(null);
+          }}
+          initialDimensions={defaultSectionsDimensions}
+          onAddSection={handleUpdateSection}
+          existingSection={sectionToEdit.section}
+          isEditMode={true}
         />
       )}
     </Card>
