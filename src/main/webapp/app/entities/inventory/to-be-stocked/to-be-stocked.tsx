@@ -232,7 +232,7 @@ export const ToBeStocked = () => {
                         to={`/product/${item.itemId}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
                         className="text-blue-600 hover:underline"
                       >
-                        {item?.itemName}
+                        {item?.itemName}{item?.variant?.name ? ` / ${item.variant.name}` : ''}
                       </Link>
                     </TableCell>
                     <TableCell className="text-xs">{item.location?.name}</TableCell>
