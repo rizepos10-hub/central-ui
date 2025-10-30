@@ -324,7 +324,7 @@ export const TransferRequestUpdate = () => {
                               loadOptions={loadItems}
                               defaultOptions={filteredStockItems}
                               getOptionValue={option => option.variantId}
-                              getOptionLabel={option => option.itemName}
+                              getOptionLabel={option => `${option.itemName}${option?.variant?.name ? ` / ${option.variant.name}` : ''}`}
                               onChange={handleSelectItem}
                               value={transferRequestItem?.item || null}
                               isDisabled={isDisabled}

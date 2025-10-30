@@ -5,6 +5,10 @@ export interface IStockOrderedItem {
   itemId?: string;
   name?: string;
   variantId?: string;
+  variant?: {
+    id?: string
+    name?: string
+  }
   sku?: string;
   itemName?: string;
   price?: number;
