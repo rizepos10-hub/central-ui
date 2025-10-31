@@ -4,6 +4,12 @@ import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
 import { ILayouts } from "./layouts/layouts.module";
 import { ISocialProfile } from "./social-profile";
 
+export interface IScriptSnippet {
+  title: string;
+  active: boolean;
+  content: string;
+}
+
 export interface IUiSettings {
   address?: string,
   key?: "ONLINE_ORDERING_UI",
@@ -35,6 +41,7 @@ export interface IUiSettings {
   retailItemsPerRow?: number
   restaurantItemsPerRow?: number
   hideBranchesSection?: boolean
+  scriptSnippets?: IScriptSnippet[]
 }
 
 export interface ISocialProfiles {
@@ -82,5 +89,6 @@ export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "D
 
 
 export const defaultValue: Readonly<IUiSettings> = {
-  homePageSetting: defaultLayoutValue
+  homePageSetting: defaultLayoutValue,
+  scriptSnippets: []
 };
