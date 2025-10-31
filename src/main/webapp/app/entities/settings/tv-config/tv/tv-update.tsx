@@ -21,8 +21,12 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getTvDisplays } from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
-import { getEntities as getRegularItems } from "app/entities/item/restaurant/regular-item/regular-item.reducer";
+import { filterEntities as getRegularItems } from "app/entities/item/restaurant/regular-item/regular-item.reducer";
+import { getEntities as getRestaurantCategories } from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import { Translate, getSortState } from "react-jhipster";
+import { FilterMatchMode } from 'primereact/api';
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
+import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -554,9 +558,13 @@ export const TVUpdate = () => {
   const branchList = useAppSelector(state => state.branch.entities);
   // const tvDisplayList = useAppSelector(state => state.tvDisplay.entities);
   const regularItemList = useAppSelector(state => state.regularItem.entities);
+  const categories = useAppSelector(state => state.restaurantCategory.entities);
   const tv : ITv = useAppSelector(state => state.tv.entity);
   const loading = useAppSelector(state => state.tv.loading);
   const updating = useAppSelector(state => state.tv.updating);
+
+  const [itemCategoryFilter, setItemCategoryFilter] = useState(null);
+  const searchTimeoutRef = useRef(null);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -732,12 +740,35 @@ export const TVUpdate = () => {
       sort: paginationState.sort
     }));
 
-    dispatch(getRegularItems({
+    dispatch(getRestaurantCategories({
       page: 0,
       size: 1000,
       sort: 'name,asc'
     }));
+
+    loadRegularItems();
   }, []);
+
+  const loadRegularItems = useCallback(() => {
+    const query = {
+      first: 0,
+      rows: 1000,
+      page: 0,
+      sortField: 'name',
+      sortOrder: 1,
+      filters: {
+        "categories.id": { value: itemCategoryFilter, matchMode: FilterMatchMode.EQUALS },
+        "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
+      }
+    };
+
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(getRegularItems({ query: updatedQuery }));
+  }, [itemCategoryFilter, dispatch]);
+
+  useEffect(() => {
+    loadRegularItems();
+  }, [itemCategoryFilter]);
 
   const handleBranchChange = (selectedBranch) => {
     dispatch(changeEntityField({ name: "branch", value: selectedBranch }));
@@ -2262,6 +2293,17 @@ export const TVUpdate = () => {
                 />
               </div>
 
+              {/* Category Filter */}
+              <div className="form-group">
+                <label className="form-label">Filter Items by Category</label>
+                <DropDownFilter
+                  dropDownOptionType={"RESTAURANT_CATEGORY"}
+                  selectedOption={itemCategoryFilter}
+                  fieldName={"categories.id"}
+                  handleDropdownChange={(field, value) => setItemCategoryFilter(value?.value)}
+                />
+              </div>
+
               {/* Item Selection */}
               <div className="form-group">
                 <label className="form-label">Select Item</label>
@@ -2273,6 +2315,32 @@ export const TVUpdate = () => {
                   value={currentPage.selectedItem || null}
                   placeholder="Choose an item..."
                   isClearable
+                  isSearchable
+                  onMenuOpen={loadRegularItems}
+                  onInputChange={(inputValue, { action }) => {
+                    if (action === 'input-change') {
+                      if (searchTimeoutRef.current) {
+                        clearTimeout(searchTimeoutRef.current);
+                      }
+
+                      searchTimeoutRef.current = setTimeout(() => {
+                        const query = {
+                          first: 0,
+                          rows: 1000,
+                          page: 0,
+                          sortField: 'name',
+                          sortOrder: 1,
+                          filters: {
+                            "categories.id": { value: itemCategoryFilter, matchMode: FilterMatchMode.EQUALS },
+                            name: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
+                            "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
+                          }
+                        };
+                        const updatedQuery = applyMatchModeMap(query);
+                        dispatch(getRegularItems({ query: updatedQuery }));
+                      }, 300);
+                    }
+                  }}
                 />
               </div>
 
