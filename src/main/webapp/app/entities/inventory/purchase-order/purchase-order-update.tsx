@@ -402,7 +402,7 @@ export const PurchaseOrderUpdate = () => {
                       />
                     </div>
                   </div>
-
+{/* 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="delivery" className="text-xs whitespace-nowrap">
@@ -431,7 +431,7 @@ export const PurchaseOrderUpdate = () => {
                         className="h-8 text-xs"
                       />
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
