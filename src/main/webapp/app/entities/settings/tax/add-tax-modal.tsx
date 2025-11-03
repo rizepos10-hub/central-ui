@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'react-toastify';
 
 
 
@@ -28,7 +29,7 @@ const AddTaxModal = ({ visible, onHide, taxId = null }) => {
     dispatch(changeEntityField({ fieldName, value }));
   };
 
-  const allFieldsFilled = taxEntity.code && taxEntity.description && taxEntity.value;
+  const allFieldsFilled = taxEntity.code && taxEntity.description && (taxEntity.value !== undefined && taxEntity.value !== null);
 
   const handleClose = () => {
     setNext(false);
@@ -39,7 +40,7 @@ const AddTaxModal = ({ visible, onHide, taxId = null }) => {
     if (allFieldsFilled) {
       setNext(true);
     } else {
-      alert("Please fill in all required fields (Code, Description, Value) before proceeding.");
+      toast.error("Please fill in all required fields (Code, Description, Value) before proceeding.");
     }
   };
 
