@@ -16,13 +16,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getTvDisplays } from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
 import { filterEntities as getRegularItems } from "app/entities/item/restaurant/regular-item/regular-item.reducer";
+import { filterEntities as getPizzaItems } from "app/entities/item/restaurant/pizza-item/pizza-item.reducer";
+import { filterEntities as getComboItems } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { filterEntities as getRetailItems } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getRestaurantCategories } from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
+import { getEntities as getRetailCategories } from "app/entities/term/retail-item-category/retail-item-category.reducer";
 import { Translate, getSortState } from "react-jhipster";
 import { FilterMatchMode } from 'primereact/api';
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
@@ -558,17 +564,68 @@ export const TVUpdate = () => {
   const branchList = useAppSelector(state => state.branch.entities);
   // const tvDisplayList = useAppSelector(state => state.tvDisplay.entities);
   const regularItemList = useAppSelector(state => state.regularItem.entities);
+  const pizzaItemList = useAppSelector(state => state.pizzaItem.entities);
+  const comboItemList = useAppSelector(state => state.comboItem.entities);
+  const retailItemList = useAppSelector(state => state.product.entities);
   const categories = useAppSelector(state => state.restaurantCategory.entities);
+  const retailCategories = useAppSelector(state => state.retailCategory.entities);
   const tv : ITv = useAppSelector(state => state.tv.entity);
   const loading = useAppSelector(state => state.tv.loading);
   const updating = useAppSelector(state => state.tv.updating);
 
   const [itemCategoryFilter, setItemCategoryFilter] = useState(null);
+  const [itemTypeDialogOpen, setItemTypeDialogOpen] = useState(false);
+  const [selectedItemType, setSelectedItemType] = useState<'regular' | 'pizza' | 'combo' | 'retail'>('regular');
+  const [tempItemType, setTempItemType] = useState<'regular' | 'pizza' | 'combo' | 'retail'>('regular');
+  const [tempCategoryFilter, setTempCategoryFilter] = useState(null);
+  const [tempSelectedItem, setTempSelectedItem] = useState(null);
   const searchTimeoutRef = useRef(null);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+
+  // Computed values based on selected item type
+  const currentItemList = useMemo(() => {
+    switch (selectedItemType) {
+      case 'pizza':
+        return pizzaItemList;
+      case 'combo':
+        return comboItemList;
+      case 'retail':
+        return retailItemList;
+      case 'regular':
+      default:
+        return regularItemList;
+    }
+  }, [selectedItemType, regularItemList, pizzaItemList, comboItemList, retailItemList]);
+
+  const currentCategories = useMemo(() => {
+    return selectedItemType === 'retail' ? retailCategories : categories;
+  }, [selectedItemType, categories, retailCategories]);
+
+  const categoryDropdownType = useMemo(() => {
+    return selectedItemType === 'retail' ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY';
+  }, [selectedItemType]);
+
+  // Computed values for temporary selections in dialog
+  const tempItemList = useMemo(() => {
+    switch (tempItemType) {
+      case 'pizza':
+        return pizzaItemList;
+      case 'combo':
+        return comboItemList;
+      case 'retail':
+        return retailItemList;
+      case 'regular':
+      default:
+        return regularItemList;
+    }
+  }, [tempItemType, regularItemList, pizzaItemList, comboItemList, retailItemList]);
+
+  const tempCategoryDropdownType = useMemo(() => {
+    return tempItemType === 'retail' ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY';
+  }, [tempItemType]);
 
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -655,8 +712,8 @@ export const TVUpdate = () => {
       }
     }
 
-    const totalHeightPixels = (lines * lineHeight) + 16;
-    const minHeightPixels = Math.max(totalHeightPixels, fontSize + 16);
+    const totalHeightPixels = lines * lineHeight;
+    const minHeightPixels = Math.max(totalHeightPixels, fontSize);
     const result = (minHeightPixels / screenDimensions.height) * 100;
 
     // Cache the result
@@ -746,8 +803,46 @@ export const TVUpdate = () => {
       sort: 'name,asc'
     }));
 
-    loadRegularItems();
+    dispatch(getRetailCategories({
+      page: 0,
+      size: 1000,
+      sort: 'name,asc'
+    }));
+
+    loadItems();
   }, []);
+
+  const loadItems = useCallback(() => {
+    const query = {
+      first: 0,
+      rows: 1000,
+      page: 0,
+      sortField: 'name',
+      sortOrder: 1,
+      filters: {
+        "categories.id": { value: itemCategoryFilter, matchMode: FilterMatchMode.EQUALS },
+        "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
+      }
+    };
+
+    const updatedQuery = applyMatchModeMap(query);
+
+    switch (selectedItemType) {
+      case 'pizza':
+        dispatch(getPizzaItems({ query: updatedQuery }));
+        break;
+      case 'combo':
+        dispatch(getComboItems({ query: updatedQuery }));
+        break;
+      case 'retail':
+        dispatch(getRetailItems({ query: updatedQuery }));
+        break;
+      case 'regular':
+      default:
+        dispatch(getRegularItems({ query: updatedQuery }));
+        break;
+    }
+  }, [itemCategoryFilter, selectedItemType, dispatch]);
 
   const loadRegularItems = useCallback(() => {
     const query = {
@@ -767,8 +862,8 @@ export const TVUpdate = () => {
   }, [itemCategoryFilter, dispatch]);
 
   useEffect(() => {
-    loadRegularItems();
-  }, [itemCategoryFilter]);
+    loadItems();
+  }, [itemCategoryFilter, selectedItemType]);
 
   const handleBranchChange = (selectedBranch) => {
     dispatch(changeEntityField({ name: "branch", value: selectedBranch }));
@@ -836,6 +931,30 @@ export const TVUpdate = () => {
 
   const handleVariantSelection = (variantIndex: number) => {
     setSelectedVariantIndex(variantIndex);
+  };
+
+  const handleOpenItemDialog = () => {
+    // Initialize temp values with current selection
+    setTempItemType(selectedItemType);
+    setTempCategoryFilter(itemCategoryFilter);
+    setTempSelectedItem(currentPage.selectedItem);
+    setItemTypeDialogOpen(true);
+  };
+
+  const handleConfirmItemSelection = () => {
+    // Apply temp values to actual state
+    setSelectedItemType(tempItemType);
+    setItemCategoryFilter(tempCategoryFilter);
+    handleItemSelection(tempSelectedItem);
+    setItemTypeDialogOpen(false);
+  };
+
+  const handleCancelItemSelection = () => {
+    // Reset temp values
+    setTempItemType(selectedItemType);
+    setTempCategoryFilter(itemCategoryFilter);
+    setTempSelectedItem(currentPage.selectedItem);
+    setItemTypeDialogOpen(false);
   };
 
   const addElementToPage = (type: 'text' | 'image' | 'line', content: string, fieldToQuery?: string, isStandaloneImage = false, isBackgroundImage = false) => {
@@ -2293,55 +2412,27 @@ export const TVUpdate = () => {
                 />
               </div>
 
-              {/* Category Filter */}
-              <div className="form-group">
-                <label className="form-label">Filter Items by Category</label>
-                <DropDownFilter
-                  dropDownOptionType={"RESTAURANT_CATEGORY"}
-                  selectedOption={itemCategoryFilter}
-                  fieldName={"categories.id"}
-                  handleDropdownChange={(field, value) => setItemCategoryFilter(value?.value)}
-                />
-              </div>
-
-              {/* Item Selection */}
+              {/* Item Selection Button */}
               <div className="form-group">
                 <label className="form-label">Select Item</label>
-                <Select
-                  options={regularItemList}
-                  onChange={handleItemSelection}
-                  getOptionValue={option => option.id}
-                  getOptionLabel={option => option.name}
-                  value={currentPage.selectedItem || null}
-                  placeholder="Choose an item..."
-                  isClearable
-                  isSearchable
-                  onMenuOpen={loadRegularItems}
-                  onInputChange={(inputValue, { action }) => {
-                    if (action === 'input-change') {
-                      if (searchTimeoutRef.current) {
-                        clearTimeout(searchTimeoutRef.current);
-                      }
-
-                      searchTimeoutRef.current = setTimeout(() => {
-                        const query = {
-                          first: 0,
-                          rows: 1000,
-                          page: 0,
-                          sortField: 'name',
-                          sortOrder: 1,
-                          filters: {
-                            "categories.id": { value: itemCategoryFilter, matchMode: FilterMatchMode.EQUALS },
-                            name: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
-                            "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
-                          }
-                        };
-                        const updatedQuery = applyMatchModeMap(query);
-                        dispatch(getRegularItems({ query: updatedQuery }));
-                      }, 300);
-                    }
-                  }}
-                />
+                <button
+                  className="btn btn-outline"
+                  onClick={handleOpenItemDialog}
+                  style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span>
+                    {currentPage.selectedItem ? currentPage.selectedItem.name : 'Choose an item...'}
+                  </span>
+                  <span>🔍</span>
+                </button>
+                {currentPage.selectedItem && (
+                  <p className="form-description" style={{ marginTop: '4px' }}>
+                    Type: {selectedItemType === 'regular' && '🍽️ Regular'}
+                    {selectedItemType === 'pizza' && '🍕 Pizza'}
+                    {selectedItemType === 'combo' && '🎁 Combo'}
+                    {selectedItemType === 'retail' && '🛒 Retail'}
+                  </p>
+                )}
               </div>
 
               {/* Standalone Image Selector */}
@@ -3044,6 +3135,178 @@ export const TVUpdate = () => {
         currentPage={currentPage}
         tv={tv}
       />
+
+      {/* Item Selection Dialog */}
+      <Dialog open={itemTypeDialogOpen} onOpenChange={(open) => !open && handleCancelItemSelection()}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base">Select Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Item Type Selection */}
+            <div>
+              <label className="text-xs font-semibold mb-2 block">Item Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={tempItemType === 'regular' ? 'default' : 'outline'}
+                  className="h-auto py-3 flex items-center justify-start gap-2 text-left"
+                  onClick={() => {
+                    setTempItemType('regular');
+                    setTempCategoryFilter(null);
+                    setTempSelectedItem(null);
+                  }}
+                >
+                  <span className="text-xl">🍽️</span>
+                  <div className="text-xs font-semibold">Regular Item</div>
+                </Button>
+
+                <Button
+                  variant={tempItemType === 'pizza' ? 'default' : 'outline'}
+                  className="h-auto py-3 flex items-center justify-start gap-2 text-left"
+                  onClick={() => {
+                    setTempItemType('pizza');
+                    setTempCategoryFilter(null);
+                    setTempSelectedItem(null);
+                  }}
+                >
+                  <span className="text-xl">🍕</span>
+                  <div className="text-xs font-semibold">Pizza</div>
+                </Button>
+
+                <Button
+                  variant={tempItemType === 'combo' ? 'default' : 'outline'}
+                  className="h-auto py-3 flex items-center justify-start gap-2 text-left"
+                  onClick={() => {
+                    setTempItemType('combo');
+                    setTempCategoryFilter(null);
+                    setTempSelectedItem(null);
+                  }}
+                >
+                  <span className="text-xl">🎁</span>
+                  <div className="text-xs font-semibold">Combo</div>
+                </Button>
+
+                <Button
+                  variant={tempItemType === 'retail' ? 'default' : 'outline'}
+                  className="h-auto py-3 flex items-center justify-start gap-2 text-left"
+                  onClick={() => {
+                    setTempItemType('retail');
+                    setTempCategoryFilter(null);
+                    setTempSelectedItem(null);
+                  }}
+                >
+                  <span className="text-xl">🛒</span>
+                  <div className="text-xs font-semibold">Retail</div>
+                </Button>
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <label className="text-xs font-semibold mb-2 block">Filter by Category (Optional)</label>
+              <DropDownFilter
+                dropDownOptionType={tempCategoryDropdownType}
+                selectedOption={tempCategoryFilter}
+                fieldName={"categories.id"}
+                handleDropdownChange={(field, value) => setTempCategoryFilter(value?.value)}
+              />
+            </div>
+
+            {/* Item Selection */}
+            <div>
+              <label className="text-xs font-semibold mb-2 block">Choose Item</label>
+              <Select
+                options={tempItemList}
+                onChange={(item) => setTempSelectedItem(item)}
+                getOptionValue={option => option.id}
+                getOptionLabel={option => option.name}
+                value={tempSelectedItem}
+                placeholder="Search and select an item..."
+                isClearable
+                isSearchable
+                onMenuOpen={() => {
+                  const query = {
+                    first: 0,
+                    rows: 1000,
+                    page: 0,
+                    sortField: 'name',
+                    sortOrder: 1,
+                    filters: {
+                      "categories.id": { value: tempCategoryFilter, matchMode: FilterMatchMode.EQUALS },
+                      "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
+                    }
+                  };
+                  const updatedQuery = applyMatchModeMap(query);
+
+                  switch (tempItemType) {
+                    case 'pizza':
+                      dispatch(getPizzaItems({ query: updatedQuery }));
+                      break;
+                    case 'combo':
+                      dispatch(getComboItems({ query: updatedQuery }));
+                      break;
+                    case 'retail':
+                      dispatch(getRetailItems({ query: updatedQuery }));
+                      break;
+                    case 'regular':
+                    default:
+                      dispatch(getRegularItems({ query: updatedQuery }));
+                      break;
+                  }
+                }}
+                onInputChange={(inputValue, { action }) => {
+                  if (action === 'input-change') {
+                    if (searchTimeoutRef.current) {
+                      clearTimeout(searchTimeoutRef.current);
+                    }
+
+                    searchTimeoutRef.current = setTimeout(() => {
+                      const query = {
+                        first: 0,
+                        rows: 1000,
+                        page: 0,
+                        sortField: 'name',
+                        sortOrder: 1,
+                        filters: {
+                          "categories.id": { value: tempCategoryFilter, matchMode: FilterMatchMode.EQUALS },
+                          name: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
+                          "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
+                        }
+                      };
+                      const updatedQuery = applyMatchModeMap(query);
+
+                      switch (tempItemType) {
+                        case 'pizza':
+                          dispatch(getPizzaItems({ query: updatedQuery }));
+                          break;
+                        case 'combo':
+                          dispatch(getComboItems({ query: updatedQuery }));
+                          break;
+                        case 'retail':
+                          dispatch(getRetailItems({ query: updatedQuery }));
+                          break;
+                        case 'regular':
+                        default:
+                          dispatch(getRegularItems({ query: updatedQuery }));
+                          break;
+                      }
+                    }, 300);
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={handleCancelItemSelection} className="h-8 text-xs">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmItemSelection} className="h-8 text-xs">
+              Confirm Selection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
