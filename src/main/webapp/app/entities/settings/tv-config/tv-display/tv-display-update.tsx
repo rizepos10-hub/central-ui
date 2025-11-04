@@ -112,6 +112,7 @@ export const TvDisplayUpdate = () => {
                 <Button
                   type="button"
                   disabled={updating}
+                  onClick={saveEntity}
                   className="h-8 text-xs"
                 >
                   <Save className="h-3 w-3 mr-1" />
