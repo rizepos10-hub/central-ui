@@ -1,0 +1,2987 @@
+[
+  {
+    "Continent": "Africa",
+    "City": "Abidjan",
+    "ZoneId": "Africa/Abidjan"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Accra",
+    "ZoneId": "Africa/Accra"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Addis_Ababa",
+    "ZoneId": "Africa/Addis_Ababa"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Algiers",
+    "ZoneId": "Africa/Algiers"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Asmara",
+    "ZoneId": "Africa/Asmara"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Asmera",
+    "ZoneId": "Africa/Asmera"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Bamako",
+    "ZoneId": "Africa/Bamako"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Bangui",
+    "ZoneId": "Africa/Bangui"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Banjul",
+    "ZoneId": "Africa/Banjul"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Bissau",
+    "ZoneId": "Africa/Bissau"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Blantyre",
+    "ZoneId": "Africa/Blantyre"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Brazzaville",
+    "ZoneId": "Africa/Brazzaville"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Bujumbura",
+    "ZoneId": "Africa/Bujumbura"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Cairo",
+    "ZoneId": "Africa/Cairo"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Casablanca",
+    "ZoneId": "Africa/Casablanca"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Ceuta",
+    "ZoneId": "Africa/Ceuta"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Conakry",
+    "ZoneId": "Africa/Conakry"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Dakar",
+    "ZoneId": "Africa/Dakar"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Dar_es_Salaam",
+    "ZoneId": "Africa/Dar_es_Salaam"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Djibouti",
+    "ZoneId": "Africa/Djibouti"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Douala",
+    "ZoneId": "Africa/Douala"
+  },
+  {
+    "Continent": "Africa",
+    "City": "El_Aaiun",
+    "ZoneId": "Africa/El_Aaiun"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Freetown",
+    "ZoneId": "Africa/Freetown"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Gaborone",
+    "ZoneId": "Africa/Gaborone"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Harare",
+    "ZoneId": "Africa/Harare"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Johannesburg",
+    "ZoneId": "Africa/Johannesburg"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Juba",
+    "ZoneId": "Africa/Juba"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Kampala",
+    "ZoneId": "Africa/Kampala"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Khartoum",
+    "ZoneId": "Africa/Khartoum"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Kigali",
+    "ZoneId": "Africa/Kigali"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Kinshasa",
+    "ZoneId": "Africa/Kinshasa"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Lagos",
+    "ZoneId": "Africa/Lagos"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Libreville",
+    "ZoneId": "Africa/Libreville"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Lome",
+    "ZoneId": "Africa/Lome"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Luanda",
+    "ZoneId": "Africa/Luanda"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Lubumbashi",
+    "ZoneId": "Africa/Lubumbashi"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Lusaka",
+    "ZoneId": "Africa/Lusaka"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Malabo",
+    "ZoneId": "Africa/Malabo"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Maputo",
+    "ZoneId": "Africa/Maputo"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Maseru",
+    "ZoneId": "Africa/Maseru"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Mbabane",
+    "ZoneId": "Africa/Mbabane"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Mogadishu",
+    "ZoneId": "Africa/Mogadishu"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Monrovia",
+    "ZoneId": "Africa/Monrovia"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Nairobi",
+    "ZoneId": "Africa/Nairobi"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Ndjamena",
+    "ZoneId": "Africa/Ndjamena"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Niamey",
+    "ZoneId": "Africa/Niamey"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Nouakchott",
+    "ZoneId": "Africa/Nouakchott"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Ouagadougou",
+    "ZoneId": "Africa/Ouagadougou"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Porto-Novo",
+    "ZoneId": "Africa/Porto-Novo"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Sao_Tome",
+    "ZoneId": "Africa/Sao_Tome"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Timbuktu",
+    "ZoneId": "Africa/Timbuktu"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Tripoli",
+    "ZoneId": "Africa/Tripoli"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Tunis",
+    "ZoneId": "Africa/Tunis"
+  },
+  {
+    "Continent": "Africa",
+    "City": "Windhoek",
+    "ZoneId": "Africa/Windhoek"
+  },
+  {
+    "Continent": "America",
+    "City": "Adak",
+    "ZoneId": "America/Adak"
+  },
+  {
+    "Continent": "America",
+    "City": "Anchorage",
+    "ZoneId": "America/Anchorage"
+  },
+  {
+    "Continent": "America",
+    "City": "Anguilla",
+    "ZoneId": "America/Anguilla"
+  },
+  {
+    "Continent": "America",
+    "City": "Antigua",
+    "ZoneId": "America/Antigua"
+  },
+  {
+    "Continent": "America",
+    "City": "Araguaina",
+    "ZoneId": "America/Araguaina"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Buenos_Aires",
+    "ZoneId": "America/Argentina/Buenos_Aires"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Catamarca",
+    "ZoneId": "America/Argentina/Catamarca"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/ComodRivadavia",
+    "ZoneId": "America/Argentina/ComodRivadavia"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Cordoba",
+    "ZoneId": "America/Argentina/Cordoba"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Jujuy",
+    "ZoneId": "America/Argentina/Jujuy"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/La_Rioja",
+    "ZoneId": "America/Argentina/La_Rioja"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Mendoza",
+    "ZoneId": "America/Argentina/Mendoza"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Rio_Gallegos",
+    "ZoneId": "America/Argentina/Rio_Gallegos"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Salta",
+    "ZoneId": "America/Argentina/Salta"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/San_Juan",
+    "ZoneId": "America/Argentina/San_Juan"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/San_Luis",
+    "ZoneId": "America/Argentina/San_Luis"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Tucuman",
+    "ZoneId": "America/Argentina/Tucuman"
+  },
+  {
+    "Continent": "America",
+    "City": "Argentina/Ushuaia",
+    "ZoneId": "America/Argentina/Ushuaia"
+  },
+  {
+    "Continent": "America",
+    "City": "Aruba",
+    "ZoneId": "America/Aruba"
+  },
+  {
+    "Continent": "America",
+    "City": "Asuncion",
+    "ZoneId": "America/Asuncion"
+  },
+  {
+    "Continent": "America",
+    "City": "Atikokan",
+    "ZoneId": "America/Atikokan"
+  },
+  {
+    "Continent": "America",
+    "City": "Atka",
+    "ZoneId": "America/Atka"
+  },
+  {
+    "Continent": "America",
+    "City": "Bahia",
+    "ZoneId": "America/Bahia"
+  },
+  {
+    "Continent": "America",
+    "City": "Bahia_Banderas",
+    "ZoneId": "America/Bahia_Banderas"
+  },
+  {
+    "Continent": "America",
+    "City": "Barbados",
+    "ZoneId": "America/Barbados"
+  },
+  {
+    "Continent": "America",
+    "City": "Belem",
+    "ZoneId": "America/Belem"
+  },
+  {
+    "Continent": "America",
+    "City": "Belize",
+    "ZoneId": "America/Belize"
+  },
+  {
+    "Continent": "America",
+    "City": "Blanc-Sablon",
+    "ZoneId": "America/Blanc-Sablon"
+  },
+  {
+    "Continent": "America",
+    "City": "Boa_Vista",
+    "ZoneId": "America/Boa_Vista"
+  },
+  {
+    "Continent": "America",
+    "City": "Bogota",
+    "ZoneId": "America/Bogota"
+  },
+  {
+    "Continent": "America",
+    "City": "Boise",
+    "ZoneId": "America/Boise"
+  },
+  {
+    "Continent": "America",
+    "City": "Buenos_Aires",
+    "ZoneId": "America/Buenos_Aires"
+  },
+  {
+    "Continent": "America",
+    "City": "Cambridge_Bay",
+    "ZoneId": "America/Cambridge_Bay"
+  },
+  {
+    "Continent": "America",
+    "City": "Campo_Grande",
+    "ZoneId": "America/Campo_Grande"
+  },
+  {
+    "Continent": "America",
+    "City": "Cancun",
+    "ZoneId": "America/Cancun"
+  },
+  {
+    "Continent": "America",
+    "City": "Caracas",
+    "ZoneId": "America/Caracas"
+  },
+  {
+    "Continent": "America",
+    "City": "Catamarca",
+    "ZoneId": "America/Catamarca"
+  },
+  {
+    "Continent": "America",
+    "City": "Cayenne",
+    "ZoneId": "America/Cayenne"
+  },
+  {
+    "Continent": "America",
+    "City": "Cayman",
+    "ZoneId": "America/Cayman"
+  },
+  {
+    "Continent": "America",
+    "City": "Chicago",
+    "ZoneId": "America/Chicago"
+  },
+  {
+    "Continent": "America",
+    "City": "Chihuahua",
+    "ZoneId": "America/Chihuahua"
+  },
+  {
+    "Continent": "America",
+    "City": "Ciudad_Juarez",
+    "ZoneId": "America/Ciudad_Juarez"
+  },
+  {
+    "Continent": "America",
+    "City": "Coral_Harbour",
+    "ZoneId": "America/Coral_Harbour"
+  },
+  {
+    "Continent": "America",
+    "City": "Cordoba",
+    "ZoneId": "America/Cordoba"
+  },
+  {
+    "Continent": "America",
+    "City": "Costa_Rica",
+    "ZoneId": "America/Costa_Rica"
+  },
+  {
+    "Continent": "America",
+    "City": "Coyhaique",
+    "ZoneId": "America/Coyhaique"
+  },
+  {
+    "Continent": "America",
+    "City": "Creston",
+    "ZoneId": "America/Creston"
+  },
+  {
+    "Continent": "America",
+    "City": "Cuiaba",
+    "ZoneId": "America/Cuiaba"
+  },
+  {
+    "Continent": "America",
+    "City": "Curacao",
+    "ZoneId": "America/Curacao"
+  },
+  {
+    "Continent": "America",
+    "City": "Danmarkshavn",
+    "ZoneId": "America/Danmarkshavn"
+  },
+  {
+    "Continent": "America",
+    "City": "Dawson",
+    "ZoneId": "America/Dawson"
+  },
+  {
+    "Continent": "America",
+    "City": "Dawson_Creek",
+    "ZoneId": "America/Dawson_Creek"
+  },
+  {
+    "Continent": "America",
+    "City": "Denver",
+    "ZoneId": "America/Denver"
+  },
+  {
+    "Continent": "America",
+    "City": "Detroit",
+    "ZoneId": "America/Detroit"
+  },
+  {
+    "Continent": "America",
+    "City": "Dominica",
+    "ZoneId": "America/Dominica"
+  },
+  {
+    "Continent": "America",
+    "City": "Edmonton",
+    "ZoneId": "America/Edmonton"
+  },
+  {
+    "Continent": "America",
+    "City": "Eirunepe",
+    "ZoneId": "America/Eirunepe"
+  },
+  {
+    "Continent": "America",
+    "City": "El_Salvador",
+    "ZoneId": "America/El_Salvador"
+  },
+  {
+    "Continent": "America",
+    "City": "Ensenada",
+    "ZoneId": "America/Ensenada"
+  },
+  {
+    "Continent": "America",
+    "City": "Fort_Nelson",
+    "ZoneId": "America/Fort_Nelson"
+  },
+  {
+    "Continent": "America",
+    "City": "Fort_Wayne",
+    "ZoneId": "America/Fort_Wayne"
+  },
+  {
+    "Continent": "America",
+    "City": "Fortaleza",
+    "ZoneId": "America/Fortaleza"
+  },
+  {
+    "Continent": "America",
+    "City": "Glace_Bay",
+    "ZoneId": "America/Glace_Bay"
+  },
+  {
+    "Continent": "America",
+    "City": "Godthab",
+    "ZoneId": "America/Godthab"
+  },
+  {
+    "Continent": "America",
+    "City": "Goose_Bay",
+    "ZoneId": "America/Goose_Bay"
+  },
+  {
+    "Continent": "America",
+    "City": "Grand_Turk",
+    "ZoneId": "America/Grand_Turk"
+  },
+  {
+    "Continent": "America",
+    "City": "Grenada",
+    "ZoneId": "America/Grenada"
+  },
+  {
+    "Continent": "America",
+    "City": "Guadeloupe",
+    "ZoneId": "America/Guadeloupe"
+  },
+  {
+    "Continent": "America",
+    "City": "Guatemala",
+    "ZoneId": "America/Guatemala"
+  },
+  {
+    "Continent": "America",
+    "City": "Guayaquil",
+    "ZoneId": "America/Guayaquil"
+  },
+  {
+    "Continent": "America",
+    "City": "Guyana",
+    "ZoneId": "America/Guyana"
+  },
+  {
+    "Continent": "America",
+    "City": "Halifax",
+    "ZoneId": "America/Halifax"
+  },
+  {
+    "Continent": "America",
+    "City": "Havana",
+    "ZoneId": "America/Havana"
+  },
+  {
+    "Continent": "America",
+    "City": "Hermosillo",
+    "ZoneId": "America/Hermosillo"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Indianapolis",
+    "ZoneId": "America/Indiana/Indianapolis"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Knox",
+    "ZoneId": "America/Indiana/Knox"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Marengo",
+    "ZoneId": "America/Indiana/Marengo"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Petersburg",
+    "ZoneId": "America/Indiana/Petersburg"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Tell_City",
+    "ZoneId": "America/Indiana/Tell_City"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Vevay",
+    "ZoneId": "America/Indiana/Vevay"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Vincennes",
+    "ZoneId": "America/Indiana/Vincennes"
+  },
+  {
+    "Continent": "America",
+    "City": "Indiana/Winamac",
+    "ZoneId": "America/Indiana/Winamac"
+  },
+  {
+    "Continent": "America",
+    "City": "Indianapolis",
+    "ZoneId": "America/Indianapolis"
+  },
+  {
+    "Continent": "America",
+    "City": "Inuvik",
+    "ZoneId": "America/Inuvik"
+  },
+  {
+    "Continent": "America",
+    "City": "Iqaluit",
+    "ZoneId": "America/Iqaluit"
+  },
+  {
+    "Continent": "America",
+    "City": "Jamaica",
+    "ZoneId": "America/Jamaica"
+  },
+  {
+    "Continent": "America",
+    "City": "Jujuy",
+    "ZoneId": "America/Jujuy"
+  },
+  {
+    "Continent": "America",
+    "City": "Juneau",
+    "ZoneId": "America/Juneau"
+  },
+  {
+    "Continent": "America",
+    "City": "Kentucky/Louisville",
+    "ZoneId": "America/Kentucky/Louisville"
+  },
+  {
+    "Continent": "America",
+    "City": "Kentucky/Monticello",
+    "ZoneId": "America/Kentucky/Monticello"
+  },
+  {
+    "Continent": "America",
+    "City": "Knox_IN",
+    "ZoneId": "America/Knox_IN"
+  },
+  {
+    "Continent": "America",
+    "City": "Kralendijk",
+    "ZoneId": "America/Kralendijk"
+  },
+  {
+    "Continent": "America",
+    "City": "La_Paz",
+    "ZoneId": "America/La_Paz"
+  },
+  {
+    "Continent": "America",
+    "City": "Lima",
+    "ZoneId": "America/Lima"
+  },
+  {
+    "Continent": "America",
+    "City": "Los_Angeles",
+    "ZoneId": "America/Los_Angeles"
+  },
+  {
+    "Continent": "America",
+    "City": "Louisville",
+    "ZoneId": "America/Louisville"
+  },
+  {
+    "Continent": "America",
+    "City": "Lower_Princes",
+    "ZoneId": "America/Lower_Princes"
+  },
+  {
+    "Continent": "America",
+    "City": "Maceio",
+    "ZoneId": "America/Maceio"
+  },
+  {
+    "Continent": "America",
+    "City": "Managua",
+    "ZoneId": "America/Managua"
+  },
+  {
+    "Continent": "America",
+    "City": "Manaus",
+    "ZoneId": "America/Manaus"
+  },
+  {
+    "Continent": "America",
+    "City": "Marigot",
+    "ZoneId": "America/Marigot"
+  },
+  {
+    "Continent": "America",
+    "City": "Martinique",
+    "ZoneId": "America/Martinique"
+  },
+  {
+    "Continent": "America",
+    "City": "Matamoros",
+    "ZoneId": "America/Matamoros"
+  },
+  {
+    "Continent": "America",
+    "City": "Mazatlan",
+    "ZoneId": "America/Mazatlan"
+  },
+  {
+    "Continent": "America",
+    "City": "Mendoza",
+    "ZoneId": "America/Mendoza"
+  },
+  {
+    "Continent": "America",
+    "City": "Menominee",
+    "ZoneId": "America/Menominee"
+  },
+  {
+    "Continent": "America",
+    "City": "Merida",
+    "ZoneId": "America/Merida"
+  },
+  {
+    "Continent": "America",
+    "City": "Metlakatla",
+    "ZoneId": "America/Metlakatla"
+  },
+  {
+    "Continent": "America",
+    "City": "Mexico_City",
+    "ZoneId": "America/Mexico_City"
+  },
+  {
+    "Continent": "America",
+    "City": "Miquelon",
+    "ZoneId": "America/Miquelon"
+  },
+  {
+    "Continent": "America",
+    "City": "Moncton",
+    "ZoneId": "America/Moncton"
+  },
+  {
+    "Continent": "America",
+    "City": "Monterrey",
+    "ZoneId": "America/Monterrey"
+  },
+  {
+    "Continent": "America",
+    "City": "Montevideo",
+    "ZoneId": "America/Montevideo"
+  },
+  {
+    "Continent": "America",
+    "City": "Montreal",
+    "ZoneId": "America/Montreal"
+  },
+  {
+    "Continent": "America",
+    "City": "Montserrat",
+    "ZoneId": "America/Montserrat"
+  },
+  {
+    "Continent": "America",
+    "City": "Nassau",
+    "ZoneId": "America/Nassau"
+  },
+  {
+    "Continent": "America",
+    "City": "New_York",
+    "ZoneId": "America/New_York"
+  },
+  {
+    "Continent": "America",
+    "City": "Nipigon",
+    "ZoneId": "America/Nipigon"
+  },
+  {
+    "Continent": "America",
+    "City": "Nome",
+    "ZoneId": "America/Nome"
+  },
+  {
+    "Continent": "America",
+    "City": "Noronha",
+    "ZoneId": "America/Noronha"
+  },
+  {
+    "Continent": "America",
+    "City": "North_Dakota/Beulah",
+    "ZoneId": "America/North_Dakota/Beulah"
+  },
+  {
+    "Continent": "America",
+    "City": "North_Dakota/Center",
+    "ZoneId": "America/North_Dakota/Center"
+  },
+  {
+    "Continent": "America",
+    "City": "North_Dakota/New_Salem",
+    "ZoneId": "America/North_Dakota/New_Salem"
+  },
+  {
+    "Continent": "America",
+    "City": "Nuuk",
+    "ZoneId": "America/Nuuk"
+  },
+  {
+    "Continent": "America",
+    "City": "Ojinaga",
+    "ZoneId": "America/Ojinaga"
+  },
+  {
+    "Continent": "America",
+    "City": "Panama",
+    "ZoneId": "America/Panama"
+  },
+  {
+    "Continent": "America",
+    "City": "Pangnirtung",
+    "ZoneId": "America/Pangnirtung"
+  },
+  {
+    "Continent": "America",
+    "City": "Paramaribo",
+    "ZoneId": "America/Paramaribo"
+  },
+  {
+    "Continent": "America",
+    "City": "Phoenix",
+    "ZoneId": "America/Phoenix"
+  },
+  {
+    "Continent": "America",
+    "City": "Port-au-Prince",
+    "ZoneId": "America/Port-au-Prince"
+  },
+  {
+    "Continent": "America",
+    "City": "Port_of_Spain",
+    "ZoneId": "America/Port_of_Spain"
+  },
+  {
+    "Continent": "America",
+    "City": "Porto_Acre",
+    "ZoneId": "America/Porto_Acre"
+  },
+  {
+    "Continent": "America",
+    "City": "Porto_Velho",
+    "ZoneId": "America/Porto_Velho"
+  },
+  {
+    "Continent": "America",
+    "City": "Puerto_Rico",
+    "ZoneId": "America/Puerto_Rico"
+  },
+  {
+    "Continent": "America",
+    "City": "Punta_Arenas",
+    "ZoneId": "America/Punta_Arenas"
+  },
+  {
+    "Continent": "America",
+    "City": "Rainy_River",
+    "ZoneId": "America/Rainy_River"
+  },
+  {
+    "Continent": "America",
+    "City": "Rankin_Inlet",
+    "ZoneId": "America/Rankin_Inlet"
+  },
+  {
+    "Continent": "America",
+    "City": "Recife",
+    "ZoneId": "America/Recife"
+  },
+  {
+    "Continent": "America",
+    "City": "Regina",
+    "ZoneId": "America/Regina"
+  },
+  {
+    "Continent": "America",
+    "City": "Resolute",
+    "ZoneId": "America/Resolute"
+  },
+  {
+    "Continent": "America",
+    "City": "Rio_Branco",
+    "ZoneId": "America/Rio_Branco"
+  },
+  {
+    "Continent": "America",
+    "City": "Rosario",
+    "ZoneId": "America/Rosario"
+  },
+  {
+    "Continent": "America",
+    "City": "Santa_Isabel",
+    "ZoneId": "America/Santa_Isabel"
+  },
+  {
+    "Continent": "America",
+    "City": "Santarem",
+    "ZoneId": "America/Santarem"
+  },
+  {
+    "Continent": "America",
+    "City": "Santiago",
+    "ZoneId": "America/Santiago"
+  },
+  {
+    "Continent": "America",
+    "City": "Santo_Domingo",
+    "ZoneId": "America/Santo_Domingo"
+  },
+  {
+    "Continent": "America",
+    "City": "Sao_Paulo",
+    "ZoneId": "America/Sao_Paulo"
+  },
+  {
+    "Continent": "America",
+    "City": "Scoresbysund",
+    "ZoneId": "America/Scoresbysund"
+  },
+  {
+    "Continent": "America",
+    "City": "Shiprock",
+    "ZoneId": "America/Shiprock"
+  },
+  {
+    "Continent": "America",
+    "City": "Sitka",
+    "ZoneId": "America/Sitka"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Barthelemy",
+    "ZoneId": "America/St_Barthelemy"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Johns",
+    "ZoneId": "America/St_Johns"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Kitts",
+    "ZoneId": "America/St_Kitts"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Lucia",
+    "ZoneId": "America/St_Lucia"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Thomas",
+    "ZoneId": "America/St_Thomas"
+  },
+  {
+    "Continent": "America",
+    "City": "St_Vincent",
+    "ZoneId": "America/St_Vincent"
+  },
+  {
+    "Continent": "America",
+    "City": "Swift_Current",
+    "ZoneId": "America/Swift_Current"
+  },
+  {
+    "Continent": "America",
+    "City": "Tegucigalpa",
+    "ZoneId": "America/Tegucigalpa"
+  },
+  {
+    "Continent": "America",
+    "City": "Thule",
+    "ZoneId": "America/Thule"
+  },
+  {
+    "Continent": "America",
+    "City": "Thunder_Bay",
+    "ZoneId": "America/Thunder_Bay"
+  },
+  {
+    "Continent": "America",
+    "City": "Tijuana",
+    "ZoneId": "America/Tijuana"
+  },
+  {
+    "Continent": "America",
+    "City": "Toronto",
+    "ZoneId": "America/Toronto"
+  },
+  {
+    "Continent": "America",
+    "City": "Tortola",
+    "ZoneId": "America/Tortola"
+  },
+  {
+    "Continent": "America",
+    "City": "Vancouver",
+    "ZoneId": "America/Vancouver"
+  },
+  {
+    "Continent": "America",
+    "City": "Virgin",
+    "ZoneId": "America/Virgin"
+  },
+  {
+    "Continent": "America",
+    "City": "Whitehorse",
+    "ZoneId": "America/Whitehorse"
+  },
+  {
+    "Continent": "America",
+    "City": "Winnipeg",
+    "ZoneId": "America/Winnipeg"
+  },
+  {
+    "Continent": "America",
+    "City": "Yakutat",
+    "ZoneId": "America/Yakutat"
+  },
+  {
+    "Continent": "America",
+    "City": "Yellowknife",
+    "ZoneId": "America/Yellowknife"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Casey",
+    "ZoneId": "Antarctica/Casey"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Davis",
+    "ZoneId": "Antarctica/Davis"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "DumontDUrville",
+    "ZoneId": "Antarctica/DumontDUrville"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Macquarie",
+    "ZoneId": "Antarctica/Macquarie"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Mawson",
+    "ZoneId": "Antarctica/Mawson"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "McMurdo",
+    "ZoneId": "Antarctica/McMurdo"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Palmer",
+    "ZoneId": "Antarctica/Palmer"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Rothera",
+    "ZoneId": "Antarctica/Rothera"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "South_Pole",
+    "ZoneId": "Antarctica/South_Pole"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Syowa",
+    "ZoneId": "Antarctica/Syowa"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Troll",
+    "ZoneId": "Antarctica/Troll"
+  },
+  {
+    "Continent": "Antarctica",
+    "City": "Vostok",
+    "ZoneId": "Antarctica/Vostok"
+  },
+  {
+    "Continent": "Arctic",
+    "City": "Longyearbyen",
+    "ZoneId": "Arctic/Longyearbyen"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Aden",
+    "ZoneId": "Asia/Aden"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Almaty",
+    "ZoneId": "Asia/Almaty"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Amman",
+    "ZoneId": "Asia/Amman"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Anadyr",
+    "ZoneId": "Asia/Anadyr"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Aqtau",
+    "ZoneId": "Asia/Aqtau"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Aqtobe",
+    "ZoneId": "Asia/Aqtobe"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ashgabat",
+    "ZoneId": "Asia/Ashgabat"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ashkhabad",
+    "ZoneId": "Asia/Ashkhabad"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Atyrau",
+    "ZoneId": "Asia/Atyrau"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Baghdad",
+    "ZoneId": "Asia/Baghdad"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Bahrain",
+    "ZoneId": "Asia/Bahrain"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Baku",
+    "ZoneId": "Asia/Baku"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Bangkok",
+    "ZoneId": "Asia/Bangkok"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Barnaul",
+    "ZoneId": "Asia/Barnaul"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Beirut",
+    "ZoneId": "Asia/Beirut"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Bishkek",
+    "ZoneId": "Asia/Bishkek"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Brunei",
+    "ZoneId": "Asia/Brunei"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Calcutta",
+    "ZoneId": "Asia/Calcutta"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Chita",
+    "ZoneId": "Asia/Chita"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Choibalsan",
+    "ZoneId": "Asia/Choibalsan"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Chongqing",
+    "ZoneId": "Asia/Chongqing"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Chungking",
+    "ZoneId": "Asia/Chungking"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Colombo",
+    "ZoneId": "Asia/Colombo"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Dacca",
+    "ZoneId": "Asia/Dacca"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Damascus",
+    "ZoneId": "Asia/Damascus"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Dhaka",
+    "ZoneId": "Asia/Dhaka"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Dili",
+    "ZoneId": "Asia/Dili"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Dubai",
+    "ZoneId": "Asia/Dubai"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Dushanbe",
+    "ZoneId": "Asia/Dushanbe"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Famagusta",
+    "ZoneId": "Asia/Famagusta"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Gaza",
+    "ZoneId": "Asia/Gaza"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Harbin",
+    "ZoneId": "Asia/Harbin"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Hebron",
+    "ZoneId": "Asia/Hebron"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ho_Chi_Minh",
+    "ZoneId": "Asia/Ho_Chi_Minh"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Hong_Kong",
+    "ZoneId": "Asia/Hong_Kong"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Hovd",
+    "ZoneId": "Asia/Hovd"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Irkutsk",
+    "ZoneId": "Asia/Irkutsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Istanbul",
+    "ZoneId": "Asia/Istanbul"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Jakarta",
+    "ZoneId": "Asia/Jakarta"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Jayapura",
+    "ZoneId": "Asia/Jayapura"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Jerusalem",
+    "ZoneId": "Asia/Jerusalem"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kabul",
+    "ZoneId": "Asia/Kabul"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kamchatka",
+    "ZoneId": "Asia/Kamchatka"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Karachi",
+    "ZoneId": "Asia/Karachi"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kashgar",
+    "ZoneId": "Asia/Kashgar"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kathmandu",
+    "ZoneId": "Asia/Kathmandu"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Katmandu",
+    "ZoneId": "Asia/Katmandu"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Khandyga",
+    "ZoneId": "Asia/Khandyga"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kolkata",
+    "ZoneId": "Asia/Kolkata"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Krasnoyarsk",
+    "ZoneId": "Asia/Krasnoyarsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kuala_Lumpur",
+    "ZoneId": "Asia/Kuala_Lumpur"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kuching",
+    "ZoneId": "Asia/Kuching"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Kuwait",
+    "ZoneId": "Asia/Kuwait"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Macao",
+    "ZoneId": "Asia/Macao"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Macau",
+    "ZoneId": "Asia/Macau"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Magadan",
+    "ZoneId": "Asia/Magadan"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Makassar",
+    "ZoneId": "Asia/Makassar"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Manila",
+    "ZoneId": "Asia/Manila"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Muscat",
+    "ZoneId": "Asia/Muscat"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Nicosia",
+    "ZoneId": "Asia/Nicosia"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Novokuznetsk",
+    "ZoneId": "Asia/Novokuznetsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Novosibirsk",
+    "ZoneId": "Asia/Novosibirsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Omsk",
+    "ZoneId": "Asia/Omsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Oral",
+    "ZoneId": "Asia/Oral"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Phnom_Penh",
+    "ZoneId": "Asia/Phnom_Penh"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Pontianak",
+    "ZoneId": "Asia/Pontianak"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Pyongyang",
+    "ZoneId": "Asia/Pyongyang"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Qatar",
+    "ZoneId": "Asia/Qatar"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Qostanay",
+    "ZoneId": "Asia/Qostanay"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Qyzylorda",
+    "ZoneId": "Asia/Qyzylorda"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Rangoon",
+    "ZoneId": "Asia/Rangoon"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Riyadh",
+    "ZoneId": "Asia/Riyadh"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Saigon",
+    "ZoneId": "Asia/Saigon"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Sakhalin",
+    "ZoneId": "Asia/Sakhalin"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Samarkand",
+    "ZoneId": "Asia/Samarkand"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Seoul",
+    "ZoneId": "Asia/Seoul"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Shanghai",
+    "ZoneId": "Asia/Shanghai"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Singapore",
+    "ZoneId": "Asia/Singapore"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Srednekolymsk",
+    "ZoneId": "Asia/Srednekolymsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Taipei",
+    "ZoneId": "Asia/Taipei"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tashkent",
+    "ZoneId": "Asia/Tashkent"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tbilisi",
+    "ZoneId": "Asia/Tbilisi"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tehran",
+    "ZoneId": "Asia/Tehran"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tel_Aviv",
+    "ZoneId": "Asia/Tel_Aviv"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Thimbu",
+    "ZoneId": "Asia/Thimbu"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Thimphu",
+    "ZoneId": "Asia/Thimphu"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tokyo",
+    "ZoneId": "Asia/Tokyo"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Tomsk",
+    "ZoneId": "Asia/Tomsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ujung_Pandang",
+    "ZoneId": "Asia/Ujung_Pandang"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ulaanbaatar",
+    "ZoneId": "Asia/Ulaanbaatar"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ulan_Bator",
+    "ZoneId": "Asia/Ulan_Bator"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Urumqi",
+    "ZoneId": "Asia/Urumqi"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Ust-Nera",
+    "ZoneId": "Asia/Ust-Nera"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Vientiane",
+    "ZoneId": "Asia/Vientiane"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Vladivostok",
+    "ZoneId": "Asia/Vladivostok"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Yakutsk",
+    "ZoneId": "Asia/Yakutsk"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Yangon",
+    "ZoneId": "Asia/Yangon"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Yekaterinburg",
+    "ZoneId": "Asia/Yekaterinburg"
+  },
+  {
+    "Continent": "Asia",
+    "City": "Yerevan",
+    "ZoneId": "Asia/Yerevan"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Azores",
+    "ZoneId": "Atlantic/Azores"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Bermuda",
+    "ZoneId": "Atlantic/Bermuda"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Canary",
+    "ZoneId": "Atlantic/Canary"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Cape_Verde",
+    "ZoneId": "Atlantic/Cape_Verde"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Faeroe",
+    "ZoneId": "Atlantic/Faeroe"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Faroe",
+    "ZoneId": "Atlantic/Faroe"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Jan_Mayen",
+    "ZoneId": "Atlantic/Jan_Mayen"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Madeira",
+    "ZoneId": "Atlantic/Madeira"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Reykjavik",
+    "ZoneId": "Atlantic/Reykjavik"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "South_Georgia",
+    "ZoneId": "Atlantic/South_Georgia"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "St_Helena",
+    "ZoneId": "Atlantic/St_Helena"
+  },
+  {
+    "Continent": "Atlantic",
+    "City": "Stanley",
+    "ZoneId": "Atlantic/Stanley"
+  },
+  {
+    "Continent": "Australia",
+    "City": "ACT",
+    "ZoneId": "Australia/ACT"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Adelaide",
+    "ZoneId": "Australia/Adelaide"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Brisbane",
+    "ZoneId": "Australia/Brisbane"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Broken_Hill",
+    "ZoneId": "Australia/Broken_Hill"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Canberra",
+    "ZoneId": "Australia/Canberra"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Currie",
+    "ZoneId": "Australia/Currie"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Darwin",
+    "ZoneId": "Australia/Darwin"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Eucla",
+    "ZoneId": "Australia/Eucla"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Hobart",
+    "ZoneId": "Australia/Hobart"
+  },
+  {
+    "Continent": "Australia",
+    "City": "LHI",
+    "ZoneId": "Australia/LHI"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Lindeman",
+    "ZoneId": "Australia/Lindeman"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Lord_Howe",
+    "ZoneId": "Australia/Lord_Howe"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Melbourne",
+    "ZoneId": "Australia/Melbourne"
+  },
+  {
+    "Continent": "Australia",
+    "City": "NSW",
+    "ZoneId": "Australia/NSW"
+  },
+  {
+    "Continent": "Australia",
+    "City": "North",
+    "ZoneId": "Australia/North"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Perth",
+    "ZoneId": "Australia/Perth"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Queensland",
+    "ZoneId": "Australia/Queensland"
+  },
+  {
+    "Continent": "Australia",
+    "City": "South",
+    "ZoneId": "Australia/South"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Sydney",
+    "ZoneId": "Australia/Sydney"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Tasmania",
+    "ZoneId": "Australia/Tasmania"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Victoria",
+    "ZoneId": "Australia/Victoria"
+  },
+  {
+    "Continent": "Australia",
+    "City": "West",
+    "ZoneId": "Australia/West"
+  },
+  {
+    "Continent": "Australia",
+    "City": "Yancowinna",
+    "ZoneId": "Australia/Yancowinna"
+  },
+  {
+    "Continent": "Brazil",
+    "City": "Acre",
+    "ZoneId": "Brazil/Acre"
+  },
+  {
+    "Continent": "Brazil",
+    "City": "DeNoronha",
+    "ZoneId": "Brazil/DeNoronha"
+  },
+  {
+    "Continent": "Brazil",
+    "City": "East",
+    "ZoneId": "Brazil/East"
+  },
+  {
+    "Continent": "Brazil",
+    "City": "West",
+    "ZoneId": "Brazil/West"
+  },
+  {
+    "Continent": "Other",
+    "City": "CET",
+    "ZoneId": "CET"
+  },
+  {
+    "Continent": "Other",
+    "City": "CST6CDT",
+    "ZoneId": "CST6CDT"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Atlantic",
+    "ZoneId": "Canada/Atlantic"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Central",
+    "ZoneId": "Canada/Central"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Eastern",
+    "ZoneId": "Canada/Eastern"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Mountain",
+    "ZoneId": "Canada/Mountain"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Newfoundland",
+    "ZoneId": "Canada/Newfoundland"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Pacific",
+    "ZoneId": "Canada/Pacific"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Saskatchewan",
+    "ZoneId": "Canada/Saskatchewan"
+  },
+  {
+    "Continent": "Canada",
+    "City": "Yukon",
+    "ZoneId": "Canada/Yukon"
+  },
+  {
+    "Continent": "Chile",
+    "City": "Continental",
+    "ZoneId": "Chile/Continental"
+  },
+  {
+    "Continent": "Chile",
+    "City": "EasterIsland",
+    "ZoneId": "Chile/EasterIsland"
+  },
+  {
+    "Continent": "Other",
+    "City": "Cuba",
+    "ZoneId": "Cuba"
+  },
+  {
+    "Continent": "Other",
+    "City": "EET",
+    "ZoneId": "EET"
+  },
+  {
+    "Continent": "Other",
+    "City": "EST",
+    "ZoneId": "EST"
+  },
+  {
+    "Continent": "Other",
+    "City": "EST5EDT",
+    "ZoneId": "EST5EDT"
+  },
+  {
+    "Continent": "Other",
+    "City": "Egypt",
+    "ZoneId": "Egypt"
+  },
+  {
+    "Continent": "Other",
+    "City": "Eire",
+    "ZoneId": "Eire"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT",
+    "ZoneId": "Etc/GMT"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+0",
+    "ZoneId": "Etc/GMT+0"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+1",
+    "ZoneId": "Etc/GMT+1"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+10",
+    "ZoneId": "Etc/GMT+10"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+11",
+    "ZoneId": "Etc/GMT+11"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+12",
+    "ZoneId": "Etc/GMT+12"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+2",
+    "ZoneId": "Etc/GMT+2"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+3",
+    "ZoneId": "Etc/GMT+3"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+4",
+    "ZoneId": "Etc/GMT+4"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+5",
+    "ZoneId": "Etc/GMT+5"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+6",
+    "ZoneId": "Etc/GMT+6"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+7",
+    "ZoneId": "Etc/GMT+7"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+8",
+    "ZoneId": "Etc/GMT+8"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT+9",
+    "ZoneId": "Etc/GMT+9"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-0",
+    "ZoneId": "Etc/GMT-0"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-1",
+    "ZoneId": "Etc/GMT-1"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-10",
+    "ZoneId": "Etc/GMT-10"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-11",
+    "ZoneId": "Etc/GMT-11"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-12",
+    "ZoneId": "Etc/GMT-12"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-13",
+    "ZoneId": "Etc/GMT-13"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-14",
+    "ZoneId": "Etc/GMT-14"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-2",
+    "ZoneId": "Etc/GMT-2"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-3",
+    "ZoneId": "Etc/GMT-3"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-4",
+    "ZoneId": "Etc/GMT-4"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-5",
+    "ZoneId": "Etc/GMT-5"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-6",
+    "ZoneId": "Etc/GMT-6"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-7",
+    "ZoneId": "Etc/GMT-7"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-8",
+    "ZoneId": "Etc/GMT-8"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT-9",
+    "ZoneId": "Etc/GMT-9"
+  },
+  {
+    "Continent": "Etc",
+    "City": "GMT0",
+    "ZoneId": "Etc/GMT0"
+  },
+  {
+    "Continent": "Etc",
+    "City": "Greenwich",
+    "ZoneId": "Etc/Greenwich"
+  },
+  {
+    "Continent": "Etc",
+    "City": "UCT",
+    "ZoneId": "Etc/UCT"
+  },
+  {
+    "Continent": "Etc",
+    "City": "UTC",
+    "ZoneId": "Etc/UTC"
+  },
+  {
+    "Continent": "Etc",
+    "City": "Universal",
+    "ZoneId": "Etc/Universal"
+  },
+  {
+    "Continent": "Etc",
+    "City": "Zulu",
+    "ZoneId": "Etc/Zulu"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Amsterdam",
+    "ZoneId": "Europe/Amsterdam"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Andorra",
+    "ZoneId": "Europe/Andorra"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Astrakhan",
+    "ZoneId": "Europe/Astrakhan"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Athens",
+    "ZoneId": "Europe/Athens"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Belfast",
+    "ZoneId": "Europe/Belfast"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Belgrade",
+    "ZoneId": "Europe/Belgrade"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Berlin",
+    "ZoneId": "Europe/Berlin"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Bratislava",
+    "ZoneId": "Europe/Bratislava"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Brussels",
+    "ZoneId": "Europe/Brussels"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Bucharest",
+    "ZoneId": "Europe/Bucharest"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Budapest",
+    "ZoneId": "Europe/Budapest"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Busingen",
+    "ZoneId": "Europe/Busingen"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Chisinau",
+    "ZoneId": "Europe/Chisinau"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Copenhagen",
+    "ZoneId": "Europe/Copenhagen"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Dublin",
+    "ZoneId": "Europe/Dublin"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Gibraltar",
+    "ZoneId": "Europe/Gibraltar"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Guernsey",
+    "ZoneId": "Europe/Guernsey"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Helsinki",
+    "ZoneId": "Europe/Helsinki"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Isle_of_Man",
+    "ZoneId": "Europe/Isle_of_Man"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Istanbul",
+    "ZoneId": "Europe/Istanbul"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Jersey",
+    "ZoneId": "Europe/Jersey"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Kaliningrad",
+    "ZoneId": "Europe/Kaliningrad"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Kiev",
+    "ZoneId": "Europe/Kiev"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Kirov",
+    "ZoneId": "Europe/Kirov"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Kyiv",
+    "ZoneId": "Europe/Kyiv"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Lisbon",
+    "ZoneId": "Europe/Lisbon"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Ljubljana",
+    "ZoneId": "Europe/Ljubljana"
+  },
+  {
+    "Continent": "Europe",
+    "City": "London",
+    "ZoneId": "Europe/London"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Luxembourg",
+    "ZoneId": "Europe/Luxembourg"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Madrid",
+    "ZoneId": "Europe/Madrid"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Malta",
+    "ZoneId": "Europe/Malta"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Mariehamn",
+    "ZoneId": "Europe/Mariehamn"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Minsk",
+    "ZoneId": "Europe/Minsk"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Monaco",
+    "ZoneId": "Europe/Monaco"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Moscow",
+    "ZoneId": "Europe/Moscow"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Nicosia",
+    "ZoneId": "Europe/Nicosia"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Oslo",
+    "ZoneId": "Europe/Oslo"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Paris",
+    "ZoneId": "Europe/Paris"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Podgorica",
+    "ZoneId": "Europe/Podgorica"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Prague",
+    "ZoneId": "Europe/Prague"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Riga",
+    "ZoneId": "Europe/Riga"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Rome",
+    "ZoneId": "Europe/Rome"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Samara",
+    "ZoneId": "Europe/Samara"
+  },
+  {
+    "Continent": "Europe",
+    "City": "San_Marino",
+    "ZoneId": "Europe/San_Marino"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Sarajevo",
+    "ZoneId": "Europe/Sarajevo"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Saratov",
+    "ZoneId": "Europe/Saratov"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Simferopol",
+    "ZoneId": "Europe/Simferopol"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Skopje",
+    "ZoneId": "Europe/Skopje"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Sofia",
+    "ZoneId": "Europe/Sofia"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Stockholm",
+    "ZoneId": "Europe/Stockholm"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Tallinn",
+    "ZoneId": "Europe/Tallinn"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Tirane",
+    "ZoneId": "Europe/Tirane"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Tiraspol",
+    "ZoneId": "Europe/Tiraspol"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Ulyanovsk",
+    "ZoneId": "Europe/Ulyanovsk"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Uzhgorod",
+    "ZoneId": "Europe/Uzhgorod"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Vaduz",
+    "ZoneId": "Europe/Vaduz"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Vatican",
+    "ZoneId": "Europe/Vatican"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Vienna",
+    "ZoneId": "Europe/Vienna"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Vilnius",
+    "ZoneId": "Europe/Vilnius"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Volgograd",
+    "ZoneId": "Europe/Volgograd"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Warsaw",
+    "ZoneId": "Europe/Warsaw"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Zagreb",
+    "ZoneId": "Europe/Zagreb"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Zaporozhye",
+    "ZoneId": "Europe/Zaporozhye"
+  },
+  {
+    "Continent": "Europe",
+    "City": "Zurich",
+    "ZoneId": "Europe/Zurich"
+  },
+  {
+    "Continent": "Other",
+    "City": "GB",
+    "ZoneId": "GB"
+  },
+  {
+    "Continent": "Other",
+    "City": "GB-Eire",
+    "ZoneId": "GB-Eire"
+  },
+  {
+    "Continent": "Other",
+    "City": "GMT",
+    "ZoneId": "GMT"
+  },
+  {
+    "Continent": "Other",
+    "City": "GMT+0",
+    "ZoneId": "GMT+0"
+  },
+  {
+    "Continent": "Other",
+    "City": "GMT-0",
+    "ZoneId": "GMT-0"
+  },
+  {
+    "Continent": "Other",
+    "City": "GMT0",
+    "ZoneId": "GMT0"
+  },
+  {
+    "Continent": "Other",
+    "City": "Greenwich",
+    "ZoneId": "Greenwich"
+  },
+  {
+    "Continent": "Other",
+    "City": "HST",
+    "ZoneId": "HST"
+  },
+  {
+    "Continent": "Other",
+    "City": "Hongkong",
+    "ZoneId": "Hongkong"
+  },
+  {
+    "Continent": "Other",
+    "City": "Iceland",
+    "ZoneId": "Iceland"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Antananarivo",
+    "ZoneId": "Indian/Antananarivo"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Chagos",
+    "ZoneId": "Indian/Chagos"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Christmas",
+    "ZoneId": "Indian/Christmas"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Cocos",
+    "ZoneId": "Indian/Cocos"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Comoro",
+    "ZoneId": "Indian/Comoro"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Kerguelen",
+    "ZoneId": "Indian/Kerguelen"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Mahe",
+    "ZoneId": "Indian/Mahe"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Maldives",
+    "ZoneId": "Indian/Maldives"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Mauritius",
+    "ZoneId": "Indian/Mauritius"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Mayotte",
+    "ZoneId": "Indian/Mayotte"
+  },
+  {
+    "Continent": "Indian",
+    "City": "Reunion",
+    "ZoneId": "Indian/Reunion"
+  },
+  {
+    "Continent": "Other",
+    "City": "Iran",
+    "ZoneId": "Iran"
+  },
+  {
+    "Continent": "Other",
+    "City": "Israel",
+    "ZoneId": "Israel"
+  },
+  {
+    "Continent": "Other",
+    "City": "Jamaica",
+    "ZoneId": "Jamaica"
+  },
+  {
+    "Continent": "Other",
+    "City": "Japan",
+    "ZoneId": "Japan"
+  },
+  {
+    "Continent": "Other",
+    "City": "Kwajalein",
+    "ZoneId": "Kwajalein"
+  },
+  {
+    "Continent": "Other",
+    "City": "Libya",
+    "ZoneId": "Libya"
+  },
+  {
+    "Continent": "Other",
+    "City": "MET",
+    "ZoneId": "MET"
+  },
+  {
+    "Continent": "Other",
+    "City": "MST",
+    "ZoneId": "MST"
+  },
+  {
+    "Continent": "Other",
+    "City": "MST7MDT",
+    "ZoneId": "MST7MDT"
+  },
+  {
+    "Continent": "Mexico",
+    "City": "BajaNorte",
+    "ZoneId": "Mexico/BajaNorte"
+  },
+  {
+    "Continent": "Mexico",
+    "City": "BajaSur",
+    "ZoneId": "Mexico/BajaSur"
+  },
+  {
+    "Continent": "Mexico",
+    "City": "General",
+    "ZoneId": "Mexico/General"
+  },
+  {
+    "Continent": "Other",
+    "City": "NZ",
+    "ZoneId": "NZ"
+  },
+  {
+    "Continent": "Other",
+    "City": "NZ-CHAT",
+    "ZoneId": "NZ-CHAT"
+  },
+  {
+    "Continent": "Other",
+    "City": "Navajo",
+    "ZoneId": "Navajo"
+  },
+  {
+    "Continent": "Other",
+    "City": "PRC",
+    "ZoneId": "PRC"
+  },
+  {
+    "Continent": "Other",
+    "City": "PST8PDT",
+    "ZoneId": "PST8PDT"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Apia",
+    "ZoneId": "Pacific/Apia"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Auckland",
+    "ZoneId": "Pacific/Auckland"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Bougainville",
+    "ZoneId": "Pacific/Bougainville"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Chatham",
+    "ZoneId": "Pacific/Chatham"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Chuuk",
+    "ZoneId": "Pacific/Chuuk"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Easter",
+    "ZoneId": "Pacific/Easter"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Efate",
+    "ZoneId": "Pacific/Efate"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Enderbury",
+    "ZoneId": "Pacific/Enderbury"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Fakaofo",
+    "ZoneId": "Pacific/Fakaofo"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Fiji",
+    "ZoneId": "Pacific/Fiji"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Funafuti",
+    "ZoneId": "Pacific/Funafuti"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Galapagos",
+    "ZoneId": "Pacific/Galapagos"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Gambier",
+    "ZoneId": "Pacific/Gambier"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Guadalcanal",
+    "ZoneId": "Pacific/Guadalcanal"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Guam",
+    "ZoneId": "Pacific/Guam"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Honolulu",
+    "ZoneId": "Pacific/Honolulu"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Johnston",
+    "ZoneId": "Pacific/Johnston"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Kanton",
+    "ZoneId": "Pacific/Kanton"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Kiritimati",
+    "ZoneId": "Pacific/Kiritimati"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Kosrae",
+    "ZoneId": "Pacific/Kosrae"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Kwajalein",
+    "ZoneId": "Pacific/Kwajalein"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Majuro",
+    "ZoneId": "Pacific/Majuro"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Marquesas",
+    "ZoneId": "Pacific/Marquesas"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Midway",
+    "ZoneId": "Pacific/Midway"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Nauru",
+    "ZoneId": "Pacific/Nauru"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Niue",
+    "ZoneId": "Pacific/Niue"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Norfolk",
+    "ZoneId": "Pacific/Norfolk"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Noumea",
+    "ZoneId": "Pacific/Noumea"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Pago_Pago",
+    "ZoneId": "Pacific/Pago_Pago"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Palau",
+    "ZoneId": "Pacific/Palau"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Pitcairn",
+    "ZoneId": "Pacific/Pitcairn"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Pohnpei",
+    "ZoneId": "Pacific/Pohnpei"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Ponape",
+    "ZoneId": "Pacific/Ponape"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Port_Moresby",
+    "ZoneId": "Pacific/Port_Moresby"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Rarotonga",
+    "ZoneId": "Pacific/Rarotonga"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Saipan",
+    "ZoneId": "Pacific/Saipan"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Samoa",
+    "ZoneId": "Pacific/Samoa"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Tahiti",
+    "ZoneId": "Pacific/Tahiti"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Tarawa",
+    "ZoneId": "Pacific/Tarawa"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Tongatapu",
+    "ZoneId": "Pacific/Tongatapu"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Truk",
+    "ZoneId": "Pacific/Truk"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Wake",
+    "ZoneId": "Pacific/Wake"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Wallis",
+    "ZoneId": "Pacific/Wallis"
+  },
+  {
+    "Continent": "Pacific",
+    "City": "Yap",
+    "ZoneId": "Pacific/Yap"
+  },
+  {
+    "Continent": "Other",
+    "City": "Poland",
+    "ZoneId": "Poland"
+  },
+  {
+    "Continent": "Other",
+    "City": "Portugal",
+    "ZoneId": "Portugal"
+  },
+  {
+    "Continent": "Other",
+    "City": "ROC",
+    "ZoneId": "ROC"
+  },
+  {
+    "Continent": "Other",
+    "City": "ROK",
+    "ZoneId": "ROK"
+  },
+  {
+    "Continent": "Other",
+    "City": "Singapore",
+    "ZoneId": "Singapore"
+  },
+  {
+    "Continent": "Other",
+    "City": "Turkey",
+    "ZoneId": "Turkey"
+  },
+  {
+    "Continent": "Other",
+    "City": "UCT",
+    "ZoneId": "UCT"
+  },
+  {
+    "Continent": "US",
+    "City": "Alaska",
+    "ZoneId": "US/Alaska"
+  },
+  {
+    "Continent": "US",
+    "City": "Aleutian",
+    "ZoneId": "US/Aleutian"
+  },
+  {
+    "Continent": "US",
+    "City": "Arizona",
+    "ZoneId": "US/Arizona"
+  },
+  {
+    "Continent": "US",
+    "City": "Central",
+    "ZoneId": "US/Central"
+  },
+  {
+    "Continent": "US",
+    "City": "East-Indiana",
+    "ZoneId": "US/East-Indiana"
+  },
+  {
+    "Continent": "US",
+    "City": "Eastern",
+    "ZoneId": "US/Eastern"
+  },
+  {
+    "Continent": "US",
+    "City": "Hawaii",
+    "ZoneId": "US/Hawaii"
+  },
+  {
+    "Continent": "US",
+    "City": "Indiana-Starke",
+    "ZoneId": "US/Indiana-Starke"
+  },
+  {
+    "Continent": "US",
+    "City": "Michigan",
+    "ZoneId": "US/Michigan"
+  },
+  {
+    "Continent": "US",
+    "City": "Mountain",
+    "ZoneId": "US/Mountain"
+  },
+  {
+    "Continent": "US",
+    "City": "Pacific",
+    "ZoneId": "US/Pacific"
+  },
+  {
+    "Continent": "US",
+    "City": "Samoa",
+    "ZoneId": "US/Samoa"
+  },
+  {
+    "Continent": "Other",
+    "City": "UTC",
+    "ZoneId": "UTC"
+  },
+  {
+    "Continent": "Other",
+    "City": "Universal",
+    "ZoneId": "Universal"
+  },
+  {
+    "Continent": "Other",
+    "City": "W-SU",
+    "ZoneId": "W-SU"
+  },
+  {
+    "Continent": "Other",
+    "City": "WET",
+    "ZoneId": "WET"
+  },
+  {
+    "Continent": "Other",
+    "City": "Zulu",
+    "ZoneId": "Zulu"
+  }
+]
