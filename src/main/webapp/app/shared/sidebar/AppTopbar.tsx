@@ -21,10 +21,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, Bell, User, Package, ShoppingCart, Users, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Bell, User, Package, ShoppingCart, Users, Loader2, ArrowRight, Globe } from 'lucide-react';
 import AppProfileSidebar from './AppProfileSidebar';
 import "../components/notifications-center/notifications-center.scss";
 import './AppTopbar.scss';
+import allTimeZones from '../../../content/samples/all_time_zones.json';
+import { getBusinessTimeZone, updateBusinessTimeZone } from 'app/entities/settings/business-details/business-timezone.reducer';
+import Select from 'react-select';
+import { toast } from 'react-toastify';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const [notificationsCount, setNotificationsCount] = useState(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
@@ -62,6 +66,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                 {/* Right side actions */}
                 <div className="ml-auto flex items-center gap-2">
                     <TopBarSearch />
+                    <TimeZoneSelector />
                     <NotificationsButton notificationsCount={notificationsCount} />
                     {/* <ThemeToggle /> */}
                     <ProfileButton isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} />
@@ -362,6 +367,77 @@ const NotificationsButton = ({ notificationsCount }: { notificationsCount: numbe
                 <NotificationsCenter setShowMenu={setIsOpen} showMenu={isOpen} />
             </SheetContent>
         </Sheet>
+    );
+};
+
+const TimeZoneSelector = () => {
+    const dispatch = useAppDispatch();
+    const timeZone = useAppSelector(state => state.businessTimeZone.timeZone);
+    const loading = useAppSelector(state => state.businessTimeZone.loading);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        dispatch(getBusinessTimeZone());
+    }, [dispatch]);
+
+    const handleTimeZoneChange = (selectedTimeZone: any) => {
+        if (selectedTimeZone) {
+            dispatch(updateBusinessTimeZone(selectedTimeZone.ZoneId))
+                .unwrap()
+                .then(() => {
+                    toast.success('Time zone updated successfully');
+                    setIsOpen(false);
+                })
+                .catch(() => {
+                    toast.error('Failed to update time zone');
+                });
+        }
+    };
+
+    const selectedTimezone = allTimeZones.find(tz => tz.ZoneId === timeZone);
+
+    return (
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10" title={timeZone || 'Select Time Zone'}>
+                    <Globe className="h-4 w-4" />
+                    <span className="sr-only">Time Zone</span>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0" align="end">
+                <div className="p-3">
+                    <h3 className="font-semibold text-sm mb-2">Business Time Zone</h3>
+                    {loading ? (
+                        <div className="flex items-center justify-center gap-2 p-4">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm text-muted-foreground">Loading...</span>
+                        </div>
+                    ) : (
+                        <Select
+                            value={selectedTimezone}
+                            options={allTimeZones}
+                            getOptionLabel={option => `${option.Continent}/${option.City} (${option.ZoneId})`}
+                            getOptionValue={option => option.ZoneId}
+                            onChange={handleTimeZoneChange}
+                            placeholder="Select time zone..."
+                            isClearable={false}
+                            isSearchable
+                            className="text-xs"
+                            menuPortalTarget={document.body}
+                            styles={{
+                                menuPortal: base => ({ ...base, zIndex: 9999 })
+                            }}
+                        />
+                    )}
+                    {selectedTimezone && (
+                        <div className="mt-2 p-2 bg-muted rounded text-xs">
+                            <div><strong>Current:</strong> {selectedTimezone.Continent}/{selectedTimezone.City}</div>
+                            <div className="text-muted-foreground">{selectedTimezone.ZoneId}</div>
+                        </div>
+                    )}
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 };
 
