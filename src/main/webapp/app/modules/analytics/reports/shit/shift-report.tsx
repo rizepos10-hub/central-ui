@@ -13,6 +13,7 @@ import ReactToPrint from "react-to-print";
 import { format } from "date-fns";
 import { exportExcelSummaryReport } from "app/shared/util/excel-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -249,7 +250,7 @@ const ShiftReport = () => {
               </div>
               <div>
                 <span>Selected Shift : </span>
-                <span>{selectedShift && format(new Date(selectedShift?.instantClockedIn), "yyyy-MM-dd")} - {selectedShift && format(new Date(selectedShift?.instantClockedOut), "yyyy-MM-dd")}</span>
+                <span>{selectedShift && formatDateForDisplay(selectedShift?.instantClockedIn, "yyyy-MM-dd")} - {selectedShift && formatDateForDisplay(selectedShift?.instantClockedOut, "yyyy-MM-dd")}</span>
               </div>
             </div>
           </div>

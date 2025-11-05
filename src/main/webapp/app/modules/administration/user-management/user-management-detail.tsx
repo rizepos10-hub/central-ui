@@ -8,6 +8,7 @@ import { APP_DATE_FORMAT } from 'app/config/constants';
 import { languages } from 'app/config/translation';
 import { getUser } from './user-management.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 export const UserManagementDetail = () => {
   const dispatch = useAppDispatch();
@@ -65,7 +66,7 @@ export const UserManagementDetail = () => {
           <dt>
             <Translate contentKey="userManagement.createdDate">Created Date</Translate>
           </dt>
-          <dd>{user.createdDate ? <TextFormat value={user.createdDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid /> : null}</dd>
+          <dd>{user.createdDate ? formatDateForDisplay(user.createdDate) : null}</dd>
           <dt>
             <Translate contentKey="userManagement.lastModifiedBy">Last Modified By</Translate>
           </dt>
@@ -74,9 +75,7 @@ export const UserManagementDetail = () => {
             <Translate contentKey="userManagement.lastModifiedDate">Last Modified Date</Translate>
           </dt>
           <dd>
-            {user.lastModifiedDate ? (
-              <TextFormat value={user.lastModifiedDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid />
-            ) : null}
+            {user.lastModifiedDate ? formatDateForDisplay(user.lastModifiedDate) : null}
           </dd>
           <dt>
             <Translate contentKey="userManagement.profiles">Profiles</Translate>

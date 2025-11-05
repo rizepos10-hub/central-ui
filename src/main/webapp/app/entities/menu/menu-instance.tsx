@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Edit2, Zap, Copy, ArrowLeftRight, Eye } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { TextFormat } from 'react-jhipster';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 export interface IMenuData {
     name: string;
@@ -221,13 +222,13 @@ const MenuInstance = () => {
                         <div className="col-span-2">
                             <p className="text-xs text-muted-foreground mb-0.5">Created At</p>
                             <p className="text-xs font-medium">
-                                {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : '-'}
+                                {menuEntity.createdDate ? formatDateForDisplay(menuEntity.createdDate) : '-'}
                             </p>
                         </div>
                         <div className="col-span-2">
                             <p className="text-xs text-muted-foreground mb-0.5">Updated At</p>
                             <p className="text-xs font-medium">
-                                {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : '-'}
+                                {menuEntity.lastModifiedDate ? formatDateForDisplay(menuEntity.lastModifiedDate) : '-'}
                             </p>
                         </div>
                         <div className="col-span-5 flex gap-1 justify-end">

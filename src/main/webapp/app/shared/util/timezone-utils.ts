@@ -72,7 +72,7 @@ export const dateToUTCString = (date: Date, timeZone?: string): string => {
  */
 export const formatDateForDisplay = (
   date: Date | string | null | undefined,
-  formatString: string = 'yyyy-MM-dd HH:mm:ss',
+  formatString = 'yyyy-MM-dd HH:mm:ss',
   timeZone?: string
 ): string => {
   if (!date) return '';

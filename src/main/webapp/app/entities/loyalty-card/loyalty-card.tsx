@@ -7,6 +7,7 @@ import { SORT } from 'app/shared/util/pagination.constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities } from './loyalty-card.reducer';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { FilterMatchMode } from 'primereact/api';
 import AddBalance from './add-balance';
 import TransferFunds from './transfer-funds';
@@ -287,7 +288,7 @@ export const GiftCard = () => {
                   <TableCell className="text-xs text-right">{card?.wallet?.balance}</TableCell>
                   <TableCell className="text-xs">{card.printed?.toString()}</TableCell>
                   <TableCell className="text-xs">{card.active?.toString()}</TableCell>
-                  <TableCell className="text-xs">{card?.expiryDate ? new Date(card.expiryDate).toDateString() : null}</TableCell>
+                  <TableCell className="text-xs">{card?.expiryDate ? formatDateForDisplay(card.expiryDate, 'PP') : null}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"

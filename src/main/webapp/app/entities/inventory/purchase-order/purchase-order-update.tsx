@@ -25,6 +25,7 @@ import AuditLogs from "app/shared/components/logs/audit-logs";
 import { format } from 'date-fns';
 import { formatVariant } from 'app/shared/util/variant-utils';
 import { Loader2, CalendarIcon } from 'lucide-react';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -442,7 +443,7 @@ export const PurchaseOrderUpdate = () => {
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
-                            {purchaseOrder.datePlaced ? format(new Date(purchaseOrder.datePlaced), 'PP') : 'Pick date'}
+                            {purchaseOrder.datePlaced ? formatDateForDisplay(purchaseOrder.datePlaced, 'PP') : 'Pick date'}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -463,7 +464,7 @@ export const PurchaseOrderUpdate = () => {
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
-                            {purchaseOrder.dateDelivered ? format(new Date(purchaseOrder.dateDelivered), 'PP') : 'Pick date'}
+                            {purchaseOrder.dateDelivered ? formatDateForDisplay(purchaseOrder.dateDelivered, 'PP') : 'Pick date'}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -550,7 +551,7 @@ export const PurchaseOrderUpdate = () => {
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
                                 <CalendarIcon className="h-3 w-3 mr-1" />
-                                {purchaseOrderLine?.deliveryDate ? format(new Date(purchaseOrderLine.deliveryDate), 'PP') : 'Pick'}
+                                {purchaseOrderLine?.deliveryDate ? formatDateForDisplay(purchaseOrderLine.deliveryDate, 'PP') : 'Pick'}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -669,7 +670,7 @@ export const PurchaseOrderUpdate = () => {
                               )}
                             </TableCell>
                             <TableCell className="text-xs">
-                              {line.deliveryDate ? format(new Date(line.deliveryDate), 'yyyy-MM-dd') : ''}
+                              {line.deliveryDate ? formatDateForDisplay(line.deliveryDate, 'yyyy-MM-dd') : ''}
                             </TableCell>
                             <TableCell className="text-xs">{line.price * line.quantity}</TableCell>
                             {!isDisabled && (

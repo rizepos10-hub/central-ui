@@ -273,7 +273,7 @@ export const OrderDetail = () => {
         </Button>
         <h1 className="text-lg font-semibold">
           #{orderEntity?.sequenceNumber} - <span className="font-normal text-muted-foreground">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
-          <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? new Date(filteredOrderEntity.createdDate).toDateString() : ''}</span>
+          <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}</span>
         </h1>
       </div>
       <div ref={pagePrintRef}>
@@ -356,7 +356,7 @@ export const OrderDetail = () => {
                     <div className="flex items-center gap-2">
                       <label className="font-medium">Order time:</label>
                       <span>
-                        {filteredOrderEntity.createdDate ? new Date(filteredOrderEntity.createdDate).toDateString() : ''}
+                        {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -675,13 +675,7 @@ export const OrderDetail = () => {
                               </div>
                               <div className="flex items-center gap-4">
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(bill.dateTime).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {formatDateForDisplay(bill.dateTime, 'MMM d, yyyy HH:mm')}
                                 </span>
                                 <span className="font-semibold text-sm">${bill?.total?.toFixed(2)}</span>
                               </div>

@@ -21,6 +21,7 @@ import { ISupplier } from 'app/shared/model/STOCK/supplier.model';
 import { CostLine, IPurchaseOrder } from 'app/shared/model/STOCK/purchase-order.model';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { format } from 'date-fns';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -536,7 +537,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">{item.supplier?.name}</TableCell>
                           <TableCell className="text-xs">{item.cost}</TableCell>
                           <TableCell className="text-xs">
-                            {item.costDate ? format(new Date(item.costDate), 'yyyy-MM-dd') : ''}
+                            {item.costDate ? formatDateForDisplay(item.costDate, 'yyyy-MM-dd') : ''}
                           </TableCell>
                           <TableCell className="text-xs">{item.comment}</TableCell>
                           {!isDisabled && (

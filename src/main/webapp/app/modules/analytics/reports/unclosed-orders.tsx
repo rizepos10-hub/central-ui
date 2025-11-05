@@ -5,6 +5,7 @@ import { getEntities as getBranches } from '../../../entities/branch/branch.redu
 import { format } from "date-fns";
 import { startOfDay, endOfDay } from 'date-fns';
 import { getOrderSources, getOrderStatuses } from "app/entities/order/order.reducer";
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -181,7 +182,7 @@ export const OpenedOrders = ({ openedOrders }) => {
                   </TableCell>
                   <TableCell className="text-xs">{getBranchName(order.branchId)}</TableCell>
                   <TableCell className="text-xs">
-                    {format(new Date(order.createdDate), 'yyyy-MM-dd HH:mm:ss')}
+                    {formatDateForDisplay(order.createdDate)}
                   </TableCell>
                   <TableCell className="text-xs text-center">
                     {order.discount ? (

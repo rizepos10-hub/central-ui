@@ -1,4 +1,5 @@
 import { ISalesSummary, ISummaryReport } from '../model/report-summary.model';
+import { formatDateForDisplay } from './timezone-utils';
 
 export const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
@@ -210,7 +211,7 @@ export const exportExcelEodSummaryReport = async (
     const storeName = branch?.name || '';
     const dateAndDay =
       fromDate && toDate
-        ? `${new Date(fromDate).toLocaleDateString()} - ${new Date(toDate).toLocaleDateString()}`
+        ? `${formatDateForDisplay(fromDate, 'P')} - ${formatDateForDisplay(toDate, 'P')}`
         : '';
 
     const totalSales = data?.totalSales || {};

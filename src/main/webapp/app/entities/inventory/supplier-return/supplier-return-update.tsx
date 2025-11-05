@@ -17,6 +17,7 @@ import { IReturnLine, ISupplierReturn } from 'app/shared/model/STOCK/supplier-re
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from 'app/entities/inventory/purchase-order/purchase-order.reducer';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 
 const statusOptions: any = [
@@ -439,8 +440,8 @@ const PurchaseOrderCard = ({ purchaseOrder }) => {
     warehouse,
   } = purchaseOrder;
 
-  const formattedDatePlaced = new Date(datePlaced).toLocaleDateString();
-  const formattedDateDelivered = new Date(dateDelivered).toLocaleDateString();
+  const formattedDatePlaced = formatDateForDisplay(datePlaced, 'PP');
+  const formattedDateDelivered = formatDateForDisplay(dateDelivered, 'PP');
 
   return (
     <Card className="border-primary">

@@ -9,6 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getUsersAsAdmin, updateUser } from './user-management.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 export const UserManagement = () => {
   const dispatch = useAppDispatch();
@@ -168,13 +169,11 @@ export const UserManagement = () => {
                   : null}
               </td>
               <td>
-                {user.createdDate ? <TextFormat value={user.createdDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid /> : null}
+                {user.createdDate ? formatDateForDisplay(user.createdDate) : null}
               </td>
               <td>{user.lastModifiedBy}</td>
               <td>
-                {user.lastModifiedDate ? (
-                  <TextFormat value={user.lastModifiedDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid />
-                ) : null}
+                {user.lastModifiedDate ? formatDateForDisplay(user.lastModifiedDate) : null}
               </td>
               <td className="text-end">
                 <div className="btn-group flex-btn-group-container">
