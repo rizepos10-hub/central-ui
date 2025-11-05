@@ -1634,7 +1634,7 @@ export const TVUpdate = () => {
         }
       });
     }
-  }, [currentPage?.elements, calculateTextHeight, updateElement]);
+  }, [activePageIndex]);
 
   const selectedElementData = selectedElements.length === 1 ?
     currentPage?.elements.find(el => el.id === selectedElements[0]) : null;
