@@ -51,6 +51,7 @@ import { cancelBooking, createBooking, updateBooking } from './delivery.reducer'
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -535,7 +536,7 @@ export const OrderDetail = () => {
                   </CardHeader>
                   <CardContent className="text-xs">
                     <div className="flex flex-col gap-2">
-                      <div>{new Date(orderEntity.orderDeliveryDetails?.date).toLocaleString()}</div>
+                      <div>{formatDateForDisplay(orderEntity.orderDeliveryDetails?.date)}</div>
                       <div>{orderEntity.orderDeliveryDetails?.driverInformation?.name}</div>
                       <div>{orderEntity.orderDeliveryDetails?.driverInformation?.phone}</div>
                       <div>
@@ -549,7 +550,7 @@ export const OrderDetail = () => {
                         </a>
                       </div>
                       <div>
-                        Expected Arrival At: {new Date(orderEntity.orderDeliveryDetails?.expectedArrivalAt).toLocaleString()}
+                        Expected Arrival At: {formatDateForDisplay(orderEntity.orderDeliveryDetails?.expectedArrivalAt)}
                       </div>
                       <div>
                         {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}

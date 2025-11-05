@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "app/config/store";
 import { INotification, NotificationCategoryEnum } from "app/shared/model/notification.model";
 import { useNavigate } from "react-router-dom";
 import { getEntities } from "./notifications.reducer";
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const NotificationsCenter = ({
     showMenu,
@@ -149,7 +150,7 @@ const NotificationsCenter = ({
                                     <span>
                                         {notification.message}
                                         <span style={{ color: "#9ca3a9" }}>
-                                            {new Date(notification.sentAt).toLocaleString()}
+                                            {formatDateForDisplay(notification.sentAt)}
                                         </span>
                                     </span>
                                     {/* <span className="mark-as-read">

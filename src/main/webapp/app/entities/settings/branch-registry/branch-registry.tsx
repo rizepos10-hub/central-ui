@@ -27,6 +27,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Pencil, ChevronLeft, Chevro
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from "primereact/api";
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 
 const initialState = {
@@ -217,7 +218,7 @@ export const BranchRegistry = ({ isRegisterClosure }: { isRegisterClosure?: bool
           </Button>
         );
       },
-      cell: ({ row }) => row.original.lastOnline ? new Date(row.original.lastOnline).toLocaleString() : '-',
+      cell: ({ row }) => row.original.lastOnline ? formatDateForDisplay(row.original.lastOnline) : '-',
     },
     {
       id: 'actions',

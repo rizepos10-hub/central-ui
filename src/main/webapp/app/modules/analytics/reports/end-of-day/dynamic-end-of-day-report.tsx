@@ -20,6 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -144,8 +145,8 @@ const DynamicEndOfDayReportUI = ({
         }
     }, [endOfDay?.id, branchId, fromDate, toDate, source]);
 
-    const firstBillDate = new Date(billsSummary?.firstBill?.createdDate).toLocaleString();
-    const lastBillDate = new Date(billsSummary?.lastBill?.createdDate).toLocaleString();
+    const firstBillDate = formatDateForDisplay(billsSummary?.firstBill?.createdDate);
+    const lastBillDate = formatDateForDisplay(billsSummary?.lastBill?.createdDate);
 
     if (loading) {
         return (
@@ -277,8 +278,8 @@ const DynamicEndOfDayReportUI = ({
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => exportExcelSummaryReport(
                                     reportData,
-                                    new Date(fromDate).toLocaleString(),
-                                    new Date(toDate).toLocaleString(),
+                                    formatDateForDisplay(fromDate),
+                                    formatDateForDisplay(toDate),
                                     'Sales Summary Report',
                                     visibleSections
                                 )}>

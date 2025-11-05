@@ -7,6 +7,7 @@ import { endOfDay, startOfDay, format } from "date-fns";
 import { debounce } from "lodash";
 import { translate } from "react-jhipster";
 import { toLocalISOString } from "app/shared/util/date-utils";
+import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
@@ -725,7 +726,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
                     )}
                     {visibleColumns.OrderDate && (
                       <TableCell className="text-xs">
-                        {order.createdDate && new Date(order.createdDate).toLocaleString()}
+                        {order.createdDate && formatDateForDisplay(order.createdDate)}
                       </TableCell>
                     )}
                     {visibleColumns.orderStatus && (
