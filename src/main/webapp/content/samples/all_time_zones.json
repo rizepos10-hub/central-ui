@@ -1942,7 +1942,7 @@
   {
     "Continent": "Other",
     "City": "EST",
-    "ZoneId": "EST"
+    "ZoneId": "-05:00"
   },
   {
     "Continent": "Other",
@@ -2492,7 +2492,7 @@
   {
     "Continent": "Other",
     "City": "HST",
-    "ZoneId": "HST"
+    "ZoneId": "-10:00"
   },
   {
     "Continent": "Other",
@@ -2597,7 +2597,7 @@
   {
     "Continent": "Other",
     "City": "MST",
-    "ZoneId": "MST"
+    "ZoneId": "-07:00"
   },
   {
     "Continent": "Other",
