@@ -190,7 +190,7 @@ export const AddonGroups = () => {
                         </Link>
                       </TableCell>
                       <TableCell className="text-xs p-2">
-                        {addonGroup.addons?.map(addon => addon.name).join(" | ")}
+                        {addonGroup.addons?.map(addon => addon?.name).join(" | ")}
                       </TableCell>
                       <TableCell className="text-xs p-2">
                         <Link to={editUrl}>
