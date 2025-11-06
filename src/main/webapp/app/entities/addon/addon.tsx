@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { Pencil, Trash2, RefreshCw, FileDown, Upload, Search as SearchIcon } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, FileDown, Upload, Search as SearchIcon, RotateCcw } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
-import { filterEntities, exportEntities } from 'app/entities/addon/addon.reducer';
+import { filterEntities, exportEntities, archiveEntities, unArchiveEntities, purgeEntities } from 'app/entities/addon/addon.reducer';
 import { getEntities } from 'app/entities/addon-groups/addon-groups.reducer';
 import { IAddonGroup } from "app/shared/model/ADDON/addon-groups.model";
 import { IProfileGroup } from 'app/shared/model/TAX/profile-group.model';
@@ -40,6 +40,7 @@ const initialState = {
   filters: {
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     groupId: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    isArchived: { value: false, matchMode: FilterMatchMode.EQUALS },
   },
 };
 
@@ -67,6 +68,7 @@ export const Addon = () => {
   // Bulk actions state
   const [selectedActionOption, setSelectedActionOption] = useState(null);
   const [selectedAddons, setSelectedAddons] = useState<IAddon[]>([]);
+  const [itemsToAction, setItemsToAction] = useState<IAddon[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   // Search state
@@ -77,9 +79,12 @@ export const Addon = () => {
   const [currentPage, setCurrentPage] = useState(query.page || 0);
   const [itemsPerPage, setItemsPerPage] = useState(query.rows || 20);
 
-  // Export confirmation dialog
+  // Dialog states
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showExportAllDialog, setShowExportAllDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPurgeDialog, setShowPurgeDialog] = useState(false);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -126,6 +131,49 @@ export const Addon = () => {
     setIsLoadingAction(true);
     await dispatch(exportEntities([])).finally(() => setIsLoadingAction(false));
     setShowExportAllDialog(false);
+  };
+
+  const handleIsArchivedChange = (value: boolean) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      page: 0,
+      first: 0,
+      filters: {
+        ...query.filters,
+        isArchived: { value, matchMode: FilterMatchMode.EQUALS }
+      }
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const handleItemsDelete = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(archiveEntities({
+      ids: itemsToAction.map(p => p.id),
+      query: updatedQuery,
+    }));
+    setSelectedAddons([]);
+    setShowDeleteDialog(false);
+  };
+
+  const handlePurgeItems = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(purgeEntities({
+      ids: itemsToAction.map(item => item.id),
+      query: updatedQuery
+    }));
+    setSelectedAddons([]);
+    setShowPurgeDialog(false);
+  };
+
+  const handleUnArchiveItems = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(unArchiveEntities({
+      ids: itemsToAction.map(item => item.id),
+      query: updatedQuery
+    }));
+    setSelectedAddons([]);
+    setShowRestoreDialog(false);
   };
 
   const onSort = event => {
@@ -208,44 +256,73 @@ export const Addon = () => {
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Select
-                value={selectedActionOption}
-                onChange={(option) => setSelectedActionOption(option)}
-                options={actionOptions}
-                placeholder="Bulk Actions"
-                className="w-48"
-                isDisabled={selectedAddons.length < 1}
-                isOptionDisabled={(option) => option.disabled}
-              />
+              {!query?.filters?.isArchived?.value ? (
+                <Select
+                  value={selectedActionOption}
+                  onChange={(option) => setSelectedActionOption(option)}
+                  options={actionOptions}
+                  placeholder="Bulk Actions"
+                  className="w-48"
+                  isDisabled={selectedAddons.length < 1}
+                  isOptionDisabled={(option) => option.disabled}
+                />
+              ) : (
+                <h4 className="text-center text-destructive text-sm font-semibold">
+                  Now viewing Recycle Bin
+                </h4>
+              )}
             </div>
             <div className="flex items-center gap-1">
-              <ImportButton type={'ADDON'} />
+              {!query?.filters?.isArchived?.value ? (
+                <>
+                  <ImportButton type={'ADDON'} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowExportAllDialog(true)}
+                    className="h-8 text-xs"
+                  >
+                    <FileDown className="h-4 w-4 mr-1" />
+                    Export All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncList}
+                    disabled={loading}
+                    className="h-8 text-xs"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                    {translate('common.refreshList')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCreate}
+                    disabled={loading}
+                    className="h-8 text-xs"
+                  >
+                    {translate('tempApp.addon.createNewAddon')}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSyncList}
+                  disabled={loading}
+                  className="h-8 text-xs"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                  {translate('common.refreshList')}
+                </Button>
+              )}
               <Button
-                variant="outline"
                 size="sm"
-                onClick={() => setShowExportAllDialog(true)}
+                variant={query?.filters?.isArchived?.value ? "default" : "outline"}
                 className="h-8 text-xs"
+                onClick={() => handleIsArchivedChange(!query?.filters?.isArchived?.value)}
               >
-                <FileDown className="h-4 w-4 mr-1" />
-                Export All
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSyncList}
-                disabled={loading}
-                className="h-8 text-xs"
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-                {translate('common.refreshList')}
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleCreate}
-                disabled={loading}
-                className="h-8 text-xs"
-              >
-                {translate('tempApp.addon.createNewAddon')}
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -289,8 +366,7 @@ export const Addon = () => {
                   <TableHead className="px-2 text-xs">{translate('common.price')}</TableHead>
                   <TableHead className="px-2 text-xs">{translate('common.discounts')}</TableHead>
                   <TableHead className="px-2 text-xs">{translate('common.taxProfiles')}</TableHead>
-                  <TableHead className="px-2 text-xs w-20">{translate('common.edit')}</TableHead>
-                  <TableHead className="px-2 text-xs w-20">{translate('common.delete')}</TableHead>
+                  <TableHead className="px-2 text-xs w-24">{translate('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -307,61 +383,101 @@ export const Addon = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  addonList.map((addon) => (
-                    <TableRow key={addon.id} className="h-10">
-                      <TableCell className="px-2">
-                        <Checkbox
-                          onCheckedChange={(checked) => handleSelectOne(addon, checked === true)}
-                          checked={isSelected(addon)}
-                        />
-                      </TableCell>
-                      <TableCell className="px-2 text-xs">
-                        <Link to={`/addon/${addon.id}/edit`} className="text-primary hover:underline">
-                          {addon.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="px-2 text-xs">
-                        {addon?.addonGroups?.map((grp: IAddonGroup) => grp.name).join(" | ")}
-                      </TableCell>
-                      <TableCell className="px-2 text-xs">{addon.price}</TableCell>
-                      <TableCell className="px-2 text-xs">
-                        {addon.discounts?.map((discount, index) => (
-                          <span key={index} className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary mr-1">
-                            {discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-                          </span>
-                        ))}
-                      </TableCell>
-                      <TableCell className="px-2 text-xs">
-                        {addon?.accountingGroups?.map((grp: IProfileGroup) =>
-                          grp.profiles
-                            ?.map((profile) => (
-                              <Link key={profile.id} to={`/tax-profiles/${profile.id}/edit`} className="text-primary hover:underline">
-                                {profile.name}
-                              </Link>
-                            ))
-                            .reduce((prev, curr) => (
+                  addonList.map((addon) => {
+                    const editUrl = `/addon/${addon.id}/edit`;
+                    const isSelectedItem = isSelected(addon);
+
+                    return (
+                      <TableRow key={addon.id} className="h-10">
+                        <TableCell className="px-2">
+                          <Checkbox
+                            onCheckedChange={(checked) => handleSelectOne(addon, checked === true)}
+                            checked={isSelectedItem}
+                          />
+                        </TableCell>
+                        <TableCell className="px-2 text-xs">
+                          <Link to={editUrl} className="text-primary hover:underline">
+                            {addon.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="px-2 text-xs">
+                          {addon?.addonGroups?.map((grp: IAddonGroup) => grp.name).join(" | ")}
+                        </TableCell>
+                        <TableCell className="px-2 text-xs">{addon.price}</TableCell>
+                        <TableCell className="px-2 text-xs">
+                          {addon.discounts?.map((discount, index) => (
+                            <span key={index} className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary mr-1">
+                              {discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
+                            </span>
+                          ))}
+                        </TableCell>
+                        <TableCell className="px-2 text-xs">
+                          {addon?.accountingGroups?.map((grp: IProfileGroup) =>
+                            grp.profiles
+                              ?.map((profile) => (
+                                <Link key={profile.id} to={`/tax-profiles/${profile.id}/edit`} className="text-primary hover:underline">
+                                  {profile.name}
+                                </Link>
+                              ))
+                              .reduce((prev, curr) => (
+                                <>
+                                  {prev} | {curr}
+                                </>
+                              ))
+                          )}
+                        </TableCell>
+                        <TableCell className="px-2">
+                          <div className="flex gap-1">
+                            {!query?.filters?.isArchived?.value ? (
                               <>
-                                {prev} | {curr}
+                                <Link to={editUrl}>
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <Pencil className="h-3 w-3 text-muted-foreground" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setItemsToAction([addon]);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
                               </>
-                            ))
-                        )}
-                      </TableCell>
-                      <TableCell className="px-2">
-                        <Link to={`/addon/${addon.id}/edit`}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Pencil className="h-3 w-3 text-muted-foreground" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="px-2">
-                        <Link to={`/addon/${addon.id}/delete`}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setItemsToAction([addon]);
+                                    setShowRestoreDialog(true);
+                                  }}
+                                >
+                                  <RotateCcw className="h-3 w-3 text-blue-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setItemsToAction([addon]);
+                                    setShowPurgeDialog(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -396,8 +512,106 @@ export const Addon = () => {
               </Button>
             </div>
           </div>
+
+          {selectedAddons.length > 0 && (
+            <div className="flex items-center gap-2 p-2 border-t bg-muted/50">
+              <span className="text-xs text-muted-foreground">
+                {selectedAddons.length} item(s) selected
+              </span>
+              {!query?.filters?.isArchived?.value ? (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    setItemsToAction(selectedAddons);
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Archive Selected
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setItemsToAction(selectedAddons);
+                      setShowRestoreDialog(true);
+                    }}
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    Restore Selected
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setItemsToAction(selectedAddons);
+                      setShowPurgeDialog(true);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Purge Selected
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Addons</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive {itemsToAction.length} addon(s)?
+              You can restore them from the recycle bin later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleItemsDelete}>Archive</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore Addons</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to restore {itemsToAction.length} addon(s)?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnArchiveItems}>Restore</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showPurgeDialog} onOpenChange={setShowPurgeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently Delete Addons</AlertDialogTitle>
+            <AlertDialogDescription className="text-destructive font-semibold">
+              Warning: This will permanently delete {itemsToAction.length} addon(s).
+              This action cannot be undone!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePurgeItems} className="bg-destructive">
+              Permanently Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Export Selected Dialog */}
       <AlertDialog open={showExportDialog} onOpenChange={setShowExportDialog}>
