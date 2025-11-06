@@ -61,6 +61,9 @@ export const dateToUTCString = (date: Date, timeZone?: string): string => {
   return utcDate.toISOString();
 };
 
+// 🔴 DEBUG FLAG: Set to false once you've verified all dates are displaying correctly
+const DEBUG_DATES = true;
+
 /**
  * Format a UTC date string for display in the business timezone.
  * Use this to replace .toLocaleString() throughout the app.
@@ -80,11 +83,16 @@ export const formatDateForDisplay = (
   const targetTimeZone = timeZone || getStore().getState().businessTimeZone?.timeZone;
   const dateObj = typeof date === 'string' ? new Date(date) : date;
 
+  let formattedDate: string;
+
   if (!targetTimeZone) {
     // No business timezone set, fall back to default locale formatting
-    return dateObj.toLocaleString();
+    formattedDate = dateObj.toLocaleString();
+  } else {
+    // Format the UTC date in the business timezone
+    formattedDate = format(toZonedTime(dateObj, targetTimeZone), formatString);
   }
 
-  // Format the UTC date in the business timezone
-  return format(toZonedTime(dateObj, targetTimeZone), formatString);
+  // 🔴 Debug mode: Wrap dates with red circle emojis to easily spot them
+  return DEBUG_DATES ? `🔴 ${formattedDate} 🔴` : formattedDate;
 };
