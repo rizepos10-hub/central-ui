@@ -111,7 +111,7 @@ export const unArchiveEntities = createAsyncThunk(
     { ids, query }: { ids: Array<string | number>; query: any },
     thunkAPI
   ) => {
-    const requestUrl = `${apiUrl}/unarchive`;
+    const requestUrl = `${apiUrl}/un-archive`;
     const result = await axios.patch<IAddonGroup>(requestUrl, {
       ids
     });
