@@ -1,0 +1,22 @@
+{
+  "endOfDay": {
+    "title": "Fin de Journée",
+    "branch": "Succursale",
+    "fromDate": "Date de début",
+    "toDate": "Date de fin",
+    "selectBranchFirst": "Veuillez d'abord sélectionner une succursale",
+    "noOpenTills": "Aucune caisse ouverte trouvée",
+    "tillName": "Nom de la caisse",
+    "status": "Statut",
+    "selectAll": "Tout sélectionner",
+    "unselectAll": "Tout désélectionner",
+    "selected": "sélectionné",
+    "endDay": "Fin de Journée",
+    "tabs": {
+      "orders": "Commandes",
+      "openTills": "Caisses ouvertes",
+      "sections": "Sections",
+      "preview": "Aperçu"
+    }
+  }
+}

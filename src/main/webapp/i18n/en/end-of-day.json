@@ -1,0 +1,22 @@
+{
+  "endOfDay": {
+    "title": "End of Day",
+    "branch": "Branch",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "selectBranchFirst": "Please select a branch first",
+    "noOpenTills": "No open tills found",
+    "tillName": "Till Name",
+    "status": "Status",
+    "selectAll": "Select All",
+    "unselectAll": "Unselect All",
+    "selected": "selected",
+    "endDay": "End Day",
+    "tabs": {
+      "orders": "Orders",
+      "openTills": "Open Tills",
+      "sections": "Sections",
+      "preview": "Preview"
+    }
+  }
+}

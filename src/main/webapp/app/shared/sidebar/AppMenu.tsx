@@ -58,6 +58,12 @@ export const model: MenuItem[] = [
         to: '/order/create',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'End of Day',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/end-of-day',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },

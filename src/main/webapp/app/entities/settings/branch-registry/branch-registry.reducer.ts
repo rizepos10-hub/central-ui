@@ -11,8 +11,13 @@ import {
 } from "app/shared/reducers/reducer.utils";
 import { IBranchRegistry, defaultValue } from "app/shared/model/branch-registry.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
+import { IOpenTill } from "app/shared/model/open-till.model";
 
-const initialState: EntityState<IBranchRegistry> = {
+interface IBranchRegistryState extends EntityState<IBranchRegistry> {
+  openTills: IOpenTill[];
+}
+
+const initialState: IBranchRegistryState = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -20,6 +25,7 @@ const initialState: EntityState<IBranchRegistry> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  openTills: [],
 };
 
 const apiUrl = 'api/branch-registries';
@@ -64,6 +70,15 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const getOpenTills = createAsyncThunk(
+  'branch-registry/fetch_open_tills',
+  async (branchId: string) => {
+    const requestUrl = `${apiUrl}/open-tills/${branchId}`;
+    return axios.get<IOpenTill[]>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const changeEntityField = createAction<ChangeFieldPayload<IBranchRegistry>>('branch-registry/change-entity-field');
 export const changeTerminalField = createAction<ChangeFieldPayload<any["terminalSettings"]>>('branch-registry/change-terminal-field');
 
@@ -80,6 +95,11 @@ const updateNestedState = (obj, path, value) => {
 export const BranchRegistrySlice = createEntitySlice({
   name: 'branch-registry',
   initialState,
+  reducers: {
+    setOpenTills(state, action) {
+      (state as any).openTills = action.payload;
+    },
+  },
   extraReducers(builder) {
     builder
       .addCase(changeEntityField, (state, action) => {
@@ -95,6 +115,10 @@ export const BranchRegistrySlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
+      .addCase(getOpenTills.fulfilled, (state, action) => {
+        state.loading = false;
+        (state as any).openTills = action.payload.data;
+      })
       .addMatcher(isFulfilled(getEntities, searchEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
         return {
@@ -104,7 +128,7 @@ export const BranchRegistrySlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities, getOpenTills), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
