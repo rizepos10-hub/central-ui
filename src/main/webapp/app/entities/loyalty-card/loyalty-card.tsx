@@ -192,31 +192,31 @@ export const GiftCard = () => {
           <TableHeader>
             {/* Header Row */}
             <TableRow>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.cardHolderName">Card Holder Name</Translate>
               </TableHead>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.referenceNumber">Reference Number</Translate>
               </TableHead>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.code">Code</Translate>
               </TableHead>
-              <TableHead className="text-xs text-right">
+              <TableHead className="text-sm font-bold text-right">
                 <Translate contentKey="common.walletBalance">Wallet Balance</Translate>
               </TableHead>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.printed">Printed</Translate>
               </TableHead>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.active">Active</Translate>
               </TableHead>
-              <TableHead className="text-xs">
+              <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.expiryDate">Expiry Date</Translate>
               </TableHead>
-              <TableHead className="text-xs text-center w-12">
+              <TableHead className="text-sm font-bold text-center w-12">
                 <Translate contentKey="common.addBalance">Add Balance</Translate>
               </TableHead>
-              <TableHead className="text-xs text-center w-12">
+              <TableHead className="text-sm font-bold text-center w-12">
                 <Translate contentKey="common.edit">Edit</Translate>
               </TableHead>
             </TableRow>
