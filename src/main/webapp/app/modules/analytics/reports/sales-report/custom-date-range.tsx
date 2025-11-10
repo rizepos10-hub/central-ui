@@ -17,6 +17,7 @@ import {
   subYears,
 } from 'date-fns';
 import { toLocalISOString } from 'app/shared/util/date-utils';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -199,7 +200,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
   };
 
   const dateRangeDisplay = dateRange.from && dateRange.to
-    ? `${format(new Date(dateRange.from), 'yyyy-MM-dd')} - ${format(new Date(dateRange.to), 'yyyy-MM-dd')}`
+    ? `${formatDateForDisplay(dateRange.from, 'yyyy-MM-dd')} - ${formatDateForDisplay(dateRange.to, 'yyyy-MM-dd')}`
     : 'Select date range';
 
   return (
@@ -280,7 +281,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
           <TabsContent value="date" className="p-3 space-y-3">
             <div className="flex flex-col gap-3">
               <div>
-                <Label className="text-xs mb-1 block">From: {format(new Date(dateRange.from), 'yyyy-MM-dd')}</Label>
+                <Label className="text-xs mb-1 block">From: {formatDateForDisplay(dateRange.from, 'yyyy-MM-dd')}</Label>
                 <Calendar
                   mode="single"
                   selected={primeDateValue.from}
@@ -295,7 +296,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
                 />
               </div>
               <div>
-                <Label className="text-xs mb-1 block">To: {format(new Date(dateRange.to), 'yyyy-MM-dd')}</Label>
+                <Label className="text-xs mb-1 block">To: {formatDateForDisplay(dateRange.to, 'yyyy-MM-dd')}</Label>
                 <Calendar
                   mode="single"
                   selected={primeDateValue.to}

@@ -8,6 +8,7 @@ import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { IUserClock } from "app/shared/model/user-clock.model";
 import { format, intervalToDuration } from "date-fns";
 import { saveAsExcelFile } from "app/shared/util/excel-utils";
+import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -286,10 +287,10 @@ const EmployeeHoursReport = () => {
                                             <TableRow key={clock.id}>
                                                 <TableCell className="text-xs">{index === 0 ? username : ''}</TableCell>
                                                 <TableCell className="text-xs">
-                                                    {format(new Date(clock.instantClockedIn), 'yyyy-MM-dd HH:mm:ss')}
+                                                    {formatDateForDisplay(clock.instantClockedIn)}
                                                 </TableCell>
                                                 <TableCell className="text-xs">
-                                                    {format(new Date(clock.instantClockedOut), 'yyyy-MM-dd HH:mm:ss')}
+                                                    {formatDateForDisplay(clock.instantClockedOut)}
                                                 </TableCell>
                                                 <TableCell className="text-xs text-right">
                                                     {formatDuration(new Date(clock.instantClockedIn), new Date(clock.instantClockedOut))}

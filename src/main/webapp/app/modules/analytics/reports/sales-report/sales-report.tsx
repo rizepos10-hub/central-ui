@@ -11,6 +11,7 @@ import { getEntity as getCurrencySettings } from 'app/entities/settings/currency
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { formatPrice } from 'app/shared/util/price-utils';
 import { toLocalISOString } from 'app/shared/util/date-utils';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { useParams } from 'react-router-dom';
 import { capitalizeFirstLetter, capitalizeString } from 'app/shared/util/string-utils';
 import ReactToPrint from 'react-to-print';
@@ -596,7 +597,7 @@ export const SalesReport = () => {
                 {dateRange?.from && dateRange?.to && (
                   <div>
                     <span>Date Range: </span>
-                    <span>{format(new Date(dateRange?.from), "yyyy-MM-dd")} - {format(new Date(dateRange?.to), "yyyy-MM-dd")}</span>
+                    <span>{formatDateForDisplay(dateRange?.from, "yyyy-MM-dd")} - {formatDateForDisplay(dateRange?.to, "yyyy-MM-dd")}</span>
                   </div>
                 )}
               </div>

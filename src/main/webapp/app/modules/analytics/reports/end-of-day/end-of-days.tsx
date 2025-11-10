@@ -4,9 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { translate, Translate } from "react-jhipster";
-import { convertUtcToLocalDate } from "app/shared/util/date-utils";
 import { format } from "date-fns";
-import { dateToUTCString } from "app/shared/util/timezone-utils";
+import { dateToUTCString, formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -219,16 +218,16 @@ export const EndOfDays = () => {
                     onClick={() => handleRowClick(rowData)}
                   >
                     <TableCell className="text-xs">
-                      {convertUtcToLocalDate(rowData?.fromDate)}
+                      {formatDateForDisplay(rowData?.fromDate)}
                     </TableCell>
                     <TableCell className="text-xs">
-                      {convertUtcToLocalDate(rowData?.toDate)}
+                      {formatDateForDisplay(rowData?.toDate)}
                     </TableCell>
                     <TableCell className="text-xs">
                       {rowData?.actionTakenBy}
                     </TableCell>
                     <TableCell className="text-xs">
-                      {convertUtcToLocalDate(rowData?.createdDate)}
+                      {formatDateForDisplay(rowData?.createdDate)}
                     </TableCell>
                     <TableCell className="text-xs">
                       {rowData?.branch?.name}
