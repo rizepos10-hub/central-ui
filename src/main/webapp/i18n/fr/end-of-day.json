@@ -1,22 +1,25 @@
 {
   "endOfDay": {
-    "title": "Fin de Journée",
+    "title": "Fin de Journï¿½e",
     "branch": "Succursale",
-    "fromDate": "Date de début",
+    "fromDate": "Date de dï¿½but",
     "toDate": "Date de fin",
-    "selectBranchFirst": "Veuillez d'abord sélectionner une succursale",
-    "noOpenTills": "Aucune caisse ouverte trouvée",
+    "toTime": "Heure de fin",
+    "actualCash": "Espï¿½ces rï¿½elles",
+    "selectBranchFirst": "Veuillez d'abord sï¿½lectionner une succursale",
+    "selectDateFirst": "Veuillez d'abord sï¿½lectionner une date de fin",
+    "noOpenTills": "Aucune caisse ouverte trouvï¿½e",
     "tillName": "Nom de la caisse",
     "status": "Statut",
-    "selectAll": "Tout sélectionner",
-    "unselectAll": "Tout désélectionner",
-    "selected": "sélectionné",
-    "endDay": "Fin de Journée",
+    "selectAll": "Tout sï¿½lectionner",
+    "unselectAll": "Tout dï¿½sï¿½lectionner",
+    "selected": "sï¿½lectionnï¿½",
+    "endDay": "Fin de Journï¿½e",
     "tabs": {
       "orders": "Commandes",
       "openTills": "Caisses ouvertes",
       "sections": "Sections",
-      "preview": "Aperçu"
+      "preview": "Aperï¿½u"
     }
   }
 }

@@ -1,4 +1,12 @@
 export type EndOfDaySection =
+  | 'SALES'
+  | 'PAYMENTS'
+  | 'CASH_SALES'
+  | 'GROSS_SALES'
+  | 'CATEGORY_SALES'
+  | 'STATISTICS'
+  | 'TIPS_OUT'
+  | 'ORDER_METHODS'
   | 'TENDER_SUMMARY'
   | 'TENDER_RECONCILIATION'
   | 'SALES_SUMMARY'
@@ -20,8 +28,7 @@ export type EndOfDaySection =
   | 'DISCOUNT_DETAILS'
   | 'COUPON_DETAILS'
   | 'DEPOSIT_SUMMARY'
-  | 'DEPOSIT_DETAILS'
-  | 'TIP_TOTALS';
+  | 'DEPOSIT_DETAILS';
 
 export interface IEndOfDayConfig {
   endingType?: 'END_OF_DAY' | 'END_OF_TILL';

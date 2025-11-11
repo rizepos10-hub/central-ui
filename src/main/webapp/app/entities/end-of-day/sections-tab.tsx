@@ -11,6 +11,14 @@ interface SectionsTabProps {
 }
 
 const ALL_SECTIONS: EndOfDaySection[] = [
+  'SALES',
+  'PAYMENTS',
+  'CASH_SALES',
+  'GROSS_SALES',
+  'CATEGORY_SALES',
+  'STATISTICS',
+  'TIPS_OUT',
+  'ORDER_METHODS',
   'TENDER_SUMMARY',
   'TENDER_RECONCILIATION',
   'SALES_SUMMARY',
@@ -32,8 +40,7 @@ const ALL_SECTIONS: EndOfDaySection[] = [
   'DISCOUNT_DETAILS',
   'COUPON_DETAILS',
   'DEPOSIT_SUMMARY',
-  'DEPOSIT_DETAILS',
-  'TIP_TOTALS'
+  'DEPOSIT_DETAILS'
 ];
 
 const formatSectionName = (section: string): string => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getInitialConfiguration, submitEndOfDay, reset } from './end-of-day.reducer';
@@ -10,12 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format, addSeconds } from 'date-fns';
-import { cn } from '@/src/main/webapp/app/lib/utils';
+import { ChevronDownIcon } from 'lucide-react';
+import { addSeconds } from 'date-fns';
 import { Translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
-import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { formatDateForDisplay, dateToUTCString } from 'app/shared/util/timezone-utils';
 import { EndOfDaySection } from 'app/shared/model/end-of-day-config.model';
 import { OrdersTab } from './orders-tab';
 import { OpenTillsTab } from './open-tills-tab';
@@ -24,6 +24,9 @@ import { PreviewTab } from './preview-tab';
 
 const EndOfDay = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const branchList = useAppSelector(state => state.branch.entities);
   const config = useAppSelector(state => state.endOfDay.config);
   const loading = useAppSelector(state => state.endOfDay.loading);
@@ -34,12 +37,74 @@ const EndOfDay = () => {
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [toTime, setToTime] = useState<string>('23:59:59');
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedSections, setSelectedSections] = useState<EndOfDaySection[]>([]);
   const [activeTab, setActiveTab] = useState('orders');
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [actualCash, setActualCash] = useState<string>('');
 
+  // Initialize from URL params
   useEffect(() => {
     dispatch(getBranches({ page: 0, size: 300, sort: 'asc' }));
   }, []);
+
+  // Read URL params on mount
+  useEffect(() => {
+    if (branchList.length > 0 && !isInitialized) {
+      const branchId = searchParams.get('branch');
+      const toDateParam = searchParams.get('toDate');
+      const toTimeParam = searchParams.get('toTime');
+      const tab = searchParams.get('tab');
+
+      if (branchId && branchList.find(b => b.id === branchId)) {
+        setSelectedBranchId(branchId);
+      }
+
+      if (toDateParam) {
+        try {
+          setToDate(new Date(toDateParam));
+        } catch (e) {
+          console.error('Invalid toDate param:', e);
+        }
+      }
+
+      if (toTimeParam) {
+        setToTime(toTimeParam);
+      }
+
+      if (tab) {
+        setActiveTab(tab);
+      }
+
+      setIsInitialized(true);
+    }
+  }, [branchList, isInitialized]);
+
+  // Update URL params when filters change
+  useEffect(() => {
+    if (isInitialized) {
+      const params = new URLSearchParams();
+
+      if (selectedBranchId) {
+        params.set('branch', selectedBranchId);
+      }
+
+      if (toDate) {
+        params.set('toDate', toDate.toISOString());
+      }
+
+      if (toTime && toTime !== '23:59:59') {
+        params.set('toTime', toTime);
+      }
+
+      if (activeTab !== 'orders') {
+        params.set('tab', activeTab);
+      }
+
+      setSearchParams(params, { replace: true });
+    }
+  }, [selectedBranchId, toDate, toTime, activeTab, isInitialized]);
 
   useEffect(() => {
     if (selectedBranchId) {
@@ -51,7 +116,13 @@ const EndOfDay = () => {
     if (config) {
       setFromDate(config.startDate || '');
       if (config.defaultEndDate) {
-        setToDate(new Date(config.defaultEndDate));
+        const endDate = new Date(config.defaultEndDate);
+        setToDate(endDate);
+        // Extract time from the default end date
+        const hours = endDate.getHours().toString().padStart(2, '0');
+        const minutes = endDate.getMinutes().toString().padStart(2, '0');
+        const seconds = endDate.getSeconds().toString().padStart(2, '0');
+        setToTime(`${hours}:${minutes}:${seconds}`);
       }
       setSelectedSections(config.defaultSelectedSections || []);
     }
@@ -69,7 +140,18 @@ const EndOfDay = () => {
     setSelectedBranchId(branchId);
     setFromDate('');
     setToDate(undefined);
+    setToTime('23:59:59');
     setSelectedSections([]);
+    setActualCash('');
+  };
+
+  const getCombinedDateTime = (): Date | undefined => {
+    if (!toDate || !toTime) return undefined;
+
+    const [hours, minutes, seconds] = toTime.split(':').map(Number);
+    const combined = new Date(toDate);
+    combined.setHours(hours, minutes, seconds, 0);
+    return combined;
   };
 
   const handleEndDay = () => {
@@ -78,8 +160,20 @@ const EndOfDay = () => {
       return;
     }
 
-    if (!toDate) {
-      toast.error('Please select an end date');
+    const combinedDateTime = getCombinedDateTime();
+    if (!combinedDateTime) {
+      toast.error('Please select an end date and time');
+      return;
+    }
+
+    if (!actualCash || actualCash.trim() === '') {
+      toast.error('Actual Cash is required');
+      return;
+    }
+
+    const actualCashNumber = parseFloat(actualCash);
+    if (isNaN(actualCashNumber) || actualCashNumber < 0) {
+      toast.error('Please enter a valid positive number for Actual Cash');
       return;
     }
 
@@ -93,21 +187,25 @@ const EndOfDay = () => {
       return;
     }
 
+    // Convert the date to UTC string using business timezone
+    const toDateUTC = dateToUTCString(combinedDateTime);
+
     dispatch(submitEndOfDay({
       actionTakenBy: account?.login || 'unknown',
       branch: selectedBranch,
-      toDate: toDate.toISOString(),
-      sections: selectedSections
+      toDate: toDateUTC,
+      sections: selectedSections,
+      actualCash: actualCashNumber
     }));
   };
 
   const minDate = fromDate ? addSeconds(new Date(fromDate), 1) : undefined;
 
   return (
-    <PageWrapper>
-      <div className="flex h-full gap-4">
+    <PageWrapper className="!overflow-x-hidden !max-w-full">
+      <div className="flex h-full gap-4 w-full max-w-full overflow-x-hidden">
         {/* Left Sidebar */}
-        <div className="w-64 space-y-4">
+        <div className="w-64 flex-shrink-0 space-y-4 overflow-y-auto">
           <div>
             <h2 className="text-xl font-semibold mb-4">
               <Translate contentKey="endOfDay.title">End of Day</Translate>
@@ -138,7 +236,7 @@ const EndOfDay = () => {
           <div className="space-y-2">
             <Label><Translate contentKey="endOfDay.fromDate">From Date</Translate></Label>
             <Input
-              value={fromDate ? formatDateForDisplay(fromDate) : ''}
+              value={loading ? 'Loading...' : fromDate ? formatDateForDisplay(fromDate) : ''}
               disabled
               className="h-9 text-sm"
               placeholder="Select branch first"
@@ -148,43 +246,59 @@ const EndOfDay = () => {
           {/* To Date (Editable) */}
           <div className="space-y-2">
             <Label><Translate contentKey="endOfDay.toDate">To Date</Translate></Label>
-            <Popover>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    'h-9 w-full justify-start text-left text-sm font-normal',
-                    !toDate && 'text-muted-foreground'
-                  )}
+                  className="h-9 w-full justify-between text-left text-sm font-normal"
                   disabled={!fromDate}
                 >
-                  <CalendarIcon className="mr-2 h-3 w-3" />
-                  {toDate ? format(toDate, 'PP') : <span>Pick a date</span>}
+                  {toDate ? toDate.toLocaleDateString() : 'Select date'}
+                  <ChevronDownIcon className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={toDate}
-                  onSelect={setToDate}
+                  captionLayout="dropdown"
+                  onSelect={(date) => {
+                    setToDate(date);
+                    setDatePickerOpen(false);
+                  }}
                   disabled={(date) => minDate ? date < minDate : false}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* To Time */}
+          <div className="space-y-2">
+            <Label htmlFor="time-picker"><Translate contentKey="endOfDay.toTime">To Time</Translate></Label>
+            <Input
+              type="time"
+              id="time-picker"
+              step="1"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
+              disabled={!fromDate}
+              className="h-9 text-sm bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+            />
+          </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 w-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <TabsList>
               <TabsTrigger value="orders">
                 <Translate contentKey="endOfDay.tabs.orders">Orders</Translate>
               </TabsTrigger>
-              <TabsTrigger value="openTills">
-                <Translate contentKey="endOfDay.tabs.openTills">Open Tills</Translate>
-              </TabsTrigger>
+              {config?.endingType !== 'END_OF_DAY' && (
+                <TabsTrigger value="openTills">
+                  <Translate contentKey="endOfDay.tabs.openTills">Open Tills</Translate>
+                </TabsTrigger>
+              )}
               <TabsTrigger value="sections">
                 <Translate contentKey="endOfDay.tabs.sections">Sections</Translate>
               </TabsTrigger>
@@ -193,18 +307,20 @@ const EndOfDay = () => {
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 mt-4">
-              <TabsContent value="orders" className="mt-0 h-full">
+            <div className="flex-1 mt-4 min-w-0 overflow-hidden">
+              <TabsContent value="orders" className="mt-0 h-full overflow-hidden">
                 <OrdersTab
                   branchId={selectedBranchId}
                   fromDate={fromDate}
-                  toDate={toDate?.toISOString() || ''}
+                  toDate={getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : ''}
                 />
               </TabsContent>
 
-              <TabsContent value="openTills" className="mt-0">
-                <OpenTillsTab branchId={selectedBranchId} />
-              </TabsContent>
+              {config?.endingType !== 'END_OF_DAY' && (
+                <TabsContent value="openTills" className="mt-0">
+                  <OpenTillsTab branchId={selectedBranchId} />
+                </TabsContent>
+              )}
 
               <TabsContent value="sections" className="mt-0">
                 <SectionsTab
@@ -219,12 +335,30 @@ const EndOfDay = () => {
             </div>
           </Tabs>
 
-          {/* End Day Button */}
-          <div className="flex justify-end mt-4 pt-4 border-t">
+          {/* Actual Cash and End Day Button */}
+          <div className="flex justify-end items-end gap-2 mt-4 pt-4 border-t">
+            <div className="flex flex-col gap-2 w-64">
+              <Label htmlFor="actual-cash">
+                <Translate contentKey="endOfDay.actualCash">Actual Cash</Translate>
+                <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
+                id="actual-cash"
+                type="number"
+                step="0.01"
+                min="0"
+                value={actualCash}
+                onChange={(e) => setActualCash(e.target.value)}
+                placeholder="0.00"
+                className="h-10"
+                disabled={!selectedBranchId || submitting}
+              />
+            </div>
             <Button
               onClick={handleEndDay}
-              disabled={!selectedBranchId || !toDate || submitting}
+              disabled={!selectedBranchId || !toDate || !actualCash || submitting}
               size="lg"
+              className="h-10"
             >
               {submitting ? 'Submitting...' : <Translate contentKey="endOfDay.endDay">End Day</Translate>}
             </Button>

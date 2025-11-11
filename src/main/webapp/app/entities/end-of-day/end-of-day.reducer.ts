@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { createAsyncThunk, createSlice, isPending, isFulfilled } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, isPending } from '@reduxjs/toolkit';
 import { serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IEndOfDayConfig, defaultValue, EndOfDaySection } from 'app/shared/model/end-of-day-config.model';
+import { IEndOfDayConfig, EndOfDaySection } from 'app/shared/model/end-of-day-config.model';
 import { IBranch } from 'app/shared/model/branch.model';
 
 export interface IEndOfDayState {
@@ -38,6 +38,7 @@ export interface ISubmitEndOfDayPayload {
   branch: IBranch;
   toDate: string;
   sections: EndOfDaySection[];
+  actualCash?: number;
 }
 
 export const submitEndOfDay = createAsyncThunk(
@@ -61,13 +62,22 @@ export const EndOfDaySlice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(getInitialConfiguration.fulfilled, (state, action) => {
+      .addCase(getInitialConfiguration.fulfilled, (state, action: any) => {
         state.loading = false;
         state.config = action.payload.data;
+      })
+      .addCase(getInitialConfiguration.rejected, (state, action: any) => {
+        state.loading = false;
+        state.errorMessage = action.error.message;
       })
       .addCase(submitEndOfDay.fulfilled, (state) => {
         state.submitting = false;
         state.submitSuccess = true;
+      })
+      .addCase(submitEndOfDay.rejected, (state, action: any) => {
+        state.submitting = false;
+        state.submitSuccess = false;
+        state.errorMessage = action.error.message;
       })
       .addMatcher(isPending(getInitialConfiguration), (state) => {
         state.errorMessage = null;
