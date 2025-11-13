@@ -1,9 +1,17 @@
-import { Button, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
-import React, { useEffect, useState } from "react";
-import { InputNumber } from "primereact/inputnumber";
+import React from "react";
 import { Translate } from "react-jhipster";
 import { IPricingPoint } from "app/shared/model/PRICING-POINT/pricing-point";
 import { IPricingPointBranchPrice } from "app/shared/model/ITEM/retail/variable-item.model";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type ModalProps = {
   toggle: () => void;
@@ -25,8 +33,6 @@ const PricingPointModal = ({
   const handleClose = () => {
     toggle();
   };
-  console.log(variant, 'qdqwdqwvariant')
-
   const handlePriceChange = (pricingPoint: IPricingPoint, value: number | null) => {
     setItem(prev => ({
       ...prev,
@@ -84,46 +90,52 @@ const PricingPointModal = ({
 
   const handleSave = () => {
     toggle();
-    // const result = pricingPoints.map(pp => ({
-    //     branch: { id: branchId },
-    //     pricingPoint: pp,
-    //     price: variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pp.id)?.price || 0,
-    // }));
-
-    return
   };
-  console.log(variant.pricingPointBranchPrices, 'variant.pricingPointBranchPrices')
   return (
-    <Modal size="l" isOpen={isOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>Pricing Points</ModalHeader>
-      <FormGroup>
-        <ModalBody>
-          <div className="d-flex flex-column gap-2">
-            {pricingPoints.map(pricingPoint => (
+    <Dialog open={isOpen} onOpenChange={toggle}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Pricing Points</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 py-4">
+          {pricingPoints.map(pricingPoint => {
+            const currentPrice = variant?.pricingPointBranchPrices.find(
+              ppbp => ppbp.pricingPoint.id === pricingPoint.id && ppbp.branch?.id === branchId
+            )?.price;
+
+            return (
               <div
                 key={pricingPoint.id}
-                className="d-flex align-items-center justify-content-between"
+                className="flex items-center justify-between gap-4"
               >
-                <Label className="mb-0">{pricingPoint.name}</Label>
-                <InputNumber
-                  maxFractionDigits={2}
-                  value={variant?.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pricingPoint.id && ppbp.branch?.id === branchId)?.price}
-                  onChange={e => handlePriceChange(pricingPoint, e.value)}
+                <Label htmlFor={`price-${pricingPoint.id}`} className="text-sm font-medium">
+                  {pricingPoint.name}
+                </Label>
+                <Input
+                  id={`price-${pricingPoint.id}`}
+                  type="number"
+                  step="0.01"
+                  className="w-32"
+                  value={currentPrice ?? ''}
+                  onChange={e => {
+                    const value = e.target.value ? parseFloat(e.target.value) : null;
+                    handlePriceChange(pricingPoint, value);
+                  }}
                 />
               </div>
-            ))}
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={handleClose}>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
             <Translate contentKey="entity.action.cancel">Cancel</Translate>
           </Button>
-          <Button color="primary" onClick={handleSave}>
+          <Button onClick={handleSave}>
             Save
           </Button>
-        </ModalFooter>
-      </FormGroup>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
