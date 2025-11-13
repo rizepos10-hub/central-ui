@@ -52,7 +52,7 @@ export const FloorPlanSettingsUpdate = () => {
       if (subProperty) {
         newState[property] = {
           ...newState[property],
-          [subProperty]: parseFloat(value) || 0,
+          [subProperty]: parseFloat(value) ?? 0,
         };
       }
       return newState;
@@ -102,7 +102,7 @@ export const FloorPlanSettingsUpdate = () => {
                         step="0.01"
                         name="sectionDimensions-width"
                         required={true}
-                        value={floorPlanSettings?.sectionDimensions?.width || ''}
+                        value={floorPlanSettings?.sectionDimensions?.width ?? ''}
                         onChange={(e) => handleChange(e.target.value, "sectionDimensions-width")}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
@@ -119,7 +119,7 @@ export const FloorPlanSettingsUpdate = () => {
                         step="0.01"
                         name="sectionDimensions-height"
                         required={true}
-                        value={floorPlanSettings?.sectionDimensions?.height || ''}
+                        value={floorPlanSettings?.sectionDimensions?.height ?? ''}
                         onChange={(e) => handleChange(e.target.value, "sectionDimensions-height")}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
@@ -142,7 +142,7 @@ export const FloorPlanSettingsUpdate = () => {
                         step="0.01"
                         name="tableDimensions-width"
                         required={true}
-                        value={floorPlanSettings?.tableDimensions?.width || ''}
+                        value={floorPlanSettings?.tableDimensions?.width ?? ''}
                         onChange={(e) => handleChange(e.target.value, "tableDimensions-width")}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
@@ -159,7 +159,7 @@ export const FloorPlanSettingsUpdate = () => {
                         step="0.01"
                         name="tableDimensions-height"
                         required={true}
-                        value={floorPlanSettings?.tableDimensions?.height || ''}
+                        value={floorPlanSettings?.tableDimensions?.height ?? ''}
                         onChange={(e) => handleChange(e.target.value, "tableDimensions-height")}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />

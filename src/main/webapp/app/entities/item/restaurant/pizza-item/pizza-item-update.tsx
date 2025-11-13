@@ -869,10 +869,10 @@ export const PizzaItemUpdate = () => {
                                 <label className="text-xs font-semibold">{translate('items.update.pizza.numberOfPizza')}</label>
                                 <Input
                                   type="number"
-                                  value={pizzaItem?.variants?.[0]?.numberOfPizza || ''}
+                                  value={pizzaItem?.variants?.[0]?.numberOfPizza ?? ''}
                                   min={1}
                                   onChange={(e) => {
-                                    const value = parseInt(e.target.value) || null;
+                                    const value = parseInt(e.target.value) ?? null;
                                     handlePizzaVariantChange("numberOfPizza", value);
                                     if (value !== 1) {
                                       handlePizzaVariantChange("addPredefinedPizzasAsToppingsOnly", false);
@@ -931,7 +931,7 @@ export const PizzaItemUpdate = () => {
                                                       value={baseDetail?.toppingsNumber || 0}
                                                       min={0}
                                                       onChange={(e) =>
-                                                        handleBaseDetailChange(index, "toppingsNumber", parseInt(e.target.value) || 0)
+                                                        handleBaseDetailChange(index, "toppingsNumber", parseInt(e.target.value) ?? 0)
                                                       }
                                                       className="h-7 text-xs"
                                                     />
@@ -1175,10 +1175,10 @@ export const PizzaItemUpdate = () => {
                                         <TableCell>
                                           <Input
                                             type="number"
-                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza || ''}
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza ?? ''}
                                             min={1}
                                             onChange={(e) => {
-                                              handleMultiplePizzaInputChange("numberOfPizza", parseInt(e.target.value) || null)
+                                              handleMultiplePizzaInputChange("numberOfPizza", parseInt(e.target.value) ?? null)
                                               resetDefaultPizza()
                                             }}
                                             className="h-7 text-xs"
@@ -1187,9 +1187,9 @@ export const PizzaItemUpdate = () => {
                                         <TableCell>
                                           <Input
                                             type="number"
-                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.freeToppingsNumber || ''}
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.freeToppingsNumber ?? ''}
                                             onChange={(e) =>
-                                              handleMultiplePizzaInputChange("freeToppingsNumber", parseInt(e.target.value) || null)
+                                              handleMultiplePizzaInputChange("freeToppingsNumber", parseInt(e.target.value) ?? null)
                                             }
                                             className="h-7 text-xs"
                                           />
@@ -1198,9 +1198,9 @@ export const PizzaItemUpdate = () => {
                                           <Input
                                             type="number"
                                             step="0.01"
-                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.fixedPrice || ''}
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.fixedPrice ?? ''}
                                             onChange={(e) =>
-                                              handleMultiplePizzaInputChange("fixedPrice", parseFloat(e.target.value) || null)
+                                              handleMultiplePizzaInputChange("fixedPrice", parseFloat(e.target.value) ?? null)
                                             }
                                             className="h-7 text-xs"
                                           />

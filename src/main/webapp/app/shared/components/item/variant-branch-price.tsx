@@ -136,7 +136,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                     step={0.01}
                     min={0}
                     value={branchVariantDetails?.[branch.id]?.price || ''}
-                    onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'price', parseFloat(e.target.value) || null)}
+                    onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'price', parseFloat(e.target.value) ?? null)}
                     className="h-7 text-xs w-28"
                   />
                 </TableCell>
@@ -154,7 +154,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                     step={0.01}
                     value={branchVariantDetails?.[branch.id]?.salePrice || ''}
                     onChange={e =>
-                      handleBranchPriceChange(variantIndex, branch.id, 'salePrice', parseFloat(e.target.value) || null)
+                      handleBranchPriceChange(variantIndex, branch.id, 'salePrice', parseFloat(e.target.value) ?? null)
                     }
                     className="h-7 text-xs w-28"
                   />

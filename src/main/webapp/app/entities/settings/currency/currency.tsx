@@ -242,7 +242,7 @@ export const Currency = () => {
                           <Input
                             type="number"
                             step="0.01"
-                            value={exchangeRate.rate || ''}
+                            value={exchangeRate.rate ?? ''}
                             onChange={(e) => handleExchangeRateChange(index, 'rate', Number(e.target.value))}
                             className="h-7 text-xs"
                             placeholder="0.00"

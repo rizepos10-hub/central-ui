@@ -184,8 +184,8 @@ export const AddonUpdate = () => {
                   id="addon-price"
                   type="number"
                   step="0.01"
-                  value={addonEntity.price || ''}
-                  onChange={(e) => dispatch(changeEntityField({ name: 'price', value: parseFloat(e.target.value) || 0 }))}
+                  value={addonEntity.price ?? ''}
+                  onChange={(e) => dispatch(changeEntityField({ name: 'price', value: parseFloat(e.target.value) ?? 0 }))}
                   className="h-8 text-xs"
                 />
               </div>

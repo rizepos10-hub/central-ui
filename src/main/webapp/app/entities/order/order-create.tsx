@@ -638,7 +638,7 @@ const OrderCreate = () => {
                                 id="custom-price"
                                 type="number"
                                 placeholder="Price"
-                                value={customPriceModalData.price || ''}
+                                value={customPriceModalData.price ?? ''}
                                 onChange={(e) => {
                                     setCustomPriceModalData({
                                         ...customPriceModalData,
@@ -768,7 +768,7 @@ const OrderCreate = () => {
                             <Input
                                 id="initial-amount"
                                 type="number"
-                                value={initialAmount || ''}
+                                value={initialAmount ?? ''}
                                 onChange={(e) => setInitialAmount(Number(e.target.value))}
                                 step="0.01"
                                 placeholder="0.00"
@@ -807,7 +807,7 @@ const OrderCreate = () => {
                             <Input
                                 id="closing-amount"
                                 type="number"
-                                value={closingAmount || ''}
+                                value={closingAmount ?? ''}
                                 onChange={(e) => setClosingAmount(Number(e.target.value))}
                                 step="0.01"
                                 placeholder="0.00"
@@ -1207,7 +1207,7 @@ const OrderCreate = () => {
                                                 <Input
                                                     type="number"
                                                     placeholder="Quantity"
-                                                    value={product.amount || ''}
+                                                    value={product.amount ?? ''}
                                                     onChange={e => dispatch((changeEntityField({
                                                         name: 'items',
                                                         value: orderEntity.items.map(item => item.cartId === product.cartId ? {
@@ -1223,7 +1223,7 @@ const OrderCreate = () => {
                                                 <Input
                                                     type="number"
                                                     placeholder="Price"
-                                                    value={calculateCustomDiscount(product?.discount?.value || 0, product.price, product?.discount?.type || 'PERCENTAGE') || ''}
+                                                    value={calculateCustomDiscount(product?.discount?.value || 0, product.price, product?.discount?.type || 'PERCENTAGE') ?? ''}
                                                     onChange={e => dispatch((changeEntityField({
                                                         name: 'items',
                                                         value: orderEntity.items.map(item => item.cartId === product.cartId ? {
@@ -1240,7 +1240,7 @@ const OrderCreate = () => {
                                                 <Input
                                                     type="number"
                                                     placeholder="Discount"
-                                                    value={product.customDiscount || ''}
+                                                    value={product.customDiscount ?? ''}
                                                     onChange={e => dispatch((changeEntityField({
                                                         name: 'items',
                                                         value: orderEntity.items.map(item => item.cartId === product.cartId ? {
@@ -1339,7 +1339,7 @@ const OrderCreate = () => {
                                                     <Input
                                                         type="number"
                                                         placeholder="Discount"
-                                                        value={orderEntity.customDiscount?.value || ''}
+                                                        value={orderEntity.customDiscount?.value ?? ''}
                                                         onChange={e => dispatch((changeEntityField({
                                                             name: 'customDiscount',
                                                             value: {

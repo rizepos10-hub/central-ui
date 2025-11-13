@@ -47,7 +47,7 @@ export const BranchUpdate = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({ name, value: name === 'numberOfEmployees' ? parseInt(value) || 0 : value }));
+    dispatch(changeEntityField({ name, value: name === 'numberOfEmployees' ? parseInt(value) ?? 0 : value }));
   };
 
   const saveEntity = () => {
@@ -102,7 +102,7 @@ export const BranchUpdate = () => {
                     name="numberOfEmployees"
                     data-cy="numberOfEmployees"
                     type="number"
-                    value={branchEntity?.numberOfEmployees || ''}
+                    value={branchEntity?.numberOfEmployees ?? ''}
                     onChange={handleChange}
                     className="h-8 text-xs"
                   />

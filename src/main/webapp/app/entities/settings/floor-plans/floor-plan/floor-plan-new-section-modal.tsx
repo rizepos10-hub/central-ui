@@ -90,13 +90,13 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
                   id="width"
                   placeholder="Width"
                   className="h-8 text-xs"
-                  value={newSection?.dimensions?.width || ''}
+                  value={newSection?.dimensions?.width ?? ''}
                   onChange={(e) =>
                     setNewSection((prev) => ({
                       ...prev,
                       dimensions: {
                         ...prev?.dimensions,
-                        width: parseInt(e.target.value) || null,
+                        width: parseInt(e.target.value) ?? null,
                       },
                     }))
                   }
@@ -109,13 +109,13 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions }) => {
                   id="height"
                   placeholder="Height"
                   className="h-8 text-xs"
-                  value={newSection?.dimensions?.height || ''}
+                  value={newSection?.dimensions?.height ?? ''}
                   onChange={(e) =>
                     setNewSection((prev) => ({
                       ...prev,
                       dimensions: {
                         ...prev?.dimensions,
-                        height: parseInt(e.target.value) || null,
+                        height: parseInt(e.target.value) ?? null,
                       },
                     }))
                   }

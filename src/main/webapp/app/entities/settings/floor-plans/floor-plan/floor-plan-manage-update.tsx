@@ -643,7 +643,7 @@ const FloorPlanManageUpdate = () => {
                   ...prev,
                   numberOfSeats: parseInt(e.target.value)
                 }))}
-                value={selectedTableDetail?.numberOfSeats || ''}
+                value={selectedTableDetail?.numberOfSeats ?? ''}
               />
             </div>
           </div>
@@ -685,8 +685,8 @@ const FloorPlanManageUpdate = () => {
                 type="number"
                 min={1}
                 className="h-8 text-xs"
-                value={newCapacity || ''}
-                onChange={(e) => setNewCapacity(parseInt(e.target.value) || null)}
+                value={newCapacity ?? ''}
+                onChange={(e) => setNewCapacity(parseInt(e.target.value) ?? null)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleUpdateCapacity();

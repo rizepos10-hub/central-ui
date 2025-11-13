@@ -202,7 +202,7 @@ export const GiftCardItemUpdate = () => {
                             step={0.01}
                             className="h-7 text-xs mt-1"
                             placeholder={translate('items.update.placeholders.itemPrice')}
-                            value={giftCardItem?.variants?.[0]?.price || ''}
+                            value={giftCardItem?.variants?.[0]?.price ?? ''}
                             onChange={(e) => handleGiftCardItemVariantChange('price', parseFloat(e.target.value))}
                           />
                         </div>

@@ -710,7 +710,7 @@ export const CustomerUpdate = ({
                 className="h-8 text-xs"
                 type="number"
                 step="0.00000001"
-                value={currentAddress?.longitude || ''}
+                value={currentAddress?.longitude ?? ''}
                 onChange={e => handleAddressChange('longitude', e.target.value ? parseFloat(e.target.value) : null)}
               />
             </div>
@@ -720,7 +720,7 @@ export const CustomerUpdate = ({
                 className="h-8 text-xs"
                 type="number"
                 step="0.00000001"
-                value={currentAddress?.latitude || ''}
+                value={currentAddress?.latitude ?? ''}
                 onChange={e => handleAddressChange('latitude', e.target.value ? parseFloat(e.target.value) : null)}
               />
             </div>

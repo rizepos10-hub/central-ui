@@ -183,10 +183,10 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
               min={0}
               step={0.01}
               placeholder={translate('items.update.placeholders.itemPrice')}
-              value={defaultPrice || ''}
+              value={defaultPrice ?? ''}
               onChange={e => {
                 console.log(e.target.value)
-                setDefaultPrice(parseFloat(e.target.value) || 0);
+                setDefaultPrice(parseFloat(e.target.value) ?? 0);
               }}
               className={`h-8 text-xs ${showFormErrors && !item?.variants?.[0]?.price ? 'border-destructive' : ''}`}
             />

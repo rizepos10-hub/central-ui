@@ -195,7 +195,7 @@ export const TaxProfileUpdate = () => {
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={condition.min as number || ''}
+                                  value={condition.min as number ?? ''}
                                   onChange={e => handleConditionChange(parseFloat(e.target.value), index, 'min')}
                                   className="h-7 text-xs"
                                 />
@@ -214,7 +214,7 @@ export const TaxProfileUpdate = () => {
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={condition.max as number || ''}
+                                  value={condition.max as number ?? ''}
                                   onChange={e => handleConditionChange(parseFloat(e.target.value), index, 'max')}
                                   className="h-7 text-xs"
                                 />

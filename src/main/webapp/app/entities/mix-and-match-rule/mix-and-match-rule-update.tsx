@@ -316,7 +316,7 @@ export const MixAndMatchRuleUpdate = () => {
                         <span className="text-xs">Above This Quantity</span>
                         <Input
                           type="number"
-                          value={mixAndMatchRule?.rules?.[0]?.aboveQuantity || ''}
+                          value={mixAndMatchRule?.rules?.[0]?.aboveQuantity ?? ''}
                           id="ruleQuantity"
                           onChange={(e) => handleRuleChange('aboveQuantity', parseFloat(e.target.value))}
                           className="h-8 text-xs w-24"

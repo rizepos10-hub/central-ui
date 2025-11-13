@@ -1454,7 +1454,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 min={1}
                                 max={12}
                                 value={newSubScreenCols || 1}
-                                onChange={e => setNewSubScreenCols(parseInt(e.target.value) || 1)}
+                                onChange={e => setNewSubScreenCols(parseInt(e.target.value) ?? 1)}
                                 className="h-9 text-sm"
                             />
                         </div>
@@ -1554,7 +1554,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 min={1}
                                 max={12}
                                 value={editScreenCols || 1}
-                                onChange={e => setEditScreenCols(parseInt(e.target.value) || 1)}
+                                onChange={e => setEditScreenCols(parseInt(e.target.value) ?? 1)}
                                 className="h-9 text-sm"
                             />
                         </div>

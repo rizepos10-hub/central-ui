@@ -217,8 +217,8 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
                       step="0.01"
                       name="price"
                       id="addon-price"
-                      value={addon?.price || ''}
-                      onChange={(e) => setAddon(prevState => ({ ...prevState, price: parseFloat(e.target.value) || 0 }))}
+                      value={addon?.price ?? ''}
+                      onChange={(e) => setAddon(prevState => ({ ...prevState, price: parseFloat(e.target.value) ?? 0 }))}
                       className="h-8 text-xs"
                     />
                   </div>

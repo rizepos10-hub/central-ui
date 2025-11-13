@@ -882,7 +882,7 @@ export const TVUpdate = () => {
     const currentDimensions = tv.dimensions || { width: 1920, height: 1080 };
     dispatch(changeEntityField({ 
       name: "dimensions", 
-      value: { ...currentDimensions, [type]: parseInt(value, 10) || 0 } 
+      value: { ...currentDimensions, [type]: parseInt(value, 10) ?? 0 } 
     }));
   };
 
@@ -2406,7 +2406,7 @@ export const TVUpdate = () => {
                 <input
                   type="number"
                   value={currentPage.duration || 5}
-                  onChange={(e) => updateCarouselPage(activePageIndex, { duration: parseInt(e.target.value, 10) || 5 })}
+                  onChange={(e) => updateCarouselPage(activePageIndex, { duration: parseInt(e.target.value, 10) ?? 5 })}
                   className="form-input"
                   min="1"
                 />

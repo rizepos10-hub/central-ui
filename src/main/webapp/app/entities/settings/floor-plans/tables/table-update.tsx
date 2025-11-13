@@ -73,7 +73,7 @@ const FloorPlanTableUpdate = () => {
 
   const handleDimensionChange = (type, value) => {
     setFloorPlanTable((prevState) => ({
-      ...prevState, dimensions: { ...prevState.dimensions, [type]: parseFloat(value) || 0, },
+      ...prevState, dimensions: { ...prevState.dimensions, [type]: parseFloat(value) ?? 0, },
     }));
   };
 
@@ -154,7 +154,7 @@ const FloorPlanTableUpdate = () => {
                         step="0.01"
                         name="dimension-width"
                         required={true}
-                        value={floorPlanTable?.dimensions?.width || ''}
+                        value={floorPlanTable?.dimensions?.width ?? ''}
                         onChange={(e) => handleDimensionChange("width", e.target.value)}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
@@ -172,7 +172,7 @@ const FloorPlanTableUpdate = () => {
                         step="0.01"
                         name="dimension-height"
                         required={true}
-                        value={floorPlanTable?.dimensions?.height || ''}
+                        value={floorPlanTable?.dimensions?.height ?? ''}
                         onChange={(e) => handleDimensionChange("height", e.target.value)}
                         className="h-7 text-xs rounded-none border-l-0 border-r-0"
                       />
