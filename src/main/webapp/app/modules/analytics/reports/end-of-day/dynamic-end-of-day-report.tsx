@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -308,7 +309,14 @@ const DynamicEndOfDayReportUI = ({
                     </h5>
                 )}
             </div>
-            <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
+
+            {/* New EOD Report Layout */}
+            <div className="bg-white mb-2 rounded-md border">
+                <EodReportLayout summary={endOfDay} />
+            </div>
+
+            {/* Old Layout - Commented Out */}
+            {/* <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
                 <GenericSalesReport
                     title={translate('analytics.report.totalSales')}
                     report={reportData.totalSales}
@@ -397,7 +405,7 @@ const DynamicEndOfDayReportUI = ({
                         <h3 className="text-base font-semibold mb-2">Related Tills</h3>
                         <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
                     </div>
-                )}
+                )} */}
         </div>
     );
 };

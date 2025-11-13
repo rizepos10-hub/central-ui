@@ -330,7 +330,11 @@ const EndOfDay = () => {
               </TabsContent>
 
               <TabsContent value="preview" className="mt-0">
-                <PreviewTab />
+                <PreviewTab
+                  branchId={selectedBranchId}
+                  toDate={getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : ''}
+                  sections={selectedSections}
+                />
               </TabsContent>
             </div>
           </Tabs>
