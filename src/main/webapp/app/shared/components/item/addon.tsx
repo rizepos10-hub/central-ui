@@ -316,7 +316,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                           type="number"
                           value={addonGroups[index]?.minQuantity ?? ''}
                           onChange={e => {
-                            handleAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) || null)
+                            handleAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) ?? null)
                           }}
                           min={0}
                           className="w-20 min-w-20 h-8 text-xs"
@@ -327,7 +327,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                         <Input
                           type="number"
                           value={addonGroups[index]?.maxQuantity ?? ''}
-                          onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) || null)}
+                          onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) ?? null)}
                           min={0}
                           className="w-20 min-w-20 h-8 text-xs"
                         />
@@ -435,7 +435,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                           onChange={e => handleAddonGroupOverridedPriceChange(
                             addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                             addon.id,
-                            parseFloat(e.target.value) || null
+                            parseFloat(e.target.value) ?? null
                           )}
                           className={`w-[80px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}
                           step={0.01}

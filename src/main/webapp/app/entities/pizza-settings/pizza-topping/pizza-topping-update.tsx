@@ -180,7 +180,7 @@ export const PizzaToppingUpdate = () => {
                       name="weight"
                       required={true}
                       id="pizza-topping-weight"
-                      value={pizzaTopping.weight || ''}
+                      value={pizzaTopping.weight ?? ''}
                       onChange={(e) => handleChange('weight', parseFloat(e.target.value))}
                       className="h-8 text-xs"
                     />

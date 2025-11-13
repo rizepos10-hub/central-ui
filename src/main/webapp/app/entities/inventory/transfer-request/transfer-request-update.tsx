@@ -333,7 +333,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">
                             <Input
                               type="number"
-                              value={transferRequestItem?.item?.quantity || ''}
+                              value={transferRequestItem?.item?.quantity ?? ''}
                               disabled
                               className="h-8 text-xs"
                             />
@@ -341,7 +341,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">
                             <Input
                               type="number"
-                              value={transferRequestItem?.quantity || ''}
+                              value={transferRequestItem?.quantity ?? ''}
                               disabled={isDisabled || transferRequestItem?.item?.quantity <= 0}
                               max={transferRequestItem?.item?.quantity}
                               onChange={e =>
@@ -356,7 +356,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">
                             <Input
                               type="number"
-                              value={transferRequestItem?.receivedQuantity || ''}
+                              value={transferRequestItem?.receivedQuantity ?? ''}
                               disabled={transferRequestItem?.item?.quantity <= 0 || isDisabled}
                               max={transferRequestItem?.item?.quantity}
                               onChange={e =>
@@ -465,7 +465,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">
                             <Input
                               type="number"
-                              value={costLines?.cost || ''}
+                              value={costLines?.cost ?? ''}
                               disabled={isDisabled}
                               onChange={e =>
                                 setCostLines(prevState => ({

@@ -397,7 +397,7 @@ export const RegularItemUpdate = () => {
             value={regularItem.variants[variantIndex]?.price ?? ''}
             min={0}
             step={0.01}
-            onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) || null)}
+            onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) ?? null)}
             className={`h-8 text-xs ${showFormErrors && (regularItem.variants[variantIndex]?.price === null || regularItem.variants[variantIndex]?.price === undefined) ? 'border-destructive' : ''}`}
             onKeyDown={e => {
               if (e.key === ' ') {
@@ -861,7 +861,7 @@ export const RegularItemUpdate = () => {
                                               value={variant?.price ?? ''}
                                               min={0}
                                               step={0.01}
-                                              onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) || null)}
+                                              onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) ?? null)}
                                               className={`h-8 text-xs ${showFormErrors && (variant?.price === null || variant?.price === undefined) ? 'border-destructive' : ''}`}
                                             />
                                           </div>
@@ -876,8 +876,8 @@ export const RegularItemUpdate = () => {
                                               placeholder="Variant Sale Price"
                                               min={0}
                                               step={0.01}
-                                              value={variant?.salePrice || ''}
-                                              onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) || null)}
+                                              value={variant?.salePrice ?? ''}
+                                              onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) ?? null)}
                                               className="h-8 text-xs"
                                             />
                                           </div>
@@ -1030,7 +1030,7 @@ export const RegularItemUpdate = () => {
                                                             type="number"
                                                             value={variant?.addonGroups[index]?.minQuantity ?? ''}
                                                             onChange={e => {
-                                                              handleVariantAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) || null, variantIndex)
+                                                              handleVariantAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) ?? null, variantIndex)
                                                             }}
                                                             min={0}
                                                             className="w-20 min-w-20 h-8 text-xs"
@@ -1041,7 +1041,7 @@ export const RegularItemUpdate = () => {
                                                           <Input
                                                             type="number"
                                                             value={variant?.addonGroups[index]?.maxQuantity ?? ''}
-                                                            onChange={e => handleVariantAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) || null, variantIndex)}
+                                                            onChange={e => handleVariantAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) ?? null, variantIndex)}
                                                             min={0}
                                                             className="w-20 min-w-20 h-8 text-xs"
                                                           />
@@ -1138,7 +1138,7 @@ export const RegularItemUpdate = () => {
                                                               onChange={e => handleAddonGroupOverridedPriceChange(
                                                                 variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                                                                 addon.id,
-                                                                parseFloat(e.target.value) || null,
+                                                                parseFloat(e.target.value) ?? null,
                                                                 variantIndex
                                                               )}
                                                               className={`w-[80px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}

@@ -221,7 +221,7 @@ export const PreviousTill = ({ registryId, isRegisterClosure }: { registryId: st
                         type="number"
                         className="h-7 text-xs"
                         value={editValues.openAmount}
-                        onChange={(e) => setEditValues({ openAmount: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => setEditValues({ openAmount: parseFloat(e.target.value) ?? 0 })}
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (

@@ -489,8 +489,8 @@ export const ComboItemUpdate = () => {
                             min={0}
                             step={0.01}
                             placeholder={translate('items.update.placeholders.itemPrice')}
-                            value={comboItem?.variants?.[0]?.price || ''}
-                            onChange={(e) => handleComboVariantChange("price", parseFloat(e.target.value) || null)}
+                            value={comboItem?.variants?.[0]?.price ?? ''}
+                            onChange={(e) => handleComboVariantChange("price", parseFloat(e.target.value))}
                             className="h-8 text-xs"
                           />
                         </div>
@@ -506,8 +506,8 @@ export const ComboItemUpdate = () => {
                             placeholder="Variant Sale Price"
                             min={0}
                             step={0.01}
-                            value={comboItem?.variants?.[0]?.salePrice || ''}
-                            onChange={(e) => handleComboVariantChange('salePrice', parseFloat(e.target.value) || null)}
+                            value={comboItem?.variants?.[0]?.salePrice ?? ''}
+                            onChange={(e) => handleComboVariantChange('salePrice', parseFloat(e.target.value))}
                             className="h-8 text-xs"
                           />
                         </div>
@@ -569,11 +569,11 @@ export const ComboItemUpdate = () => {
                                     type="number"
                                     name={`quantity_${comboPackage?.variant?.id}`}
                                     placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
-                                    value={comboPackage.amount || ''}
+                                    value={comboPackage.amount ?? ''}
                                     min={0}
                                     onChange={e => {
                                       e.stopPropagation();
-                                      handleComboAmountChange(index, parseFloat(e.target.value) || null);
+                                      handleComboAmountChange(index, parseFloat(e.target.value));
                                     }}
                                     onClick={e => e.stopPropagation()}
                                     className="h-8 text-xs"

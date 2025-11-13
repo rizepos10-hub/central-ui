@@ -122,7 +122,7 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
           type="number"
           value={quantity}
           onChange={e => {
-            setQuantity(parseFloat(e.target.value) || 1);
+            setQuantity(parseFloat(e.target.value) ?? 1);
           }}
           min={1}
           step={1}
@@ -146,7 +146,7 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
                 type="number"
                 value={ingredient.quantity}
                 onChange={e => {
-                  updateIngredientQuantity(ingredient, parseFloat(e.target.value) || 1);
+                  updateIngredientQuantity(ingredient, parseFloat(e.target.value) ?? 1);
                 }}
                 min={1}
                 step={1}

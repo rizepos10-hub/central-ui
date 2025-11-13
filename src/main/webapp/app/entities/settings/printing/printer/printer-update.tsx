@@ -164,7 +164,7 @@ export const PrinterUpdate = () => {
                   id="printer-port"
                   type="number"
                   value={printerEntity.port || 0}
-                  onChange={e => dispatch(changeEntityField({ name: 'port', value: parseInt(e.target.value) || 0 }))}
+                  onChange={e => dispatch(changeEntityField({ name: 'port', value: parseInt(e.target.value) ?? 0 }))}
                   required
                   className="h-7 text-xs"
                 />
@@ -189,7 +189,7 @@ export const PrinterUpdate = () => {
               id="printer-printSpeed"
               type="number"
               value={printerEntity.printSpeed || 0}
-              onChange={e => dispatch(changeEntityField({ name: 'printSpeed', value: parseInt(e.target.value) || 0 }))}
+              onChange={e => dispatch(changeEntityField({ name: 'printSpeed', value: parseInt(e.target.value) ?? 0 }))}
               required
               className="h-7 text-xs"
             />

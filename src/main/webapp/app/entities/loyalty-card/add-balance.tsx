@@ -75,8 +75,8 @@ const AddBalance = ({
               id="amount"
               type="number"
               className="h-7 text-xs"
-              value={balanceEntity.amount || ''}
-              onChange={e => setBalanceEntity(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+              value={balanceEntity.amount ?? ''}
+              onChange={e => setBalanceEntity(prev => ({ ...prev, amount: parseFloat(e.target.value) ?? 0 }))}
             />
           </div>
           <div className="flex flex-col gap-1">

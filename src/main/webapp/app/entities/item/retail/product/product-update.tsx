@@ -966,10 +966,10 @@ export const ProductUpdate = () => {
               id="price"
               required={true}
               placeholder="Variant Price"
-              value={product.variants[variantIndex]?.price || ''}
+              value={product.variants[variantIndex]?.price ?? ''}
               min={0}
               step="0.01"
-              onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) || 0)}
+              onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) ?? 0)}
               onKeyDown={e => {
                 if (e.key === ' ') {
                   e.stopPropagation();
@@ -1222,7 +1222,7 @@ export const ProductUpdate = () => {
                                       step="0.01"
                                       placeholder={translate('items.update.placeholders.height')}
                                       value={product?.variants?.[0]?.shippingDimension?.height ?? ''}
-                                      onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, 0)}
+                                      onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) ?? 0, 0)}
                                       className="h-8 text-xs"
                                     />
                                   </div>
@@ -1239,7 +1239,7 @@ export const ProductUpdate = () => {
                                       step="0.01"
                                       placeholder={translate('items.update.placeholders.length')}
                                       value={product?.variants?.[0]?.shippingDimension?.length ?? ''}
-                                      onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, 0)}
+                                      onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) ?? 0, 0)}
                                       className="h-8 text-xs"
                                     />
                                   </div>
@@ -1256,7 +1256,7 @@ export const ProductUpdate = () => {
                                       step="0.01"
                                       placeholder={translate('items.update.placeholders.width')}
                                       value={product?.variants?.[0]?.shippingDimension?.width ?? ''}
-                                      onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, 0)}
+                                      onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) ?? 0, 0)}
                                       className="h-8 text-xs"
                                     />
                                   </div>
@@ -1273,7 +1273,7 @@ export const ProductUpdate = () => {
                                       step="0.01"
                                       placeholder={translate('items.update.placeholders.weight')}
                                       value={product?.variants?.[0]?.shippingDimension?.weight ?? ''}
-                                      onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, 0)}
+                                      onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) ?? 0, 0)}
                                       className="h-8 text-xs"
                                     />
                                   </div>
@@ -1293,8 +1293,8 @@ export const ProductUpdate = () => {
                                       min={0}
                                       step="0.01"
                                       placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                      value={product?.variants?.[0]?.salePrice || ''}
-                                      onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) || null)}
+                                      value={product?.variants?.[0]?.salePrice ?? ''}
+                                      onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) ?? null)}
                                       className="h-8 text-xs"
                                     />
                                   </div>
@@ -1546,8 +1546,8 @@ export const ProductUpdate = () => {
                                                         placeholder="Variant Sale Price"
                                                         min={0}
                                                         step="0.01"
-                                                        value={variant?.salePrice || ''}
-                                                        onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) || null)}
+                                                        value={variant?.salePrice ?? ''}
+                                                        onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) ?? null)}
                                                         className="h-8 text-xs"
                                                       />
                                                     </div>
@@ -1652,7 +1652,7 @@ export const ProductUpdate = () => {
                                                         step="0.01"
                                                         placeholder={translate('items.update.placeholders.height')}
                                                         value={product?.variants?.[variantIndex].shippingDimension?.height ?? ''}
-                                                        onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) ?? 0, variantIndex)}
                                                         className="h-8 text-xs"
                                                       />
                                                     </div>
@@ -1669,7 +1669,7 @@ export const ProductUpdate = () => {
                                                         step="0.01"
                                                         placeholder={translate('items.update.placeholders.length')}
                                                         value={product?.variants?.[variantIndex].shippingDimension?.length ?? ''}
-                                                        onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) ?? 0, variantIndex)}
                                                         className="h-8 text-xs"
                                                       />
                                                     </div>
@@ -1686,7 +1686,7 @@ export const ProductUpdate = () => {
                                                         step="0.01"
                                                         placeholder={translate('items.update.placeholders.width')}
                                                         value={product?.variants?.[variantIndex].shippingDimension?.width ?? ''}
-                                                        onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) ?? 0, variantIndex)}
                                                         className="h-8 text-xs"
                                                       />
                                                     </div>
@@ -1703,7 +1703,7 @@ export const ProductUpdate = () => {
                                                         step="0.01"
                                                         placeholder={translate('items.update.placeholders.weight')}
                                                         value={product?.variants?.[variantIndex].shippingDimension?.weight ?? ''}
-                                                        onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) ?? 0, variantIndex)}
                                                         className="h-8 text-xs"
                                                       />
                                                     </div>

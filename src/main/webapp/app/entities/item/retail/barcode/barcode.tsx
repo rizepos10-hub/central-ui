@@ -484,7 +484,7 @@ const Barcode = () => {
                                             type="number"
                                             value={printSettings.barcodeWidth}
                                             onChange={(e) =>
-                                                setPrintSettings({ ...printSettings, barcodeWidth: parseFloat(e.target.value) || 1 })
+                                                setPrintSettings({ ...printSettings, barcodeWidth: parseFloat(e.target.value) ?? 1 })
                                             }
                                             step={0.01}
                                             placeholder="Width"

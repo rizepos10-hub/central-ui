@@ -526,7 +526,7 @@ export const PurchaseOrderUpdate = () => {
                           <Label className="text-xs"><Translate contentKey={"common.quantity"} /></Label>
                           <Input
                             type="number"
-                            value={purchaseOrderLine?.quantity || ''}
+                            value={purchaseOrderLine?.quantity ?? ''}
                             disabled={isDisabled}
                             onChange={e => handleOrderLineChange('quantity', Number(e.target.value))}
                             className="h-8 text-xs"
@@ -537,7 +537,7 @@ export const PurchaseOrderUpdate = () => {
                           <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.costPrice"} /></Label>
                           <Input
                             type="number"
-                            value={purchaseOrderLine?.price || ''}
+                            value={purchaseOrderLine?.price ?? ''}
                             disabled={isDisabled}
                             onChange={e => handleOrderLineChange('price', Number(e.target.value))}
                             className="h-8 text-xs"
@@ -710,7 +710,7 @@ export const PurchaseOrderUpdate = () => {
                           <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.cost"} /></Label>
                           <Input
                             type="number"
-                            value={purchaseCostLine?.cost || ''}
+                            value={purchaseCostLine?.cost ?? ''}
                             disabled={isDisabled}
                             onChange={e =>
                               setPurchaseCostLine(prevState => ({

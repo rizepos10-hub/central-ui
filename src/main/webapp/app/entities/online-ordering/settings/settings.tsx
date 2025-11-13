@@ -599,8 +599,8 @@ export const UiSettingsUpdate = () => {
                     <Input
                       id="UiSettings-digitsAfterDecimal"
                       type="number"
-                      value={UiSettingsEntity.digitsAfterDecimal || ''}
-                      onChange={e => dispatch(changeEntityField({ name: 'digitsAfterDecimal', value: parseInt(e.target.value) || 0 }))}
+                      value={UiSettingsEntity.digitsAfterDecimal ?? ''}
+                      onChange={e => dispatch(changeEntityField({ name: 'digitsAfterDecimal', value: parseInt(e.target.value) ?? 0 }))}
                       className="h-7 text-xs"
                     />
                   </div>

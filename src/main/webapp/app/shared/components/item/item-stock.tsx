@@ -197,7 +197,7 @@ const ItemStock = ({
                               className="h-8 text-xs"
                               placeholder={translate('items.update.placeholders.minimumStockLevelPlaceHolder')}
                               value={stockQuantity?.minimumStockLevel ?? ''}
-                              onChange={e => handleStockQuantityChange(warehouse, 'minimumStockLevel', parseFloat(e.target.value) || 0, index)}
+                              onChange={e => handleStockQuantityChange(warehouse, 'minimumStockLevel', parseFloat(e.target.value) ?? 0, index)}
                               step="0.01"
                               min="0"
                             />
@@ -212,7 +212,7 @@ const ItemStock = ({
                                 placeholder={translate('items.update.placeholders.quantity')}
                                 value={stockQuantity?.quantity ?? ''}
                                 disabled={wareHousesIndex[index]}
-                                onChange={e => handleStockQuantityChange(warehouse, 'quantity', parseFloat(e.target.value) || 0, index)}
+                                onChange={e => handleStockQuantityChange(warehouse, 'quantity', parseFloat(e.target.value) ?? 0, index)}
                                 step="0.01"
                               />
                               {!isNew && (
@@ -238,7 +238,7 @@ const ItemStock = ({
                               className="h-8 text-xs"
                               placeholder={translate('items.update.placeholders.unitCost')}
                               value={stockQuantity?.unitCost ?? ''}
-                              onChange={e => handleStockQuantityChange(warehouse, 'unitCost', parseFloat(e.target.value) || 0, index)}
+                              onChange={e => handleStockQuantityChange(warehouse, 'unitCost', parseFloat(e.target.value) ?? 0, index)}
                               step="0.01"
                               min="0"
                             />
@@ -320,7 +320,7 @@ const ItemStock = ({
                               className="h-8 text-xs"
                               placeholder={translate('items.update.placeholders.minimumStockLevelPlaceHolder')}
                               value={stockQuantity?.minimumStockLevel ?? ''}
-                              onChange={e => handleStockQuantityChange(salesLocation, 'minimumStockLevel', parseFloat(e.target.value) || 0, index)}
+                              onChange={e => handleStockQuantityChange(salesLocation, 'minimumStockLevel', parseFloat(e.target.value) ?? 0, index)}
                               step="0.01"
                               min="0"
                             />
@@ -335,7 +335,7 @@ const ItemStock = ({
                                 placeholder={translate('items.update.placeholders.quantity')}
                                 value={stockQuantity?.quantity ?? ''}
                                 disabled={salesLocationsindex[index]}
-                                onChange={e => handleStockQuantityChange(salesLocation, 'quantity', parseFloat(e.target.value) || 0, index)}
+                                onChange={e => handleStockQuantityChange(salesLocation, 'quantity', parseFloat(e.target.value) ?? 0, index)}
                                 step="0.01"
                               />
                               {!isNew && (
@@ -361,7 +361,7 @@ const ItemStock = ({
                               className="h-8 text-xs"
                               placeholder={translate('items.update.placeholders.unitCost')}
                               value={stockQuantity?.unitCost ?? ''}
-                              onChange={e => handleStockQuantityChange(salesLocation, 'unitCost', parseFloat(e.target.value) || 0, index)}
+                              onChange={e => handleStockQuantityChange(salesLocation, 'unitCost', parseFloat(e.target.value) ?? 0, index)}
                               step="0.01"
                               min="0"
                             />

@@ -118,7 +118,7 @@ export const SupplierReturnUpdate = () => {
     const updatedReturnLines = [...(supplierReturn?.returnLines || [])];
     updatedReturnLines[index] = {
       ...updatedReturnLines[index],
-      quantity: Number(value) || 0
+      quantity: Number(value) ?? 0
     };
     setSupplierReturn((prevState) => ({
       ...prevState,
@@ -130,7 +130,7 @@ export const SupplierReturnUpdate = () => {
     const updatedReturnLines = [...(supplierReturn?.returnLines || [])];
     updatedReturnLines[index] = {
       ...updatedReturnLines[index],
-      returnPrice: Number(value) || 0
+      returnPrice: Number(value) ?? 0
     };
     setSupplierReturn((prevState) => ({
       ...prevState,

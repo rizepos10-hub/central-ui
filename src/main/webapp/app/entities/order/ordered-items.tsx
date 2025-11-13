@@ -44,7 +44,7 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
   };
 
   const handleQuantityChange = (rowData: any, value: string) => {
-    const numValue = parseInt(value) || 0;
+    const numValue = parseInt(value) ?? 0;
     const clampedValue = Math.max(0, Math.min(numValue, rowData.amount));
 
     const existingItemIndex = (entity.items || []).findIndex(item => item.id === rowData.id);

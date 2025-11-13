@@ -646,7 +646,7 @@ export const Branches = () => {
                               <Input
                                 type="number"
                                 placeholder="Distance Value"
-                                value={branch.deliveryConfiguration?.chargePerDistance.distance.value || ''}
+                                value={branch.deliveryConfiguration?.chargePerDistance.distance.value ?? ''}
                                 onChange={(e) =>
                                   handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', Number(e.target.value))
                                 }
@@ -676,7 +676,7 @@ export const Branches = () => {
                             <Input
                               type="number"
                               placeholder="Charge"
-                              value={branch.deliveryConfiguration?.chargePerDistance.charge || ''}
+                              value={branch.deliveryConfiguration?.chargePerDistance.charge ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', Number(e.target.value))}
                               className="h-7 text-xs"
                             />
@@ -694,7 +694,7 @@ export const Branches = () => {
                             <Input
                               type="number"
                               placeholder="Distance Value"
-                              value={branch.deliveryConfiguration?.shipmentRange.value || ''}
+                              value={branch.deliveryConfiguration?.shipmentRange.value ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', Number(e.target.value))}
                               className="h-7 text-xs"
                             />
@@ -725,7 +725,7 @@ export const Branches = () => {
                         <Input
                           type="number"
                           placeholder="Distance Value"
-                          value={branch.deliveryConfiguration?.minCharge || ''}
+                          value={branch.deliveryConfiguration?.minCharge ?? ''}
                           onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', Number(e.target.value))}
                           className="h-7 text-xs"
                         />
@@ -759,7 +759,7 @@ export const Branches = () => {
                               name="minDistance"
                               id="minDistance"
                               placeholder="Enter Min Distance"
-                              value={chargeRule.minDistance.value || ''}
+                              value={chargeRule.minDistance.value ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.value`, Number(e.target.value))}
                               className="h-7 text-xs"
                             />
@@ -771,7 +771,7 @@ export const Branches = () => {
                               name="maxDistance"
                               id="maxDistance"
                               placeholder="Enter Max Distance"
-                              value={chargeRule.maxDistance.value || ''}
+                              value={chargeRule.maxDistance.value ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.value`, Number(e.target.value))}
                               className="h-7 text-xs"
                             />
@@ -783,7 +783,7 @@ export const Branches = () => {
                               name="charge"
                               id="charge"
                               placeholder="Enter Charge"
-                              value={chargeRule.charge || ''}
+                              value={chargeRule.charge ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].charge`, Number(e.target.value))}
                               className="h-7 text-xs"
                             />
@@ -795,7 +795,7 @@ export const Branches = () => {
                               name="orderAmount"
                               id="orderAmount"
                               placeholder="Enter Min Order"
-                              value={chargeRule.orderAmount || ''}
+                              value={chargeRule.orderAmount ?? ''}
                               onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].orderAmount`, Number(e.target.value))}
                               className="h-7 text-xs"
                             />

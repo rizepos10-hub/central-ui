@@ -235,7 +235,7 @@ export const LoyaltyRecords = () => {
                     type="number"
                     id="cashToPointExchange"
                     placeholder="Cash To Point"
-                    value={loyaltyPointExchange?.cashToPointExchange || ''}
+                    value={loyaltyPointExchange?.cashToPointExchange ?? ''}
                     onChange={(e) => handleLoyaltyExchangeChange('cashToPointExchange', Number(e.target.value))}
                     className="h-7 text-xs"
                     step="0.00001"
@@ -250,7 +250,7 @@ export const LoyaltyRecords = () => {
                     type="number"
                     id="pointToCashExchange"
                     placeholder="Point To Cash"
-                    value={loyaltyPointExchange?.pointToCashExchange || ''}
+                    value={loyaltyPointExchange?.pointToCashExchange ?? ''}
                     onChange={(e) => handleLoyaltyExchangeChange('pointToCashExchange', Number(e.target.value))}
                     className="h-7 text-xs"
                     step="0.00001"

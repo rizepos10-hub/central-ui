@@ -74,7 +74,7 @@ export const DiscountUpdate = () => {
               <Input
                 id="discount-value"
                 type="number"
-                value={discountEntity.value || ''}
+                value={discountEntity.value ?? ''}
                 onChange={e => dispatch(changeEntityField({ name: 'value', value: parseFloat(e.target.value) }))}
                 required
                 className="h-8 text-xs"

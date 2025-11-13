@@ -116,7 +116,7 @@ const VariantPackaging = ({
                                     ...variant?.variantPackage,
                                     quantity: e.target.value
                                 })}
-                                value={variant?.variantPackage?.quantity || ''}
+                                value={variant?.variantPackage?.quantity ?? ''}
                                 className="h-8 text-xs"
                             />
                         </div>

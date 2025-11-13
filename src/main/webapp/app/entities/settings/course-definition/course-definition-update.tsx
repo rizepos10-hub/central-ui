@@ -98,7 +98,7 @@ export const CourseDefinitionUpdate = () => {
                 id="order"
                 name="order"
                 type="number"
-                value={courseDefinitionEntity?.order || ''}
+                value={courseDefinitionEntity?.order ?? ''}
                 onChange={(e) => {
                   dispatch(changeEntityField({
                     name: "order",

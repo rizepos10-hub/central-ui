@@ -163,8 +163,8 @@ function GeneralSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.hstNumber || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.hstNumber ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -175,8 +175,8 @@ function GeneralSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.gstNumber || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.gstNumber ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -187,8 +187,8 @@ function GeneralSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.pstNumber || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.pstNumber ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -238,8 +238,8 @@ function PersonalizationSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scrollbarThickness || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scrollbarThickness ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -299,8 +299,8 @@ function ScaleSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -322,8 +322,8 @@ function ScaleSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -334,8 +334,8 @@ function ScaleSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -346,8 +346,8 @@ function ScaleSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -358,8 +358,8 @@ function ScaleSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -457,8 +457,8 @@ function Devices() {
                             >
                                 <Input
                                     type="number"
-                                    value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds || ''}
-                                    onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: parseFloat(e.target.value) || null }))}
+                                    value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds ?? ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: parseFloat(e.target.value) ?? null }))}
                                     className="w-48"
                                 />
                             </FieldWrapper>
@@ -664,8 +664,8 @@ function Devices() {
                     >
                         <Input
                             type="number"
-                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port || ''}
-                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.port', value: parseFloat(e.target.value) || null }))}
+                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port ?? ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.port', value: parseFloat(e.target.value) ?? null }))}
                             className="w-48"
                         />
                     </FieldWrapper>
@@ -690,8 +690,8 @@ function EmailLogsSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry?.terminalSettings?.emailLogsSettings?.maxEmailAttachmentSize || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.maxEmailAttachmentSize', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry?.terminalSettings?.emailLogsSettings?.maxEmailAttachmentSize ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.maxEmailAttachmentSize', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -755,8 +755,8 @@ function CustomerAppSettings() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry.terminalSettings?.customerAppPort || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry.terminalSettings?.customerAppPort ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -875,8 +875,8 @@ const CreditCardSettings = () => {
                     >
                         <Input
                             type="number"
-                            value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsPort || ''}
-                            onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsPort', value: parseFloat(e.target.value) || null }))}
+                            value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsPort ?? ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsPort', value: parseFloat(e.target.value) ?? null }))}
                             className="w-48"
                         />
                     </FieldWrapper>
@@ -911,8 +911,8 @@ const CreditCardSettings = () => {
                             >
                                 <Input
                                     type="number"
-                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.port || ''}
-                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.port', value: parseFloat(e.target.value) || null }))}
+                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.port ?? ''}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.port', value: parseFloat(e.target.value) ?? null }))}
                                 />
                             </FieldWrapper>
                         </div>
@@ -1048,8 +1048,8 @@ const CreditCardSettings = () => {
                     >
                         <Input
                             type="number"
-                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds || ''}
-                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: parseFloat(e.target.value) || null }))}
+                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds ?? ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: parseFloat(e.target.value) ?? null }))}
                             className="w-48"
                         />
                     </FieldWrapper>
@@ -1386,8 +1386,8 @@ function PrinterProperties() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry.terminalSettings?.receiptCopies || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: parseFloat(e.target.value) || null }))}
+                    value={branchRegistry.terminalSettings?.receiptCopies ?? ''}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
             </FieldWrapper>

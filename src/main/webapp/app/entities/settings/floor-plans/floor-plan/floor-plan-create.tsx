@@ -232,7 +232,7 @@ const CreateFloorPlan = () => {
                       placeholder="Width"
                       className="h-8 text-xs w-44"
                       required={true}
-                      value={newFloorPlan?.sections?.[0]?.dimensions?.width || ''}
+                      value={newFloorPlan?.sections?.[0]?.dimensions?.width ?? ''}
                       onChange={(e) =>
                         setNewFloorPlan((prev) => ({
                           ...prev,
@@ -241,7 +241,7 @@ const CreateFloorPlan = () => {
                               ...prev.sections?.[0],
                               dimensions: {
                                 ...prev.sections?.[0]?.dimensions,
-                                width: parseInt(e.target.value) || null,
+                                width: parseInt(e.target.value) ?? null,
                               },
                             },
                             ...(prev.sections || []).slice(1),
@@ -254,7 +254,7 @@ const CreateFloorPlan = () => {
                       placeholder="Height"
                       className="h-8 text-xs w-44"
                       required={true}
-                      value={newFloorPlan?.sections?.[0]?.dimensions?.height || ''}
+                      value={newFloorPlan?.sections?.[0]?.dimensions?.height ?? ''}
                       onChange={(e) =>
                         setNewFloorPlan((prev) => ({
                           ...prev,
@@ -263,7 +263,7 @@ const CreateFloorPlan = () => {
                               ...prev.sections?.[0],
                               dimensions: {
                                 ...prev.sections[0]?.dimensions,
-                                height: parseInt(e.target.value) || null,
+                                height: parseInt(e.target.value) ?? null,
                               },
                             },
                             ...(prev.sections || []).slice(1),

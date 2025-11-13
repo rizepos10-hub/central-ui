@@ -267,7 +267,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
                   <Input
                     type="number"
                     className="h-6 w-12 text-xs px-1 py-0"
-                    value={slotNumber || ''}
+                    value={slotNumber ?? ''}
                     onChange={(e) => handleSlotChange(e.target.value)}
                     onClick={() => calculateDates('last-n-period')}
                   />{' '}
