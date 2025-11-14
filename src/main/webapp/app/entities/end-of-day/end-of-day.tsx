@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { getLockOrderTakingStatus, updateLockOrderTaking } from 'app/entities/branch/lock-order-taking.reducer';
 import { getInitialConfiguration, submitEndOfDay, reset } from './end-of-day.reducer';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const EndOfDay = () => {
   const submitting = useAppSelector(state => state.endOfDay.submitting);
   const submitSuccess = useAppSelector(state => state.endOfDay.submitSuccess);
   const account = useAppSelector(state => state.authentication.account);
+  const lockOrderTaking = useAppSelector(state => state.lockOrderTaking);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState<string>('');
@@ -109,6 +111,7 @@ const EndOfDay = () => {
   useEffect(() => {
     if (selectedBranchId) {
       dispatch(getInitialConfiguration(selectedBranchId));
+      dispatch(getLockOrderTakingStatus(selectedBranchId));
     }
   }, [selectedBranchId]);
 
@@ -197,6 +200,30 @@ const EndOfDay = () => {
       sections: selectedSections,
       actualCash: actualCashNumber
     }));
+  };
+
+  const handleStopProcessingOrders = () => {
+    if (!selectedBranchId) {
+      toast.error('Please select a branch');
+      return;
+    }
+
+    const combinedDateTime = getCombinedDateTime();
+    if (!combinedDateTime) {
+      toast.error('Please select an end date');
+      return;
+    }
+
+    const toDateUTC = dateToUTCString(combinedDateTime);
+    const newLockState = !lockOrderTaking.locked;
+
+    dispatch(updateLockOrderTaking({
+      branchId: selectedBranchId,
+      lock: newLockState,
+      date: toDateUTC
+    })).then(() => {
+      toast.success(newLockState ? 'Order processing stopped' : 'Order processing resumed');
+    });
   };
 
   const minDate = fromDate ? addSeconds(new Date(fromDate), 1) : undefined;
@@ -358,6 +385,15 @@ const EndOfDay = () => {
                 disabled={!selectedBranchId || submitting}
               />
             </div>
+            <Button
+              onClick={handleStopProcessingOrders}
+              disabled={!selectedBranchId || !toDate || lockOrderTaking.updating}
+              variant={lockOrderTaking.locked ? 'default' : 'destructive'}
+              size="lg"
+              className="h-10"
+            >
+              {lockOrderTaking.updating ? 'Processing...' : lockOrderTaking.locked ? 'Resume Orders' : 'Stop Processing Orders'}
+            </Button>
             <Button
               onClick={handleEndDay}
               disabled={!selectedBranchId || !toDate || !actualCash || submitting}

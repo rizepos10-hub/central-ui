@@ -101,6 +101,7 @@ import ReportSummary from 'app/modules/analytics/reports/summary-report.reducer'
 import guidedTour from 'app/entities/settings/guided-tour/guided-tour.reducer';
 import endOfDay from 'app/entities/end-of-day/end-of-day.reducer';
 import endOfDaySummary from 'app/entities/end-of-day/end-of-day-summary.reducer';
+import lockOrderTaking from 'app/entities/branch/lock-order-taking.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -199,6 +200,7 @@ const entitiesReducers = {
   guidedTour,
   endOfDay,
   endOfDaySummary,
+  lockOrderTaking,
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
