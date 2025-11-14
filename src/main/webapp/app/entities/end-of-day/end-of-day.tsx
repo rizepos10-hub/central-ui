@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getLockOrderTakingStatus, updateLockOrderTaking } from 'app/entities/branch/lock-order-taking.reducer';
-import { getInitialConfiguration, submitEndOfDay, reset } from './end-of-day.reducer';
+import { getInitialConfiguration, submitEndOfDay, reset, getLastEndOfDay } from './end-of-day.reducer';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronDownIcon } from 'lucide-react';
 import { addSeconds } from 'date-fns';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
 import { formatDateForDisplay, dateToUTCString } from 'app/shared/util/timezone-utils';
@@ -35,6 +36,8 @@ const EndOfDay = () => {
   const submitSuccess = useAppSelector(state => state.endOfDay.submitSuccess);
   const account = useAppSelector(state => state.authentication.account);
   const lockOrderTaking = useAppSelector(state => state.lockOrderTaking);
+  const lastEod = useAppSelector(state => state.endOfDay.lastEod);
+  const lastEodLoading = useAppSelector(state => state.endOfDay.lastEodLoading);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState<string>('');
@@ -45,11 +48,13 @@ const EndOfDay = () => {
   const [activeTab, setActiveTab] = useState('orders');
   const [isInitialized, setIsInitialized] = useState(false);
   const [actualCash, setActualCash] = useState<string>('');
+  const [isFullDay, setIsFullDay] = useState<boolean>(true);
+  const [currentStep, setCurrentStep] = useState<number>(0);
 
   // Initialize from URL params
   useEffect(() => {
     dispatch(getBranches({ page: 0, size: 300, sort: 'asc' }));
-  }, []);
+  }, [dispatch]);
 
   // Read URL params on mount
   useEffect(() => {
@@ -112,8 +117,20 @@ const EndOfDay = () => {
     if (selectedBranchId) {
       dispatch(getInitialConfiguration(selectedBranchId));
       dispatch(getLockOrderTakingStatus(selectedBranchId));
+      dispatch(getLastEndOfDay(selectedBranchId));
     }
-  }, [selectedBranchId]);
+  }, [selectedBranchId, dispatch]);
+
+  // Polling for EOD status
+  useEffect(() => {
+    if (!selectedBranchId) return;
+
+    const pollInterval = setInterval(() => {
+      dispatch(getLastEndOfDay(selectedBranchId));
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [selectedBranchId, dispatch]);
 
   useEffect(() => {
     if (config) {
@@ -148,6 +165,13 @@ const EndOfDay = () => {
     setActualCash('');
   };
 
+  const getTomorrowDate = (): string => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 59, 999);
+    return dateToUTCString(tomorrow);
+  };
+
   const getCombinedDateTime = (): Date | undefined => {
     if (!toDate || !toTime) return undefined;
 
@@ -163,10 +187,13 @@ const EndOfDay = () => {
       return;
     }
 
-    const combinedDateTime = getCombinedDateTime();
-    if (!combinedDateTime) {
-      toast.error('Please select an end date and time');
-      return;
+    // For partial day, validate date/time
+    if (!isFullDay) {
+      const combinedDateTime = getCombinedDateTime();
+      if (!combinedDateTime) {
+        toast.error('Please select an end date and time');
+        return;
+      }
     }
 
     if (!actualCash || actualCash.trim() === '') {
@@ -190,15 +217,16 @@ const EndOfDay = () => {
       return;
     }
 
-    // Convert the date to UTC string using business timezone
-    const toDateUTC = dateToUTCString(combinedDateTime);
+    // Convert the date to UTC string using business timezone (null for full day)
+    const toDateUTC = isFullDay ? null : dateToUTCString(getCombinedDateTime()!);
 
     dispatch(submitEndOfDay({
       actionTakenBy: account?.login || 'unknown',
       branch: selectedBranch,
       toDate: toDateUTC,
       sections: selectedSections,
-      actualCash: actualCashNumber
+      actualCash: actualCashNumber,
+      fullDay: isFullDay
     }));
   };
 
@@ -208,13 +236,19 @@ const EndOfDay = () => {
       return;
     }
 
-    const combinedDateTime = getCombinedDateTime();
-    if (!combinedDateTime) {
-      toast.error('Please select an end date');
-      return;
+    // For full day mode, we don't send a date (null)
+    // For partial day mode, we need to validate and send the date
+    let toDateUTC: string | null = null;
+
+    if (!isFullDay) {
+      const combinedDateTime = getCombinedDateTime();
+      if (!combinedDateTime) {
+        toast.error('Please select an end date and time');
+        return;
+      }
+      toDateUTC = dateToUTCString(combinedDateTime);
     }
 
-    const toDateUTC = dateToUTCString(combinedDateTime);
     const newLockState = !lockOrderTaking.locked;
 
     dispatch(updateLockOrderTaking({
@@ -223,6 +257,8 @@ const EndOfDay = () => {
       date: toDateUTC
     })).then(() => {
       toast.success(newLockState ? 'Order processing stopped' : 'Order processing resumed');
+      // Refresh lock status
+      dispatch(getLockOrderTakingStatus(selectedBranchId));
     });
   };
 
@@ -230,23 +266,26 @@ const EndOfDay = () => {
 
   return (
     <PageWrapper className="!overflow-x-hidden !max-w-full">
-      <div className="flex h-full gap-4 w-full max-w-full overflow-x-hidden">
+      <div className="flex h-full gap-6 w-full max-w-full overflow-x-hidden">
         {/* Left Sidebar */}
-        <div className="w-64 flex-shrink-0 space-y-4 overflow-y-auto">
+        <div className="w-72 flex-shrink-0 space-y-5 overflow-y-auto p-4 bg-white border-r border-gray-200">
           <div>
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-1">
               <Translate contentKey="endOfDay.title">End of Day</Translate>
             </h2>
+            <p className="text-sm text-gray-500">Manage daily closing operations</p>
           </div>
 
           {/* Branch Selector */}
           <div className="space-y-2">
-            <Label><Translate contentKey="endOfDay.branch">Branch</Translate></Label>
+            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              <Translate contentKey="endOfDay.branch">Branch</Translate>
+            </Label>
             <Select
               value={selectedBranchId || ''}
               onValueChange={handleBranchChange}
             >
-              <SelectTrigger className="h-9 text-sm">
+              <SelectTrigger className="h-10 text-sm border-gray-300 focus:ring-2 focus:ring-blue-500">
                 <SelectValue placeholder="Select Branch" />
               </SelectTrigger>
               <SelectContent>
@@ -259,58 +298,262 @@ const EndOfDay = () => {
             </Select>
           </div>
 
+          {/* Day Type Selection */}
+          <div className="space-y-2.5">
+            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Day Type</Label>
+            <RadioGroup value={isFullDay ? 'full' : 'partial'} onValueChange={(value) => setIsFullDay(value === 'full')} className="space-y-2">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
+                <RadioGroupItem value="full" id="full-day" />
+                <Label htmlFor="full-day" className="font-normal cursor-pointer text-sm flex-1">
+                  Close All Sales
+                  <span className="block text-xs text-gray-500">Complete day closure</span>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
+                <RadioGroupItem value="partial" id="partial-day" />
+                <Label htmlFor="partial-day" className="font-normal cursor-pointer text-sm flex-1">
+                  Partially Close Sales
+                  <span className="block text-xs text-gray-500">Custom time range</span>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           {/* From Date (Read-only) */}
           <div className="space-y-2">
-            <Label><Translate contentKey="endOfDay.fromDate">From Date</Translate></Label>
+            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              <Translate contentKey="endOfDay.fromDate">From Date</Translate>
+            </Label>
             <Input
               value={loading ? 'Loading...' : fromDate ? formatDateForDisplay(fromDate) : ''}
               disabled
-              className="h-9 text-sm"
+              className="h-10 text-sm bg-gray-50 border-gray-300"
               placeholder="Select branch first"
             />
           </div>
 
-          {/* To Date (Editable) */}
-          <div className="space-y-2">
-            <Label><Translate contentKey="endOfDay.toDate">To Date</Translate></Label>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-9 w-full justify-between text-left text-sm font-normal"
-                  disabled={!fromDate}
-                >
-                  {toDate ? toDate.toLocaleDateString() : 'Select date'}
-                  <ChevronDownIcon className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={toDate}
-                  captionLayout="dropdown"
-                  onSelect={(date) => {
-                    setToDate(date);
-                    setDatePickerOpen(false);
-                  }}
-                  disabled={(date) => minDate ? date < minDate : false}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* To Date and Time (Only for Partial Day) */}
+          {!isFullDay && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  <Translate contentKey="endOfDay.toDate">To Date & Time</Translate>
+                </Label>
+                <div className="flex gap-2">
+                  <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-10 flex-1 justify-between text-left text-sm font-normal border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        disabled={!fromDate}
+                      >
+                        {toDate ? toDate.toLocaleDateString() : 'Select date'}
+                        <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={toDate}
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          setToDate(date);
+                          setDatePickerOpen(false);
+                        }}
+                        disabled={(date) => minDate ? date < minDate : false}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Input
+                    type="time"
+                    step="1"
+                    value={toTime}
+                    onChange={(e) => setToTime(e.target.value)}
+                    disabled={!fromDate}
+                    className="h-10 w-32 text-sm bg-background border-gray-300"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
-          {/* To Time */}
-          <div className="space-y-2">
-            <Label htmlFor="time-picker"><Translate contentKey="endOfDay.toTime">To Time</Translate></Label>
-            <Input
-              type="time"
-              id="time-picker"
-              step="1"
-              value={toTime}
-              onChange={(e) => setToTime(e.target.value)}
-              disabled={!fromDate}
-              className="h-9 text-sm bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
+          {/* Separator */}
+          <div className="border-t border-gray-200"></div>
+
+          {/* EOD Status */}
+          {lastEod && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Last End of Day</h3>
+              <div className={`p-4 rounded-lg border-2 shadow-sm ${
+                lastEod.status === 'COMPLETED' || !lastEod.status ? 'bg-green-50 border-green-300' :
+                lastEod.status === 'RUNNING' ? 'bg-blue-50 border-blue-300 animate-pulse' :
+                lastEod.status === 'FAILED' ? 'bg-red-50 border-red-300' :
+                lastEod.status === 'CANCELLED' ? 'bg-yellow-50 border-yellow-300' :
+                'bg-gray-50 border-gray-300'
+              }`}>
+                <div className="flex items-center gap-2.5">
+                  <span className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ${
+                    lastEod.status === 'COMPLETED' || !lastEod.status ? 'bg-green-600' :
+                    lastEod.status === 'RUNNING' ? 'bg-blue-600 animate-pulse' :
+                    lastEod.status === 'FAILED' ? 'bg-red-600' :
+                    lastEod.status === 'CANCELLED' ? 'bg-yellow-600' :
+                    'bg-gray-500'
+                  }`}></span>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {lastEod.status || 'COMPLETED'}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-600 mt-2 font-medium">EOD #{lastEod.number}</p>
+                {lastEod.toDateString && (
+                  <p className="text-xs text-gray-500 mt-1">{lastEod.toDateString}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {lastEodLoading && !lastEod && (
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-600">Loading status...</p>
+            </div>
+          )}
+
+          {/* Actions Section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
+
+            {/* Full Day - Multi Step */}
+            {isFullDay && (
+              <div className="space-y-4">
+                {/* Step Indicator */}
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className={currentStep === 0 ? 'text-blue-600 font-semibold' : ''}>
+                    Step {currentStep + 1} of 2
+                  </span>
+                </div>
+
+                {/* Step 1: Stop/Unlock Orders */}
+                {currentStep === 0 && (
+                  <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-800">
+                        {((lastEod?.status === 'COMPLETED' || lastEod?.status === 'FAILED' || lastEod?.status === 'CANCELLED' || !lastEod?.status) && lockOrderTaking.locked)
+                          ? 'Unlock Order Processing'
+                          : 'Stop Processing Orders'}
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {((lastEod?.status === 'COMPLETED' || lastEod?.status === 'FAILED' || lastEod?.status === 'CANCELLED' || !lastEod?.status) && lockOrderTaking.locked)
+                          ? 'Resume accepting new orders'
+                          : 'Prevent new orders from being placed'}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleStopProcessingOrders}
+                      disabled={!selectedBranchId || lockOrderTaking.updating}
+                      variant={((lastEod?.status === 'COMPLETED' || lastEod?.status === 'FAILED' || lastEod?.status === 'CANCELLED' || !lastEod?.status) && lockOrderTaking.locked) ? 'default' : 'destructive'}
+                      size="sm"
+                      className={`w-full h-10 font-medium shadow-sm ${
+                        ((lastEod?.status === 'COMPLETED' || lastEod?.status === 'FAILED' || lastEod?.status === 'CANCELLED' || !lastEod?.status) && lockOrderTaking.locked)
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : ''
+                      }`}
+                    >
+                      {lockOrderTaking.updating ? 'Processing...' :
+                        ((lastEod?.status === 'COMPLETED' || lastEod?.status === 'FAILED' || lastEod?.status === 'CANCELLED' || !lastEod?.status) && lockOrderTaking.locked)
+                          ? 'Unlock Orders'
+                          : 'Stop Orders'
+                      }
+                    </Button>
+                    <Button
+                      onClick={() => setCurrentStep(1)}
+                      disabled={!lockOrderTaking.locked}
+                      size="sm"
+                      variant="outline"
+                      className="w-full h-10 font-medium"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+
+                {/* Step 2: Enter Cash & End Day */}
+                {currentStep === 1 && (
+                  <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-800">Enter Cash & End Day</h4>
+                      <p className="text-xs text-gray-600 mt-1">Complete the day-end process</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="actual-cash" className="text-xs font-semibold text-gray-700">
+                        Actual Cash <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="actual-cash"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={actualCash}
+                        onChange={(e) => setActualCash(e.target.value)}
+                        placeholder="0.00"
+                        className="h-10 border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        disabled={submitting}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setCurrentStep(0)}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 h-10 font-medium"
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        onClick={handleEndDay}
+                        disabled={!actualCash || submitting}
+                        size="sm"
+                        className="flex-1 h-10 font-medium shadow-sm bg-blue-600 hover:bg-blue-700"
+                      >
+                        {submitting ? 'Submitting...' : 'End Day'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Partial Day - Single Step */}
+            {!isFullDay && (
+              <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-800">Enter Cash & End Day</h4>
+                  <p className="text-xs text-gray-600 mt-1">Complete the partial day process</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="actual-cash-partial" className="text-xs font-semibold text-gray-700">
+                    Actual Cash <span className="text-red-600">*</span>
+                  </Label>
+                  <Input
+                    id="actual-cash-partial"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={actualCash}
+                    onChange={(e) => setActualCash(e.target.value)}
+                    placeholder="0.00"
+                    className="h-10 border-gray-300 focus:ring-2 focus:ring-blue-500"
+                    disabled={submitting}
+                  />
+                </div>
+                <Button
+                  onClick={handleEndDay}
+                  disabled={!selectedBranchId || !toDate || !actualCash || submitting}
+                  size="sm"
+                  className="w-full h-10 font-medium shadow-sm bg-blue-600 hover:bg-blue-700"
+                >
+                  {submitting ? 'Submitting...' : 'End Day'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -339,7 +582,7 @@ const EndOfDay = () => {
                 <OrdersTab
                   branchId={selectedBranchId}
                   fromDate={fromDate}
-                  toDate={getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : ''}
+                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : null)}
                 />
               </TabsContent>
 
@@ -359,50 +602,12 @@ const EndOfDay = () => {
               <TabsContent value="preview" className="mt-0">
                 <PreviewTab
                   branchId={selectedBranchId}
-                  toDate={getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : ''}
+                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : null)}
                   sections={selectedSections}
                 />
               </TabsContent>
             </div>
           </Tabs>
-
-          {/* Actual Cash and End Day Button */}
-          <div className="flex justify-end items-end gap-2 mt-4 pt-4 border-t">
-            <div className="flex flex-col gap-2 w-64">
-              <Label htmlFor="actual-cash">
-                <Translate contentKey="endOfDay.actualCash">Actual Cash</Translate>
-                <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <Input
-                id="actual-cash"
-                type="number"
-                step="0.01"
-                min="0"
-                value={actualCash}
-                onChange={(e) => setActualCash(e.target.value)}
-                placeholder="0.00"
-                className="h-10"
-                disabled={!selectedBranchId || submitting}
-              />
-            </div>
-            <Button
-              onClick={handleStopProcessingOrders}
-              disabled={!selectedBranchId || !toDate || lockOrderTaking.updating}
-              variant={lockOrderTaking.locked ? 'default' : 'destructive'}
-              size="lg"
-              className="h-10"
-            >
-              {lockOrderTaking.updating ? 'Processing...' : lockOrderTaking.locked ? 'Resume Orders' : 'Stop Processing Orders'}
-            </Button>
-            <Button
-              onClick={handleEndDay}
-              disabled={!selectedBranchId || !toDate || !actualCash || submitting}
-              size="lg"
-              className="h-10"
-            >
-              {submitting ? 'Submitting...' : <Translate contentKey="endOfDay.endDay">End Day</Translate>}
-            </Button>
-          </div>
         </div>
       </div>
     </PageWrapper>

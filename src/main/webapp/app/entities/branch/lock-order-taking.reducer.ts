@@ -21,18 +21,20 @@ const apiUrl = 'api/branches';
 // Actions
 
 export const getLockOrderTakingStatus = createAsyncThunk(
-  'lockOrderTaking/get_status',
+  'lockOrder/get_status',
   async (branchId: string) => {
-    const requestUrl = `${apiUrl}/${branchId}/lock-order-taking`;
+    const requestUrl = `${apiUrl}/${branchId}/lock-order`;
     return axios.get<{ locked: boolean }>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const updateLockOrderTaking = createAsyncThunk(
-  'lockOrderTaking/update',
-  async ({ branchId, lock, date }: { branchId: string; lock: boolean; date: string }) => {
-    const requestUrl = `${apiUrl}/${branchId}/lock-order-taking?lock=${lock}&date=${date}`;
+  'lockOrder/update',
+  async ({ branchId, lock, date }: { branchId: string; lock: boolean; date?: string | null }) => {
+    const requestUrl = date
+      ? `${apiUrl}/${branchId}/lock-order?lock=${lock}&date=${date}`
+      : `${apiUrl}/${branchId}/lock-order?lock=${lock}`;
     return axios.put<{ locked: boolean }>(requestUrl);
   },
   { serializeError: serializeAxiosError }
@@ -41,7 +43,7 @@ export const updateLockOrderTaking = createAsyncThunk(
 // Slice
 
 export const LockOrderTakingSlice = createSlice({
-  name: 'lockOrderTaking',
+  name: 'lockOrder',
   initialState,
   reducers: {
     reset() {

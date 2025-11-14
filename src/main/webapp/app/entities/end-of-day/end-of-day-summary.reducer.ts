@@ -21,7 +21,7 @@ const apiUrl = 'api/end-of-day';
 
 export interface IGetSummaryPayload {
   branchId: string;
-  toDate: string;
+  toDate: string | null;
   sections?: EndOfDaySection[];
 }
 
@@ -29,10 +29,12 @@ export const getSummaryForBranch = createAsyncThunk(
   'endOfDaySummary/get_summary_for_branch',
   async (payload: IGetSummaryPayload) => {
     const { branchId, toDate, sections } = payload;
-    let requestUrl = `${apiUrl}/summary-for-branch/${branchId}?toDate=${toDate}`;
+    let requestUrl = toDate
+      ? `${apiUrl}/summary-for-branch/${branchId}?toDate=${toDate}`
+      : `${apiUrl}/summary-for-branch/${branchId}`;
     if (sections && sections.length > 0) {
       const sectionsParam = sections.map(s => `sections=${s}`).join('&');
-      requestUrl += `&${sectionsParam}`;
+      requestUrl += `${toDate ? '&' : '?'}${sectionsParam}`;
     }
     return axios.get(requestUrl);
   },

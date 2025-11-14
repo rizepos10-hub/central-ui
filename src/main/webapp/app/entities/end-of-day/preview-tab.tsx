@@ -8,7 +8,7 @@ import { useReactToPrint } from 'react-to-print';
 
 interface PreviewTabProps {
   branchId: string | null;
-  toDate: string;
+  toDate: string | null;
   sections: EndOfDaySection[];
 }
 
@@ -18,14 +18,14 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (branchId && toDate) {
+    if (branchId) {
       dispatch(getSummaryForBranch({
         branchId,
         toDate,
         sections
       }));
     }
-  }, [branchId, toDate, sections]);
+  }, [branchId, toDate, sections, dispatch]);
 
   const handlePrint = useReactToPrint({
     content: () => reportRef.current,
@@ -53,16 +53,6 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
       <div className="flex items-center justify-center h-64">
         <p className="text-muted-foreground text-sm">
           <Translate contentKey="endOfDay.selectBranchFirst">Please select a branch first</Translate>
-        </p>
-      </div>
-    );
-  }
-
-  if (!toDate) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">
-          <Translate contentKey="endOfDay.selectDateFirst">Please select an end date first</Translate>
         </p>
       </div>
     );
