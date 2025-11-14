@@ -10,6 +10,8 @@ export interface IEndOfDayState {
   config: IEndOfDayConfig | null;
   submitting: boolean;
   submitSuccess: boolean;
+  lastEod: ILastEndOfDay | null;
+  lastEodLoading: boolean;
 }
 
 const initialState: IEndOfDayState = {
@@ -18,6 +20,8 @@ const initialState: IEndOfDayState = {
   config: null,
   submitting: false,
   submitSuccess: false,
+  lastEod: null,
+  lastEodLoading: false,
 };
 
 const apiUrl = 'api/end-of-day';
@@ -33,12 +37,43 @@ export const getInitialConfiguration = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export interface ILastEndOfDay {
+  id: string | null;
+  toDate: string;
+  fromDate: string;
+  fromDateString: string;
+  toDateString: string;
+  actionTakenBy: string | null;
+  createdDate: string;
+  report: any;
+  branch: any;
+  branchRegistry: any;
+  printedAt: string | null;
+  number: number;
+  brandingInformation: any;
+  cash: number | null;
+  cashOverAndShortage: number | null;
+  orderDateRange: any;
+  enabledSections: any;
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+}
+
+export const getLastEndOfDay = createAsyncThunk(
+  'endOfDay/fetch_last',
+  async (branchId: string) => {
+    const requestUrl = `${apiUrl}/last?branchId=${branchId}`;
+    return axios.get<ILastEndOfDay>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export interface ISubmitEndOfDayPayload {
   actionTakenBy: string;
   branch: IBranch;
-  toDate: string;
+  toDate: string | null;
   sections: EndOfDaySection[];
   actualCash?: number;
+  fullDay: boolean;
 }
 
 export const submitEndOfDay = createAsyncThunk(
@@ -78,6 +113,17 @@ export const EndOfDaySlice = createSlice({
         state.submitting = false;
         state.submitSuccess = false;
         state.errorMessage = action.error.message;
+      })
+      .addCase(getLastEndOfDay.pending, (state) => {
+        state.lastEodLoading = true;
+      })
+      .addCase(getLastEndOfDay.fulfilled, (state, action) => {
+        state.lastEodLoading = false;
+        state.lastEod = action.payload.data;
+      })
+      .addCase(getLastEndOfDay.rejected, (state) => {
+        state.lastEodLoading = false;
+        state.lastEod = null;
       })
       .addMatcher(isPending(getInitialConfiguration), (state) => {
         state.errorMessage = null;

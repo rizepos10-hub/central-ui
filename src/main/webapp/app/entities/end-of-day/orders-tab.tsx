@@ -7,7 +7,7 @@ import { Translate } from 'react-jhipster';
 interface OrdersTabProps {
   branchId: string | null;
   fromDate: string;
-  toDate: string;
+  toDate: string | null;
 }
 
 export const OrdersTab: React.FC<OrdersTabProps> = ({ branchId, fromDate, toDate }) => {
@@ -29,11 +29,11 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ branchId, fromDate, toDate
     );
   }
 
-  if (!fromDate || !toDate) {
+  if (!fromDate) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-muted-foreground text-sm">
-          <Translate contentKey="endOfDay.selectDateFirst">Please select an end date first</Translate>
+          <Translate contentKey="endOfDay.selectDateFirst">Please select a branch first</Translate>
         </p>
       </div>
     );
