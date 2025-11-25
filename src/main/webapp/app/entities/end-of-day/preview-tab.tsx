@@ -91,7 +91,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
         </button>
       </div>
       <div ref={reportRef}>
-        <EodReportLayout summary={summary} />
+        <EodReportLayout summary={summary} isEndOfDay={true} />
       </div>
     </div>
   );
