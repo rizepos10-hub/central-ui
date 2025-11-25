@@ -8,6 +8,7 @@ export interface IBranch {
   numberOfEmployees?: number | null;
   menu?: IMenu | null;
   ebtEligible?: boolean;
+  timezone?: string;
 }
 
 export const defaultValue: Readonly<IBranch> = {};

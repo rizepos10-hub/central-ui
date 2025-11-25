@@ -7,9 +7,10 @@ const SHOW_ZERO_VALUES = false;
 interface EodReportLayoutProps {
   summary: any;
   isEndOfDay?: boolean;
+  branchTimezone?: string;
 }
 
-export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEndOfDay = false }) => {
+export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEndOfDay = false, branchTimezone }) => {
   if (!summary) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -161,17 +162,17 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
 
           <div className="text-center text-xs">
             {summary.number && <p>Daily Report # {summary.number}</p>}
-            {summary.fromDateString && <p>Start: {formatDateForDisplay(summary.fromDateString, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            {summary.toDateString && <p>End: {formatDateForDisplay(summary.toDateString, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a')}</p>
+            {summary.fromDateString && <p>Start: {formatDateForDisplay(summary.fromDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.toDateString && <p>End: {formatDateForDisplay(summary.toDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>
             {summary.branchRegistry?.name && <p>Register: {summary.branchRegistry.name}</p>}
           </div>
 
           <div className="my-2"></div>
 
           <div className="text-center text-xs">
-            {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a')}</p>}
+            {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
           </div>
         </div>
 

@@ -10,9 +10,10 @@ interface PreviewTabProps {
   branchId: string | null;
   toDate: string | null;
   sections: EndOfDaySection[];
+  branchTimezone?: string;
 }
 
-export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sections }) => {
+export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sections, branchTimezone }) => {
   const dispatch = useAppDispatch();
   const { loading, summary } = useAppSelector(state => state.endOfDaySummary);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -91,7 +92,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
         </button>
       </div>
       <div ref={reportRef}>
-        <EodReportLayout summary={summary} isEndOfDay={true} />
+        <EodReportLayout summary={summary} isEndOfDay={true} branchTimezone={branchTimezone} />
       </div>
     </div>
   );
