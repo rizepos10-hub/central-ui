@@ -17,7 +17,7 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
   const { loading, summary } = useAppSelector(state => state.endOfDaySummary);
   const reportRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const fetchSummary = () => {
     if (branchId) {
       dispatch(getSummaryForBranch({
         branchId,
@@ -25,6 +25,10 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
         sections
       }));
     }
+  };
+
+  useEffect(() => {
+    fetchSummary();
   }, [branchId, toDate, sections, dispatch]);
 
   const handlePrint = useReactToPrint({
@@ -68,10 +72,19 @@ export const PreviewTab: React.FC<PreviewTabProps> = ({ branchId, toDate, sectio
 
   return (
     <div>
-      <div className="flex justify-end mb-3">
+      <div className="flex justify-end gap-2 mb-3">
+        <button
+          onClick={fetchSummary}
+          disabled={loading}
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-400 flex items-center gap-2"
+        >
+          <i className="pi pi-refresh"></i>
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
         <button
           onClick={handlePrint}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 flex items-center gap-2"
         >
           <i className="pi pi-print"></i>
           Print

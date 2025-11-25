@@ -234,13 +234,6 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
                   <td className="col-3-middle"></td>
                   <td className="col-3-right">{formatCurrency((reportData.totalSales?.discount || 0) + (reportData.totalSales?.appliedCoupon || 0))}</td>
                 </tr>
-
-                {/* Total Voids */}
-                <tr>
-                  <td className="col-3-left">Total Voids</td>
-                  <td className="col-3-middle"></td>
-                  <td className="col-3-right">{formatCurrency(reportData.totalSales?.voids)}</td>
-                </tr>
               </tbody>
             </table>
 
@@ -284,28 +277,22 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
             <div className="my-2"></div>
 
             {/* Cash Sales Records */}
-            {(reportData.cashSales?.cashSaleRecords || [])
-              .filter((record: any) => shouldShowValue(record.amount))
-              .length > 0 && (
+            {reportData.cashSales?.cashSaleRecords && reportData.cashSales.cashSaleRecords.length > 0 && (
               <>
                 <table>
                   <tbody>
-                    {reportData.cashSales.cashSaleRecords
-                      .filter((record: any) => shouldShowValue(record.amount))
-                      .map((record: any, idx: number) => (
-                        <tr key={idx}>
-                          <td className="col-3-left">{record.title || record.label || ''}</td>
-                          <td className="col-3-middle">{record.orderCount?.toString() || ''}</td>
-                          <td className="col-3-right">{formatCurrency(Math.abs(record.amount))}</td>
-                        </tr>
-                      ))}
+                    {reportData.cashSales.cashSaleRecords.map((record: any, idx: number) => (
+                      <tr key={idx}>
+                        <td className="col-3-left">{record.title || record.label || ''}</td>
+                        <td className="col-3-middle">{record.orderCount?.toString() || ''}</td>
+                        <td className="col-3-right">{formatCurrency(Math.abs(record.amount))}</td>
+                      </tr>
+                    ))}
                     {/* Total for Cash Sales */}
                     <tr className="font-bold">
                       <td className="col-3-left">Total</td>
                       <td className="col-3-middle">
-                        {reportData.cashSales.cashSaleRecords
-                          .filter((record: any) => shouldShowValue(record.amount))
-                          .reduce((sum: number, r: any) => sum + (r.orderCount || 0), 0)}
+                        {reportData.cashSales.cashSaleRecords.reduce((sum: number, r: any) => sum + (r.orderCount || 0), 0)}
                       </td>
                       <td className="col-3-right">
                         {formatCurrency(reportData.totalSales?.grossSales)}

@@ -51,6 +51,11 @@ const EndOfDay = () => {
   const [isFullDay, setIsFullDay] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<number>(0);
 
+  // Track selectedSections changes
+  useEffect(() => {
+    console.log('[end-of-day.tsx] selectedSections state changed to:', selectedSections);
+  }, [selectedSections]);
+
   // Initialize from URL params
   useEffect(() => {
     dispatch(getBranches({ page: 0, size: 300, sort: 'asc' }));
@@ -133,6 +138,12 @@ const EndOfDay = () => {
   }, [selectedBranchId, dispatch]);
 
   useEffect(() => {
+    console.log('[end-of-day.tsx] Config useEffect triggered');
+    console.log('[end-of-day.tsx] Config changed:', {
+      configSections: config?.defaultSelectedSections,
+      currentSections: selectedSections,
+      branchId: selectedBranchId
+    });
     if (config) {
       setFromDate(config.startDate || '');
       if (config.defaultEndDate) {
@@ -144,7 +155,8 @@ const EndOfDay = () => {
         const seconds = endDate.getSeconds().toString().padStart(2, '0');
         setToTime(`${hours}:${minutes}:${seconds}`);
       }
-      setSelectedSections(config.defaultSelectedSections || []);
+      // REMOVED - DON'T set sections from config here, let SectionsTab handle it
+      console.log('[end-of-day.tsx] Config loaded, NOT touching sections (managed by SectionsTab)');
     }
   }, [config]);
 
@@ -157,11 +169,12 @@ const EndOfDay = () => {
   }, [submitSuccess]);
 
   const handleBranchChange = (branchId: string) => {
+    console.log('[end-of-day.tsx] handleBranchChange called:', branchId);
     setSelectedBranchId(branchId);
     setFromDate('');
     setToDate(undefined);
     setToTime('23:59:59');
-    setSelectedSections([]);
+    // Note: sections will be reset automatically via key={selectedBranchId} on SectionsTab
     setActualCash('');
   };
 
@@ -205,10 +218,6 @@ const EndOfDay = () => {
     if (isNaN(actualCashNumber) || actualCashNumber < 0) {
       toast.error('Please enter a valid positive number for Actual Cash');
       return;
-    }
-
-    if (selectedSections.length === 0) {
-      toast.warn('No sections selected');
     }
 
     const selectedBranch = branchList.find(b => b.id === selectedBranchId);
@@ -405,7 +414,7 @@ const EndOfDay = () => {
                 </div>
                 <p className="text-xs text-gray-600 mt-2 font-medium">EOD #{lastEod.number}</p>
                 {lastEod.toDateString && (
-                  <p className="text-xs text-gray-500 mt-1">{lastEod.toDateString}</p>
+                  <p className="text-xs text-gray-500 mt-1">{formatDateForDisplay(lastEod.toDateString)}</p>
                 )}
               </div>
             </div>
@@ -578,7 +587,7 @@ const EndOfDay = () => {
             </TabsList>
 
             <div className="flex-1 mt-4 min-w-0 overflow-hidden">
-              <TabsContent value="orders" className="mt-0 h-full overflow-hidden">
+              <TabsContent value="orders" className="mt-0 h-full overflow-hidden" forceMount hidden={activeTab !== 'orders'}>
                 <OrdersTab
                   branchId={selectedBranchId}
                   fromDate={fromDate}
@@ -587,19 +596,23 @@ const EndOfDay = () => {
               </TabsContent>
 
               {config?.endingType !== 'END_OF_DAY' && (
-                <TabsContent value="openTills" className="mt-0">
+                <TabsContent value="openTills" className="mt-0" forceMount hidden={activeTab !== 'openTills'}>
                   <OpenTillsTab branchId={selectedBranchId} />
                 </TabsContent>
               )}
 
-              <TabsContent value="sections" className="mt-0">
+              <TabsContent value="sections" className="mt-0" forceMount hidden={activeTab !== 'sections'}>
                 <SectionsTab
+                  key={selectedBranchId || 'no-branch'}
                   defaultSections={config?.defaultSelectedSections || []}
-                  onSelectionChange={setSelectedSections}
+                  onSelectionChange={(sections) => {
+                    console.log('[end-of-day.tsx] onSelectionChange callback received:', sections);
+                    setSelectedSections(sections);
+                  }}
                 />
               </TabsContent>
 
-              <TabsContent value="preview" className="mt-0">
+              <TabsContent value="preview" className="mt-0" forceMount hidden={activeTab !== 'preview'}>
                 <PreviewTab
                   branchId={selectedBranchId}
                   toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : null)}
