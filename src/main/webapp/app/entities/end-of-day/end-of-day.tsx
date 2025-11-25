@@ -40,6 +40,7 @@ const EndOfDay = () => {
   const lastEodLoading = useAppSelector(state => state.endOfDay.lastEodLoading);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [selectedBranchTimezone, setSelectedBranchTimezone] = useState<string | undefined>(undefined);
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [toTime, setToTime] = useState<string>('23:59:59');
@@ -50,6 +51,12 @@ const EndOfDay = () => {
   const [actualCash, setActualCash] = useState<string>('');
   const [isFullDay, setIsFullDay] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [ordersRefetchKey, setOrdersRefetchKey] = useState<number>(0);
+
+  // Track selectedSections changes
+  useEffect(() => {
+    console.log('[end-of-day.tsx] selectedSections state changed to:', selectedSections);
+  }, [selectedSections]);
 
   // Initialize from URL params
   useEffect(() => {
@@ -64,8 +71,12 @@ const EndOfDay = () => {
       const toTimeParam = searchParams.get('toTime');
       const tab = searchParams.get('tab');
 
-      if (branchId && branchList.find(b => b.id === branchId)) {
-        setSelectedBranchId(branchId);
+      if (branchId) {
+        const branch = branchList.find(b => b.id === branchId);
+        if (branch) {
+          setSelectedBranchId(branchId);
+          setSelectedBranchTimezone(branch.timezone);
+        }
       }
 
       if (toDateParam) {
@@ -121,18 +132,26 @@ const EndOfDay = () => {
     }
   }, [selectedBranchId, dispatch]);
 
-  // Polling for EOD status
+  // Polling for EOD status and orders refresh
   useEffect(() => {
     if (!selectedBranchId) return;
 
     const pollInterval = setInterval(() => {
       dispatch(getLastEndOfDay(selectedBranchId));
+      // Trigger orders refetch by incrementing the key
+      setOrdersRefetchKey(prev => prev + 1);
     }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(pollInterval);
   }, [selectedBranchId, dispatch]);
 
   useEffect(() => {
+    console.log('[end-of-day.tsx] Config useEffect triggered');
+    console.log('[end-of-day.tsx] Config changed:', {
+      configSections: config?.defaultSelectedSections,
+      currentSections: selectedSections,
+      branchId: selectedBranchId
+    });
     if (config) {
       setFromDate(config.startDate || '');
       if (config.defaultEndDate) {
@@ -144,7 +163,8 @@ const EndOfDay = () => {
         const seconds = endDate.getSeconds().toString().padStart(2, '0');
         setToTime(`${hours}:${minutes}:${seconds}`);
       }
-      setSelectedSections(config.defaultSelectedSections || []);
+      // REMOVED - DON'T set sections from config here, let SectionsTab handle it
+      console.log('[end-of-day.tsx] Config loaded, NOT touching sections (managed by SectionsTab)');
     }
   }, [config]);
 
@@ -152,16 +172,25 @@ const EndOfDay = () => {
     if (submitSuccess) {
       toast.success('End of Day submitted successfully');
       dispatch(reset());
+      // Trigger orders refetch by incrementing the key
+      setOrdersRefetchKey(prev => prev + 1);
       // Optionally navigate or reset form
     }
   }, [submitSuccess]);
 
   const handleBranchChange = (branchId: string) => {
+    console.log('[end-of-day.tsx] handleBranchChange called:', branchId);
     setSelectedBranchId(branchId);
+
+    // Set the branch timezone
+    const branch = branchList.find(b => b.id === branchId);
+    setSelectedBranchTimezone(branch?.timezone);
+    console.log('[end-of-day.tsx] Branch timezone set to:', branch?.timezone);
+
     setFromDate('');
     setToDate(undefined);
     setToTime('23:59:59');
-    setSelectedSections([]);
+    // Note: sections will be reset automatically via key={selectedBranchId} on SectionsTab
     setActualCash('');
   };
 
@@ -169,7 +198,7 @@ const EndOfDay = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(23, 59, 59, 999);
-    return dateToUTCString(tomorrow);
+    return dateToUTCString(tomorrow, selectedBranchTimezone);
   };
 
   const getCombinedDateTime = (): Date | undefined => {
@@ -207,18 +236,14 @@ const EndOfDay = () => {
       return;
     }
 
-    if (selectedSections.length === 0) {
-      toast.warn('No sections selected');
-    }
-
     const selectedBranch = branchList.find(b => b.id === selectedBranchId);
     if (!selectedBranch) {
       toast.error('Selected branch not found');
       return;
     }
 
-    // Convert the date to UTC string using business timezone (null for full day)
-    const toDateUTC = isFullDay ? null : dateToUTCString(getCombinedDateTime()!);
+    // Convert the date to UTC string using branch timezone (null for full day)
+    const toDateUTC = isFullDay ? null : dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone);
 
     dispatch(submitEndOfDay({
       actionTakenBy: account?.login || 'unknown',
@@ -246,7 +271,7 @@ const EndOfDay = () => {
         toast.error('Please select an end date and time');
         return;
       }
-      toDateUTC = dateToUTCString(combinedDateTime);
+      toDateUTC = dateToUTCString(combinedDateTime, selectedBranchTimezone);
     }
 
     const newLockState = !lockOrderTaking.locked;
@@ -325,7 +350,7 @@ const EndOfDay = () => {
               <Translate contentKey="endOfDay.fromDate">From Date</Translate>
             </Label>
             <Input
-              value={loading ? 'Loading...' : fromDate ? formatDateForDisplay(fromDate) : ''}
+              value={loading ? 'Loading...' : fromDate ? formatDateForDisplay(fromDate, 'yyyy-MM-dd HH:mm:ss', selectedBranchTimezone) : ''}
               disabled
               className="h-10 text-sm bg-gray-50 border-gray-300"
               placeholder="Select branch first"
@@ -405,7 +430,7 @@ const EndOfDay = () => {
                 </div>
                 <p className="text-xs text-gray-600 mt-2 font-medium">EOD #{lastEod.number}</p>
                 {lastEod.toDateString && (
-                  <p className="text-xs text-gray-500 mt-1">{lastEod.toDateString}</p>
+                  <p className="text-xs text-gray-500 mt-1">{formatDateForDisplay(lastEod.toDateString, 'yyyy-MM-dd HH:mm:ss', selectedBranchTimezone)}</p>
                 )}
               </div>
             </div>
@@ -578,32 +603,38 @@ const EndOfDay = () => {
             </TabsList>
 
             <div className="flex-1 mt-4 min-w-0 overflow-hidden">
-              <TabsContent value="orders" className="mt-0 h-full overflow-hidden">
+              <TabsContent value="orders" className="mt-0 h-full overflow-hidden" forceMount hidden={activeTab !== 'orders'}>
                 <OrdersTab
+                  key={ordersRefetchKey}
                   branchId={selectedBranchId}
                   fromDate={fromDate}
-                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : null)}
+                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone) : null)}
                 />
               </TabsContent>
 
               {config?.endingType !== 'END_OF_DAY' && (
-                <TabsContent value="openTills" className="mt-0">
+                <TabsContent value="openTills" className="mt-0" forceMount hidden={activeTab !== 'openTills'}>
                   <OpenTillsTab branchId={selectedBranchId} />
                 </TabsContent>
               )}
 
-              <TabsContent value="sections" className="mt-0">
+              <TabsContent value="sections" className="mt-0" forceMount hidden={activeTab !== 'sections'}>
                 <SectionsTab
+                  key={selectedBranchId || 'no-branch'}
                   defaultSections={config?.defaultSelectedSections || []}
-                  onSelectionChange={setSelectedSections}
+                  onSelectionChange={(sections) => {
+                    console.log('[end-of-day.tsx] onSelectionChange callback received:', sections);
+                    setSelectedSections(sections);
+                  }}
                 />
               </TabsContent>
 
-              <TabsContent value="preview" className="mt-0">
+              <TabsContent value="preview" className="mt-0" forceMount hidden={activeTab !== 'preview'}>
                 <PreviewTab
                   branchId={selectedBranchId}
-                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!) : null)}
+                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone) : null)}
                   sections={selectedSections}
+                  branchTimezone={selectedBranchTimezone}
                 />
               </TabsContent>
             </div>

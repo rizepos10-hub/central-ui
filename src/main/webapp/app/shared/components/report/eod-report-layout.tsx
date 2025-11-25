@@ -6,9 +6,11 @@ const SHOW_ZERO_VALUES = false;
 
 interface EodReportLayoutProps {
   summary: any;
+  isEndOfDay?: boolean;
+  branchTimezone?: string;
 }
 
-export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => {
+export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEndOfDay = false, branchTimezone }) => {
   if (!summary) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -160,17 +162,17 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
 
           <div className="text-center text-xs">
             {summary.number && <p>Daily Report # {summary.number}</p>}
-            {summary.fromDateString && <p>Start: {formatDateForDisplay(summary.fromDateString, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            {summary.toDateString && <p>End: {formatDateForDisplay(summary.toDateString, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a')}</p>
+            {summary.fromDateString && <p>Start: {formatDateForDisplay(summary.fromDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.toDateString && <p>End: {formatDateForDisplay(summary.toDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>
             {summary.branchRegistry?.name && <p>Register: {summary.branchRegistry.name}</p>}
           </div>
 
           <div className="my-2"></div>
 
           <div className="text-center text-xs">
-            {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a')}</p>}
-            {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a')}</p>}
+            {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
           </div>
         </div>
 
@@ -234,13 +236,6 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
                   <td className="col-3-middle"></td>
                   <td className="col-3-right">{formatCurrency((reportData.totalSales?.discount || 0) + (reportData.totalSales?.appliedCoupon || 0))}</td>
                 </tr>
-
-                {/* Total Voids */}
-                <tr>
-                  <td className="col-3-left">Total Voids</td>
-                  <td className="col-3-middle"></td>
-                  <td className="col-3-right">{formatCurrency(reportData.totalSales?.voids)}</td>
-                </tr>
               </tbody>
             </table>
 
@@ -254,26 +249,36 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
                   <div className="my-2"></div>
                   <table>
                     <tbody>
-                      <tr>
-                        <td className="col-2-left">{payment.paymentType || 'Unknown'}</td>
-                        <td className="col-2-right">{formatCurrency(payment.received)}</td>
+                      <tr className="font-bold">
+                        <td className="col-3-left">{payment.paymentType || 'Unknown'}</td>
+                        {payment.salesOrderCount != null && payment.salesOrderCount !== 0 && (
+                          <td className="col-3-middle">{payment.salesOrderCount.toFixed(0)}</td>
+                        )}
+                        <td className="col-3-right">{formatCurrency(payment.received)}</td>
                       </tr>
                       {payment.amount !== undefined && shouldShowValue(payment.amount) && (
                         <tr>
-                          <td className="col-2-left pl-4">Sales</td>
-                          <td className="col-2-right">{formatCurrency(payment.amount)}</td>
+                          <td className="col-3-left pl-4">Sales</td>
+                          {payment.salesOrderCount != null && payment.salesOrderCount !== 0 && (
+                            <td className="col-3-middle">{payment.salesOrderCount.toFixed(0)}</td>
+                          )}
+                          <td className="col-3-right">{formatCurrency(payment.amount)}</td>
                         </tr>
                       )}
                       {payment.tip !== undefined && shouldShowValue(payment.tip) && (
                         <tr>
-                          <td className="col-2-left pl-4">Tips</td>
-                          <td className="col-2-right">{formatCurrency(payment.tip)}</td>
+                          <td className="col-3-left pl-4">Tips</td>
+                          {payment.tipOrderCount != null && payment.tipOrderCount !== 0 && (
+                            <td className="col-3-middle">{payment.tipOrderCount.toFixed(0)}</td>
+                          )}
+                          <td className="col-3-right">{formatCurrency(payment.tip)}</td>
                         </tr>
                       )}
                       {payment.refund !== undefined && shouldShowValue(payment.refund) && (
                         <tr>
-                          <td className="col-2-left pl-4">Refunds</td>
-                          <td className="col-2-right">{formatCurrency(payment.refund)}</td>
+                          <td className="col-3-left pl-4">Refunds</td>
+                          <td className="col-3-middle"></td>
+                          <td className="col-3-right">{formatCurrency(payment.refund)}</td>
                         </tr>
                       )}
                     </tbody>
@@ -284,49 +289,81 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
             <div className="my-2"></div>
 
             {/* Cash Sales Records */}
-            {(reportData.cashSales?.cashSaleRecords || [])
-              .filter((record: any) => shouldShowValue(record.amount))
-              .length > 0 && (
+            {reportData.cashSales?.cashSaleRecords && reportData.cashSales.cashSaleRecords.length > 0 && (
               <>
                 <table>
                   <tbody>
-                    {reportData.cashSales.cashSaleRecords
-                      .filter((record: any) => shouldShowValue(record.amount))
-                      .map((record: any, idx: number) => (
-                        <tr key={idx}>
-                          <td className="col-3-left">{record.title || record.label || ''}</td>
-                          <td className="col-3-middle">{record.orderCount?.toString() || ''}</td>
-                          <td className="col-3-right">{formatCurrency(Math.abs(record.amount))}</td>
-                        </tr>
-                      ))}
-                    {/* Total for Cash Sales */}
-                    <tr className="font-bold">
-                      <td className="col-3-left">Total</td>
-                      <td className="col-3-middle">
-                        {reportData.cashSales.cashSaleRecords
-                          .filter((record: any) => shouldShowValue(record.amount))
-                          .reduce((sum: number, r: any) => sum + (r.orderCount || 0), 0)}
-                      </td>
-                      <td className="col-3-right">
-                        {formatCurrency(reportData.totalSales?.grossSales)}
-                      </td>
-                    </tr>
+                    {reportData.cashSales.cashSaleRecords.map((record: any, idx: number) => (
+                      <tr key={idx}>
+                        <td className="col-3-left">{record.title || record.label || ''}</td>
+                        <td className="col-3-middle">{record.orderCount?.toString() || ''}</td>
+                        <td className="col-3-right">{formatCurrency(Math.abs(record.amount))}</td>
+                      </tr>
+                    ))}
+
+                    {/* Cash Back (if exists) */}
+                    {reportData.cashSales?.cashBack && shouldShowValue(reportData.cashSales.cashBack.amount) && (
+                      <tr>
+                        <td className="col-3-left">- {reportData.cashSales.cashBack.title || 'Cash Back'}</td>
+                        <td className="col-3-middle">{reportData.cashSales.cashBack.orderCount?.toString() || ''}</td>
+                        <td className="col-3-right">{formatCurrency(Math.abs(reportData.cashSales.cashBack.amount))}</td>
+                      </tr>
+                    )}
+
+                    {/* Tips (if exists) */}
+                    {reportData.cashSales?.tips && shouldShowValue(reportData.cashSales.tips.amount) && (
+                      <tr>
+                        <td className="col-3-left">- {reportData.cashSales.tips.title || 'Tips'}</td>
+                        <td className="col-3-middle">{reportData.cashSales.tips.orderCount?.toString() || ''}</td>
+                        <td className="col-3-right">{formatCurrency(Math.abs(reportData.cashSales.tips.amount))}</td>
+                      </tr>
+                    )}
+
+                    {/* Expected Cash */}
+                    {reportData.cashSales?.expectedTotal && (
+                      <tr className="font-bold">
+                        <td className="col-3-left">{reportData.cashSales.expectedTotal.title || 'Expected Cash'}</td>
+                        <td className="col-3-middle"></td>
+                        <td className="col-3-right">{formatCurrency(reportData.cashSales.expectedTotal.amount)}</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
+              </>
+            )}
 
-                {/* Space line */}
-                <div className="my-4"></div>
+            {/* Counted Cash and Short/Over - EOD Only */}
+            {isEndOfDay && (
+              <>
+                {/* Counted Cash */}
+                {summary.cash != null && (
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td className="col-3-left">Counted Cash</td>
+                        <td className="col-3-middle"></td>
+                        <td className="col-3-right">{formatCurrency(summary.cash)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
 
-                {/* Gross Sales with dashed border bottom */}
-                <table>
-                  <tbody>
-                    <tr className="font-bold">
-                      <td className="col-3-left border-b border-dashed border-gray-400 pb-1">Gross Sales</td>
-                      <td className="col-3-middle border-b border-dashed border-gray-400 pb-1"></td>
-                      <td className="col-3-right border-b border-dashed border-gray-400 pb-1">{formatCurrency(reportData.totalSales?.grossSales)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                {/* Short/Over */}
+                {summary.cashOverAndShortage != null && (
+                  <table>
+                    <tbody>
+                      <tr className="font-bold">
+                        <td className="col-3-left">Short/Over</td>
+                        <td className="col-3-middle"></td>
+                        <td className="col-3-right">{formatCurrency(summary.cashOverAndShortage)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+
+                {/* Space and divider after EOD fields */}
+                <div className="my-2"></div>
+                <div className="border-t border-dashed border-gray-400 my-2"></div>
               </>
             )}
 
@@ -357,7 +394,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
                           .reduce((sum: number, c: any) => sum + (c.orderQuantity || 0), 0)
                           .toFixed(0)}
                       </td>
-                      <td className="col-4-percent">100%</td>
+                      <td className="col-4-percent"></td>
                       <td className="col-4-amount">
                         {formatCurrency(
                           reportData.categorySaleSummary.categories
@@ -394,7 +431,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary }) => 
                     </tr>
                     <tr>
                       <td className="col-2-left">Voids</td>
-                      <td className="col-2-right">{formatCurrency(0)}</td>
+                      <td className="col-2-right">{formatCurrency(reportData.stats?.voids || 0)}</td>
                     </tr>
                     <tr>
                       <td className="col-2-left">Refunds</td>
