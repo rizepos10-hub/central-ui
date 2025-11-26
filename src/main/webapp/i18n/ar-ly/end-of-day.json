@@ -1,0 +1,25 @@
+{
+  "endOfDay": {
+    "title": "FG'J) 'DJHE",
+    "branch": "'DA19",
+    "fromDate": "EF *'1J.",
+    "toDate": "%DI *'1J.",
+    "toTime": "%DI HB*",
+    "actualCash": "'DFB/ 'DA9DJ",
+    "selectBranchFirst": "'D1,'! *-/J/ A19 #HD'K",
+    "selectDateFirst": "'D1,'! *-/J/ *'1J. 'DFG'J) #HD'K",
+    "noOpenTills": "D' *H,/ 5F'/JB EA*H-)",
+    "tillName": "'3E 'D5F/HB",
+    "status": "'D-'D)",
+    "selectAll": "*-/J/ 'DCD",
+    "unselectAll": "%D:'! *-/J/ 'DCD",
+    "selected": "E-//",
+    "endDay": "%FG'! 'DJHE",
+    "tabs": {
+      "orders": "'D7D('*",
+      "openTills": "'D5F'/JB 'DEA*H-)",
+      "sections": "'D#B3'E",
+      "preview": "E9'JF)"
+    }
+  }
+}

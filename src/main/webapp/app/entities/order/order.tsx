@@ -7,6 +7,7 @@ import { endOfDay, startOfDay, format } from "date-fns";
 import { debounce } from "lodash";
 import { translate } from "react-jhipster";
 import { toLocalISOString } from "app/shared/util/date-utils";
+import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
@@ -38,9 +39,13 @@ type OrderProps = {
   pageType?: 'history' | 'today' | 'scheduled';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
+  externalFromDate?: string;
+  externalToDate?: string;
+  externalBranchId?: string | null;
+  isEndOfDayMode?: boolean;
 }
 
-export const Order = ({ pageType = 'history', customer = '', appSourceProp }: OrderProps) => {
+export const Order = ({ pageType = 'history', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false }: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -96,8 +101,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
     modifiedDate: pageConfig.modifiedDate,
     filters: {
       createdDate: {
-        from: pageConfig.dateFrom,
-        to: pageConfig.dateTo,
+        from: externalFromDate || pageConfig.dateFrom,
+        to: externalToDate || pageConfig.dateTo,
       },
       id: { value: '', matchMode: 'contains' },
       byClient: { value: '', matchMode: 'contains' },
@@ -105,7 +110,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
       "customer.email": { value: '', matchMode: 'contains' },
       "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
-      branchId: { value: '', matchMode: 'equals' },
+      branchId: { value: externalBranchId || '', matchMode: 'equals' },
       tables: { value: '', matchMode: 'contains' },
       discount: { value: null, matchMode: 'equals' },
       refund: { value: null, matchMode: 'equals' }
@@ -197,6 +202,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
     header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
   }));
 
+  const shouldShowLoadingState = loading && !(isEndOfDayMode && orderList.length > 0);
+
   const handleSort = (field: string) => {
     const isAsc = lazyState.sortField === field && lazyState.sortOrder === 1;
     setLazyState(prev => ({
@@ -230,8 +237,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
         lazyState.filters.status?.value ||
         lazyState.filters.discount?.value !== null ||
         lazyState.filters.refund?.value !== null ||
-        dateRange?.from ||
-        dateRange?.to
+        (!isEndOfDayMode && (dateRange?.from || dateRange?.to)) ||
+        (isEndOfDayMode && externalFromDate && externalToDate)
       ) {
         const queryParams = {
           id: lazyState.filters._id?.value || '',
@@ -248,10 +255,14 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
           discount: lazyState.filters.discount?.value,
           refund: lazyState.filters.refund?.value,
           size: lazyState.rows,
-          fromDate: pageConfig.showDatePicker
+          fromDate: isEndOfDayMode
+            ? (externalFromDate || '')
+            : pageConfig.showDatePicker
             ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
             : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
-          toDate: pageConfig.showDatePicker
+          toDate: isEndOfDayMode
+            ? (externalToDate || '')
+            : pageConfig.showDatePicker
             ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
             : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
           modifiedDate: pageConfig.modifiedDate,
@@ -288,6 +299,26 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
         setOrderStatuses(response.payload?.map((status) => ({ label: status, value: status })));
       })
   }, []);
+
+  // Update lazyState when external dates or branch change
+  useEffect(() => {
+    if (externalFromDate || externalToDate || externalBranchId) {
+      setLazyState(prev => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          createdDate: {
+            from: externalFromDate || prev.filters.createdDate.from,
+            to: externalToDate || prev.filters.createdDate.to,
+          },
+          branchId: {
+            value: externalBranchId || prev.filters.branchId?.value || '',
+            matchMode: 'equals'
+          }
+        }
+      }));
+    }
+  }, [externalFromDate, externalToDate, externalBranchId]);
 
   // Ultra-compact react-select styles
   const selectStyles = {
@@ -331,11 +362,11 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
   };
 
   return (
-    <Card className="p-4">
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">{pageConfig.title}</CardTitle>
-          <div className="flex items-center gap-4">
+    <Card className={`${isEndOfDayMode ? 'p-0 w-full max-w-full' : 'p-4'}`}>
+      <CardHeader className={`${isEndOfDayMode ? 'pb-2 px-2 pt-2' : 'pb-4'}`}>
+        <div className="flex justify-between items-center min-w-0">
+          <CardTitle className="text-lg truncate">{pageConfig.title}</CardTitle>
+          <div className="flex items-center gap-2 flex-shrink-0">
             {UiSettingsEntity.orderConfirmation && (
               <div className="flex items-center gap-2">
                 <Label className="text-xs">Filter By Awaiting Confirmation</Label>
@@ -396,9 +427,9 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
         </div>
       </CardHeader>
 
-      <CardContent>
-        <div className="border rounded-md">
-          <Table>
+      <CardContent className={`overflow-hidden ${isEndOfDayMode ? 'px-2 pb-2' : ''}`}>
+        <div className="border rounded-md overflow-x-auto max-w-full">
+          <Table className="min-w-[1200px] w-full">
             <TableHeader>
               <TableRow>
                 {visibleColumns.orderId && (
@@ -431,39 +462,46 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
                     <div className="space-y-1">
                       <div
                         className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('branchId')}
+                        onClick={() => !isEndOfDayMode && handleSort('branchId')}
                       >
-                        {translate('orders.view.table.fields.branch')} {getSortIcon('branchId')}
+                        {translate('orders.view.table.fields.branch')} {!isEndOfDayMode && getSortIcon('branchId')}
                       </div>
-                      <Select
-                        styles={selectStyles}
-                        value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
-                        options={filteredBranchOptions}
-                        isClearable
-                        onChange={(option) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              branchId: { value: option?.value || '', matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder={translate('orders.view.table.filters.branch')}
-                      />
+                      {!isEndOfDayMode && (
+                        <Select
+                          styles={selectStyles}
+                          value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
+                          options={filteredBranchOptions}
+                          isClearable
+                          onChange={(option) =>
+                            setLazyState((prevState) => ({
+                              ...prevState,
+                              filters: {
+                                ...prevState.filters,
+                                branchId: { value: option?.value || '', matchMode: 'equals' },
+                              },
+                            }))
+                          }
+                          placeholder={translate('orders.view.table.filters.branch')}
+                        />
+                      )}
+                      {isEndOfDayMode && externalBranchId && (
+                        <div className="text-xs text-muted-foreground">
+                          {getBranchName(externalBranchId)}
+                        </div>
+                      )}
                     </div>
                   </TableHead>
                 )}
                 {visibleColumns.OrderDate && (
-                  <TableHead>
+                  <TableHead className="min-w-[140px]">
                     <div className="space-y-1">
                       <div
                         className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => pageConfig.showDatePicker && handleSort('createdDate')}
+                        onClick={() => pageConfig.showDatePicker && !isEndOfDayMode && handleSort('createdDate')}
                       >
-                        {translate('orders.view.table.fields.date')} {pageConfig.showDatePicker && getSortIcon('createdDate')}
+                        {translate('orders.view.table.fields.date')} {pageConfig.showDatePicker && !isEndOfDayMode && getSortIcon('createdDate')}
                       </div>
-                      {pageConfig.showDatePicker && (
+                      {pageConfig.showDatePicker && !isEndOfDayMode && (
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="h-7 text-xs w-full justify-start">
@@ -490,6 +528,11 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
                             />
                           </PopoverContent>
                         </Popover>
+                      )}
+                      {isEndOfDayMode && externalFromDate && externalToDate && (
+                        <div className="text-[10px] text-muted-foreground leading-tight whitespace-nowrap">
+                          {format(new Date(externalFromDate), "MMM dd")} - {format(new Date(externalToDate), "MMM dd, yyyy")}
+                        </div>
                       )}
                     </div>
                   </TableHead>
@@ -694,7 +737,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {shouldShowLoadingState ? (
                 <TableRow>
                   <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
                     Loading...
@@ -725,7 +768,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp }: Or
                     )}
                     {visibleColumns.OrderDate && (
                       <TableCell className="text-xs">
-                        {order.createdDate && new Date(order.createdDate).toLocaleString()}
+                        {order.createdDate && formatDateForDisplay(order.createdDate)}
                       </TableCell>
                     )}
                     {visibleColumns.orderStatus && (

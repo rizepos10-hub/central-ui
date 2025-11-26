@@ -3,6 +3,7 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import axios from "axios";
 import { format, addDays, addMonths } from 'date-fns';
 import { useAppDispatch, useAppSelector } from "app/config/store";
+import { dateToUTCString, formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 import { translate, Translate } from "react-jhipster";
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
@@ -31,6 +32,7 @@ const SalesSummaryReport = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   // const [billsSummary, setBillsSummary] = useState<any>(null);
   const branchList = useAppSelector(state => state.branch.entities);
+  const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
   const sourceTypeOptions = [
     { label: "Both", value: null },
@@ -118,8 +120,17 @@ const SalesSummaryReport = () => {
     }
     try {
       setLoading(true);
-      const formattedFromDate = fromDateToUse.toISOString();
-      const formattedToDate = toDateToUse.toISOString();
+
+      const formattedFromDate = dateToUTCString(fromDateToUse);
+      const formattedToDate = dateToUTCString(toDateToUse);
+
+      console.log('=== Date Conversion ===');
+      console.log('Business timezone:', businessTimeZone);
+      console.log('From date (raw):', fromDateToUse);
+      console.log('From date (formatted):', formattedFromDate);
+      console.log('To date (raw):', toDateToUse);
+      console.log('To date (formatted):', formattedToDate);
+
       const formData = new FormData();
       formData.append('fromDate', formattedFromDate);
       formData.append('toDate', formattedToDate);
@@ -142,8 +153,12 @@ const SalesSummaryReport = () => {
     if (branchList && fromDate && toDate) {
       const promises = branchList.map(async (branch) => {
         const formData = new FormData();
-        formData.append('fromDate', fromDate.toISOString());
-        formData.append('toDate', toDate.toISOString());
+
+        const formattedFromDate = dateToUTCString(fromDate);
+        const formattedToDate = dateToUTCString(toDate);
+
+        formData.append('fromDate', formattedFromDate);
+        formData.append('toDate', formattedToDate);
         if (selectedSource) formData.append('source', selectedSource);
         if (selectedDay) formData.append('dayOfWeek', selectedDay);
         formData.append('branch', branch?.id);
@@ -159,8 +174,8 @@ const SalesSummaryReport = () => {
 
       exportExcelEodSummaryReport(
         selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
-        fromDate.toLocaleString(),
-        toDate.toLocaleString(),
+        formatDateForDisplay(fromDate),
+        formatDateForDisplay(toDate),
         'Sales Summary Report'
       )
     }

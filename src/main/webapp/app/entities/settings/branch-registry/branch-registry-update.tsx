@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, ArrowLeft } from 'lucide-react';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boolean }) => {
   const dispatch = useAppDispatch();
@@ -73,7 +74,7 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
             <strong>Branch:</strong> {branchRegistry.branch?.name}
           </p>
           <p>
-            <strong>Last Online:</strong> {new Date(branchRegistry.lastOnline).toLocaleString()}
+            <strong>Last Online:</strong> {formatDateForDisplay(branchRegistry.lastOnline)}
           </p>
           {branchRegistry?.openTill && (
             <div>

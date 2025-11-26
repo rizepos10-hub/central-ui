@@ -26,6 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { format } from 'date-fns';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const initialState = {
   first: 0,
@@ -266,7 +267,7 @@ export const PurchaseOrder = () => {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
                           <CalendarIcon className="h-3 w-3 mr-1" />
-                          {query?.filters?.datePlaced?.value ? format(new Date(query.filters.datePlaced.value), 'PP') : translate('common.search.datePlaced')}
+                          {query?.filters?.datePlaced?.value ? formatDateForDisplay(query.filters.datePlaced.value, 'PP') : translate('common.search.datePlaced')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -287,7 +288,7 @@ export const PurchaseOrder = () => {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
                           <CalendarIcon className="h-3 w-3 mr-1" />
-                          {query?.filters?.dateDelivered?.value ? format(new Date(query.filters.dateDelivered.value), 'PP') : translate('common.search.dateDelivered')}
+                          {query?.filters?.dateDelivered?.value ? formatDateForDisplay(query.filters.dateDelivered.value, 'PP') : translate('common.search.dateDelivered')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">

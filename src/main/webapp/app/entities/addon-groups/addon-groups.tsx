@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Trash2, RotateCcw } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
-import { searchEntities } from 'app/entities/addon-groups/addon-groups.reducer';
+import { searchEntities, archiveEntities, unArchiveEntities, purgeEntities } from 'app/entities/addon-groups/addon-groups.reducer';
 import _ from 'lodash';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import Select from 'app/shared/components/select/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 
 const initialState = {
   first: 0,
@@ -26,6 +29,7 @@ const initialState = {
   filters: {
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     groupId: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    isArchived: { value: false, matchMode: FilterMatchMode.EQUALS },
   },
 };
 
@@ -34,6 +38,11 @@ export const AddonGroups = () => {
   const navigate = useNavigate();
 
   const [localNameFilter, setLocalNameFilter] = useState("");
+  const [selectedItems, setSelectedItems] = useState<IAddonGroup[]>([]);
+  const [itemsToAction, setItemsToAction] = useState<IAddonGroup[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPurgeDialog, setShowPurgeDialog] = useState(false);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
 
   const addonList = useAppSelector(state => state.addonGroups.entities);
   const loading = useAppSelector(state => state.addonGroups.loading);
@@ -89,6 +98,49 @@ export const AddonGroups = () => {
     setSearchParams({ query: queryParams }, { replace: true });
   };
 
+  const handleIsArchivedChange = (value: boolean) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      page: 0,
+      first: 0,
+      filters: {
+        ...query.filters,
+        isArchived: { value, matchMode: FilterMatchMode.EQUALS }
+      }
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const handleItemsDelete = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(archiveEntities({
+      ids: itemsToAction.map(p => p.id),
+      query: updatedQuery,
+    }));
+    setSelectedItems([]);
+    setShowDeleteDialog(false);
+  };
+
+  const handlePurgeItems = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(purgeEntities({
+      ids: itemsToAction.map(item => item.id),
+      query: updatedQuery
+    }));
+    setSelectedItems([]);
+    setShowPurgeDialog(false);
+  };
+
+  const handleUnArchiveItems = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(unArchiveEntities({
+      ids: itemsToAction.map(item => item.id),
+      query: updatedQuery
+    }));
+    setSelectedItems([]);
+    setShowRestoreDialog(false);
+  };
+
   const filteredList = addonList;
 
   return (
@@ -100,25 +152,41 @@ export const AddonGroups = () => {
               <Translate contentKey={'common.addonGroups'}>Addon Groups</Translate>
             </h2>
             <div className="flex gap-2">
-              <ImportButton type={'ADDON_GROUPS'} />
+              {!query?.filters?.isArchived?.value ? (
+                <>
+                  <ImportButton type={'ADDON_GROUPS'} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={handleSyncList}
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                    {translate('common.refreshList')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={handleCreate}
+                    disabled={loading}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    {translate('tempApp.addonGroup.createNewAddonGroup')}
+                  </Button>
+                </>
+              ) : (
+                <h4 className="text-center text-destructive text-sm font-semibold">
+                  Now viewing Recycle Bin
+                </h4>
+              )}
               <Button
-                variant="outline"
                 size="sm"
+                variant={query?.filters?.isArchived?.value ? "default" : "outline"}
                 className="h-8 text-xs"
-                onClick={handleSyncList}
-                disabled={loading}
+                onClick={() => handleIsArchivedChange(!query?.filters?.isArchived?.value)}
               >
-                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
-                {translate('common.refreshList')}
-              </Button>
-              <Button
-                size="sm"
-                className="h-8 text-xs"
-                onClick={handleCreate}
-                disabled={loading}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                {translate('tempApp.addonGroup.createNewAddonGroup')}
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -127,6 +195,18 @@ export const AddonGroups = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
+                <TableHead className="w-12 p-2">
+                  <Checkbox
+                    checked={selectedItems.length === filteredList.length && filteredList.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedItems(filteredList);
+                      } else {
+                        setSelectedItems([]);
+                      }
+                    }}
+                  />
+                </TableHead>
                 <TableHead className="text-xs h-8 font-semibold p-2">
                   {translate('common.name')}
                 </TableHead>
@@ -134,10 +214,7 @@ export const AddonGroups = () => {
                   {translate('tempApp.addon.addons')}
                 </TableHead>
                 <TableHead className="text-xs h-8 font-semibold p-2">
-                  {translate('common.edit')}
-                </TableHead>
-                <TableHead className="text-xs h-8 font-semibold p-2">
-                  {translate('common.delete')}
+                  {translate('common.actions')}
                 </TableHead>
               </TableRow>
               <TableRow>
@@ -180,31 +257,78 @@ export const AddonGroups = () => {
               ) : (
                 filteredList.map((addonGroup, idx) => {
                   const editUrl = `/addon-groups/${addonGroup.id}/edit`;
-                  const deleteUrl = `/addon-groups/${addonGroup.id}/delete`;
+                  const isSelected = selectedItems.some(item => item.id === addonGroup.id);
 
                   return (
                     <TableRow key={idx}>
+                      <TableCell className="p-2">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedItems([...selectedItems, addonGroup]);
+                            } else {
+                              setSelectedItems(selectedItems.filter(item => item.id !== addonGroup.id));
+                            }
+                          }}
+                        />
+                      </TableCell>
                       <TableCell className="text-xs p-2">
                         <Link to={editUrl} className="text-primary hover:underline">
                           {addonGroup.name}
                         </Link>
                       </TableCell>
                       <TableCell className="text-xs p-2">
-                        {addonGroup.addons?.map(addon => addon.name).join(" | ")}
+                        {addonGroup.addons?.map(addon => addon?.name).join(" | ")}
                       </TableCell>
                       <TableCell className="text-xs p-2">
-                        <Link to={editUrl}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Pencil className="h-3 w-3 text-muted-foreground" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-xs p-2">
-                        <Link to={deleteUrl}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </Link>
+                        <div className="flex gap-1">
+                          {!query?.filters?.isArchived?.value ? (
+                            <>
+                              <Link to={editUrl}>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setItemsToAction([addonGroup]);
+                                  setShowDeleteDialog(true);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setItemsToAction([addonGroup]);
+                                  setShowRestoreDialog(true);
+                                }}
+                              >
+                                <RotateCcw className="h-3 w-3 text-blue-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setItemsToAction([addonGroup]);
+                                  setShowPurgeDialog(true);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -245,8 +369,106 @@ export const AddonGroups = () => {
               </div>
             </div>
           </div>
+
+          {selectedItems.length > 0 && (
+            <div className="flex items-center gap-2 p-2 border-t bg-muted/50">
+              <span className="text-xs text-muted-foreground">
+                {selectedItems.length} item(s) selected
+              </span>
+              {!query?.filters?.isArchived?.value ? (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    setItemsToAction(selectedItems);
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Archive Selected
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setItemsToAction(selectedItems);
+                      setShowRestoreDialog(true);
+                    }}
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    Restore Selected
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setItemsToAction(selectedItems);
+                      setShowPurgeDialog(true);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Purge Selected
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Addon Groups</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive {itemsToAction.length} addon group(s)?
+              You can restore them from the recycle bin later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleItemsDelete}>Archive</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore Addon Groups</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to restore {itemsToAction.length} addon group(s)?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnArchiveItems}>Restore</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showPurgeDialog} onOpenChange={setShowPurgeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently Delete Addon Groups</AlertDialogTitle>
+            <AlertDialogDescription className="text-destructive font-semibold">
+              Warning: This will permanently delete {itemsToAction.length} addon group(s).
+              This action cannot be undone!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePurgeItems} className="bg-destructive">
+              Permanently Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageWrapper>
   );
 };

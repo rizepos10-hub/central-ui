@@ -49,6 +49,7 @@ export interface IBranchDetails {
   logo?: IAttachment;
   ebteligible?: boolean;
   pages?: ISeoPages
+  timeZone?: string;
 }
 
 export interface ISeoPages {

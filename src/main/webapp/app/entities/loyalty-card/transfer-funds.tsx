@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppDispatch } from 'app/config/store';
 import { searchEntities, transferFundsFromCard } from './loyalty-card.reducer';
-import AsyncSelect from 'react-select/async';
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { toast } from 'react-toastify';
 import { FilterMatchMode } from 'primereact/api';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';

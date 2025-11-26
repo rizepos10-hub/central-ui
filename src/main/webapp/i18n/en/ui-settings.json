@@ -72,6 +72,16 @@
         "fontWeight": "Font Weight",
         "lineHeight": "Line Height",
         "letterSpacing": "Letter Spacing"
+      },
+      "scriptSnippets": {
+        "title": "Script Snippets",
+        "addSnippet": "Add Snippet",
+        "removeSnippet": "Remove Snippet",
+        "snippetTitle": "Title",
+        "snippetActive": "Active",
+        "snippetContent": "JavaScript Code",
+        "noSnippets": "No script snippets yet",
+        "description": "Add custom JavaScript snippets to your online ordering page (e.g., analytics, chat widgets)"
       }
     }
   }

@@ -10,6 +10,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Button } from 'primereact/button';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const PrintBill = () => {
     const ref = useRef(null);
@@ -54,7 +55,7 @@ const PrintBill = () => {
                                             />
                                         </td>
                                         <td>
-                                            Date : {new Date(billEntity?.createdDate).toLocaleString()}<br />
+                                            Date : {formatDateForDisplay(billEntity?.createdDate)}<br />
                                             {/* Due: February 1, 2023 */}
                                         </td>
                                     </tr>
@@ -91,7 +92,7 @@ const PrintBill = () => {
                         {billEntity?.paymentTransactions?.map((item, index) => (
                             <tr key={index} className={styles.item}>
                                 <td>{orderEntity?.sequenceNumber}</td>
-                                <td>{new Date(item.createdDate).toLocaleString()}</td>
+                                <td>{formatDateForDisplay(item.createdDate)}</td>
                                 <td>{item.amount.toFixed(2)}</td>
                             </tr>
                         ))}

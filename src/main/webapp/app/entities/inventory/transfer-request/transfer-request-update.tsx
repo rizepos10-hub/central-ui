@@ -14,13 +14,14 @@ import { searchEntities as getStockItems } from "app/entities/inventory/stock-co
 import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import Select from 'app/shared/components/select/select';
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { ISupplier } from 'app/shared/model/STOCK/supplier.model';
 import { CostLine, IPurchaseOrder } from 'app/shared/model/STOCK/purchase-order.model';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { format } from 'date-fns';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -324,7 +325,7 @@ export const TransferRequestUpdate = () => {
                               loadOptions={loadItems}
                               defaultOptions={filteredStockItems}
                               getOptionValue={option => option.variantId}
-                              getOptionLabel={option => option.itemName}
+                              getOptionLabel={option => `${option.itemName}${option?.variant?.name ? ` / ${option.variant.name}` : ''}`}
                               onChange={handleSelectItem}
                               value={transferRequestItem?.item || null}
                               isDisabled={isDisabled}
@@ -536,7 +537,7 @@ export const TransferRequestUpdate = () => {
                           <TableCell className="text-xs">{item.supplier?.name}</TableCell>
                           <TableCell className="text-xs">{item.cost}</TableCell>
                           <TableCell className="text-xs">
-                            {item.costDate ? format(new Date(item.costDate), 'yyyy-MM-dd') : ''}
+                            {item.costDate ? formatDateForDisplay(item.costDate, 'yyyy-MM-dd') : ''}
                           </TableCell>
                           <TableCell className="text-xs">{item.comment}</TableCell>
                           {!isDisabled && (

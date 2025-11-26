@@ -3,6 +3,7 @@ import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import React, { useEffect, useState } from 'react';
 import PaginationFilterStateVals from '../pagination/pagination-filter-state-vals';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,7 +47,7 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
                         {bills.map((b, idx) => (
                             <TableRow key={idx}>
                                 <TableCell className="text-xs">{b.sequenceNumber}</TableCell>
-                                <TableCell className="text-xs">{new Date(b.dateTime).toLocaleString()}</TableCell>
+                                <TableCell className="text-xs">{formatDateForDisplay(b.dateTime)}</TableCell>
                                 <TableCell className="text-xs text-right">{b.total}</TableCell>
                             </TableRow>
                         ))}

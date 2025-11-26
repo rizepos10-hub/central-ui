@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
 import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails, DeliveryTaggingModeEnum } from 'app/shared/model/business-detail.model';
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import allTimeZones from '../../../content/samples/all_time_zones.json';
 
 export enum AddressTypesEnum {
   "premise" = "premise",
@@ -310,6 +311,17 @@ export const Branches = () => {
     }));
   }
 
+  const handleTimeZoneChange = (selectedTimeZone, branchIndex) => {
+    setBusinessDetailsState((prev) => ({
+      ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
+        if (i === branchIndex) {
+          return { ...branch, timeZone: selectedTimeZone?.ZoneId || null };
+        }
+        return branch;
+      })
+    }));
+  };
+
   const handleEndingTypeChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].endingType = value;
@@ -548,6 +560,21 @@ export const Branches = () => {
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
                       onChange={(e) => handleZoneChange(e, activeIndex)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="font-bold text-xs">Time Zone</Label>
+                    <Select
+                      value={allTimeZones.find(tz => tz.ZoneId === branch.timeZone)}
+                      options={allTimeZones}
+                      getOptionLabel={option => `${option.Continent}/${option.City} (${option.ZoneId})`}
+                      getOptionValue={option => option.ZoneId}
+                      onChange={(selectedTz) => handleTimeZoneChange(selectedTz, branchIndex)}
+                      placeholder="Select time zone..."
+                      isClearable
+                      isSearchable
                       className="text-xs"
                     />
                   </div>

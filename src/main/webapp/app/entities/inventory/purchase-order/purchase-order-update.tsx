@@ -14,7 +14,7 @@ import {  getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import {  getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
 import {toLocalISOString} from "app/shared/util/date-utils";
@@ -25,6 +25,7 @@ import AuditLogs from "app/shared/components/logs/audit-logs";
 import { format } from 'date-fns';
 import { formatVariant } from 'app/shared/util/variant-utils';
 import { Loader2, CalendarIcon } from 'lucide-react';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -402,7 +403,7 @@ export const PurchaseOrderUpdate = () => {
                       />
                     </div>
                   </div>
-
+{/* 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="delivery" className="text-xs whitespace-nowrap">
@@ -431,7 +432,7 @@ export const PurchaseOrderUpdate = () => {
                         className="h-8 text-xs"
                       />
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -442,7 +443,7 @@ export const PurchaseOrderUpdate = () => {
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
-                            {purchaseOrder.datePlaced ? format(new Date(purchaseOrder.datePlaced), 'PP') : 'Pick date'}
+                            {purchaseOrder.datePlaced ? formatDateForDisplay(purchaseOrder.datePlaced, 'PP') : 'Pick date'}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -463,7 +464,7 @@ export const PurchaseOrderUpdate = () => {
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
-                            {purchaseOrder.dateDelivered ? format(new Date(purchaseOrder.dateDelivered), 'PP') : 'Pick date'}
+                            {purchaseOrder.dateDelivered ? formatDateForDisplay(purchaseOrder.dateDelivered, 'PP') : 'Pick date'}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -550,7 +551,7 @@ export const PurchaseOrderUpdate = () => {
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
                                 <CalendarIcon className="h-3 w-3 mr-1" />
-                                {purchaseOrderLine?.deliveryDate ? format(new Date(purchaseOrderLine.deliveryDate), 'PP') : 'Pick'}
+                                {purchaseOrderLine?.deliveryDate ? formatDateForDisplay(purchaseOrderLine.deliveryDate, 'PP') : 'Pick'}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -669,7 +670,7 @@ export const PurchaseOrderUpdate = () => {
                               )}
                             </TableCell>
                             <TableCell className="text-xs">
-                              {line.deliveryDate ? format(new Date(line.deliveryDate), 'yyyy-MM-dd') : ''}
+                              {line.deliveryDate ? formatDateForDisplay(line.deliveryDate, 'yyyy-MM-dd') : ''}
                             </TableCell>
                             <TableCell className="text-xs">{line.price * line.quantity}</TableCell>
                             {!isDisabled && (

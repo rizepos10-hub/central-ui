@@ -10,6 +10,7 @@ import { getReportData } from './retail-dashboard.reducer';
 import { List, Grid2X2, Grid3X3, Grid } from 'lucide-react';
 import { addMinutes, format } from 'date-fns';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -363,7 +364,7 @@ const GeneralChart: React.FC<GeneralChartProps> = ({ title, labels, dataset }) =
             legend: { display: false },
             tooltip: {
                 callbacks: {
-                    label: (tooltipItem: any) => `$${tooltipItem.raw.toLocaleString()}`
+                    label: (tooltipItem: any) => `$${tooltipItem.raw.toFixed(2)}`
                 }
             }
         },

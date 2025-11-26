@@ -1,0 +1,25 @@
+{
+  "endOfDay": {
+    "title": "Fin de Journ�e",
+    "branch": "Succursale",
+    "fromDate": "Date de d�but",
+    "toDate": "Date de fin",
+    "toTime": "Heure de fin",
+    "actualCash": "Esp�ces r�elles",
+    "selectBranchFirst": "Veuillez d'abord s�lectionner une succursale",
+    "selectDateFirst": "Veuillez d'abord s�lectionner une date de fin",
+    "noOpenTills": "Aucune caisse ouverte trouv�e",
+    "tillName": "Nom de la caisse",
+    "status": "Statut",
+    "selectAll": "Tout s�lectionner",
+    "unselectAll": "Tout d�s�lectionner",
+    "selected": "s�lectionn�",
+    "endDay": "Fin de Journ�e",
+    "tabs": {
+      "orders": "Commandes",
+      "openTills": "Caisses ouvertes",
+      "sections": "Sections",
+      "preview": "Aper�u"
+    }
+  }
+}

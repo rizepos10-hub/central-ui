@@ -631,16 +631,36 @@ export const RegularItem = () => {
               )}
               {visibleColumns.image && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.image')}</TableHead>}
               {visibleColumns.menus && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.menus')}</TableHead>}
-              {visibleColumns.desc && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.description")}</TableHead>}
+              {visibleColumns.desc && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('desc')}>
+                  {translate("items.view.fields.description")}
+                  {getSortIcon('desc')}
+                </TableHead>
+              )}
               {visibleColumns.productionCenter && (
                 <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('productionCenter.id')}>
                   {translate("items.view.fields.productionCenter")}
                   {getSortIcon('productionCenter.id')}
                 </TableHead>
               )}
-              {visibleColumns.addonGroups && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.addOnGroups")}</TableHead>}
-              {visibleColumns.tags && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.tags")}</TableHead>}
-              {visibleColumns.discounts && <TableHead className="text-xs h-8 font-semibold p-2">{translate("items.view.fields.discounts")}</TableHead>}
+              {visibleColumns.addonGroups && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('addonGroups.addonGroup.id')}>
+                  {translate("items.view.fields.addOnGroups")}
+                  {getSortIcon('addonGroups.addonGroup.id')}
+                </TableHead>
+              )}
+              {visibleColumns.tags && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('tags.id')}>
+                  {translate("items.view.fields.tags")}
+                  {getSortIcon('tags.id')}
+                </TableHead>
+              )}
+              {visibleColumns.discounts && (
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('discounts.id')}>
+                  {translate("items.view.fields.discounts")}
+                  {getSortIcon('discounts.id')}
+                </TableHead>
+              )}
               <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.actions')}</TableHead>
             </TableRow>
             <TableRow>

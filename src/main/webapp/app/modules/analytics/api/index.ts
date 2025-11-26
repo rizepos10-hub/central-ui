@@ -4,11 +4,9 @@ import axios from 'axios';
 
 // api/report/sales
 
-export const fetchSalesReport = async ({ dateRange, measure, type }) => {
+export const fetchSalesReport = async ({ dateRange, measure, type, branchId = null }) => {
   try {
     const { from, to, dateSlot } = dateRange;
-
-
 
     const requestData = {
       dateRange: {
@@ -18,6 +16,7 @@ export const fetchSalesReport = async ({ dateRange, measure, type }) => {
       },
       measure,
       type,
+      branchId,
     };
 
     const response = await axios.post('api/report/sales', requestData, {

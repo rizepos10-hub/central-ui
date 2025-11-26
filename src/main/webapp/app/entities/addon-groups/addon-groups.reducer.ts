@@ -79,6 +79,64 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const archiveEntity = createAsyncThunk(
+  'addon-groups/archive_entity',
+  async (id: string | number, thunkAPI) => {
+    const requestUrl = `${apiUrl}/${id}/archive`;
+    const result = await axios.patch<IAddonGroup>(requestUrl);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const archiveEntities = createAsyncThunk(
+  'addon-groups/archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/archive`;
+    const result = await axios.patch<IAddonGroup>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(searchEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unArchiveEntities = createAsyncThunk(
+  'addon-groups/unarchive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/un-archive`;
+    const result = await axios.patch<IAddonGroup>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(searchEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const purgeEntities = createAsyncThunk(
+  'addon-groups/purge_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IAddonGroup>(requestUrl, {
+      data: { ids }
+    });
+    thunkAPI.dispatch(searchEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const updateAddons = createAsyncThunk(
   'addon-groups/update_addons',
   async ({ id, addonGroupId, addons }: { id: string | number; addonGroupId: string; addons: any[] }, thunkAPI) => {
@@ -130,7 +188,7 @@ export const AddonGroupsSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity /* , exportEntities */), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, archiveEntities, unArchiveEntities, purgeEntities /* , exportEntities */), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -142,12 +200,12 @@ export const AddonGroupsSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, archiveEntity, archiveEntities, unArchiveEntities, purgeEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity /* , exportEntities */), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, archiveEntity, archiveEntities, unArchiveEntities, purgeEntities /* , exportEntities */), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

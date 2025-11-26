@@ -73,7 +73,7 @@
     "prefer-const": "error",
     "object-shorthand": "off",
     "default-case": "error",
-    "complexity": ["warn", 60],
+    "complexity": "off",
     "no-invalid-this": "off",
     "react/prop-types": "off",
     "react/display-name": "off",

@@ -21,7 +21,7 @@ const initialState: SalesReportState = {
 
 export const fetchSalesReportRedux = createAsyncThunk(
   'sales_report/fetch_sales_report',
-  async ({ dateRange, measure, type }: { dateRange: any; measure: string; type: string }) => {
+  async ({ dateRange, measure, type, branchId }: { dateRange: any; measure: string; type: string; branchId?: string | null }) => {
     try {
       const { from, to, dateSlot } = dateRange;
 
@@ -33,6 +33,7 @@ export const fetchSalesReportRedux = createAsyncThunk(
         },
         measure,
         type,
+        branchId: branchId || null,
       };
 
       const response = await axios.post<ISalesReport>(apiUrl, requestData, {

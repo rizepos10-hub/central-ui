@@ -11,6 +11,7 @@ import { IMenu } from 'app/shared/model/menu.model';
 import { searchEntities, getEntities, createEntity, sendEvents } from './menu.reducer';
 import { format } from "date-fns";
 import MenuUpdate from './menu-update';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { convertDateTimeToServer } from 'app/shared/util/date-utils';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IAttachment } from 'app/shared/model/attachment.model';
@@ -214,7 +215,7 @@ export const Menu = () => {
           </Button>
         );
       },
-      cell: ({ row }) => <span className="text-xs">{row.original.lastModifiedDate ? format(new Date(row.original.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss') : '-'}</span>,
+      cell: ({ row }) => <span className="text-xs">{row.original.lastModifiedDate ? formatDateForDisplay(row.original.lastModifiedDate) : '-'}</span>,
     },
     {
       id: 'actions',

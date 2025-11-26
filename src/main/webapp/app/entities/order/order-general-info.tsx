@@ -5,6 +5,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {IBranch} from "app/shared/model/branch.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import { Tag } from "primereact/tag";
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const OrderGeneralInfo = ({order}) => {
   const dispatch = useAppDispatch();
@@ -48,7 +49,7 @@ const OrderGeneralInfo = ({order}) => {
       <tbody>
         <tr >
           <td>
-            {order?.createdDate}
+            {formatDateForDisplay(order?.createdDate)}
           </td>
           <td>
             {order?.createdBy}

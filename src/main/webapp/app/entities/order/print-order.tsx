@@ -7,6 +7,7 @@ import { getEntity as getSettings } from "app/entities/online-ordering/settings/
 import styles from './print-order.module.css';
 import { useReactToPrint } from 'react-to-print';
 import { Button } from 'primereact/button';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 const PrintOrder = () => {
     const ref = useRef(null);
@@ -114,7 +115,7 @@ const PrintOrder = () => {
                                         </td>
                                         <td>
                                             Invoice #: {orderEntity?.sequenceNumber}<br />
-                                            Created: {new Date(orderEntity?.createdDate).toLocaleString()}<br />
+                                            Created: {formatDateForDisplay(orderEntity?.createdDate)}<br />
                                             {/* Due: February 1, 2023 */}
                                         </td>
                                     </tr>

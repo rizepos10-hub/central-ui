@@ -51,6 +51,7 @@ import { cancelBooking, createBooking, updateBooking } from './delivery.reducer'
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -272,7 +273,7 @@ export const OrderDetail = () => {
         </Button>
         <h1 className="text-lg font-semibold">
           #{orderEntity?.sequenceNumber} - <span className="font-normal text-muted-foreground">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
-          <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? new Date(filteredOrderEntity.createdDate).toDateString() : ''}</span>
+          <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}</span>
         </h1>
       </div>
       <div ref={pagePrintRef}>
@@ -355,7 +356,7 @@ export const OrderDetail = () => {
                     <div className="flex items-center gap-2">
                       <label className="font-medium">Order time:</label>
                       <span>
-                        {filteredOrderEntity.createdDate ? new Date(filteredOrderEntity.createdDate).toDateString() : ''}
+                        {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -535,7 +536,7 @@ export const OrderDetail = () => {
                   </CardHeader>
                   <CardContent className="text-xs">
                     <div className="flex flex-col gap-2">
-                      <div>{new Date(orderEntity.orderDeliveryDetails?.date).toLocaleString()}</div>
+                      <div>{formatDateForDisplay(orderEntity.orderDeliveryDetails?.date)}</div>
                       <div>{orderEntity.orderDeliveryDetails?.driverInformation?.name}</div>
                       <div>{orderEntity.orderDeliveryDetails?.driverInformation?.phone}</div>
                       <div>
@@ -549,7 +550,7 @@ export const OrderDetail = () => {
                         </a>
                       </div>
                       <div>
-                        Expected Arrival At: {new Date(orderEntity.orderDeliveryDetails?.expectedArrivalAt).toLocaleString()}
+                        Expected Arrival At: {formatDateForDisplay(orderEntity.orderDeliveryDetails?.expectedArrivalAt)}
                       </div>
                       <div>
                         {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}
@@ -674,13 +675,7 @@ export const OrderDetail = () => {
                               </div>
                               <div className="flex items-center gap-4">
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(bill.dateTime).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {formatDateForDisplay(bill.dateTime, 'MMM d, yyyy HH:mm')}
                                 </span>
                                 <span className="font-semibold text-sm">${bill?.total?.toFixed(2)}</span>
                               </div>

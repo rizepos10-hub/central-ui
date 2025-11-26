@@ -91,6 +91,64 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const archiveEntity = createAsyncThunk(
+  'addon/archive_entity',
+  async (id: string | number, thunkAPI) => {
+    const requestUrl = `${apiUrl}/${id}/archive`;
+    const result = await axios.patch<IAddon>(requestUrl);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const archiveEntities = createAsyncThunk(
+  'addon/archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/archive`;
+    const result = await axios.patch<IAddon>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unArchiveEntities = createAsyncThunk(
+  'addon/unarchive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/un-archive`;
+    const result = await axios.patch<IAddon>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const purgeEntities = createAsyncThunk(
+  'addon/purge_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IAddon>(requestUrl, {
+      data: { ids }
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const exportEntities = createAsyncThunk(
   'addon/export_entities',
   async (ids: Array<string>, thunkAPI) => {
@@ -152,18 +210,18 @@ export const AddonSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, exportEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities, archiveEntity, archiveEntities, unArchiveEntities, purgeEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, exportEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, archiveEntity, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

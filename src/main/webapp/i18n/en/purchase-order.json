@@ -32,6 +32,7 @@
       "returnItems": "Return Items",
       "splitAndComplete": "Split & Complete Order",
       "PLACED": "PLACED",
+      "RECEIVED": "RECEIVED",
       "costPrice": "Cost Price",
       "receivedQuantity": "Received Quantity"
     }

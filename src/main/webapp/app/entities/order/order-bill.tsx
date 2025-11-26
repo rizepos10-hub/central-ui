@@ -4,6 +4,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from "primereact/column";
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 interface OrderBills {
   list: any;
@@ -77,7 +78,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
               ? `${orderedItem.discount.value}%` : `$${orderedItem.discount.value.toFixed(2)}`)
               : '-',
             total: total.toFixed(2),
-            date: format(new Date(bill.dateTime), 'MMMM dd, yyyy'),
+            date: formatDateForDisplay(bill.dateTime, 'MMMM dd, yyyy'),
           },
           children: orderedItem.addons.map(transformAddonToTreeNode),
         };

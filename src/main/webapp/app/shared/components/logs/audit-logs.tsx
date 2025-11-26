@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {IAuditLog} from "app/shared/model/audit-log.model";
 import {getEntityLogs} from "app/shared/components/logs/audit-logs.reducer";
-import {convertUtcToLocalDate} from "app/shared/util/date-utils";
+import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { Translate } from "react-jhipster";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -137,7 +137,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
                 <div className="font-semibold">{log.action}</div>
 
                 <div className="text-muted-foreground">
-                  {convertUtcToLocalDate(log.occurredAt)}
+                  {formatDateForDisplay(log.occurredAt)}
                 </div>
 
                 <div className="text-muted-foreground">{log.actor}</div>

@@ -28,6 +28,7 @@ import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { ScriptSnippets } from './components/script-snippets';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -183,6 +184,7 @@ export const UiSettingsUpdate = () => {
                   <TabsTrigger value="order" className="text-xs">Order / SEO</TabsTrigger>
                   <TabsTrigger value="ui" className="text-xs">UI/UX</TabsTrigger>
                   <TabsTrigger value="visibility" className="text-xs">Visibility & Formatting</TabsTrigger>
+                  <TabsTrigger value="scripts" className="text-xs">Script Snippets</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general" className="space-y-3 mt-4">
@@ -604,6 +606,13 @@ export const UiSettingsUpdate = () => {
                       className="h-7 text-xs"
                     />
                   </div>
+                </TabsContent>
+
+                <TabsContent value="scripts" className="space-y-3 mt-4">
+                  <ScriptSnippets
+                    snippets={UiSettingsEntity.scriptSnippets || []}
+                    onChange={(snippets) => dispatch(changeEntityField({ name: 'scriptSnippets', value: snippets }))}
+                  />
                 </TabsContent>
               </Tabs>
 

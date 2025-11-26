@@ -6,7 +6,7 @@ import { applyMatchModeMap } from './util/filter-match-model-util';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { FilterMatchMode } from 'primereact/api';
 import { useAppDispatch } from 'app/config/store';
-import AsyncSelect from 'react-select/async';
+import AsyncSelect from 'app/shared/components/select/async-select';
 import { IIngredient } from './model/ingredient';
 import { ISimpleItemVariant } from './model/ITEM/retail/simple-item.model';
 import { IItem } from './model/ITEM/item.model';

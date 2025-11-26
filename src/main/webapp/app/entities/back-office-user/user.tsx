@@ -48,8 +48,7 @@ export const User = () => {
 
   useEffect(() => {
     getUsers();
-  }, []);
-
+    }, []);
   const handleCreate = () => {
     navigate('/back-office-user/new');
   };

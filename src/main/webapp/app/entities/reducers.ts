@@ -39,6 +39,7 @@ import brand from "app/entities/brand/brand.reducer";
 
 import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
+import businessTimeZone from 'app/entities/settings/business-details/business-timezone.reducer';
 import businessType from 'app/entities/settings/business-type/business-type.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
@@ -98,6 +99,9 @@ import GiftCardItem from './item/virtual/gift-card/giftcard-item.reducer';
 import GiftCardCoupon from './coupon/gift-card/giftcard-coupon.reducer';
 import ReportSummary from 'app/modules/analytics/reports/summary-report.reducer';
 import guidedTour from 'app/entities/settings/guided-tour/guided-tour.reducer';
+import endOfDay from 'app/entities/end-of-day/end-of-day.reducer';
+import endOfDaySummary from 'app/entities/end-of-day/end-of-day-summary.reducer';
+import lockOrderTaking from 'app/entities/branch/lock-order-taking.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -125,6 +129,7 @@ const entitiesReducers = {
   taxProfiles,
   profileGroup,
   businessDetail,
+  businessTimeZone,
   businessType,
   voidReason,
   printer,
@@ -193,6 +198,9 @@ const entitiesReducers = {
   ReportSummary,
   ...onlineOrderingReducers,
   guidedTour,
+  endOfDay,
+  endOfDaySummary,
+  lockOrderTaking,
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */

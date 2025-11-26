@@ -8,7 +8,7 @@ import {
   reset as resetAttributeValues
 } from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import { Button, Col, Label } from "reactstrap";
-import AsyncSelect from "react-select/async";
+import AsyncSelect from 'app/shared/components/select/async-select';
 
 type AttributeFilterProps = {
   availableAttributes: [];

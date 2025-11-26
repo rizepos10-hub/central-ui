@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 
 export const LoyaltyCardUpdate = () => {
   const dispatch = useAppDispatch();
@@ -173,7 +174,7 @@ export const LoyaltyCardUpdate = () => {
                         className={cn('h-7 text-xs justify-start text-left font-normal', !loyaltyCardEntity?.expiryDate && 'text-muted-foreground')}
                       >
                         <CalendarIcon className="mr-2 h-3 w-3" />
-                        {loyaltyCardEntity?.expiryDate ? format(new Date(loyaltyCardEntity.expiryDate), 'PPP') : <span>Pick a date</span>}
+                        {loyaltyCardEntity?.expiryDate ? formatDateForDisplay(loyaltyCardEntity.expiryDate, 'PPP') : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

@@ -58,6 +58,12 @@ export const model: MenuItem[] = [
         to: '/order/create',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'End of Day',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/end-of-day',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
@@ -107,7 +113,7 @@ export const model: MenuItem[] = [
   {
     label: 'Restaurant Catalog',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-    icon: 'pi pi-book',
+    icon: 'pi pi-utensils',
     to: '/category/restaurant-items/tree',
     items: [
       // {
@@ -248,12 +254,6 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Mix & Match',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/mix-and-match-rule',
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
         label: 'Suppliers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/supplier',
@@ -328,7 +328,7 @@ export const model: MenuItem[] = [
   {
     label: 'Customers',
     role: ['ROLE_ADMINISTRATOR'],
-    icon: ' pi pi-users',
+    icon: 'pi pi-users',
     to: '/customer',
     items: [
       {
@@ -548,7 +548,7 @@ export const model: MenuItem[] = [
   {
     label: 'Online Ordering',
     role: ['ROLE_ADMINISTRATOR'],
-    icon: 'pi pi-tablet',
+    icon: 'pi pi-monitor',
     to: '/menu?type=ONLINE_ORDERING',
     items: [
       {
@@ -583,15 +583,14 @@ export const model: MenuItem[] = [
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
-  {
-    label: 'Accounting',
-    icon: 'pi pi-money-bill',
-    to: '/accounting',
-    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-  },
+  // {
+  //   label: 'Accounting',
+  //   icon: 'pi pi-money-bill',
+  //   to: '/accounting',
+  //   type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+  // },
   {
     label: 'Settings',
-    icon: 'pi pi-cog',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
     to: '/details',
     items: [
@@ -681,6 +680,12 @@ export const model: MenuItem[] = [
         label: 'Units of Measures',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/item-measure',
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Mix & Match',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/mix-and-match-rule',
         type: [BusinessTypeEnum.RETAIL],
       },
       {

@@ -14,6 +14,7 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { InputText } from 'primereact/inputtext';
 import { translate } from 'react-jhipster';
 import { convertDateTimeFromServer } from "app/shared/util/date-utils";
+import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -245,7 +246,7 @@ const RegisterClosureOrder = () => {
           }
         />
         <Column
-          body={rowData => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
+          body={rowData => formatDateForDisplay(rowData.createdDate)}
           field="createdDate"
           header={translate('orders.view.table.fields.date')}
           sortable
