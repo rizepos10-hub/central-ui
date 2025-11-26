@@ -100,6 +100,7 @@ const EndOfDay = () => {
   const [hasCustomEndDate, setHasCustomEndDate] = useState<boolean>(false);
   const [shouldApplyDefaults, setShouldApplyDefaults] = useState<boolean>(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const isDatePickerInteracting = useRef<boolean>(false);
 
   const toggleSection = (section: EndOfDaySection) => {
     setSelectedSections(prev => {
@@ -240,6 +241,9 @@ const EndOfDay = () => {
     if (!selectedBranchId) return;
 
     const pollInterval = setInterval(() => {
+      // Skip polling if user is interacting with date picker
+      if (isDatePickerInteracting.current) return;
+
       dispatch(getInitialConfiguration({ branchId: selectedBranchId, silent: true }));
       dispatch(getLastEndOfDay(selectedBranchId));
       // Trigger orders refetch by incrementing the key
@@ -478,7 +482,13 @@ const EndOfDay = () => {
                   <Translate contentKey="endOfDay.toDate">To Date & Time</Translate>
                 </Label>
                 <div className="flex gap-2">
-                  <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <Popover
+                    open={datePickerOpen}
+                    onOpenChange={(open) => {
+                      setDatePickerOpen(open);
+                      isDatePickerInteracting.current = open;
+                    }}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -500,6 +510,7 @@ const EndOfDay = () => {
                             setHasCustomEndDate(true);
                           }
                           setDatePickerOpen(false);
+                          isDatePickerInteracting.current = false;
                         }}
                         disabled={(date) => minDate ? date < minDate : false}
                       />
