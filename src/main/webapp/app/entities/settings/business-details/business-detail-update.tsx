@@ -42,6 +42,7 @@ export const BusinessDetailUpdate = () => {
       city: '',
       state: '',
       postalCode: '',
+      country: '',
       fullAddress: '',
       longitude: 0,
       latitude: 0,
@@ -278,6 +279,36 @@ export const BusinessDetailUpdate = () => {
                     value={businessDetailsState?.address?.postalCode || ''}
                     onChange={handleFieldChange}
                     maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-country" className="text-xs font-semibold">
+                    Country
+                  </Label>
+                  <Input
+                    id="details-address-country"
+                    name="address.country"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.country || ''}
+                    onChange={handleFieldChange}
+                    maxLength={100}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="details-address-fullAddress" className="text-xs font-semibold">
+                    Full Address
+                  </Label>
+                  <Input
+                    id="details-address-fullAddress"
+                    name="address.fullAddress"
+                    data-cy="value"
+                    type="text"
+                    value={businessDetailsState?.address?.fullAddress || ''}
+                    onChange={handleFieldChange}
+                    maxLength={255}
                     className="h-7 text-xs"
                   />
                 </div>
