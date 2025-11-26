@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -21,8 +21,52 @@ import { formatDateForDisplay, dateToUTCString } from 'app/shared/util/timezone-
 import { EndOfDaySection } from 'app/shared/model/end-of-day-config.model';
 import { OrdersTab } from './orders-tab';
 import { OpenTillsTab } from './open-tills-tab';
-import { SectionsTab } from './sections-tab';
-import { PreviewTab } from './preview-tab';
+import { Checkbox } from '@/components/ui/checkbox';
+import { getSummaryForBranch } from './end-of-day-summary.reducer';
+import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
+import { useReactToPrint } from 'react-to-print';
+
+// All available EOD sections
+const ALL_SECTIONS: EndOfDaySection[] = [
+  'SALES',
+  'PAYMENTS',
+  'CASH_SALES',
+  'GROSS_SALES',
+  'CATEGORY_SALES',
+  'STATISTICS',
+  'TIPS_OUT',
+  'ORDER_METHODS',
+  'TENDER_SUMMARY',
+  'TENDER_RECONCILIATION',
+  'SALES_SUMMARY',
+  'SALES_BY_TAX',
+  'SALES_BY_CATEGORY',
+  'SALES_BY_TAG',
+  'SALES_BY_PRICING_POINT',
+  'SALES_BY_ORDER_TYPE',
+  'SALES_BY_STATION',
+  'SALES_BY_ITEM',
+  'SALES_BY_EMPLOYEE',
+  'DELIVERY_PERFORMANCE',
+  'SERVICE_CHARGE_SUMMARY',
+  'PAYOUT_SUMMARY',
+  'DRIVER_FEES_SUMMARY',
+  'VOIDED_TICKETS',
+  'HOURLY_SALES_SUMMARY',
+  'NEW_CUSTOMERS',
+  'DISCOUNT_DETAILS',
+  'COUPON_DETAILS',
+  'DEPOSIT_SUMMARY',
+  'DEPOSIT_DETAILS'
+];
+
+// Format section name for display
+const formatSectionName = (section: string): string => {
+  return section
+    .split('_')
+    .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 const EndOfDay = () => {
   const dispatch = useAppDispatch();
@@ -38,6 +82,7 @@ const EndOfDay = () => {
   const lockOrderTaking = useAppSelector(state => state.lockOrderTaking);
   const lastEod = useAppSelector(state => state.endOfDay.lastEod);
   const lastEodLoading = useAppSelector(state => state.endOfDay.lastEodLoading);
+  const { loading: summaryLoading, summary } = useAppSelector(state => state.endOfDaySummary);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedBranchTimezone, setSelectedBranchTimezone] = useState<string | undefined>(undefined);
@@ -53,11 +98,64 @@ const EndOfDay = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [ordersRefetchKey, setOrdersRefetchKey] = useState<number>(0);
   const [hasCustomEndDate, setHasCustomEndDate] = useState<boolean>(false);
+  const [shouldApplyDefaults, setShouldApplyDefaults] = useState<boolean>(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
-  // Track selectedSections changes
+  const toggleSection = (section: EndOfDaySection) => {
+    setSelectedSections(prev => {
+      const newSections = prev.includes(section)
+        ? prev.filter(s => s !== section)
+        : [...prev, section];
+      return newSections;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedSections([...ALL_SECTIONS]);
+  };
+
+  const unselectAll = () => {
+    setSelectedSections([]);
+  };
+
+  const fetchSummary = () => {
+    if (selectedBranchId) {
+      const combinedDateTime = getCombinedDateTime();
+      dispatch(getSummaryForBranch({
+        branchId: selectedBranchId,
+        toDate: isFullDay ? null : (combinedDateTime ? dateToUTCString(combinedDateTime, selectedBranchTimezone) : null),
+        sections: selectedSections
+      }));
+    }
+  };
+
+  // Fetch summary only when preview tab is active
   useEffect(() => {
-    console.log('[end-of-day.tsx] selectedSections state changed to:', selectedSections);
-  }, [selectedSections]);
+    if (activeTab === 'preview') {
+      fetchSummary();
+    }
+  }, [activeTab]);
+
+  const handlePrint = useReactToPrint({
+    content: () => reportRef.current,
+    pageStyle: `
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        * {
+          box-sizing: border-box;
+        }
+      }
+    `,
+  });
 
   // Initialize from URL params
   useEffect(() => {
@@ -132,6 +230,8 @@ const EndOfDay = () => {
       dispatch(getInitialConfiguration({ branchId: selectedBranchId }));
       dispatch(getLockOrderTakingStatus(selectedBranchId));
       dispatch(getLastEndOfDay(selectedBranchId));
+      // Apply defaults when fetching config for a branch
+      setShouldApplyDefaults(true);
     }
   }, [selectedBranchId, dispatch]);
 
@@ -150,12 +250,6 @@ const EndOfDay = () => {
   }, [selectedBranchId, dispatch]);
 
   useEffect(() => {
-    console.log('[end-of-day.tsx] Config useEffect triggered');
-    console.log('[end-of-day.tsx] Config changed:', {
-      configSections: config?.defaultSelectedSections,
-      currentSections: selectedSections,
-      branchId: selectedBranchId
-    });
     if (config) {
       setFromDate(config.startDate || '');
       if (!hasCustomEndDate) {
@@ -172,10 +266,13 @@ const EndOfDay = () => {
           setToTime('23:59:59');
         }
       }
-      // REMOVED - DON'T set sections from config here, let SectionsTab handle it
-      console.log('[end-of-day.tsx] Config loaded, NOT touching sections (managed by SectionsTab)');
+      // Only apply default sections when branch changes (shouldApplyDefaults flag)
+      if (shouldApplyDefaults && config.defaultSelectedSections) {
+        setSelectedSections(config.defaultSelectedSections);
+        setShouldApplyDefaults(false);
+      }
     }
-  }, [config, hasCustomEndDate]);
+  }, [config, hasCustomEndDate, shouldApplyDefaults]);
 
   useEffect(() => {
     if (submitSuccess) {
@@ -188,19 +285,16 @@ const EndOfDay = () => {
   }, [submitSuccess]);
 
   const handleBranchChange = (branchId: string) => {
-    console.log('[end-of-day.tsx] handleBranchChange called:', branchId);
     setSelectedBranchId(branchId);
 
     // Set the branch timezone
     const branch = branchList.find(b => b.id === branchId);
     setSelectedBranchTimezone(branch?.timezone);
-    console.log('[end-of-day.tsx] Branch timezone set to:', branch?.timezone);
 
     setFromDate('');
     setToDate(undefined);
     setToTime('23:59:59');
     setHasCustomEndDate(false);
-    // Note: sections will be reset automatically via key={selectedBranchId} on SectionsTab
     setActualCash('');
   };
 
@@ -644,23 +738,82 @@ const EndOfDay = () => {
               )}
 
               <TabsContent value="sections" className="mt-0" forceMount hidden={activeTab !== 'sections'}>
-                <SectionsTab
-                  key={selectedBranchId || 'no-branch'}
-                  defaultSections={config?.defaultSelectedSections || []}
-                  onSelectionChange={(sections) => {
-                    console.log('[end-of-day.tsx] onSelectionChange callback received:', sections);
-                    setSelectedSections(sections);
-                  }}
-                />
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Button onClick={selectAll} variant="outline" size="sm">
+                    <Translate contentKey="endOfDay.selectAll">Select All</Translate>
+                  </Button>
+                  <Button onClick={unselectAll} variant="outline" size="sm">
+                    <Translate contentKey="endOfDay.unselectAll">Unselect All</Translate>
+                  </Button>
+                  <span className="text-sm text-muted-foreground ml-auto flex items-center">
+                    {selectedSections.length} / {ALL_SECTIONS.length} <Translate contentKey="endOfDay.selected">selected</Translate>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {ALL_SECTIONS.map((section) => (
+                    <div
+                      key={section}
+                      className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                        selectedSections.includes(section)
+                          ? 'bg-primary/5 border-primary'
+                          : 'bg-background border-border hover:bg-accent'
+                      }`}
+                    >
+                      <Checkbox
+                        id={section}
+                        checked={selectedSections.includes(section)}
+                        onCheckedChange={() => toggleSection(section)}
+                      />
+                      <Label
+                        htmlFor={section}
+                        className="text-sm font-normal cursor-pointer flex-1"
+                      >
+                        {formatSectionName(section)}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
               </TabsContent>
 
               <TabsContent value="preview" className="mt-0" forceMount hidden={activeTab !== 'preview'}>
-                <PreviewTab
-                  branchId={selectedBranchId}
-                  toDate={isFullDay ? null : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone) : null)}
-                  sections={selectedSections}
-                  branchTimezone={selectedBranchTimezone}
-                />
+                {!selectedBranchId ? (
+                  <div className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground text-sm">
+                      <Translate contentKey="endOfDay.selectBranchFirst">Please select a branch first</Translate>
+                    </p>
+                  </div>
+                ) : summaryLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground text-sm">Loading preview...</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex justify-end gap-2 mb-3">
+                      <button
+                        onClick={fetchSummary}
+                        disabled={summaryLoading}
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-400 flex items-center gap-2"
+                      >
+                        <i className="pi pi-refresh"></i>
+                        {summaryLoading ? 'Refreshing...' : 'Refresh'}
+                      </button>
+                      <button
+                        onClick={handlePrint}
+                        disabled={summaryLoading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 flex items-center gap-2"
+                      >
+                        <i className="pi pi-print"></i>
+                        Print
+                      </button>
+                    </div>
+                    <div ref={reportRef}>
+                      <EodReportLayout summary={summary} isEndOfDay={true} branchTimezone={selectedBranchTimezone} />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </div>
           </Tabs>
