@@ -52,6 +52,7 @@ const EndOfDay = () => {
   const [isFullDay, setIsFullDay] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [ordersRefetchKey, setOrdersRefetchKey] = useState<number>(0);
+  const [hasCustomEndDate, setHasCustomEndDate] = useState<boolean>(false);
 
   // Track selectedSections changes
   useEffect(() => {
@@ -82,6 +83,7 @@ const EndOfDay = () => {
       if (toDateParam) {
         try {
           setToDate(new Date(toDateParam));
+          setHasCustomEndDate(true);
         } catch (e) {
           console.error('Invalid toDate param:', e);
         }
@@ -89,6 +91,7 @@ const EndOfDay = () => {
 
       if (toTimeParam) {
         setToTime(toTimeParam);
+        setHasCustomEndDate(true);
       }
 
       if (tab) {
@@ -126,17 +129,18 @@ const EndOfDay = () => {
 
   useEffect(() => {
     if (selectedBranchId) {
-      dispatch(getInitialConfiguration(selectedBranchId));
+      dispatch(getInitialConfiguration({ branchId: selectedBranchId }));
       dispatch(getLockOrderTakingStatus(selectedBranchId));
       dispatch(getLastEndOfDay(selectedBranchId));
     }
   }, [selectedBranchId, dispatch]);
 
-  // Polling for EOD status and orders refresh
+  // Polling for EOD status, config, and orders refresh
   useEffect(() => {
     if (!selectedBranchId) return;
 
     const pollInterval = setInterval(() => {
+      dispatch(getInitialConfiguration({ branchId: selectedBranchId, silent: true }));
       dispatch(getLastEndOfDay(selectedBranchId));
       // Trigger orders refetch by incrementing the key
       setOrdersRefetchKey(prev => prev + 1);
@@ -154,19 +158,24 @@ const EndOfDay = () => {
     });
     if (config) {
       setFromDate(config.startDate || '');
-      if (config.defaultEndDate) {
-        const endDate = new Date(config.defaultEndDate);
-        setToDate(endDate);
-        // Extract time from the default end date
-        const hours = endDate.getHours().toString().padStart(2, '0');
-        const minutes = endDate.getMinutes().toString().padStart(2, '0');
-        const seconds = endDate.getSeconds().toString().padStart(2, '0');
-        setToTime(`${hours}:${minutes}:${seconds}`);
+      if (!hasCustomEndDate) {
+        if (config.defaultEndDate) {
+          const endDate = new Date(config.defaultEndDate);
+          setToDate(endDate);
+          // Extract time from the default end date
+          const hours = endDate.getHours().toString().padStart(2, '0');
+          const minutes = endDate.getMinutes().toString().padStart(2, '0');
+          const seconds = endDate.getSeconds().toString().padStart(2, '0');
+          setToTime(`${hours}:${minutes}:${seconds}`);
+        } else {
+          setToDate(undefined);
+          setToTime('23:59:59');
+        }
       }
       // REMOVED - DON'T set sections from config here, let SectionsTab handle it
       console.log('[end-of-day.tsx] Config loaded, NOT touching sections (managed by SectionsTab)');
     }
-  }, [config]);
+  }, [config, hasCustomEndDate]);
 
   useEffect(() => {
     if (submitSuccess) {
@@ -190,6 +199,7 @@ const EndOfDay = () => {
     setFromDate('');
     setToDate(undefined);
     setToTime('23:59:59');
+    setHasCustomEndDate(false);
     // Note: sections will be reset automatically via key={selectedBranchId} on SectionsTab
     setActualCash('');
   };
@@ -326,7 +336,16 @@ const EndOfDay = () => {
           {/* Day Type Selection */}
           <div className="space-y-2.5">
             <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Day Type</Label>
-            <RadioGroup value={isFullDay ? 'full' : 'partial'} onValueChange={(value) => setIsFullDay(value === 'full')} className="space-y-2">
+            <RadioGroup
+              value={isFullDay ? 'full' : 'partial'}
+              onValueChange={(value) => {
+                setIsFullDay(value === 'full');
+                if (value === 'full') {
+                  setHasCustomEndDate(false);
+                }
+              }}
+              className="space-y-2"
+            >
               <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
                 <RadioGroupItem value="full" id="full-day" />
                 <Label htmlFor="full-day" className="font-normal cursor-pointer text-sm flex-1">
@@ -383,6 +402,9 @@ const EndOfDay = () => {
                         captionLayout="dropdown"
                         onSelect={(date) => {
                           setToDate(date);
+                          if (date) {
+                            setHasCustomEndDate(true);
+                          }
                           setDatePickerOpen(false);
                         }}
                         disabled={(date) => minDate ? date < minDate : false}
@@ -393,7 +415,10 @@ const EndOfDay = () => {
                     type="time"
                     step="1"
                     value={toTime}
-                    onChange={(e) => setToTime(e.target.value)}
+                    onChange={(e) => {
+                      setToTime(e.target.value);
+                      setHasCustomEndDate(true);
+                    }}
                     disabled={!fromDate}
                     className="h-10 w-32 text-sm bg-background border-gray-300"
                   />
@@ -632,7 +657,7 @@ const EndOfDay = () => {
               <TabsContent value="preview" className="mt-0" forceMount hidden={activeTab !== 'preview'}>
                 <PreviewTab
                   branchId={selectedBranchId}
-                  toDate={isFullDay ? getTomorrowDate() : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone) : null)}
+                  toDate={isFullDay ? null : (getCombinedDateTime() ? dateToUTCString(getCombinedDateTime()!, selectedBranchTimezone) : null)}
                   sections={selectedSections}
                   branchTimezone={selectedBranchTimezone}
                 />

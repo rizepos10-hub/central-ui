@@ -28,9 +28,14 @@ const apiUrl = 'api/end-of-day';
 
 // Actions
 
+export interface IGetInitialConfigurationArgs {
+  branchId: string;
+  silent?: boolean;
+}
+
 export const getInitialConfiguration = createAsyncThunk(
   'endOfDay/fetch_initial_configuration',
-  async (branchId: string) => {
+  async ({ branchId }: IGetInitialConfigurationArgs) => {
     const requestUrl = `${apiUrl}/initial-configuration/${branchId}`;
     return axios.get<IEndOfDayConfig>(requestUrl);
   },
@@ -125,7 +130,10 @@ export const EndOfDaySlice = createSlice({
         state.lastEodLoading = false;
         state.lastEod = null;
       })
-      .addMatcher(isPending(getInitialConfiguration), (state) => {
+      .addMatcher(isPending(getInitialConfiguration), (state, action) => {
+        if (action.meta?.arg?.silent) {
+          return;
+        }
         state.errorMessage = null;
         state.loading = true;
         state.config = null;

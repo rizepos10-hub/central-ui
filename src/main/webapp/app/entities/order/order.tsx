@@ -202,6 +202,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
     header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
   }));
 
+  const shouldShowLoadingState = loading && !(isEndOfDayMode && orderList.length > 0);
+
   const handleSort = (field: string) => {
     const isAsc = lazyState.sortField === field && lazyState.sortOrder === 1;
     setLazyState(prev => ({
@@ -735,7 +737,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {shouldShowLoadingState ? (
                 <TableRow>
                   <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
                     Loading...
