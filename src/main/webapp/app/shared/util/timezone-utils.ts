@@ -61,8 +61,8 @@ export const dateToUTCString = (date: Date, timeZone?: string): string => {
   return utcDate.toISOString();
 };
 
-// 🔴 DEBUG FLAG: Set to false once you've verified all dates are displaying correctly
-const DEBUG_DATES = true;
+// 🔴 DEBUG FLAG: Only enable in development mode
+const DEBUG_DATES = process.env.NODE_ENV === 'development';
 
 /**
  * Format a UTC date string for display in the business timezone.
@@ -93,6 +93,6 @@ export const formatDateForDisplay = (
     formattedDate = format(toZonedTime(dateObj, targetTimeZone), formatString);
   }
 
-  // 🔴 Debug mode: Wrap dates with red circle emojis to easily spot them
+  // 🔴 Debug mode: Wrap dates with red circle emojis to easily spot them (dev only)
   return DEBUG_DATES ? `🔴 ${formattedDate} 🔴` : formattedDate;
 };

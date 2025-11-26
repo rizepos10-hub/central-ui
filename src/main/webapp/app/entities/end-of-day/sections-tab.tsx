@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Translate } from 'react-jhipster';
+import { IBranch } from 'app/shared/model/branch.model';
 
 interface SectionsTabProps {
   defaultSections: EndOfDaySection[];
   onSelectionChange: (sections: EndOfDaySection[]) => void;
+  branchId: string
 }
 
 const ALL_SECTIONS: EndOfDaySection[] = [
@@ -50,46 +52,39 @@ const formatSectionName = (section: string): string => {
     .join(' ');
 };
 
-export const SectionsTab: React.FC<SectionsTabProps> = ({ defaultSections, onSelectionChange }) => {
+export const SectionsTab: React.FC<SectionsTabProps> = ({ defaultSections, onSelectionChange, branchId }) => {
   const [selectedSections, setSelectedSections] = useState<EndOfDaySection[]>([]);
   const [initialized, setInitialized] = useState(false);
 
   // Initialize with default sections only once
   useEffect(() => {
     if (!initialized && defaultSections && defaultSections.length > 0) {
-      console.log('[sections-tab.tsx] Initializing with defaultSections:', defaultSections);
       setSelectedSections(defaultSections);
       setInitialized(true);
     }
-  }, [defaultSections, initialized]);
+  }, [defaultSections, initialized, branchId]);
 
   // Call parent callback when sections change
   useEffect(() => {
-    console.log('[sections-tab.tsx] selectedSections changed:', selectedSections, 'initialized:', initialized);
     if (initialized) {
-      console.log('[sections-tab.tsx] Calling onSelectionChange with:', selectedSections);
       onSelectionChange(selectedSections);
     }
   }, [selectedSections, initialized, onSelectionChange]);
 
   const toggleSection = (section: EndOfDaySection) => {
-    console.log('[sections-tab.tsx] toggleSection called:', section);
     setSelectedSections(prev => {
       const newSections = prev.includes(section)
         ? prev.filter(s => s !== section)
         : [...prev, section];
-      console.log('[sections-tab.tsx] New sections after toggle:', newSections);
       return newSections;
     });
   };
 
   const selectAll = () => {
-    console.log('[sections-tab.tsx] selectAll called');
     setSelectedSections([...ALL_SECTIONS]);
   };
 
   const unselectAll = () => {
-    console.log('[sections-tab.tsx] unselectAll called');
     setSelectedSections([]);
   };
 
