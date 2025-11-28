@@ -311,12 +311,12 @@ const DynamicEndOfDayReportUI = ({
             </div>
 
             {/* New EOD Report Layout */}
-            <div className="bg-white mb-2 rounded-md border">
+            {/* <div className="bg-white mb-2 rounded-md border">
                 <EodReportLayout summary={endOfDay} />
-            </div>
+            </div> */}
 
             {/* Old Layout - Commented Out */}
-            {/* <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
+            <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
                 <GenericSalesReport
                     title={translate('analytics.report.totalSales')}
                     report={reportData.totalSales}
@@ -405,7 +405,7 @@ const DynamicEndOfDayReportUI = ({
                         <h3 className="text-base font-semibold mb-2">Related Tills</h3>
                         <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
                     </div>
-                )} */}
+                )}
         </div>
     );
 };
