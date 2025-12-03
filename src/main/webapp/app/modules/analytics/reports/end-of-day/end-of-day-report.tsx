@@ -6,6 +6,10 @@ import { useAppDispatch } from 'app/config/store';
 import DynamicEndOfDayReportUI from './dynamic-end-of-day-report';
 import { exportExcelEodSummaryReport } from 'app/shared/util/excel-utils';
 import { IBranch } from 'app/shared/model/branch.model';
+import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
+import { useReactToPrint } from 'react-to-print';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 const EndOfDayReportContainer = () => {
   const { id } = useParams();
@@ -22,9 +26,8 @@ const EndOfDayReportContainer = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/end-of-day/${id}`);
-      const reportData = JSON.parse(data.report);
       setEndOfDay(data);
-      setSalesData(reportData);
+      setSalesData(data);
       setBranch(data.branch);
       setLoading(false);
     } catch (error) {
@@ -38,7 +41,28 @@ const EndOfDayReportContainer = () => {
       branch,
       data: salesData,
     }], null, null, 'End of Day Report');
-  }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => printWrapperRef.current,
+    pageStyle: `
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        * {
+          box-sizing: border-box;
+        }
+      }
+    `,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,14 +80,22 @@ const EndOfDayReportContainer = () => {
   }
 
   return (
-    <DynamicEndOfDayReportUI
-      reportData={salesData}
-      handleExcelExport={handleExcelExport}
-      endOfDay={endOfDay}
-      printWrapperRef={printWrapperRef}
-      loading={loading}
-      title="End OF Day Report"
-    />
+    <div className="p-4">
+      <div className="flex justify-end gap-2 mb-3">
+        <Button
+          onClick={handlePrint}
+          disabled={loading}
+          variant="outline"
+          className="h-8 text-xs"
+        >
+          <Printer className="h-3 w-3 mr-1" />
+          Print
+        </Button>
+      </div>
+      <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border">
+        <EodReportLayout summary={salesData} isEndOfDay={true} branchTimezone={endOfDay?.branch?.timezone} />
+      </div>
+    </div>
   );
 };
 
