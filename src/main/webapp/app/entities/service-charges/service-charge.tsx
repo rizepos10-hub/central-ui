@@ -90,6 +90,8 @@ export const ServiceCharge = () => {
         return "Wrapping Fee";
       case ServiceChargeKey.GRATUITY:
         return "Gratuity";
+      case ServiceChargeKey.OTHER:
+        return "Other";
       default:
         return key;
     }
