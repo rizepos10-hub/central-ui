@@ -9,5 +9,7 @@ module.exports = {
   SERVER_ADMIN_API_URL: 'https://pos-admin.rize-pos.com',
   SERVER_API_URL: 'https://pos-central.rize-pos.com',
   SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
+  // SERVER_API_URL: 'http://localhost:8080',
+  // SERVER_DOMAIN: 'http://localhost:8080',
   GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
 };

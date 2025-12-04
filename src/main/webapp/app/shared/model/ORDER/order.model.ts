@@ -7,6 +7,7 @@ import { PaymentStatus } from '../ENUMS/payment-status.model';
 import { DeliverStatus } from '../ENUMS/delivery-status.model';
 import { IAddress } from '../address.model';
 import { OrderMethod } from '../ENUMS/order-method.model';
+import { ServiceChargeKey } from '../service-charge.model';
 
 export interface IOrder extends IOrderAudit {
   id?: string;
@@ -79,12 +80,6 @@ export interface IOrderDeliveryInformation {
 export interface IOrderIntegrationDetails {
   provider?: "ICABBI";
   tripId?: string;
-}
-
-export enum ServiceChargeKey {
-  SHIPPING_FEE = "SHIPPING_FEE",
-  WRAPPING_FEE = "WRAPPING_FEE",
-  GRATUITY = "GRATUITY"
 }
 
 export const defaultValue: Readonly<IOrder> = {
