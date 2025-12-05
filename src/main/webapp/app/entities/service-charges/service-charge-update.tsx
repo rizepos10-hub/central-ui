@@ -75,10 +75,62 @@ export const ServiceChargeUpdate = () => {
     }
   };
 
-  const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: key, value: ServiceChargeKey[key] }));
-  const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: key, value: ServiceChargeWhenToApply[key] }));
-  const typeOptions = Object.keys(ServiceChargeSettingType).map(key => ({ label: key, value: ServiceChargeSettingType[key] }));
-  const applicableOnOptions = Object.keys(ServiceChargeApplicableOn).map(key => ({ label: key, value: ServiceChargeApplicableOn[key] }));
+  const formatServiceChargeKey = (key) => {
+    switch (key) {
+      case ServiceChargeKey.SHIPPING_FEE:
+        return "Shipping Fee";
+      case ServiceChargeKey.WRAPPING_FEE:
+        return "Wrapping Fee";
+      case ServiceChargeKey.GRATUITY:
+        return "Gratuity";
+      case ServiceChargeKey.OTHER:
+        return "Other";
+      default:
+        return key;
+    }
+  };
+
+  const formatServiceChargeSettingType = (type) => {
+    switch (type) {
+      case ServiceChargeSettingType.FIXED:
+        return "Fixed";
+      case ServiceChargeSettingType.PERCENTAGE:
+        return "Percentage";
+      default:
+        return type;
+    }
+  };
+
+  const formatServiceChargeWhenToApply = (whenToApply) => {
+    switch (whenToApply) {
+      case ServiceChargeWhenToApply.AUTOMATIC:
+        return "Automatic";
+      case ServiceChargeWhenToApply.ON_DEMAND:
+        return "On Demand";
+      default:
+        return whenToApply;
+    }
+  };
+
+  const formatServiceChargeApplicableOn = (applicableOn) => {
+    switch (applicableOn) {
+      case ServiceChargeApplicableOn.DELIVERY:
+        return "Delivery";
+      case ServiceChargeApplicableOn.PICKUP:
+        return "Pickup";
+      case ServiceChargeApplicableOn.DINE_IN:
+        return "Dine In";
+      case ServiceChargeApplicableOn.WALK_IN:
+        return "Walk In";
+      default:
+        return applicableOn;
+    }
+  };
+
+  const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: formatServiceChargeKey(key), value: ServiceChargeKey[key] }));
+  const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: formatServiceChargeWhenToApply(key), value: ServiceChargeWhenToApply[key] }));
+  const typeOptions = Object.keys(ServiceChargeSettingType).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeSettingType[key] }));
+  const applicableOnOptions = Object.keys(ServiceChargeApplicableOn).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeApplicableOn[key] }));
 
 
   const handleApplicableOnChange = (selectedOptions) => {
@@ -123,13 +175,13 @@ export const ServiceChargeUpdate = () => {
           <form className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="service-charge-key" className="text-xs">{translate('service-charge.key')}</Label>
+                <Label htmlFor="service-charge-key" className="text-xs">{translate('service-charge.settings.type')}</Label>
                 <Select
                   id="service-charge-key"
                   value={serviceChargeEntity.key ? serviceChargeKeys.find(k => k.value === serviceChargeEntity.key) : null}
                   onChange={(option) => dispatch(changeEntityField({ name: 'key', value: option?.value }))}
                   options={serviceChargeKeys}
-                  placeholder="Select a Key"
+                  placeholder="Select Type"
                   isClearable
                 />
               </div>
@@ -147,13 +199,13 @@ export const ServiceChargeUpdate = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="service-charge-type" className="text-xs">{translate('service-charge.settings.type')}</Label>
+                <Label htmlFor="service-charge-type" className="text-xs">{translate('service-charge.settings.calculationType')}</Label>
                 <Select
                   id="service-charge-type"
                   value={serviceChargeEntity.value?.setting?.type ? typeOptions.find(t => t.value === serviceChargeEntity.value.setting.type) : null}
                   onChange={handleTypeChange}
                   options={typeOptions}
-                  placeholder="Select a Setting"
+                  placeholder="Select Calculation Type"
                   isClearable
                 />
               </div>
