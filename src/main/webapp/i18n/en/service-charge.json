@@ -18,7 +18,8 @@
     "branch": "Branch",
     "settings": {
       "type": "Type",
-      "applicableOn": "Applicable On"
+      "applicableOn": "Applicable On",
+      "calculationType": "Calculation Type"
     }
   }
 }

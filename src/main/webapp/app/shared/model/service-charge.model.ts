@@ -14,7 +14,8 @@ export interface IServiceCharge {
 export enum ServiceChargeKey {
   SHIPPING_FEE = "SHIPPING_FEE",
   WRAPPING_FEE = "WRAPPING_FEE",
-  GRATUITY = "GRATUITY"
+  GRATUITY = "GRATUITY",
+  OTHER = "OTHER"
 }
 
 export interface IServiceChargeValue {
@@ -44,7 +45,8 @@ export enum ServiceChargeType {
 }
 
 export enum ServiceChargeSettingType {
-  FIXED = "FIXED"
+  FIXED = "FIXED",
+  PERCENTAGE = "PERCENTAGE"
 }
 
 export enum ServiceChargeWhenToApply {

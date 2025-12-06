@@ -90,6 +90,8 @@ export const ServiceCharge = () => {
         return "Wrapping Fee";
       case ServiceChargeKey.GRATUITY:
         return "Gratuity";
+      case ServiceChargeKey.OTHER:
+        return "Other";
       default:
         return key;
     }
@@ -150,7 +152,7 @@ export const ServiceCharge = () => {
             value={searchParams.get('key') ? { label: searchParams.get('key'), value: searchParams.get('key') } : null}
             options={Object.keys(ServiceChargeKey).map(key => ({ label: key, value: key }))}
             onChange={(option) => navigate(createQueryString('key', option?.value))}
-            placeholder="Select a Key"
+            placeholder="Select Type"
             isClearable
             className="flex-1"
           />
@@ -179,12 +181,12 @@ export const ServiceCharge = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Key</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Branch</TableHead>
               <TableHead>When To Apply</TableHead>
               <TableHead>Charge</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Calculation Type</TableHead>
               <TableHead className="w-[50px]">Edit</TableHead>
               <TableHead className="w-[50px]">Delete</TableHead>
             </TableRow>
