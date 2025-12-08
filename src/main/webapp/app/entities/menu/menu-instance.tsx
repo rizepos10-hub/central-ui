@@ -100,6 +100,7 @@ const MenuInstance = () => {
     }: {
         type?: "POS" | "ONLINE_ORDERING";
     } = { type: menuEntity.type }) => {
+        console.log(type, 'type')
         const entity = {
             ...menuEntity,
             type: type || menuEntity.type,
@@ -146,7 +147,7 @@ const MenuInstance = () => {
                 <MenuUpdate
                     setIsModalOpen={setIsModalOpen}
                     isModalOpen={isModalOpen}
-                    saveEntity={saveEntity}
+                    saveEntity={() => saveEntity()}
                     updating={updating}
                     selectedBranches={selectedBranches}
                     setSelectedBranches={setSelectedBranches}
