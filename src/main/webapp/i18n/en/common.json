@@ -1,6 +1,7 @@
 {
   "common": {
     "name": "Name",
+    "createNew": "Create New",
     "remove": "Remove",
     "ingredients": "Ingredients",
     "addresses": "Addresses",

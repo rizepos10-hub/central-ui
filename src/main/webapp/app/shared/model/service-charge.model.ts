@@ -6,9 +6,13 @@ export interface IServiceCharge {
   createdDate?: string;
   lastModifiedBy?: string;
   lastModifiedDate?: string;
-  branch?: IBranch;
+  branches?: IBranch[];
   key?: ServiceChargeKey;
-  value?: IServiceChargeValue;
+  name?: string;
+  setting?: IServiceChargeSetting;
+  whenToApply?: ServiceChargeWhenToApply;
+  charge?: number;
+  isArchived?: boolean;
 }
 
 export enum ServiceChargeKey {
@@ -16,16 +20,6 @@ export enum ServiceChargeKey {
   WRAPPING_FEE = "WRAPPING_FEE",
   GRATUITY = "GRATUITY",
   OTHER = "OTHER"
-}
-
-export interface IServiceChargeValue {
-  key?: ServiceChargeType;
-  name?: string;
-  setting?: IServiceChargeSetting;
-  whenToApply?: ServiceChargeWhenToApply;
-  minCharge?: number;
-  maxCharge?: number;
-  charge?: number;
 }
 
 export interface IServiceChargeSetting {
@@ -40,10 +34,6 @@ export enum ServiceChargeApplicableOn {
   WALK_IN = "WALK_IN"
 }
 
-export enum ServiceChargeType {
-  SHIPPING_FEE = "SHIPPING_FEE"
-}
-
 export enum ServiceChargeSettingType {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE"
@@ -53,6 +43,5 @@ export enum ServiceChargeWhenToApply {
   AUTOMATIC = "AUTOMATIC",
   ON_DEMAND = "ON_DEMAND"
 }
-
 
 export const defaultValue: Readonly<IServiceCharge> = {};

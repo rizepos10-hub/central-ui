@@ -1,85 +1,110 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getSortState } from 'react-jhipster';
-import { Pencil, Trash2, RefreshCw } from 'lucide-react';
-import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { translate, Translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities } from './service-charge.reducer';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { IServiceCharge, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { applyMatchModeMap, updateTableFilters } from 'app/shared/util/filter-match-model-util';
+import { filterEntities } from './service-charge.reducer';
+import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
+import { FilterMatchMode } from 'primereact/api';
+import { Pencil, Trash2, RefreshCw, Plus, Filter, Loader2 } from 'lucide-react';
 import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
+const initialServiceChargeFilterState = {
+  first: 0,
+  rows: 20,
+  page: 0,
+  sortField: null,
+  sortOrder: null,
+  filters: {
+    key: { value: null, matchMode: FilterMatchMode.EQUALS },
+    whenToApply: { value: null, matchMode: FilterMatchMode.EQUALS },
+    'branches.id': { value: null, matchMode: FilterMatchMode.EQUALS },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  }
+};
+
 export const ServiceCharge = () => {
   const dispatch = useAppDispatch();
-
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
 
   const serviceCharges: IServiceCharge[] = useAppSelector(state => state.serviceCharge.entities);
   const loading = useAppSelector(state => state.serviceCharge.loading);
   const totalItems = useAppSelector(state => state.serviceCharge.totalItems);
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const searchParams = new URLSearchParams(location.search);
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const storedQuery = searchParams.get('query');
+  const query = storedQuery && storedQuery.trim() ? JSON.parse(storedQuery) : initialServiceChargeFilterState;
+  const [localFilters, setLocalFilters] = useState(query?.filters);
 
   const getAllEntities = () => {
+    const updatedQuery = applyMatchModeMap(query);
     dispatch(
-      getEntities({
-        sort: 'key,asc',
-        page: 0,
-        size: 500,
-        key: searchParams.get('key'),
-        whenToApply: searchParams.get('whenToApply'),
-        branchId: searchParams.get('branch'),
+      filterEntities({
+        query: updatedQuery,
       })
     );
   };
 
   useEffect(() => {
-    getAllEntities();
-  }, [
-    paginationState.activePage,
-    paginationState.order,
-    paginationState.sort,
-    searchParams.get('key'),
-    searchParams.get('whenToApply'),
-    searchParams.get('branch'),
-  ]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-  useEffect(() => {
     dispatch(getBranches({}));
-  }, [])
+  }, []);
 
+  useEffect(() => {
+    getAllEntities();
+    return () => {
+      searchParams.set('query', '');
+    }
+  }, [query?.first, query?.page, query?.rows, query?.sortField, query?.sortOrder]);
+
+  const handleSyncList = () => {
+    getAllEntities();
+  };
+
+  const onFilter = (newFilters) => {
+    const cleanedFilters = updateTableFilters({ ...newFilters });
+    query['first'] = 0;
+    query['page'] = 0;
+    query.filters = cleanedFilters;
+    const queryParams = JSON.stringify(query);
+    setSearchParams({ query: queryParams }, { replace: true });
+    getAllEntities();
+  };
+
+  const onPage = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const handleFilterValueChange = useCallback((field, value) => {
+    const updatedFilters = {
+      ...localFilters,
+      [field]: value
+    };
+    setLocalFilters(updatedFilters);
+  }, [localFilters]);
+
+  const handleClear = () => {
+    setLocalFilters({});
+    const newQuery = JSON.stringify({ ...initialServiceChargeFilterState });
+    setSearchParams({ query: newQuery }, { replace: true });
+  };
 
   const handleCreate = () => {
-    navigate('/service-charge/new')
-  }
-
-  const getAllEntitiesHandler = () => {
-    getAllEntities();
+    navigate('/service-charge/new');
   };
 
   const formatServiceChargeKey = (key) => {
@@ -112,112 +137,286 @@ export const ServiceCharge = () => {
     switch (value) {
       case ServiceChargeSettingType.FIXED:
         return "Fixed";
-      // case ServiceChargeSettingType.PERCENTAGE:
-      //   return "Percentage";
+      case ServiceChargeSettingType.PERCENTAGE:
+        return "Percentage";
       default:
         return value;
     }
   };
 
-  const createQueryString = useCallback((name, value) => {
-    if (!value) {
-      const params = new URLSearchParams(searchParams);
-      params.delete(name);
-      return `?${params.toString()}`;
-    }
-    const params = new URLSearchParams(searchParams);
-    params.set(name, value);
-    return `?${params.toString()}`;
-  }, [searchParams]);
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/service-charge/${rowData.id}/edit`;
+    return (
+      <Link className="font-normal text-xs hover:underline" to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
+
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/service-charge/${rowData.id}/edit`;
+    return (
+      <Link to={editUrl}>
+        <Pencil className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/service-charge/${rowData.id}/delete`;
+    return (
+      <Link to={deleteUrl}>
+        <Trash2 className="h-3 w-3 text-destructive" />
+      </Link>
+    );
+  };
+
+  const PaginationControls = () => {
+    const totalPages = Math.ceil(totalItems / query.rows);
+    const currentPage = Math.floor(query.first / query.rows) + 1;
+
+    const handlePageChange = (newPage: number) => {
+      const newFirst = (newPage - 1) * query.rows;
+      onPage({ ...query, first: newFirst, page: newPage - 1 });
+    };
+
+    const handleRowsPerPageChange = (newRows: number) => {
+      onPage({ ...query, rows: newRows, first: 0, page: 0 });
+    };
+
+    return (
+      <div className="flex items-center justify-between px-2 py-2 border-t">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Rows per page:</span>
+          <Select
+            value={{ value: query.rows, label: query.rows.toString() }}
+            onChange={(option) => handleRowsPerPageChange(option.value)}
+            options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
+            className="w-20"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {query.first + 1} - {Math.min(query.first + query.rows, totalItems)} of {totalItems}
+          </span>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              ›
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <PageWrapper>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xl font-bold">Service Charges</span>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={getAllEntitiesHandler} disabled={loading} className="h-8 text-xs">
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-            Refresh List
+      {/* Header */}
+      <div className="bg-muted/50 p-2 flex justify-between items-center">
+        <h2 className="text-xl font-bold">
+          <Translate contentKey="service-charge.title">Service Charges</Translate>
+        </h2>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+            {translate('common.refreshList')}
           </Button>
-          <Button size="sm" onClick={handleCreate} disabled={loading} className="h-8 text-xs">
-            Create new Service Charge
+          <Button
+            size="sm"
+            className="h-8 text-xs"
+            onClick={handleCreate}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            {translate('common.createNew')}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setFiltersVisible(!filtersVisible)}
+          >
+            <Filter className="h-4 w-4 mr-1" />
+            Filters
           </Button>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-md border space-y-3">
-        <h3 className="font-semibold text-sm">Filters</h3>
-        <div className="flex gap-3">
-          <Select
-            value={searchParams.get('key') ? { label: searchParams.get('key'), value: searchParams.get('key') } : null}
-            options={Object.keys(ServiceChargeKey).map(key => ({ label: key, value: key }))}
-            onChange={(option) => navigate(createQueryString('key', option?.value))}
-            placeholder="Select Type"
-            isClearable
-            className="flex-1"
-          />
+      {/* Inline Filters Section */}
+      {filtersVisible && (
+        <div className="bg-muted/30 p-3 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Name</label>
+              <div className="flex gap-1">
+                <select
+                  className="h-8 text-xs border border-input rounded-md px-2 bg-background"
+                  style={{ maxWidth: '120px' }}
+                  value={localFilters?.name?.matchMode || FilterMatchMode.CONTAINS}
+                  onChange={(e) => {
+                    const currentValue = localFilters?.name?.value || '';
+                    handleFilterValueChange('name', { value: currentValue, matchMode: e.target.value });
+                  }}
+                >
+                  <option value={FilterMatchMode.CONTAINS}>Contains</option>
+                  <option value={FilterMatchMode.STARTS_WITH}>Starts with</option>
+                  <option value={FilterMatchMode.ENDS_WITH}>Ends with</option>
+                  <option value={FilterMatchMode.EQUALS}>Equals</option>
+                  <option value={FilterMatchMode.NOT_EQUALS}>Not equals</option>
+                </select>
+                <input
+                  type="text"
+                  className="h-8 text-xs flex-1 border border-input rounded-md px-2 bg-background"
+                  placeholder="Filter by name"
+                  value={localFilters?.name?.value || ''}
+                  onChange={(e) => {
+                    const currentMatchMode = localFilters?.name?.matchMode || FilterMatchMode.CONTAINS;
+                    handleFilterValueChange('name', { value: e.target.value, matchMode: currentMatchMode });
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && onFilter(localFilters)}
+                />
+              </div>
+            </div>
 
-          <Select
-            value={searchParams.get('whenToApply') ? { label: searchParams.get('whenToApply'), value: searchParams.get('whenToApply') } : null}
-            options={Object.keys(ServiceChargeWhenToApply).map(key => ({ label: key, value: key }))}
-            onChange={(option) => navigate(createQueryString('whenToApply', option?.value))}
-            placeholder="Select When To Apply"
-            isClearable
-            className="flex-1"
-          />
+            <div>
+              <label className="block text-xs font-semibold mb-1">Type</label>
+              <Select
+                value={localFilters?.key?.value ? {
+                  label: formatServiceChargeKey(localFilters.key.value),
+                  value: localFilters.key.value
+                } : null}
+                options={Object.keys(ServiceChargeKey).map(key => ({
+                  label: formatServiceChargeKey(ServiceChargeKey[key]),
+                  value: ServiceChargeKey[key]
+                }))}
+                onChange={(option) => {
+                  handleFilterValueChange('key', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select Type"
+              />
+            </div>
 
-          <Select
-            value={searchParams.get('branch') ? branchList.find(b => b.id === searchParams.get('branch')) ? { label: branchList.find(b => b.id === searchParams.get('branch')).name, value: searchParams.get('branch') } : null : null}
-            options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
-            onChange={(option) => navigate(createQueryString('branch', option?.value))}
-            placeholder="Select a Branch"
-            isClearable
-            className="flex-1"
-          />
+            <div>
+              <label className="block text-xs font-semibold mb-1">When To Apply</label>
+              <Select
+                value={localFilters?.whenToApply?.value ? {
+                  label: formatServiceChargeWhenToApply(localFilters.whenToApply.value),
+                  value: localFilters.whenToApply.value
+                } : null}
+                options={Object.keys(ServiceChargeWhenToApply).map(key => ({
+                  label: formatServiceChargeWhenToApply(ServiceChargeWhenToApply[key]),
+                  value: ServiceChargeWhenToApply[key]
+                }))}
+                onChange={(option) => {
+                  handleFilterValueChange('whenToApply', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select When To Apply"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Branch</label>
+              <DropDownFilter
+                classname={'w-full'}
+                placeholder={'Select Branch'}
+                dropDownOptionType={'BRANCH'}
+                selectedOption={localFilters?.['branches.id']?.value}
+                fieldName={'branches.id'}
+                handleDropdownChange={(field, value) => handleFilterValueChange(field, value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleClear}
+            >
+              Clear Filters
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => onFilter(localFilters)}
+            >
+              Apply Filters
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="rounded-md border">
+      {/* Table */}
+      <div className="border rounded-md mt-3">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>When To Apply</TableHead>
-              <TableHead>Charge</TableHead>
-              <TableHead>Calculation Type</TableHead>
-              <TableHead className="w-[50px]">Edit</TableHead>
-              <TableHead className="w-[50px]">Delete</TableHead>
+              <TableHead className="text-xs">Type</TableHead>
+              <TableHead className="text-xs">Name</TableHead>
+              <TableHead className="text-xs">Branches</TableHead>
+              <TableHead className="text-xs">When To Apply</TableHead>
+              <TableHead className="text-xs">Charge</TableHead>
+              <TableHead className="text-xs">Calculation Type</TableHead>
+              <TableHead className="text-xs w-10">Edit</TableHead>
+              <TableHead className="text-xs w-10">Delete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {serviceCharges.map(charge => (
-              <TableRow key={charge.id}>
-                <TableCell className="text-xs">{formatServiceChargeKey(charge.key)}</TableCell>
-                <TableCell className="text-xs">{charge.value.name}</TableCell>
-                <TableCell className="text-xs">{charge.branch.name}</TableCell>
-                <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.value.whenToApply)}</TableCell>
-                <TableCell className="text-xs">{charge.value.charge}</TableCell>
-                <TableCell className="text-xs">{formatServiceChargeType(charge.value.setting.type)}</TableCell>
-                <TableCell>
-                  <Link to={`/service-charge/${charge.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                      <Pencil className="h-3 w-3 text-gray-400" />
-                    </Button>
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Link to={`/service-charge/${charge.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                      <Trash2 className="h-3 w-3 text-red-500" />
-                    </Button>
-                  </Link>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : serviceCharges.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-xs py-8">
+                  No service charges found
+                </TableCell>
+              </TableRow>
+            ) : (
+              serviceCharges.map(charge => (
+                <TableRow key={charge.id}>
+                  <TableCell className="text-xs">{formatServiceChargeKey(charge.key)}</TableCell>
+                  <TableCell className="text-xs">{nameColumnTemplate(charge)}</TableCell>
+                  <TableCell className="text-xs">{charge.branches?.map(b => b?.name).join(', ') || '-'}</TableCell>
+                  <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.whenToApply)}</TableCell>
+                  <TableCell className="text-xs">{charge.charge}</TableCell>
+                  <TableCell className="text-xs">{formatServiceChargeType(charge.setting?.type)}</TableCell>
+                  <TableCell className="text-xs">{editColumnTemplate(charge)}</TableCell>
+                  <TableCell className="text-xs">{deleteColumnTemplate(charge)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
+
+        <PaginationControls />
       </div>
     </PageWrapper>
   );
