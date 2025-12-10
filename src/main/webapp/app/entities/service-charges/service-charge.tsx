@@ -73,7 +73,6 @@ export const ServiceCharge = () => {
 
   useEffect(() => {
     dispatch(getBranches({}));
-
   }, []);
 
   useEffect(() => {
