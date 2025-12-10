@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import axios from "axios";
 import { format, addDays, addMonths } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { dateToUTCString, formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
@@ -19,18 +20,19 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Loader2, BarChart3, CalendarIcon } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
+import type { DateRange } from 'react-day-picker';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
 
   const [salesData, setSalesData] = useState<ISummaryReport>();
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState<Date | null>(new Date());
-  const [toDate, setToDate] = useState<Date | null>(new Date());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  // const [billsSummary, setBillsSummary] = useState<any>(null);
+  const [convertedFromDate, setConvertedFromDate] = useState<string | undefined>(undefined);
+  const [convertedToDate, setConvertedToDate] = useState<string | undefined>(undefined);
   const branchList = useAppSelector(state => state.branch.entities);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
@@ -50,86 +52,55 @@ const SalesSummaryReport = () => {
     })),
   ];
 
-  const handleFromDateChange = (date: Date | undefined) => {
-    setFromDate(date || null);
-  };
-
-
-  const handleToDateChange = (date: Date | undefined) => {
-    if (date) {
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(23, 59, 59, 999);
-      setToDate(adjustedDate);
-    } else {
-      setToDate(null);
-    }
-  };
-
   const fetchLastWeekData = () => {
     const today = new Date();
     const lastWeekStartDate = addDays(today, -7);
-    setFromDate(lastWeekStartDate);
-    setToDate(today);
-
-    handleSubmit(undefined, lastWeekStartDate, today);
+    setDateRange({ from: lastWeekStartDate, to: today });
   };
 
   const fetchLastTwoWeeksData = () => {
     const today = new Date();
     const lastTwoWeeksStartDate = addDays(today, -14);
-    setFromDate(lastTwoWeeksStartDate);
-    setToDate(today);
-
-    handleSubmit(undefined, lastTwoWeeksStartDate, today);
+    setDateRange({ from: lastTwoWeeksStartDate, to: today });
   };
 
   const fetchLastMonthData = () => {
     const today = new Date();
     const lastMonthStartDate = addMonths(today, -1);
-    setFromDate(lastMonthStartDate);
-    setToDate(today);
-
-    handleSubmit(undefined, lastMonthStartDate, today);
+    setDateRange({ from: lastMonthStartDate, to: today });
   };
 
   const fetchLastThreeMonthsData = () => {
     const today = new Date();
     const lastThreeMonthsStartDate = addMonths(today, -3);
-    setFromDate(lastThreeMonthsStartDate);
-    setToDate(today);
-
-    handleSubmit(undefined, lastThreeMonthsStartDate, today);
+    setDateRange({ from: lastThreeMonthsStartDate, to: today });
   };
 
-  const handleSubmit = async (event?: React.FormEvent, customFromDate?: Date, customToDate?: Date) => {
+  const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
 
-    const fromDateToUse = customFromDate || fromDate;
-    const toDateToUse = customToDate || toDate;
-
-    if (!fromDateToUse || !toDateToUse) {
+    if (!dateRange?.from || !dateRange?.to) {
       alert("Please select both from and to dates.");
       return;
     }
 
-    const fromDateObj = new Date(fromDateToUse);
-    const toDateObj = new Date(toDateToUse);
-    if (fromDateObj > toDateObj) {
-      alert("From date cannot be later than To date.");
-      return;
-    }
     try {
       setLoading(true);
 
-      const formattedFromDate = dateToUTCString(fromDateToUse);
-      const formattedToDate = dateToUTCString(toDateToUse);
+      // Convert dates using the same pattern as order.tsx
+      const targetTimeZone = (selectedBranch ? branchList.find(b => b.id === selectedBranch)?.timezone : null) || businessTimeZone;
 
-      console.log('=== Date Conversion ===');
-      console.log('Business timezone:', businessTimeZone);
-      console.log('From date (raw):', fromDateToUse);
-      console.log('From date (formatted):', formattedFromDate);
-      console.log('To date (raw):', toDateToUse);
-      console.log('To date (formatted):', formattedToDate);
+      // Format fromDate (00:00:00)
+      const fromDateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
+      const formattedFromDate = fromZonedTime(`${fromDateStr} 00:00:00`, targetTimeZone).toISOString();
+
+      // Format toDate (23:59:59)
+      const toDateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
+      const formattedToDate = fromZonedTime(`${toDateStr} 23:59:59`, targetTimeZone).toISOString();
+
+      // Store converted dates for bills-summary API
+      setConvertedFromDate(formattedFromDate);
+      setConvertedToDate(formattedToDate);
 
       const formData = new FormData();
       formData.append('fromDate', formattedFromDate);
@@ -150,12 +121,20 @@ const SalesSummaryReport = () => {
   };
 
   const fetchExcelData = async () => {
-    if (branchList && fromDate && toDate) {
+    if (branchList && dateRange?.from && dateRange?.to) {
       const promises = branchList.map(async (branch) => {
         const formData = new FormData();
 
-        const formattedFromDate = dateToUTCString(fromDate);
-        const formattedToDate = dateToUTCString(toDate);
+        // Convert dates using the same pattern as order.tsx
+        const targetTimeZone = branch?.timezone || businessTimeZone;
+
+        // Format fromDate (00:00:00)
+        const fromDateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
+        const formattedFromDate = fromZonedTime(`${fromDateStr} 00:00:00`, targetTimeZone).toISOString();
+
+        // Format toDate (23:59:59)
+        const toDateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
+        const formattedToDate = fromZonedTime(`${toDateStr} 23:59:59`, targetTimeZone).toISOString();
 
         formData.append('fromDate', formattedFromDate);
         formData.append('toDate', formattedToDate);
@@ -174,8 +153,8 @@ const SalesSummaryReport = () => {
 
       exportExcelEodSummaryReport(
         selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
-        formatDateForDisplay(fromDate),
-        formatDateForDisplay(toDate),
+        formatDateForDisplay(dateRange.from),
+        formatDateForDisplay(dateRange.to),
         'Sales Summary Report'
       )
     }
@@ -184,11 +163,6 @@ const SalesSummaryReport = () => {
   useEffect(() => {
     dispatch(getBranches({}));
   }, [dispatch]);
-
-  useEffect(() => {
-    // Fetch initial report on first load with default dates/filters
-    handleSubmit();
-  }, []);
 
   const printWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -207,65 +181,42 @@ const SalesSummaryReport = () => {
           <Card className="p-3">
             <CardContent className="space-y-3">
               {/* Date Range Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="fromDate" className="text-xs font-semibold">
-                    <Translate contentKey={'analytics.summary.fromDate'}>
-                      From Date
-                    </Translate>
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "h-7 w-full justify-start text-xs font-normal",
-                          !fromDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3 w-3" />
-                        {fromDate ? format(fromDate, "yyyy-MM-dd") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={fromDate || undefined}
-                        onSelect={handleFromDateChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="toDate" className="text-xs font-semibold">
-                    <Translate contentKey={'analytics.summary.toDate'}>
-                      To Date
-                    </Translate>
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "h-7 w-full justify-start text-xs font-normal",
-                          !toDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-3 w-3" />
-                        {toDate ? format(toDate, "yyyy-MM-dd") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={toDate || undefined}
-                        onSelect={handleToDateChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">
+                  <Translate contentKey={'analytics.summary.dateRange'}>
+                    Date Range
+                  </Translate>
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-7 text-xs w-full justify-start">
+                      <CalendarIcon className="mr-2 h-3 w-3" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "PP")
+                        )
+                      ) : (
+                        <span>
+                          <Translate contentKey={'analytics.summary.selectDateRange'}>
+                            Pick a date range
+                          </Translate>
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={(range) => setDateRange(range)}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Filter Dropdowns */}
@@ -413,8 +364,8 @@ const SalesSummaryReport = () => {
             loading={loading}
             title=""
             branchId={selectedBranch}
-            fromDate={fromDate?.toISOString()}
-            toDate={toDate?.toISOString()}
+            fromDate={convertedFromDate}
+            toDate={convertedToDate}
             source={selectedSource}
             handleExcelExport={fetchExcelData}
           />

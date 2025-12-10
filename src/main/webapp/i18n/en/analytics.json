@@ -35,6 +35,8 @@
     "summary": {
       "toDate": "To Date",
       "fromDate": "From Date",
+      "dateRange": "Date Range",
+      "selectDateRange": "Select Date Range",
       "buttons": {
         "getReport": "Get Report",
         "lastWeek": "Last Week",

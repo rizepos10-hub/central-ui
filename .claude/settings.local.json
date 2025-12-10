@@ -7,7 +7,8 @@
       "Bash(grep:*)",
       "Bash(done)",
       "Bash(npm run clean:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
