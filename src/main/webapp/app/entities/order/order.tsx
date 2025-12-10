@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities, filterOrders, getOrderSources, getOrderStatuses, reset } from './order.reducer';
+import { getEntities, filterOrders, getOrderSources, getOrderStatuses, deleteEntity, reset } from './order.reducer';
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import { endOfDay, startOfDay, format } from "date-fns";
 import { debounce } from "lodash";
@@ -21,7 +21,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2 } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
 
@@ -143,6 +144,53 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
       navigate(`/order/${orderId}`);
     } else {
       toast.warn(`No Order Items - Order ID: ${sequenceNumber}`, { autoClose: 3000 });
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string, sequenceNumber: string) => {
+    try {
+      await dispatch(deleteEntity(orderId));
+
+      // Refetch orders using the current filters
+      const queryParams = {
+        id: lazyState.filters._id?.value || '',
+        client: appSourceProp || lazyState.filters.orderSource?.value || '',
+        orderProcessingStatus: lazyState.filters.status?.value || '',
+        first: lazyState.first,
+        sequenceId: lazyState.filters.id?.value || '',
+        page: lazyState.page,
+        customerPhone: lazyState.filters['customer.phone']?.value || '',
+        customerEmail: lazyState.filters['customer.email']?.value || '',
+        customerId: lazyState.filters['customer.id']?.value || '',
+        branchId: lazyState.filters.branchId?.value || '',
+        tables: lazyState.filters.tables?.value || '',
+        discount: lazyState.filters.discount?.value,
+        refund: lazyState.filters.refund?.value,
+        size: lazyState.rows,
+        fromDate: isEndOfDayMode
+          ? (externalFromDate || '')
+          : pageConfig.showDatePicker
+          ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
+          : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
+        toDate: isEndOfDayMode
+          ? (externalToDate || '')
+          : pageConfig.showDatePicker
+          ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
+          : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
+        modifiedDate: pageConfig.modifiedDate,
+        sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
+      };
+
+      const filteredQueryParams = Object.fromEntries(
+        Object.entries(queryParams).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined
+        )
+      );
+
+      await dispatch(filterOrders(filteredQueryParams));
+      toast.success(`Order ${sequenceNumber} deleted successfully`, { autoClose: 3000 });
+    } catch (error) {
+      toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
     }
   };
 
@@ -734,6 +782,9 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     </div>
                   </TableHead>
                 )}
+                <TableHead className="w-16">
+                  <div className="text-xs font-medium">Actions</div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -804,6 +855,36 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                         )}
                       </TableCell>
                     )}
+                    <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
