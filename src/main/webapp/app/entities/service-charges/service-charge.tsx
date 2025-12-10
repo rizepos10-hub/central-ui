@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { IServiceCharge, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import { IServiceCharge, ServiceChargeKey, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { applyMatchModeMap, updateTableFilters } from 'app/shared/util/filter-match-model-util';
 import { filterEntities } from './service-charge.reducer';
@@ -133,14 +133,29 @@ export const ServiceCharge = () => {
     }
   };
 
-  const formatServiceChargeType = value => {
+  const formatServiceChargeCalculationMethod = value => {
     switch (value) {
-      case ServiceChargeSettingType.FIXED:
+      case 'FIXED':
         return "Fixed";
-      case ServiceChargeSettingType.PERCENTAGE:
+      case 'PERCENTAGE':
         return "Percentage";
       default:
         return value;
+    }
+  };
+
+  const formatServiceChargeOrderMethod = (orderMethod) => {
+    switch (orderMethod) {
+      case 'DELIVERY':
+        return "Delivery";
+      case 'PICKUP':
+        return "Pickup";
+      case 'DINE_IN':
+        return "Dine In";
+      case 'WALK_IN':
+        return "Walk In";
+      default:
+        return orderMethod;
     }
   };
 
@@ -381,7 +396,9 @@ export const ServiceCharge = () => {
               <TableHead className="text-xs">Branches</TableHead>
               <TableHead className="text-xs">When To Apply</TableHead>
               <TableHead className="text-xs">Charge</TableHead>
-              <TableHead className="text-xs">Calculation Type</TableHead>
+              <TableHead className="text-xs">Min/Max Charge</TableHead>
+              <TableHead className="text-xs">Calculation Method</TableHead>
+              <TableHead className="text-xs">Applicable On</TableHead>
               <TableHead className="text-xs w-10">Edit</TableHead>
               <TableHead className="text-xs w-10">Delete</TableHead>
             </TableRow>
@@ -389,13 +406,13 @@ export const ServiceCharge = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={10} className="text-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : serviceCharges.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-xs py-8">
+                <TableCell colSpan={10} className="text-center text-xs py-8">
                   No service charges found
                 </TableCell>
               </TableRow>
@@ -406,8 +423,16 @@ export const ServiceCharge = () => {
                   <TableCell className="text-xs">{nameColumnTemplate(charge)}</TableCell>
                   <TableCell className="text-xs">{charge.branches?.map(b => b?.name).join(', ') || '-'}</TableCell>
                   <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.whenToApply)}</TableCell>
-                  <TableCell className="text-xs">{charge.charge}</TableCell>
-                  <TableCell className="text-xs">{formatServiceChargeType(charge.setting?.type)}</TableCell>
+                  <TableCell className="text-xs">{charge.charge || '-'}</TableCell>
+                  {/* <TableCell className="text-xs">
+                    {charge.minCharge !== undefined || charge.maxCharge !== undefined
+                      ? `${charge.minCharge || 0} - ${charge.maxCharge || '∞'}`
+                      : '-'}
+                  </TableCell> */}
+                  <TableCell className="text-xs">{formatServiceChargeCalculationMethod(charge.setting?.method)}</TableCell>
+                  <TableCell className="text-xs">
+                    {charge.setting?.applicableOn?.orderMethods?.map(om => formatServiceChargeOrderMethod(om)).join(', ') || '-'}
+                  </TableCell>
                   <TableCell className="text-xs">{editColumnTemplate(charge)}</TableCell>
                   <TableCell className="text-xs">{deleteColumnTemplate(charge)}</TableCell>
                 </TableRow>

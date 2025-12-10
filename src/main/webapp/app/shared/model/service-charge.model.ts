@@ -1,4 +1,5 @@
 import { IBranch } from './branch.model';
+import { IProfileGroup } from './TAX/profile-group.model';
 
 export interface IServiceCharge {
   id?: string;
@@ -13,6 +14,7 @@ export interface IServiceCharge {
   whenToApply?: ServiceChargeWhenToApply;
   charge?: number;
   isArchived?: boolean;
+  accountingGroups?: IProfileGroup[]
 }
 
 export enum ServiceChargeKey {
@@ -23,18 +25,50 @@ export enum ServiceChargeKey {
 }
 
 export interface IServiceChargeSetting {
-  type?: ServiceChargeSettingType;
-  applicableOn?: ServiceChargeApplicableOn[];
+  method?: ServiceChargeCalculationMethod;
+  applicableOn?: ServiceChargeApplicableOn;
+  discountable?: boolean;
+  loyaltyEligible?: boolean;
 }
 
-export enum ServiceChargeApplicableOn {
+export interface ServiceChargeApplicableOn {
+  orderMethods?: ServiceChargeOrderMethod[];
+  transactionMethods?: TransactionMethodEnum[];
+  orderSources?: ServiceChargeOrderSources[];
+}
+
+export enum ServiceChargeOrderSources {
+  ONLINE_ORDERING = "online_ordering",
+  BRANCH_POS = "branch_pos",
+}
+
+export enum ServiceChargeOrderMethod {
   DELIVERY = "DELIVERY",
   PICKUP = "PICKUP",
   DINE_IN = "DINE_IN",
   WALK_IN = "WALK_IN"
 }
 
-export enum ServiceChargeSettingType {
+export enum TransactionMethodEnum {
+  cash = "cash",
+  debit = "debit",
+  loyalty = "loyalty",
+  storeCredit = "storeCredit",
+  visa = "visa",
+  master = "master",
+  amex = "amex",
+  giftCard = "giftCard",
+  coupon = "coupon",
+  creditCard = "creditCard",
+  chinaUnionPay = "chinaUnionPay",
+  discover = "discover",
+  japanCreditBureau = "japanCreditBureau",
+  electronicBenefitTransferCashBenefit = "electronicBenefitTransferCashBenefit",
+  electronicBenefitTransferFoodStamp = "electronicBenefitTransferFoodStamp",
+  convergeLightbox = "convergeLightbox",
+}
+
+export enum ServiceChargeCalculationMethod {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE"
 }

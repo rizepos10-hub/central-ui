@@ -6,7 +6,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './service-charge.reducer';
-import { ServiceChargeApplicableOn, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import { ServiceChargeOrderMethod, ServiceChargeKey, ServiceChargeCalculationMethod, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
 import Select from 'react-select'
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -80,9 +80,9 @@ export const ServiceChargeUpdate = () => {
 
   const formatServiceChargeSettingType = (type) => {
     switch (type) {
-      case ServiceChargeSettingType.FIXED:
+      case ServiceChargeCalculationMethod.FIXED:
         return "Fixed";
-      case ServiceChargeSettingType.PERCENTAGE:
+      case ServiceChargeCalculationMethod.PERCENTAGE:
         return "Percentage";
       default:
         return type;
@@ -102,13 +102,13 @@ export const ServiceChargeUpdate = () => {
 
   const formatServiceChargeApplicableOn = (applicableOn) => {
     switch (applicableOn) {
-      case ServiceChargeApplicableOn.DELIVERY:
+      case ServiceChargeOrderMethod.DELIVERY:
         return "Delivery";
-      case ServiceChargeApplicableOn.PICKUP:
+      case ServiceChargeOrderMethod.PICKUP:
         return "Pickup";
-      case ServiceChargeApplicableOn.DINE_IN:
+      case ServiceChargeOrderMethod.DINE_IN:
         return "Dine In";
-      case ServiceChargeApplicableOn.WALK_IN:
+      case ServiceChargeOrderMethod.WALK_IN:
         return "Walk In";
       default:
         return applicableOn;
@@ -117,21 +117,33 @@ export const ServiceChargeUpdate = () => {
 
   const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: formatServiceChargeKey(key), value: ServiceChargeKey[key] }));
   const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: formatServiceChargeWhenToApply(key), value: ServiceChargeWhenToApply[key] }));
-  const typeOptions = Object.keys(ServiceChargeSettingType).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeSettingType[key] }));
-  const applicableOnOptions = Object.keys(ServiceChargeApplicableOn).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeApplicableOn[key] }));
+  const typeOptions = Object.keys(ServiceChargeCalculationMethod).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeCalculationMethod[key] }));
+  const applicableOnOptions = Object.keys(ServiceChargeOrderMethod).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeOrderMethod[key] }));
 
 
   const handleApplicableOnChange = (selectedOptions) => {
     const newValue = selectedOptions.map(option => option.value);
     const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
-    _.set(updatedEntity, 'setting.applicableOn', newValue);
+    _.set(updatedEntity, 'setting.applicableOn.orderMethods', newValue);
     dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
   }
 
-  const handleTypeChange = (selectedOption) => {
+  const handleMethodChange = (selectedOption) => {
     const newValue = selectedOption.value;
     const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
-    _.set(updatedEntity, 'setting.type', newValue);
+    _.set(updatedEntity, 'setting.method', newValue);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  }
+
+  const handleDiscountableChange = (checked) => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.discountable', checked);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  }
+
+  const handleLoyaltyEligibleChange = (checked) => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.loyaltyEligible', checked);
     dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
   }
 
@@ -178,13 +190,13 @@ export const ServiceChargeUpdate = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="service-charge-type" className="text-xs">{translate('service-charge.settings.calculationType')}</Label>
+                <Label htmlFor="service-charge-method" className="text-xs">{translate('service-charge.settings.calculationType')}</Label>
                 <Select
-                  id="service-charge-type"
-                  value={serviceChargeEntity.setting?.type ? typeOptions.find(t => t.value === serviceChargeEntity.setting.type) : null}
-                  onChange={handleTypeChange}
+                  id="service-charge-method"
+                  value={serviceChargeEntity.setting?.method ? typeOptions.find(t => t.value === serviceChargeEntity.setting.method) : null}
+                  onChange={handleMethodChange}
                   options={typeOptions}
-                  placeholder="Select Calculation Type"
+                  placeholder="Select Calculation Method"
                   isClearable
                 />
               </div>
@@ -193,7 +205,7 @@ export const ServiceChargeUpdate = () => {
                 <Select
                   id="service-charge-applicableOn"
                   options={applicableOnOptions}
-                  value={applicableOnOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.includes(option.value)) || null}
+                  value={applicableOnOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.orderMethods?.includes(option.value)) || null}
                   onChange={handleApplicableOnChange}
                   isMulti
                 />
@@ -226,17 +238,65 @@ export const ServiceChargeUpdate = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="service-charge-charge" className="text-xs">{translate('service-charge.charge')}</Label>
-              <Input
-                id="service-charge-charge"
-                type="number"
-                step="0.01"
-                value={serviceChargeEntity.charge || 0}
-                onChange={(e) => dispatch(changeEntityField({ name: 'charge', value: parseFloat(e.target.value) }))}
-                required
-                className="h-8 text-xs"
-              />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-charge" className="text-xs">{translate('service-charge.charge')}</Label>
+                <Input
+                  id="service-charge-charge"
+                  type="number"
+                  step="0.01"
+                  value={serviceChargeEntity.charge || 0}
+                  onChange={(e) => dispatch(changeEntityField({ name: 'charge', value: parseFloat(e.target.value) }))}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-minCharge" className="text-xs">{translate('service-charge.minCharge')}</Label>
+                <Input
+                  id="service-charge-minCharge"
+                  type="number"
+                  step="0.01"
+                  value={serviceChargeEntity.minCharge || ''}
+                  onChange={(e) => dispatch(changeEntityField({ name: 'minCharge', value: e.target.value ? parseFloat(e.target.value) : null }))}
+                  className="h-8 text-xs"
+                  placeholder="Min Charge"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-maxCharge" className="text-xs">{translate('service-charge.maxCharge')}</Label>
+                <Input
+                  id="service-charge-maxCharge"
+                  type="number"
+                  step="0.01"
+                  value={serviceChargeEntity.maxCharge || ''}
+                  onChange={(e) => dispatch(changeEntityField({ name: 'maxCharge', value: e.target.value ? parseFloat(e.target.value) : null }))}
+                  className="h-8 text-xs"
+                  placeholder="Max Charge"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="service-charge-discountable"
+                  checked={serviceChargeEntity.setting?.discountable || false}
+                  onChange={(e) => handleDiscountableChange(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="service-charge-discountable" className="text-xs">{translate('service-charge.discountable')}</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="service-charge-loyaltyEligible"
+                  checked={serviceChargeEntity.setting?.loyaltyEligible || false}
+                  onChange={(e) => handleLoyaltyEligibleChange(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="service-charge-loyaltyEligible" className="text-xs">{translate('service-charge.loyaltyEligible')}</Label>
+              </div>
             </div>
 
             <div className="flex gap-2">
