@@ -150,6 +150,44 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
   const handleDeleteOrder = async (orderId: string, sequenceNumber: string) => {
     try {
       await dispatch(deleteEntity(orderId));
+
+      // Refetch orders using the current filters
+      const queryParams = {
+        id: lazyState.filters._id?.value || '',
+        client: appSourceProp || lazyState.filters.orderSource?.value || '',
+        orderProcessingStatus: lazyState.filters.status?.value || '',
+        first: lazyState.first,
+        sequenceId: lazyState.filters.id?.value || '',
+        page: lazyState.page,
+        customerPhone: lazyState.filters['customer.phone']?.value || '',
+        customerEmail: lazyState.filters['customer.email']?.value || '',
+        customerId: lazyState.filters['customer.id']?.value || '',
+        branchId: lazyState.filters.branchId?.value || '',
+        tables: lazyState.filters.tables?.value || '',
+        discount: lazyState.filters.discount?.value,
+        refund: lazyState.filters.refund?.value,
+        size: lazyState.rows,
+        fromDate: isEndOfDayMode
+          ? (externalFromDate || '')
+          : pageConfig.showDatePicker
+          ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
+          : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
+        toDate: isEndOfDayMode
+          ? (externalToDate || '')
+          : pageConfig.showDatePicker
+          ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
+          : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
+        modifiedDate: pageConfig.modifiedDate,
+        sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
+      };
+
+      const filteredQueryParams = Object.fromEntries(
+        Object.entries(queryParams).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined
+        )
+      );
+
+      await dispatch(filterOrders(filteredQueryParams));
       toast.success(`Order ${sequenceNumber} deleted successfully`, { autoClose: 3000 });
     } catch (error) {
       toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
