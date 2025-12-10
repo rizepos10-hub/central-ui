@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities, filterOrders, getOrderSources, getOrderStatuses, deleteEntity, reset } from './order.reducer';
 import { getEntities as getBranches } from '../branch/branch.reducer';
-import { endOfDay, startOfDay, format } from "date-fns";
+import { format } from "date-fns";
+import { fromZonedTime } from 'date-fns-tz';
 import { debounce } from "lodash";
 import { translate } from "react-jhipster";
-import { toLocalISOString } from "app/shared/util/date-utils";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -52,8 +52,10 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
 
   // Configure based on page type
   const today = new Date();
-  const from = startOfDay(today);
-  const to = endOfDay(today);
+  const from = new Date(today);
+  from.setHours(0, 0, 0, 0);
+  const to = new Date(today);
+  to.setHours(23, 59, 59, 999);
 
   const config = {
     history: {
@@ -124,6 +126,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
   const branchList = useAppSelector(state => state.branch.entities);
   const orderSources = useAppSelector(state => state.order.orderSources);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
+  const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
 
   const getBranchName = (branchId) => {
@@ -170,12 +173,20 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
         fromDate: isEndOfDayMode
           ? (externalFromDate || '')
           : pageConfig.showDatePicker
-          ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
+          ? (dateRange?.from ? (() => {
+              const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
+              const dateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
+              return fromZonedTime(`${dateStr} 00:00:00`, targetTimeZone).toISOString();
+            })() : '')
           : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
         toDate: isEndOfDayMode
           ? (externalToDate || '')
           : pageConfig.showDatePicker
-          ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
+          ? (dateRange?.to ? (() => {
+              const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
+              const dateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
+              return fromZonedTime(`${dateStr} 23:59:59`, targetTimeZone).toISOString();
+            })() : '')
           : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
         modifiedDate: pageConfig.modifiedDate,
         sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
@@ -306,12 +317,20 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
           fromDate: isEndOfDayMode
             ? (externalFromDate || '')
             : pageConfig.showDatePicker
-            ? (dateRange?.from ? toLocalISOString(startOfDay(dateRange.from)) : '')
+            ? (dateRange?.from ? (() => {
+                const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
+                const dateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
+                return fromZonedTime(`${dateStr} 00:00:00`, targetTimeZone).toISOString();
+              })() : '')
             : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
           toDate: isEndOfDayMode
             ? (externalToDate || '')
             : pageConfig.showDatePicker
-            ? (dateRange?.to ? toLocalISOString(endOfDay(dateRange.to)) : '')
+            ? (dateRange?.to ? (() => {
+                const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
+                const dateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
+                return fromZonedTime(`${dateStr} 23:59:59`, targetTimeZone).toISOString();
+              })() : '')
             : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
           modifiedDate: pageConfig.modifiedDate,
           sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
