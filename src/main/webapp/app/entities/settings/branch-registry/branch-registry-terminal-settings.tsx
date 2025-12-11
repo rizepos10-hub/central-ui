@@ -233,6 +233,16 @@ function PersonalizationSettings() {
             </FieldWrapper>
 
             <FieldWrapper
+                title="Enable Custom On-Screen Keyboard"
+                description="Show custom keyboard when text fields are focused (Windows only)"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableCustomKeyboard}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableCustomKeyboard', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
                 title="Scrollbar Thickness"
                 description="Thickness in pixels"
             >
