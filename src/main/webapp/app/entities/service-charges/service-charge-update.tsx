@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Translate, translate } from 'react-jhipster';
+import { getSortState, Translate, translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './service-charge.reducer';
-import { ServiceChargeOrderMethod, ServiceChargeKey, ServiceChargeCalculationMethod, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import { ServiceChargeOrderMethod, ServiceChargeKey, ServiceChargeCalculationMethod, ServiceChargeWhenToApply, IServiceCharge } from 'app/shared/model/service-charge.model';
 import Select from 'react-select'
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -14,6 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+
 
 export const ServiceChargeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -21,16 +25,28 @@ export const ServiceChargeUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const serviceChargeEntity = useAppSelector(state => state.serviceCharge.entity);
+  const serviceChargeEntity : IServiceCharge = useAppSelector(state => state.serviceCharge.entity);
   const loading = useAppSelector(state => state.serviceCharge.loading);
   const updating = useAppSelector(state => state.serviceCharge.updating);
   const branchList = useAppSelector(state => state.branch.entities);
-
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+  
   useEffect(() => {
     if (!isNew) {
       dispatch(getEntity(id));
     }
     dispatch(getBranches({}));
+    
+    dispatch(
+      getProfileGroups({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, []);
 
   const handleClose = () => {
@@ -251,6 +267,28 @@ export const ServiceChargeUpdate = () => {
                 />
               </div>
               <div className="space-y-2">
+                  <Label className="text-xs font-semibold">
+                    <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
+                  </Label>
+                  <Select
+                    value={serviceChargeEntity?.accountingGroups || []}
+                    isClearable
+                    options={profileGroupsOptions}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'accountingGroups', value:  e ? [e] : [] }))}
+                    onMenuOpen={() => {
+                      dispatch(
+                        getProfileGroups({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      );
+                    }}
+                  />
+              </div>
+              {/* <div className="space-y-2">
                 <Label htmlFor="service-charge-minCharge" className="text-xs">{translate('service-charge.minCharge')}</Label>
                 <Input
                   id="service-charge-minCharge"
@@ -273,7 +311,7 @@ export const ServiceChargeUpdate = () => {
                   className="h-8 text-xs"
                   placeholder="Max Charge"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
