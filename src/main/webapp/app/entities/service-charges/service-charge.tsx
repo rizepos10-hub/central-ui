@@ -11,7 +11,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { IServiceCharge, ServiceChargeKey, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import {
+  IServiceCharge,
+  ServiceChargeKey,
+  ServiceChargeWhenToApply,
+  ServiceChargeOrderMethod,
+  ServiceChargeCalculationMethod,
+  TransactionMethodEnum,
+} from 'app/shared/model/service-charge.model';
+import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { applyMatchModeMap, updateTableFilters } from 'app/shared/util/filter-match-model-util';
 import { filterEntities } from './service-charge.reducer';
@@ -31,6 +39,10 @@ const initialServiceChargeFilterState = {
     key: { value: null, matchMode: FilterMatchMode.EQUALS },
     whenToApply: { value: null, matchMode: FilterMatchMode.EQUALS },
     'branches.id': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'setting.method': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'setting.applicableOn.orderMethods': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'setting.applicableOn.orderSources': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'setting.applicableOn.transactionMethods': { value: null, matchMode: FilterMatchMode.EQUALS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   }
 };
@@ -160,6 +172,48 @@ export const ServiceCharge = () => {
     }
   };
 
+  const formatServiceChargeOrderSource = source => {
+    switch (source) {
+      case SourceType.ONLINE_ORDERING:
+        return "Online Ordering";
+      case SourceType.BRANCH_POS:
+        return "Branch POS";
+      default:
+        return source;
+    }
+  };
+
+  const formatTransactionMethod = method =>
+    method
+      ?.replace(/([a-z])([A-Z])/g, '$1 $2')
+      ?.replace(/_/g, ' ')
+      ?.replace(/\b\w/g, char => char.toUpperCase()) || method;
+
+  const serviceChargeKeyOptions = Object.keys(ServiceChargeKey).map(key => ({
+    label: formatServiceChargeKey(ServiceChargeKey[key]),
+    value: ServiceChargeKey[key],
+  }));
+  const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({
+    label: formatServiceChargeWhenToApply(ServiceChargeWhenToApply[key]),
+    value: ServiceChargeWhenToApply[key],
+  }));
+  const calculationMethodOptions = Object.keys(ServiceChargeCalculationMethod).map(key => ({
+    label: formatServiceChargeCalculationMethod(ServiceChargeCalculationMethod[key]),
+    value: ServiceChargeCalculationMethod[key],
+  }));
+  const applicableOnOptions = Object.keys(ServiceChargeOrderMethod).map(key => ({
+    label: formatServiceChargeOrderMethod(ServiceChargeOrderMethod[key]),
+    value: ServiceChargeOrderMethod[key],
+  }));
+  const orderSourceOptions = Object.keys(SourceType).map(key => ({
+    label: formatServiceChargeOrderSource(SourceType[key]),
+    value: SourceType[key],
+  }));
+  const transactionMethodOptions = Object.keys(TransactionMethodEnum).map(key => ({
+    label: formatTransactionMethod(TransactionMethodEnum[key]),
+    value: TransactionMethodEnum[key],
+  }));
+
   const nameColumnTemplate = rowData => {
     const editUrl = `/service-charge/${rowData.id}/edit`;
     return (
@@ -283,7 +337,7 @@ export const ServiceCharge = () => {
       {/* Inline Filters Section */}
       {filtersVisible && (
         <div className="bg-muted/30 p-3 border-t">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1">Name</label>
               <div className="flex gap-1">
@@ -323,10 +377,7 @@ export const ServiceCharge = () => {
                   label: formatServiceChargeKey(localFilters.key.value),
                   value: localFilters.key.value
                 } : null}
-                options={Object.keys(ServiceChargeKey).map(key => ({
-                  label: formatServiceChargeKey(ServiceChargeKey[key]),
-                  value: ServiceChargeKey[key]
-                }))}
+                options={serviceChargeKeyOptions}
                 onChange={(option) => {
                   handleFilterValueChange('key', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
                 }}
@@ -342,10 +393,7 @@ export const ServiceCharge = () => {
                   label: formatServiceChargeWhenToApply(localFilters.whenToApply.value),
                   value: localFilters.whenToApply.value
                 } : null}
-                options={Object.keys(ServiceChargeWhenToApply).map(key => ({
-                  label: formatServiceChargeWhenToApply(ServiceChargeWhenToApply[key]),
-                  value: ServiceChargeWhenToApply[key]
-                }))}
+                options={whenToApplyOptions}
                 onChange={(option) => {
                   handleFilterValueChange('whenToApply', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
                 }}
@@ -363,6 +411,70 @@ export const ServiceCharge = () => {
                 selectedOption={localFilters?.['branches.id']?.value}
                 fieldName={'branches.id'}
                 handleDropdownChange={(field, value) => handleFilterValueChange(field, value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Calculation Method</label>
+              <Select
+                value={localFilters?.['setting.method']?.value ? {
+                  label: formatServiceChargeCalculationMethod(localFilters['setting.method'].value),
+                  value: localFilters['setting.method'].value
+                } : null}
+                options={calculationMethodOptions}
+                onChange={(option) => {
+                  handleFilterValueChange('setting.method', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select Method"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Applicable On</label>
+              <Select
+                value={localFilters?.['setting.applicableOn.orderMethods']?.value ? {
+                  label: formatServiceChargeOrderMethod(localFilters['setting.applicableOn.orderMethods'].value),
+                  value: localFilters['setting.applicableOn.orderMethods'].value
+                } : null}
+                options={applicableOnOptions}
+                onChange={(option) => {
+                  handleFilterValueChange('setting.applicableOn.orderMethods', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select Order Method"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Order Sources</label>
+              <Select
+                value={localFilters?.['setting.applicableOn.orderSources']?.value ? {
+                  label: formatServiceChargeOrderSource(localFilters['setting.applicableOn.orderSources'].value),
+                  value: localFilters['setting.applicableOn.orderSources'].value
+                } : null}
+                options={orderSourceOptions}
+                onChange={(option) => {
+                  handleFilterValueChange('setting.applicableOn.orderSources', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select Order Source"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Transaction Methods</label>
+              <Select
+                value={localFilters?.['setting.applicableOn.transactionMethods']?.value ? {
+                  label: formatTransactionMethod(localFilters['setting.applicableOn.transactionMethods'].value),
+                  value: localFilters['setting.applicableOn.transactionMethods'].value
+                } : null}
+                options={transactionMethodOptions}
+                onChange={(option) => {
+                  handleFilterValueChange('setting.applicableOn.transactionMethods', { value: option?.value || null, matchMode: FilterMatchMode.EQUALS });
+                }}
+                isClearable
+                placeholder="Select Transaction Method"
               />
             </div>
           </div>
@@ -397,9 +509,10 @@ export const ServiceCharge = () => {
               <TableHead className="text-xs">Branches</TableHead>
               <TableHead className="text-xs">When To Apply</TableHead>
               <TableHead className="text-xs">Charge</TableHead>
-              <TableHead className="text-xs">Min/Max Charge</TableHead>
               <TableHead className="text-xs">Calculation Method</TableHead>
               <TableHead className="text-xs">Applicable On</TableHead>
+              <TableHead className="text-xs">Order Sources</TableHead>
+              <TableHead className="text-xs">Transaction Methods</TableHead>
               <TableHead className="text-xs w-10">Edit</TableHead>
               <TableHead className="text-xs w-10">Delete</TableHead>
             </TableRow>
@@ -407,13 +520,13 @@ export const ServiceCharge = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-8">
+                <TableCell colSpan={11} className="text-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : serviceCharges.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-xs py-8">
+                <TableCell colSpan={11} className="text-center text-xs py-8">
                   No service charges found
                 </TableCell>
               </TableRow>
@@ -425,14 +538,15 @@ export const ServiceCharge = () => {
                   <TableCell className="text-xs">{charge.branches?.map(b => b?.name).join(', ') || '-'}</TableCell>
                   <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.whenToApply)}</TableCell>
                   <TableCell className="text-xs">{charge.charge || '-'}</TableCell>
-                  {/* <TableCell className="text-xs">
-                    {charge.minCharge !== undefined || charge.maxCharge !== undefined
-                      ? `${charge.minCharge || 0} - ${charge.maxCharge || '∞'}`
-                      : '-'}
-                  </TableCell> */}
                   <TableCell className="text-xs">{formatServiceChargeCalculationMethod(charge.setting?.method)}</TableCell>
                   <TableCell className="text-xs">
                     {charge.setting?.applicableOn?.orderMethods?.map(om => formatServiceChargeOrderMethod(om)).join(', ') || '-'}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {charge.setting?.applicableOn?.orderSources?.map(os => formatServiceChargeOrderSource(os)).join(', ') || '-'}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {charge.setting?.applicableOn?.transactionMethods?.map(tm => formatTransactionMethod(tm)).join(', ') || '-'}
                   </TableCell>
                   <TableCell className="text-xs">{editColumnTemplate(charge)}</TableCell>
                   <TableCell className="text-xs">{deleteColumnTemplate(charge)}</TableCell>

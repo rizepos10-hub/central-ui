@@ -1,4 +1,5 @@
 import { IBranch } from './branch.model';
+import { SourceType } from './ENUMS/source-type.model';
 import { IProfileGroup } from './TAX/profile-group.model';
 
 export interface IServiceCharge {
@@ -14,7 +15,7 @@ export interface IServiceCharge {
   whenToApply?: ServiceChargeWhenToApply;
   charge?: number;
   isArchived?: boolean;
-  accountingGroups?: IProfileGroup[]
+  accountingGroup?: IProfileGroup
 }
 
 export enum ServiceChargeKey {
@@ -34,12 +35,7 @@ export interface IServiceChargeSetting {
 export interface ServiceChargeApplicableOn {
   orderMethods?: ServiceChargeOrderMethod[];
   transactionMethods?: TransactionMethodEnum[];
-  orderSources?: ServiceChargeOrderSources[];
-}
-
-export enum ServiceChargeOrderSources {
-  ONLINE_ORDERING = "online_ordering",
-  BRANCH_POS = "branch_pos",
+  orderSources?: SourceType[];
 }
 
 export enum ServiceChargeOrderMethod {
