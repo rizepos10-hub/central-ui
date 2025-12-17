@@ -1,3 +1,5 @@
+import { TransactionMethodEnum } from "./service-charge.model";
+
 export interface ISummaryReport {
   totalSales: ISalesSummary;
   totalReceived: IReceivedSummary[];
@@ -55,7 +57,7 @@ export interface ISalesSummary {
 
 
 export interface IReceivedSummary {
-  paymentType: string;
+  paymentType: TransactionMethodEnum;
   tip: number;
   amount: number;
   refund: number;

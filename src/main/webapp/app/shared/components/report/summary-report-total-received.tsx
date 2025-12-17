@@ -3,6 +3,19 @@ import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 
+const formatPaymentMethodLabel = (method: string): string => {
+  // Special case for master
+  if (method === 'master') {
+    return 'Master Card';
+  }
+
+  // Convert camelCase to Title Case with spaces
+  return method
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+    .trim();
+};
+
 const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummaryReport['totalReceived'] }) => {
   const filteredData = totalReceived?.filter(
     item =>
@@ -30,7 +43,7 @@ const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummary
           <TableBody>
             {filteredData?.map((item, index) => (
               <TableRow key={index}>
-                <TableCell className="text-xs">{item.paymentType}</TableCell>
+                <TableCell className="text-xs">{formatPaymentMethodLabel(item.paymentType)}</TableCell>
                 <TableCell className="text-xs text-right">{item.tip?.toFixed(2)}</TableCell>
                 <TableCell className="text-xs text-right">{item.amount?.toFixed(2)}</TableCell>
                 <TableCell className="text-xs text-right">{item.refund?.toFixed(2)}</TableCell>
