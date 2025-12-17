@@ -4,6 +4,19 @@ import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 // Development toggle: set to true to show all values including zero/null
 const SHOW_ZERO_VALUES = false;
 
+const formatPaymentMethodLabel = (method: string): string => {
+  // Special case for master
+  if (method === 'master') {
+    return 'Master Card';
+  }
+
+  // Convert camelCase to Title Case with spaces
+  return method
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+    .trim();
+};
+
 interface EodReportLayoutProps {
   summary: any;
   isEndOfDay?: boolean;
@@ -250,7 +263,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                   <table>
                     <tbody>
                       <tr className="font-bold">
-                        <td className="col-3-left">{payment.paymentType || 'Unknown'}</td>
+                        <td className="col-3-left">{formatPaymentMethodLabel(payment.paymentType || 'Unknown')}</td>
                         {payment.salesOrderCount != null && payment.salesOrderCount !== 0 && (
                           <td className="col-3-middle">{payment.salesOrderCount.toFixed(0)}</td>
                         )}
