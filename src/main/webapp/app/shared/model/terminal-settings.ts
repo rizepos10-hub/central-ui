@@ -43,6 +43,7 @@ export interface ITerminalSettings {
     serialScaleSettings: SerialScaleSettings;
     scaleIntegrationType: ScaleIntegrationTypeEnum;
     rizeIntegratorWindowsServiceSettings: RizeIntegratorWindowsServiceSettings;
+    enableCustomKeyboard: boolean;
 }
 
 export enum openDrawerTypeEnum {

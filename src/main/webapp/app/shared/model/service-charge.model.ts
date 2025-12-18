@@ -1,4 +1,6 @@
 import { IBranch } from './branch.model';
+import { SourceType } from './ENUMS/source-type.model';
+import { IProfileGroup } from './TAX/profile-group.model';
 
 export interface IServiceCharge {
   id?: string;
@@ -6,9 +8,14 @@ export interface IServiceCharge {
   createdDate?: string;
   lastModifiedBy?: string;
   lastModifiedDate?: string;
-  branch?: IBranch;
+  branches?: IBranch[];
   key?: ServiceChargeKey;
-  value?: IServiceChargeValue;
+  name?: string;
+  setting?: IServiceChargeSetting;
+  whenToApply?: ServiceChargeWhenToApply;
+  charge?: number;
+  isArchived?: boolean;
+  accountingGroup?: IProfileGroup
 }
 
 export enum ServiceChargeKey {
@@ -18,33 +25,46 @@ export enum ServiceChargeKey {
   OTHER = "OTHER"
 }
 
-export interface IServiceChargeValue {
-  key?: ServiceChargeType;
-  name?: string;
-  setting?: IServiceChargeSetting;
-  whenToApply?: ServiceChargeWhenToApply;
-  minCharge?: number;
-  maxCharge?: number;
-  charge?: number;
-}
-
 export interface IServiceChargeSetting {
-  type?: ServiceChargeSettingType;
-  applicableOn?: ServiceChargeApplicableOn[];
+  method?: ServiceChargeCalculationMethod;
+  applicableOn?: ServiceChargeApplicableOn;
+  discountable?: boolean;
+  loyaltyEligible?: boolean;
 }
 
-export enum ServiceChargeApplicableOn {
+export interface ServiceChargeApplicableOn {
+  orderMethods?: ServiceChargeOrderMethod[];
+  transactionMethods?: TransactionMethodEnum[];
+  orderSources?: SourceType[];
+}
+
+export enum ServiceChargeOrderMethod {
   DELIVERY = "DELIVERY",
   PICKUP = "PICKUP",
   DINE_IN = "DINE_IN",
   WALK_IN = "WALK_IN"
 }
 
-export enum ServiceChargeType {
-  SHIPPING_FEE = "SHIPPING_FEE"
+export enum TransactionMethodEnum {
+  cash = "cash",
+  debit = "debit",
+  loyalty = "loyalty",
+  storeCredit = "storeCredit",
+  visa = "visa",
+  master = "master",
+  amex = "amex",
+  giftCard = "giftCard",
+  coupon = "coupon",
+  creditCard = "creditCard",
+  chinaUnionPay = "chinaUnionPay",
+  discover = "discover",
+  japanCreditBureau = "japanCreditBureau",
+  electronicBenefitTransferCashBenefit = "electronicBenefitTransferCashBenefit",
+  electronicBenefitTransferFoodStamp = "electronicBenefitTransferFoodStamp",
+  convergeLightbox = "convergeLightbox",
 }
 
-export enum ServiceChargeSettingType {
+export enum ServiceChargeCalculationMethod {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE"
 }
@@ -53,6 +73,5 @@ export enum ServiceChargeWhenToApply {
   AUTOMATIC = "AUTOMATIC",
   ON_DEMAND = "ON_DEMAND"
 }
-
 
 export const defaultValue: Readonly<IServiceCharge> = {};

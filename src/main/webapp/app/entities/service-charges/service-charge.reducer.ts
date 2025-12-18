@@ -15,14 +15,13 @@ const initialState: EntityState<IServiceCharge> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/settings/service-charge';
-const apiSearchUrl = 'api/_search/settings/service-charge';
+const apiUrl = 'api/service-charge';
+const apiSearchUrl = 'api/_search/service-charge';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('settings/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IServiceCharge[]>(requestUrl);
+export const filterEntities = createAsyncThunk('settings/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<IServiceCharge[]>(apiSearchUrl, query);
 });
 
 export const getEntities = createAsyncThunk('settings/fetch_entity_list', async ({ page, size, sort, key, whenToApply, branchId }: IQueryParams) => {
@@ -103,7 +102,7 @@ export const ServiceChargeSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -119,7 +118,7 @@ export const ServiceChargeSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

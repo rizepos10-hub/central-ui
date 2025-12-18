@@ -1,12 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Translate, translate } from 'react-jhipster';
+import { getSortState, Translate, translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './service-charge.reducer';
-import { ServiceChargeApplicableOn, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import {
+  ServiceChargeOrderMethod,
+  ServiceChargeKey,
+  ServiceChargeCalculationMethod,
+  ServiceChargeWhenToApply,
+  IServiceCharge,
+  TransactionMethodEnum,
+} from 'app/shared/model/service-charge.model';
 import Select from 'react-select'
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -14,6 +21,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
+
 
 export const ServiceChargeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -21,16 +33,31 @@ export const ServiceChargeUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const serviceChargeEntity = useAppSelector(state => state.serviceCharge.entity);
+  const serviceChargeEntity : IServiceCharge = useAppSelector(state => state.serviceCharge.entity);
   const loading = useAppSelector(state => state.serviceCharge.loading);
   const updating = useAppSelector(state => state.serviceCharge.updating);
   const branchList = useAppSelector(state => state.branch.entities);
-
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+  
   useEffect(() => {
+    console.log(isNew)
     if (!isNew) {
       dispatch(getEntity(id));
+    } else {
+      dispatch(reset())
     }
     dispatch(getBranches({}));
+    
+    dispatch(
+      getProfileGroups({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, []);
 
   const handleClose = () => {
@@ -39,21 +66,9 @@ export const ServiceChargeUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
-    const entity = {
-      branchId: serviceChargeEntity.branch?.id,
-      ...serviceChargeEntity,
-      value: {
-        ...serviceChargeEntity.value,
-        key: serviceChargeEntity.key,
-        // minCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.minCharge : null,
-        // maxCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.maxCharge : null,
-        minCharge: null,
-        maxCharge: null,
-      }
-    };
 
     if (isNew) {
-      dispatch(createEntity(entity)).then((res) => {
+      dispatch(createEntity(serviceChargeEntity)).then((res) => {
         if (createNew) {
           dispatch(reset());
         } else {
@@ -67,7 +82,7 @@ export const ServiceChargeUpdate = () => {
         }
       })
     } else {
-      dispatch(updateEntity(entity)).then(() => {
+      dispatch(updateEntity(serviceChargeEntity)).then(() => {
         if (createNew) {
           navigate(`/service-charge/new`)
         }
@@ -92,9 +107,9 @@ export const ServiceChargeUpdate = () => {
 
   const formatServiceChargeSettingType = (type) => {
     switch (type) {
-      case ServiceChargeSettingType.FIXED:
+      case ServiceChargeCalculationMethod.FIXED:
         return "Fixed";
-      case ServiceChargeSettingType.PERCENTAGE:
+      case ServiceChargeCalculationMethod.PERCENTAGE:
         return "Percentage";
       default:
         return type;
@@ -114,51 +129,96 @@ export const ServiceChargeUpdate = () => {
 
   const formatServiceChargeApplicableOn = (applicableOn) => {
     switch (applicableOn) {
-      case ServiceChargeApplicableOn.DELIVERY:
+      case ServiceChargeOrderMethod.DELIVERY:
         return "Delivery";
-      case ServiceChargeApplicableOn.PICKUP:
+      case ServiceChargeOrderMethod.PICKUP:
         return "Pickup";
-      case ServiceChargeApplicableOn.DINE_IN:
+      case ServiceChargeOrderMethod.DINE_IN:
         return "Dine In";
-      case ServiceChargeApplicableOn.WALK_IN:
+      case ServiceChargeOrderMethod.WALK_IN:
         return "Walk In";
       default:
         return applicableOn;
     }
   };
 
+  const formatServiceChargeOrderSource = (source) => {
+    switch (source) {
+      case SourceType.ONLINE_ORDERING:
+        return "Online Ordering";
+      case SourceType.BRANCH_POS:
+        return "Branch POS";
+      default:
+        return source;
+    }
+  };
+
+  const formatTransactionMethod = (method) => {
+    return method?.replace(/([a-z])([A-Z])/g, '$1 $2')?.replace(/_/g, ' ')?.replace(/\b\w/g, char => char.toUpperCase()) || method;
+  };
+
   const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: formatServiceChargeKey(key), value: ServiceChargeKey[key] }));
   const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: formatServiceChargeWhenToApply(key), value: ServiceChargeWhenToApply[key] }));
-  const typeOptions = Object.keys(ServiceChargeSettingType).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeSettingType[key] }));
-  const applicableOnOptions = Object.keys(ServiceChargeApplicableOn).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeApplicableOn[key] }));
+  const typeOptions = Object.keys(ServiceChargeCalculationMethod).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeCalculationMethod[key] }));
+  const applicableOnOptions = Object.keys(ServiceChargeOrderMethod).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeOrderMethod[key] }));
+  const orderSourceOptions = Object.keys(SourceType).map(key => ({ label: formatServiceChargeOrderSource(SourceType[key]), value: SourceType[key] }));
+  const transactionMethodOptions = Object.keys(TransactionMethodEnum).map(key => ({ label: formatTransactionMethod(TransactionMethodEnum[key]), value: TransactionMethodEnum[key] }));
 
+  const handleWhenToApplyChange = (option) => {
+    const newValue = option?.value;
+    if (newValue !== ServiceChargeWhenToApply.AUTOMATIC) {
+      const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+      _.set(updatedEntity, 'setting.applicableOn.orderMethods', []);
+      _.set(updatedEntity, 'setting.applicableOn.orderSources', []);
+      _.set(updatedEntity, 'setting.applicableOn.transactionMethods', []);
+      dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+    }
+    dispatch(changeEntityField({ name: 'whenToApply', value: newValue }));
+  };
 
   const handleApplicableOnChange = (selectedOptions) => {
     const newValue = selectedOptions.map(option => option.value);
-    const updatedEntity = _.cloneDeep(serviceChargeEntity?.value || {});
-    _.set(updatedEntity, 'setting.applicableOn', newValue);
-
-    dispatch(changeEntityField({ name: 'value', value: updatedEntity }));
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.applicableOn.orderMethods', newValue);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
   }
 
-  const handleTypeChange = (selectedOption) => {
+  const handleOrderSourcesChange = (selectedOptions) => {
+    const newValue = selectedOptions.map(option => option.value);
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.applicableOn.orderSources', newValue);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  }
+
+  const handleTransactionMethodsChange = (selectedOptions) => {
+    const newValue = selectedOptions.map(option => option.value);
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.applicableOn.transactionMethods', newValue);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  }
+
+  const handleMethodChange = (selectedOption) => {
     const newValue = selectedOption.value;
-    const updatedEntity = _.cloneDeep(serviceChargeEntity?.value || {});
-    _.set(updatedEntity, 'setting.type', newValue);
-    dispatch(changeEntityField({ name: 'value', value: updatedEntity }));
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.method', newValue);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
   }
 
-  const handleBranchChange = (selectedOption) => {
-    const newValue = selectedOption.value;
-    const updatedEntity = _.cloneDeep(serviceChargeEntity?.branch || {});
-    _.set(updatedEntity, 'id', newValue);
-    dispatch(changeEntityField({ name: 'branch', value: updatedEntity }));
+  const handleDiscountableChange = (checked) => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.discountable', checked);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
   }
 
-  const handleValueChange = (field, value) => {
-    const updatedEntity = _.cloneDeep(serviceChargeEntity?.value || {});
-    _.set(updatedEntity, field, value);
-    dispatch(changeEntityField({ name: 'value', value: updatedEntity }));
+  const handleLoyaltyEligibleChange = (checked) => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.loyaltyEligible', checked);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  }
+
+  const handleBranchesChange = (selectedOptions) => {
+    const selectedBranches = selectedOptions.map(option => branchList.find(b => b.id === option.value)).filter(Boolean);
+    dispatch(changeEntityField({ name: 'branches', value: selectedBranches }));
   }
 
 
@@ -172,91 +232,163 @@ export const ServiceChargeUpdate = () => {
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <form className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-key" className="text-xs">{translate('service-charge.settings.type')}</Label>
-                <Select
-                  id="service-charge-key"
-                  value={serviceChargeEntity.key ? serviceChargeKeys.find(k => k.value === serviceChargeEntity.key) : null}
-                  onChange={(option) => dispatch(changeEntityField({ name: 'key', value: option?.value }))}
-                  options={serviceChargeKeys}
-                  placeholder="Select Type"
-                  isClearable
-                />
+          <form className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-key" className="text-xs">{translate('service-charge.settings.type')}</Label>
+                  <Select
+                    id="service-charge-key"
+                    value={serviceChargeEntity.key ? serviceChargeKeys.find(k => k.value === serviceChargeEntity.key) : null}
+                    onChange={(option) => dispatch(changeEntityField({ name: 'key', value: option?.value }))}
+                    options={serviceChargeKeys}
+                    placeholder="Select Type"
+                    isClearable
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-name" className="text-xs">{translate('service-charge.name')}</Label>
+                  <Input
+                    id="service-charge-name"
+                    value={serviceChargeEntity.name || ''}
+                    onChange={e => dispatch(changeEntityField({ name: 'name', value: e.target.value }))}
+                    required
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-whenToApply" className="text-xs">{translate('service-charge.whenToApply')}</Label>
+                  <Select
+                    id="service-charge-whenToApply"
+                    value={serviceChargeEntity.whenToApply ? whenToApplyOptions.find(w => w.value === serviceChargeEntity.whenToApply) : null}
+                    options={whenToApplyOptions}
+                    onChange={handleWhenToApplyChange}
+                    placeholder="Select When To Apply"
+                    isClearable
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-branches" className="text-xs">{translate('service-charge.branches')}</Label>
+                  <Select
+                    id="service-charge-branches"
+                    value={serviceChargeEntity.branches?.map(branch => ({ label: branch.name, value: branch.id })) || []}
+                    onChange={handleBranchesChange}
+                    options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
+                    placeholder="Select Branches"
+                    isMulti
+                    isClearable
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-name" className="text-xs">{translate('service-charge.name')}</Label>
-                <Input
-                  id="service-charge-name"
-                  value={serviceChargeEntity.value?.name || ''}
-                  onChange={e => handleValueChange('name', e.target.value)}
-                  required
-                  className="h-8 text-xs"
-                />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-method" className="text-xs">{translate('service-charge.settings.calculationType')}</Label>
+                  <Select
+                    id="service-charge-method"
+                    value={serviceChargeEntity.setting?.method ? typeOptions.find(t => t.value === serviceChargeEntity.setting.method) : null}
+                    onChange={handleMethodChange}
+                    options={typeOptions}
+                    placeholder="Select Calculation Method"
+                    isClearable
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service-charge-charge" className="text-xs">{translate('service-charge.charge')}</Label>
+                  <Input
+                    id="service-charge-charge"
+                    type="number"
+                    step="0.01"
+                    value={serviceChargeEntity.charge || 0}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'charge', value: parseFloat(e.target.value) }))}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label className="text-xs font-semibold">
+                    Profile Group
+                  </Label>
+                  <Select
+                    value={serviceChargeEntity?.accountingGroup}
+                    isClearable
+                    options={profileGroupsOptions}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'accountingGroup', value:  e }))}
+                    onMenuOpen={() => {
+                      dispatch(
+                        getProfileGroups({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      );
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-type" className="text-xs">{translate('service-charge.settings.calculationType')}</Label>
-                <Select
-                  id="service-charge-type"
-                  value={serviceChargeEntity.value?.setting?.type ? typeOptions.find(t => t.value === serviceChargeEntity.value.setting.type) : null}
-                  onChange={handleTypeChange}
-                  options={typeOptions}
-                  placeholder="Select Calculation Type"
-                  isClearable
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-applicableOn" className="text-xs">{translate('service-charge.applicableOn')}</Label>
-                <Select
-                  id="service-charge-applicableOn"
-                  options={applicableOnOptions}
-                  value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value)) || null}
-                  onChange={handleApplicableOnChange}
-                  isMulti
-                />
-              </div>
-            </div>
+            <div className="space-y-4">
+              {serviceChargeEntity.whenToApply === ServiceChargeWhenToApply.AUTOMATIC && (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="service-charge-applicableOn" className="text-xs">{translate('service-charge.applicableOn')}</Label>
+                    <Select
+                      id="service-charge-applicableOn"
+                      options={applicableOnOptions}
+                      value={applicableOnOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.orderMethods?.includes(option.value)) || null}
+                      onChange={handleApplicableOnChange}
+                      isMulti
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="service-charge-orderSources" className="text-xs">{translate('service-charge.orderSources') || 'Order Sources'}</Label>
+                    <Select
+                      id="service-charge-orderSources"
+                      options={orderSourceOptions}
+                      value={orderSourceOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.orderSources?.includes(option.value)) || null}
+                      onChange={handleOrderSourcesChange}
+                      isMulti
+                      isClearable
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="service-charge-transactionMethods" className="text-xs">{translate('service-charge.transactionMethods') || 'Transaction Methods'}</Label>
+                    <Select
+                      id="service-charge-transactionMethods"
+                      options={transactionMethodOptions}
+                      value={transactionMethodOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.transactionMethods?.includes(option.value)) || null}
+                      onChange={handleTransactionMethodsChange}
+                      isMulti
+                      isClearable
+                    />
+                  </div>
+                </div>
+              )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-whenToApply" className="text-xs">{translate('service-charge.whenToApply')}</Label>
-                <Select
-                  id="service-charge-whenToApply"
-                  value={serviceChargeEntity.value?.whenToApply ? whenToApplyOptions.find(w => w.value === serviceChargeEntity.value.whenToApply) : null}
-                  options={whenToApplyOptions}
-                  onChange={(option) => handleValueChange('whenToApply', option?.value)}
-                  placeholder="Select When To Apply"
-                  isClearable
-                />
+              <div className="grid gap-3 sm:grid-cols-2 md:w-1/2">
+                <label className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                  <input
+                    type="checkbox"
+                    id="service-charge-discountable"
+                    checked={serviceChargeEntity.setting?.discountable || false}
+                    onChange={(e) => handleDiscountableChange(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-xs">{translate('service-charge.discountable')}</span>
+                </label>
+                <label className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                  <input
+                    type="checkbox"
+                    id="service-charge-loyaltyEligible"
+                    checked={serviceChargeEntity.setting?.loyaltyEligible || false}
+                    onChange={(e) => handleLoyaltyEligibleChange(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-xs">{translate('service-charge.loyaltyEligible')}</span>
+                </label>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="service-charge-branch" className="text-xs">{translate('service-charge.branch')}</Label>
-                <Select
-                  id="service-charge-branch"
-                  value={serviceChargeEntity.branch?.id ? { label: branchList.find(b => b.id === serviceChargeEntity.branch.id)?.name, value: serviceChargeEntity.branch.id } : null}
-                  onChange={(option) => handleBranchChange({ value: option?.value })}
-                  options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
-                  placeholder="Select a Branch"
-                  isClearable
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="service-charge-charge" className="text-xs">{translate('service-charge.charge')}</Label>
-              <Input
-                id="service-charge-charge"
-                type="number"
-                step="0.01"
-                value={serviceChargeEntity.value?.charge || 0}
-                onChange={(e) => handleValueChange('charge', parseFloat(e.target.value))}
-                required
-                className="h-8 text-xs"
-              />
             </div>
 
             <div className="flex gap-2">
