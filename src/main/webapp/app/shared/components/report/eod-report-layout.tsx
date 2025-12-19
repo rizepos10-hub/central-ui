@@ -439,7 +439,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                     ))}
                     {/* Total Row */}
                     <tr className="font-bold">
-                      <td className="col-3-left"></td>
+                      <td className="col-3-left">Total</td>
                       <td className="col-3-middle">{reportData.chargesSummary.numberOfOrders?.toFixed(1) || '0.0'}</td>
                       <td className="col-3-right">{formatCurrency(reportData.chargesSummary.netTotal)}</td>
                     </tr>
