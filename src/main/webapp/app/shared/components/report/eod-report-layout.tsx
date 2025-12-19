@@ -422,6 +422,33 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
               </>
             )}
 
+            {/* Order Charge Summary Section */}
+            {reportData.chargesSummary?.charges && reportData.chargesSummary.charges.length > 0 && (
+              <>
+                <div className="my-2"></div>
+                <div className="text-center font-bold text-xs">ORDER CHARGE SUMMARY</div>
+                <div className="my-2"></div>
+                <table>
+                  <tbody>
+                    {reportData.chargesSummary.charges.map((charge: any, idx: number) => (
+                      <tr key={idx}>
+                        <td className="col-3-left">{charge.name || 'No Charge'}</td>
+                        <td className="col-3-middle">{charge.numberOfOrders?.toFixed(1) || '0.0'}</td>
+                        <td className="col-3-right">{formatCurrency(charge.netTotal)}</td>
+                      </tr>
+                    ))}
+                    {/* Total Row */}
+                    <tr className="font-bold">
+                      <td className="col-3-left"></td>
+                      <td className="col-3-middle">{reportData.chargesSummary.numberOfOrders?.toFixed(1) || '0.0'}</td>
+                      <td className="col-3-right">{formatCurrency(reportData.chargesSummary.netTotal)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div className="border-t border-dashed border-gray-400 my-2"></div>
+              </>
+            )}
+
             {/* Statistics Section */}
             {reportData.stats && (
               <>
