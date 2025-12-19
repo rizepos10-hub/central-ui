@@ -59,7 +59,8 @@ const DynamicEndOfDayReportUI = ({
         restaurantCatalog: true,
         billsSummary: true,
         relatedTills: true,
-        categorySalesSummary: true
+        categorySalesSummary: true,
+        chargesSummary: true
     });
     const [endOfDayReportSection, setEndOfDayReportSection] = useState<any>(null);
     const [businessDetailsState, setBusinessDetailsState] = useState<any>(null);
@@ -258,6 +259,16 @@ const DynamicEndOfDayReportUI = ({
                             Category Sales Summary
                         </Label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="chargesSummary"
+                            checked={visibleSections.chargesSummary}
+                            onCheckedChange={() => toggleSection('chargesSummary')}
+                        />
+                        <Label htmlFor="chargesSummary" className="text-xs font-normal cursor-pointer">
+                            Order Charge Summary
+                        </Label>
+                    </div>
                 </div>
             </div>
             <div className="bg-white p-3 mb-2 rounded-md border">
@@ -377,6 +388,56 @@ const DynamicEndOfDayReportUI = ({
             {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
                 <div className="bg-white p-3 mb-2 rounded-md border section-catalogRecords">
                     <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
+                </div>
+            )}
+
+            {visibleSections.chargesSummary && reportData?.chargesSummary?.charges?.length > 0 && (
+                <div className="bg-white p-3 mb-2 rounded-md border section-chargesSummary">
+                    <h3 className="text-base font-semibold mb-2">Order Charge Summary</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Charge Name
+                                    </th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Number of Orders
+                                    </th>
+                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Net Total
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {reportData.chargesSummary.charges.map((charge: any, idx: number) => (
+                                    <tr key={idx}>
+                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                            {charge.name || 'No Charge'}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                                            {charge.numberOfOrders?.toFixed(1) || '0.0'}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                                            {charge.netTotal?.toFixed(2) || '0.00'}
+                                        </td>
+                                    </tr>
+                                ))}
+                                <tr className="bg-gray-50 font-bold">
+                                    <td className="px-4 py-2 text-sm text-gray-900">
+                                        Total
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                                        {reportData.chargesSummary.numberOfOrders?.toFixed(1) || '0.0'}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                                        {reportData.chargesSummary.netTotal?.toFixed(2) || '0.00'}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr className="my-2 border-gray-300" />
                 </div>
             )}
 
