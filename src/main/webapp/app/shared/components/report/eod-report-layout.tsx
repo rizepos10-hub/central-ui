@@ -175,8 +175,8 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
 
           <div className="text-center text-xs">
             {summary.number && <p>Daily Report # {summary.number}</p>}
-            {summary.fromDateString && <p>Start: {formatDateForDisplay(summary.fromDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
-            {summary.toDateString && <p>End: {formatDateForDisplay(summary.toDateString, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.fromDate && <p>Start: {formatDateForDisplay(summary.fromDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+            {summary.toDate && <p>End: {formatDateForDisplay(summary.toDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
             <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>
             {summary.branchRegistry?.name && <p>Register: {summary.branchRegistry.name}</p>}
           </div>
