@@ -42,6 +42,8 @@
       "phoneNumber": "Phone Number",
       "address": "Address",
       "hideBranchesSection": "Hide Branches Section",
+      "defaultLanguage": "Default Language",
+      "enabledLanguages": "Enabled Languages",
       "colorSetting": {
         "title": "Color Setting",
         "background": "Background",

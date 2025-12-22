@@ -10,6 +10,17 @@ export interface IScriptSnippet {
   content: string;
 }
 
+export enum Language {
+  EN = "EN",
+  AR = "AR",
+  FR = "FR"
+}
+
+export interface ILanguages {
+  defaultLanguage: Language;
+  enabledLanguages: Language[];
+}
+
 export interface IUiSettings {
   address?: string,
   key?: "ONLINE_ORDERING_UI",
@@ -42,6 +53,7 @@ export interface IUiSettings {
   restaurantItemsPerRow?: number
   hideBranchesSection?: boolean
   scriptSnippets?: IScriptSnippet[]
+  languages?: ILanguages
 }
 
 export interface ISocialProfiles {
@@ -86,6 +98,7 @@ export type IFontSetting = {
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY", "ALL"];
+export const languageOptions: Language[] = [Language.EN, Language.AR, Language.FR];
 
 
 export const defaultValue: Readonly<IUiSettings> = {

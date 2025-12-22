@@ -11,7 +11,9 @@ import {
   IFontSetting,
   ISocialProfiles,
   IUiSettings,
-  orderTakingOptions
+  orderTakingOptions,
+  Language,
+  languageOptions
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -272,6 +274,83 @@ export const UiSettingsUpdate = () => {
                       }}
                       headerTemplate={quillHeader}
                     />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-defaultLanguage" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.defaultLanguage')}
+                    </Label>
+                    <Select
+                      value={UiSettingsEntity.languages?.defaultLanguage || ''}
+                      onValueChange={(value) => {
+                        const currentEnabled = UiSettingsEntity.languages?.enabledLanguages || [];
+                        // Ensure the default language is always in the enabled languages
+                        const newEnabled = currentEnabled.includes(value as Language)
+                          ? currentEnabled
+                          : [...currentEnabled, value as Language];
+
+                        dispatch(changeEntityField({
+                          name: 'languages',
+                          value: {
+                            ...UiSettingsEntity.languages,
+                            defaultLanguage: value as Language,
+                            enabledLanguages: newEnabled
+                          }
+                        }));
+                      }}
+                    >
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue placeholder="Select default language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languageOptions.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.enabledLanguages')}
+                    </Label>
+                    <div className="flex flex-col gap-2">
+                      {languageOptions.map((lang) => {
+                        const isDefaultLanguage = UiSettingsEntity.languages?.defaultLanguage === lang;
+                        const isChecked = UiSettingsEntity.languages?.enabledLanguages?.includes(lang) || isDefaultLanguage;
+
+                        return (
+                          <div key={lang} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`language-${lang}`}
+                              checked={isChecked}
+                              disabled={isDefaultLanguage}
+                              onCheckedChange={(checked) => {
+                                const currentEnabled = UiSettingsEntity.languages?.enabledLanguages || [];
+                                const newEnabled = checked
+                                  ? [...currentEnabled, lang]
+                                  : currentEnabled.filter(l => l !== lang);
+                                dispatch(changeEntityField({
+                                  name: 'languages',
+                                  value: {
+                                    ...UiSettingsEntity.languages,
+                                    enabledLanguages: newEnabled
+                                  }
+                                }));
+                              }}
+                            />
+                            <Label
+                              htmlFor={`language-${lang}`}
+                              className={`text-xs ${isDefaultLanguage ? 'text-muted-foreground' : ''}`}
+                            >
+                              {lang} {isDefaultLanguage ? '(Default)' : ''}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </TabsContent>
 
