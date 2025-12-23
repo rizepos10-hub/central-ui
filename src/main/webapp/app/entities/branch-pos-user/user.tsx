@@ -35,7 +35,7 @@ export const User = () => {
 
   const modifiedUserList = userList
     .filter((user) => {
-      const userBranches = user?.branches?.map((branch) => branch.id);
+      const userBranches = user?.branches?.map((branch) => branch?.id);
       return selectedBranchFilter ? userBranches.includes(selectedBranchFilter) : true;
     })
     .map((user) => ({
@@ -200,7 +200,7 @@ export const User = () => {
                       </TableCell>
                       <TableCell className="text-xs">{user.email}</TableCell>
                       <TableCell className="text-xs">
-                        {user.branches?.map((branch) => branch.name)?.join(' | ')}
+                        {user.branches?.map((branch) => branch?.name)?.join(' | ')}
                       </TableCell>
                       <TableCell className="text-xs">
                         {user.authorities?.join(' | ')}
