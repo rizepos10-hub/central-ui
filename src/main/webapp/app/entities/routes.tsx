@@ -61,6 +61,8 @@ const CourseDefinitionRoutes = React.lazy(() => import('./settings/course-defini
 const PosAuthorityGroupRoutes = React.lazy(() => import('./pos-authority-groups'));
 const Barcode = React.lazy(() => import('./item/retail/barcode/barcode'));
 const EndOfDay = React.lazy(() => import('./end-of-day'));
+const PayoutType = React.lazy(() => import('./payout-type'));
+const CashPayment = React.lazy(() => import('./cash-payment'));
 
 export default () => {
   return (
@@ -145,6 +147,8 @@ export default () => {
         <Route path="gift-cards/*" element={<GiftCardsRoutes />} />
 
         <Route path="end-of-day/*" element={<EndOfDay />} />
+        <Route path="payout-type/*" element={<PayoutType />} />
+        <Route path="cash-payment/*" element={<CashPayment />} />
       </ErrorBoundaryRoutes>
     </Suspense>
   );

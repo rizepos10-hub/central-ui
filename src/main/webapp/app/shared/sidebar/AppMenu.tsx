@@ -64,6 +64,18 @@ export const model: MenuItem[] = [
         to: '/end-of-day',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Payout Types',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/payout-type',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Cash Payments',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/cash-payment',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },

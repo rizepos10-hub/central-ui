@@ -35,6 +35,8 @@ import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer'
 import tagGroup from "app/entities/tag-group/tag-group.reducer"
 import tag from "app/entities/tag/tag.reducer"
 import brand from "app/entities/brand/brand.reducer";
+import payoutType from 'app/entities/payout-type/payout-type.reducer';
+import cashPayment from 'app/entities/cash-payment/cash-payment.reducer';
 
 
 import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
@@ -201,6 +203,8 @@ const entitiesReducers = {
   endOfDay,
   endOfDaySummary,
   lockOrderTaking,
+  payoutType,
+  cashPayment,
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
