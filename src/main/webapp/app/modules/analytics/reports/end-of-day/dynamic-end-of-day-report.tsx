@@ -22,6 +22,7 @@ import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 interface DynamicEndOfDayReportUIProps {
   reportData: any;
@@ -393,17 +394,17 @@ const DynamicEndOfDayReportUI = ({
                     {reportData.chargesSummary.charges.map((charge: any, idx: number) => (
                       <tr key={idx}>
                         <td className="px-4 py-2 text-sm text-gray-900">{charge.name || 'No Charge'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{charge.numberOfOrders?.toFixed(1) || '0.0'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{charge.netTotal?.toFixed(2) || '0.00'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{charge.numberOfOrders || '0.0'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{formatNumber(charge.netTotal) || '0.00'}</td>
                       </tr>
                     ))}
                     <tr className="bg-gray-50 font-bold">
                       <td className="px-4 py-2 text-sm text-gray-900">Total</td>
                       <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                        {reportData.chargesSummary.numberOfOrders?.toFixed(1) || '0.0'}
+                      {formatNumber(reportData.chargesSummary.numberOfOrders) || '0.0'}
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                        {reportData.chargesSummary.netTotal?.toFixed(2) || '0.00'}
+                        {formatNumber(reportData.chargesSummary.netTotal) || '0.00'}
                       </td>
                     </tr>
                   </tbody>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import PaginationFilterStateVals from '../pagination/pagination-filter-state-vals';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -48,7 +49,7 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
                             <TableRow key={idx}>
                                 <TableCell className="text-xs">{b.sequenceNumber}</TableCell>
                                 <TableCell className="text-xs">{formatDateForDisplay(b.dateTime)}</TableCell>
-                                <TableCell className="text-xs text-right">{b.total}</TableCell>
+                                <TableCell className="text-xs text-right">{formatNumber(b.total)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

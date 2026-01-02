@@ -11,3 +11,11 @@ export const formatPrice = (number, exchange) => {
     return `${formattedNumber} ${currencySymbol}`;
   }
 };
+
+// format 1000 to 1,000
+export const formatNumber = (number: number) => {
+  return number?.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
