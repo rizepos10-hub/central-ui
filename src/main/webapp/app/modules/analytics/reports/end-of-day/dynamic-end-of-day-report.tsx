@@ -52,7 +52,9 @@ const DynamicEndOfDayReportUI = ({
   const navigate = useNavigate();
 
   const [billsSummary, setBillsSummary] = useState<any>(null);
-  const [visibleSections, setVisibleSections] = useState({
+  
+  // Default visible sections
+  const defaultVisibleSections = {
     orderMethod: true,
     tipSummary: true,
     retailCatalog: true,
@@ -61,9 +63,33 @@ const DynamicEndOfDayReportUI = ({
     relatedTills: true,
     categorySalesSummary: true,
     chargesSummary: true,
+  };
+
+  // Load persisted sections from localStorage on mount
+  const [visibleSections, setVisibleSections] = useState(() => {
+    const storageKey = 'eod-report-visible-sections';
+    const savedSections = localStorage.getItem(storageKey);
+    if (savedSections) {
+      try {
+        const parsed = JSON.parse(savedSections);
+        // Merge with defaults to handle any new sections that might be added
+        return { ...defaultVisibleSections, ...parsed };
+      } catch (e) {
+        console.warn('Failed to parse visible sections from localStorage', e);
+        return defaultVisibleSections;
+      }
+    }
+    return defaultVisibleSections;
   });
+
   const [endOfDayReportSection, setEndOfDayReportSection] = useState<any>(null);
   const [businessDetailsState, setBusinessDetailsState] = useState<any>(null);
+
+  // Persist sections to localStorage whenever they change
+  useEffect(() => {
+    const storageKey = 'eod-report-visible-sections';
+    localStorage.setItem(storageKey, JSON.stringify(visibleSections));
+  }, [visibleSections]);
 
   const toggleSection = (section: keyof typeof visibleSections) => {
     setVisibleSections(prev => ({ ...prev, [section]: !prev[section] }));
