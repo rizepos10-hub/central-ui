@@ -43,6 +43,7 @@ export interface IBranchDetails {
   activeCOD?: boolean;
   zones: IZone[];
   hideRetailShop?: boolean;
+  hideMapOnOnlineOrdering?: boolean;
   unitCostCalculationMode?: UnitCostCalculationMode;
   endingType?: EndingType;
   tokenExpired?: boolean;
