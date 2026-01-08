@@ -279,7 +279,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
           </TabsContent>
 
           <TabsContent value="date" className="p-3 space-y-3">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row gap-3">
               <div>
                 <Label className="text-xs mb-1 block">From: {formatDateForDisplay(dateRange.from, 'yyyy-MM-dd')}</Label>
                 <Calendar
