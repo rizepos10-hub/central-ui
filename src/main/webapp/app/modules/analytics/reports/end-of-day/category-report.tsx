@@ -1,6 +1,7 @@
 import { ICategorySalesSummary } from 'app/shared/model/report-summary.model';
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 const CategoryReport = ({
     categorySaleSummary
@@ -22,7 +23,7 @@ const CategoryReport = ({
                         {categorySaleSummary?.categories?.map((c, idx) => (
                             <TableRow key={idx}>
                                 <TableCell className="text-xs">{c.name}</TableCell>
-                                <TableCell className="text-xs text-right">{c.amount}</TableCell>
+                                <TableCell className="text-xs text-right">{formatNumber(c.amount)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

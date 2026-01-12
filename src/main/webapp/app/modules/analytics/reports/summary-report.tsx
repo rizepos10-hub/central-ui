@@ -356,7 +356,6 @@ const SalesSummaryReport = () => {
         </form>
 
         {/* Report Results */}
-        {salesData ? (
           <DynamicEndOfDayReportUI
             reportData={salesData}
             endOfDay={null}
@@ -369,16 +368,6 @@ const SalesSummaryReport = () => {
             source={selectedSource}
             handleExcelExport={fetchExcelData}
           />
-        ) : (
-          <div className="text-center text-muted-foreground py-8">
-            <BarChart3 className="mx-auto h-12 w-12 mb-3" />
-            <p className="text-xs">
-              <Translate contentKey={'analytics.summary.noData'}>
-                Select your filters and click Get Report to view sales data.
-              </Translate>
-            </p>
-          </div>
-        )}
       </div>
     </PageWrapper>
   );

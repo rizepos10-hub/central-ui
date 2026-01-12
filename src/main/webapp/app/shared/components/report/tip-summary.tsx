@@ -1,6 +1,7 @@
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 const TipSummary = ({ report }: { report: ISummaryReport["tipSummary"] }) => {
     if (!report || report.length === 0) return null;
@@ -22,7 +23,7 @@ const TipSummary = ({ report }: { report: ISummaryReport["tipSummary"] }) => {
                             <TableRow key={idx}>
                                 <TableCell className="text-xs">{r.username}</TableCell>
                                 <TableCell className="text-xs text-right">{r.orderCount}</TableCell>
-                                <TableCell className="text-xs text-right">{r.totalTips}</TableCell>
+                                <TableCell className="text-xs text-right">{formatNumber(r.totalTips)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

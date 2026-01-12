@@ -37,11 +37,9 @@ export const App = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getSession());
+    // dispatch(getSession());
     dispatch(setTenant({ tenant }));
   }, []);
-
-  console.log(tenant)
 
   return (
     <BrowserRouter basename={baseHref}>

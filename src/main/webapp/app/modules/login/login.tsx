@@ -18,8 +18,6 @@ export const Login = () => {
 
   const tenant = useAppSelector(state => state.tenant.tenant);
 
-  console.log(tenant)
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -41,18 +39,18 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    if (tenant) {
-      console.log(access_token)
-      if (access_token) {
-        console.log(1)
-        dispatch(loginFromToken(access_token, refresh_token, tenant));
-        navigate('/');
+    const fetchData = () => {
+      if (tenant) {
+        if (access_token) {
+          dispatch(loginFromToken(access_token, refresh_token, tenant));
+          navigate('/');
+        }
       }
     }
+    fetchData();
   }, [])
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
-  console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }

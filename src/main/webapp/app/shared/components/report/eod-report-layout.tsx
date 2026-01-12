@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 // Development toggle: set to true to show all values including zero/null
 const SHOW_ZERO_VALUES = false;
@@ -40,11 +41,6 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
     console.error('Failed to parse report data', e);
   }
 
-  const formatCurrency = (value: any) => {
-    if (value === null || value === undefined) return '0.00';
-    const num = typeof value === 'number' ? value : parseFloat(value);
-    return isNaN(num) ? '0.00' : num.toFixed(2);
-  };
 
   const shouldShowValue = (value: any) => {
     if (SHOW_ZERO_VALUES) return true;
@@ -204,7 +200,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                 <tr>
                   <td className="col-3-left">Net Sales</td>
                   <td className="col-3-middle">{reportData.totalSales?.orders || 0}</td>
-                  <td className="col-3-right">{formatCurrency(reportData.totalSales?.netSales)}</td>
+                  <td className="col-3-right">{formatNumber(reportData.totalSales?.netSales)}</td>
                 </tr>
 
                 {/* Dynamic Taxes */}
@@ -216,7 +212,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                         <tr key={taxName}>
                           <td className="col-3-left">{taxName}</td>
                           <td className="col-3-middle"></td>
-                          <td className="col-3-right">{formatCurrency(taxValue as number)}</td>
+                          <td className="col-3-right">{formatNumber(taxValue as number)}</td>
                         </tr>
                       ))}
                   </>
@@ -226,28 +222,28 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                 <tr>
                   <td className="col-3-left">Gross Sales</td>
                   <td className="col-3-middle"></td>
-                  <td className="col-3-right">{formatCurrency(reportData.totalSales?.grossSales)}</td>
+                  <td className="col-3-right">{formatNumber(reportData.totalSales?.grossSales)}</td>
                 </tr>
 
                 {/* Refunds */}
                 <tr>
                   <td className="col-3-left">Refunds</td>
                   <td className="col-3-middle">{reportData.totalReceived?.filter((tr: any) => tr.refund > 0).length || 0}</td>
-                  <td className="col-3-right">{formatCurrency(reportData.totalSales?.refunds)}</td>
+                  <td className="col-3-right">{formatNumber(reportData.totalSales?.refunds)}</td>
                 </tr>
 
                 {/* Gross Sales (minus refunds) */}
                 <tr>
                   <td className="col-3-left">Gross Sales</td>
                   <td className="col-3-middle"></td>
-                  <td className="col-3-right">{formatCurrency((reportData.totalSales?.grossSales || 0) - (reportData.totalSales?.refunds || 0))}</td>
+                  <td className="col-3-right">{formatNumber((reportData.totalSales?.grossSales || 0) - (reportData.totalSales?.refunds || 0))}</td>
                 </tr>
 
                 {/* Total Discounts */}
                 <tr>
                   <td className="col-3-left">Total Discounts</td>
                   <td className="col-3-middle"></td>
-                  <td className="col-3-right">{formatCurrency((reportData.totalSales?.discount || 0) + (reportData.totalSales?.appliedCoupon || 0))}</td>
+                  <td className="col-3-right">{formatNumber((reportData.totalSales?.discount || 0) + (reportData.totalSales?.appliedCoupon || 0))}</td>
                 </tr>
               </tbody>
             </table>
@@ -267,7 +263,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                         {payment.salesOrderCount != null && payment.salesOrderCount !== 0 && (
                           <td className="col-3-middle">{payment.salesOrderCount.toFixed(0)}</td>
                         )}
-                        <td className="col-3-right">{formatCurrency(payment.received)}</td>
+                        <td className="col-3-right">{formatNumber(payment.received)}</td>
                       </tr>
                       {payment.amount !== undefined && shouldShowValue(payment.amount) && (
                         <tr>
@@ -275,7 +271,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                           {payment.salesOrderCount != null && payment.salesOrderCount !== 0 && (
                             <td className="col-3-middle">{payment.salesOrderCount.toFixed(0)}</td>
                           )}
-                          <td className="col-3-right">{formatCurrency(payment.amount)}</td>
+                          <td className="col-3-right">{formatNumber(payment.amount)}</td>
                         </tr>
                       )}
                       {payment.tip !== undefined && shouldShowValue(payment.tip) && (
@@ -284,14 +280,14 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                           {payment.tipOrderCount != null && payment.tipOrderCount !== 0 && (
                             <td className="col-3-middle">{payment.tipOrderCount.toFixed(0)}</td>
                           )}
-                          <td className="col-3-right">{formatCurrency(payment.tip)}</td>
+                          <td className="col-3-right">{formatNumber(payment.tip)}</td>
                         </tr>
                       )}
                       {payment.refund !== undefined && shouldShowValue(payment.refund) && (
                         <tr>
                           <td className="col-3-left pl-4">Refunds</td>
                           <td className="col-3-middle"></td>
-                          <td className="col-3-right">{formatCurrency(payment.refund)}</td>
+                          <td className="col-3-right">{formatNumber(payment.refund)}</td>
                         </tr>
                       )}
                     </tbody>
@@ -310,7 +306,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr key={idx}>
                         <td className="col-3-left">{record.title || record.label || ''}</td>
                         <td className="col-3-middle">{record.orderCount?.toString() || ''}</td>
-                        <td className="col-3-right">{formatCurrency(Math.abs(record.amount))}</td>
+                        <td className="col-3-right">{formatNumber(Math.abs(record.amount))}</td>
                       </tr>
                     ))}
 
@@ -319,7 +315,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr>
                         <td className="col-3-left">- {reportData.cashSales.cashBack.title || 'Cash Back'}</td>
                         <td className="col-3-middle">{reportData.cashSales.cashBack.orderCount?.toString() || ''}</td>
-                        <td className="col-3-right">{formatCurrency(Math.abs(reportData.cashSales.cashBack.amount))}</td>
+                        <td className="col-3-right">{formatNumber(Math.abs(reportData.cashSales.cashBack.amount))}</td>
                       </tr>
                     )}
 
@@ -328,7 +324,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr>
                         <td className="col-3-left">- {reportData.cashSales.tips.title || 'Tips'}</td>
                         <td className="col-3-middle">{reportData.cashSales.tips.orderCount?.toString() || ''}</td>
-                        <td className="col-3-right">{formatCurrency(Math.abs(reportData.cashSales.tips.amount))}</td>
+                        <td className="col-3-right">{formatNumber(Math.abs(reportData.cashSales.tips.amount))}</td>
                       </tr>
                     )}
 
@@ -337,7 +333,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr className="font-bold">
                         <td className="col-3-left">{reportData.cashSales.expectedTotal.title || 'Expected Cash'}</td>
                         <td className="col-3-middle"></td>
-                        <td className="col-3-right">{formatCurrency(reportData.cashSales.expectedTotal.amount)}</td>
+                        <td className="col-3-right">{formatNumber(reportData.cashSales.expectedTotal.amount)}</td>
                       </tr>
                     )}
                   </tbody>
@@ -355,7 +351,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr>
                         <td className="col-3-left">Counted Cash</td>
                         <td className="col-3-middle"></td>
-                        <td className="col-3-right">{formatCurrency(summary.cash)}</td>
+                        <td className="col-3-right">{formatNumber(summary.cash)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -368,7 +364,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr className="font-bold">
                         <td className="col-3-left">Short/Over</td>
                         <td className="col-3-middle"></td>
-                        <td className="col-3-right">{formatCurrency(summary.cashOverAndShortage)}</td>
+                        <td className="col-3-right">{formatNumber(summary.cashOverAndShortage)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -395,7 +391,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                           <td className="col-4-name">{category.name || category.categoryName || 'Unknown'}</td>
                           <td className="col-4-qty">{category.orderQuantity?.toFixed(0) || ''}</td>
                           <td className="col-4-percent">{category.percentageFromNetSales?.toFixed(2) || category.percentage?.toFixed(2)}%</td>
-                          <td className="col-4-amount">{formatCurrency(category.amount)}</td>
+                          <td className="col-4-amount">{formatNumber(category.amount)}</td>
                         </tr>
                       ))}
                     {/* Total Row */}
@@ -409,7 +405,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       </td>
                       <td className="col-4-percent"></td>
                       <td className="col-4-amount">
-                        {formatCurrency(
+                        {formatNumber(
                           reportData.categorySaleSummary.categories
                             .filter((category: any) => shouldShowValue(category.amount))
                             .reduce((sum: number, c: any) => sum + (c.amount || 0), 0)
@@ -434,14 +430,14 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                       <tr key={idx}>
                         <td className="col-3-left">{charge.name || 'No Charge'}</td>
                         <td className="col-3-middle">{charge.numberOfOrders?.toFixed(1) || '0.0'}</td>
-                        <td className="col-3-right">{formatCurrency(charge.netTotal)}</td>
+                        <td className="col-3-right">{formatNumber(charge.netTotal)}</td>
                       </tr>
                     ))}
                     {/* Total Row */}
                     <tr className="font-bold">
                       <td className="col-3-left">Total</td>
                       <td className="col-3-middle">{reportData.chargesSummary.numberOfOrders?.toFixed(1) || '0.0'}</td>
-                      <td className="col-3-right">{formatCurrency(reportData.chargesSummary.netTotal)}</td>
+                      <td className="col-3-right">{formatNumber(reportData.chargesSummary.netTotal)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -471,11 +467,11 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                     </tr>
                     <tr>
                       <td className="col-2-left">Voids</td>
-                      <td className="col-2-right">{formatCurrency(reportData.stats?.voids || 0)}</td>
+                      <td className="col-2-right">{formatNumber(reportData.stats?.voids || 0)}</td>
                     </tr>
                     <tr>
                       <td className="col-2-left">Refunds</td>
-                      <td className="col-2-right">{formatCurrency(reportData.totalSales?.refunds)}</td>
+                      <td className="col-2-right">{formatNumber(reportData.totalSales?.refunds)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -494,7 +490,7 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
                     {reportData.tipSummary.map((tip: any, idx: number) => (
                       <tr key={idx}>
                         <td className="col-2-left">{tip.username || tip.employeeName || 'Unknown'}</td>
-                        <td className="col-2-right">{formatCurrency(tip.totalTips || tip.tipAmount)}</td>
+                        <td className="col-2-right">{formatNumber(tip.totalTips || tip.tipAmount)}</td>
                       </tr>
                     ))}
                   </tbody>
