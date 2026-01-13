@@ -24,7 +24,7 @@ export interface ILanguages {
 export interface IUiSettings {
   address?: string,
   key?: "ONLINE_ORDERING_UI",
-  currencySymbolPosition?: "LEFT" | "RIGHT",
+  currencySymbolPosition?: "LEFT" | "RIGHT" | "HIDDEN",
   digitsAfterDecimal?: number,
   hideItemDescription?: boolean,
   hideModalDescription?: boolean,
@@ -96,7 +96,7 @@ export type IFontSetting = {
 }
 
 
-export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
+export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT", "HIDDEN"];
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY", "ALL"];
 export const languageOptions: Language[] = [Language.EN, Language.AR, Language.FR];
 
