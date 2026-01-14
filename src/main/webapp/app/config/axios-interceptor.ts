@@ -1,6 +1,7 @@
   import axios from 'axios';
   import { Storage } from 'react-jhipster';
-  import { AUTH_TOKEN_KEY, clearAccessToken, REFRESH_TOKEN_KEY, TENANT_KEY } from 'app/shared/reducers/authentication';
+  import { AUTH_TOKEN_KEY, clearAccessToken } from 'app/shared/reducers/authentication';
+  import { buildAuthTokenKey, buildRefreshTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
 
   const TIMEOUT = 1 * 60 * 1000;
   axios.defaults.timeout = TIMEOUT;
@@ -11,9 +12,10 @@
     const refreshAccessToken = async () => {
       try {
         clearAccessToken();
-        const localStorageToken = Storage.local.get(REFRESH_TOKEN_KEY) || null;
-        const sessionStorageToken = Storage.session.get(REFRESH_TOKEN_KEY) || null;
-        const tenantKey = Storage.local.get(TENANT_KEY) || Storage.session.get(TENANT_KEY);
+        const tenantKey = getActiveTenant();
+        const refreshKey = buildRefreshTokenKey(tenantKey);
+        const localStorageToken = Storage.local.get(refreshKey) || null;
+        const sessionStorageToken = Storage.session.get(refreshKey) || null;
         const refreshToken = localStorageToken || sessionStorageToken;
 
         if (refreshToken) {
@@ -29,15 +31,16 @@
           const newRefreshToken = response?.data?.refresh_token;
 
           if (newAccessToken) {
+            const authKey = buildAuthTokenKey(tenantKey);
             if (localStorageToken) {
-              Storage.local.set(AUTH_TOKEN_KEY, newAccessToken);
-              Storage.local.set(REFRESH_TOKEN_KEY, newRefreshToken);
+              Storage.local.set(authKey, newAccessToken);
+              Storage.local.set(refreshKey, newRefreshToken);
             } else {
-              Storage.session.set(AUTH_TOKEN_KEY, newAccessToken);
-              Storage.session.set(REFRESH_TOKEN_KEY, newRefreshToken);
+              Storage.session.set(authKey, newAccessToken);
+              Storage.session.set(refreshKey, newRefreshToken);
             }
-            return newAccessToken;
-          }
+              return newAccessToken;
+            }
         }
         return null;
       } catch (error) {
@@ -48,12 +51,13 @@
     };
 
     const onRequestSuccess = config => {
-      const token = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    };
+      const authKey = buildAuthTokenKey();
+      const token = Storage.local.get(authKey) || Storage.session.get(authKey);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      };
 
     const onResponseSuccess = response => response;
 

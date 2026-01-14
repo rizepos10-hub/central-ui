@@ -5,10 +5,14 @@ import { serializeAxiosError } from './reducer.utils';
 
 import { AppThunk } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
+import {
+  buildAuthTokenKey,
+  buildRefreshTokenKey,
+  getActiveTenant,
+} from 'app/shared/util/tenant-utils';
 
 export const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
 export const REFRESH_TOKEN_KEY = "cloudLinks-refreshToken"
-export const TENANT_KEY = 'TENANT';
 export const initialState = {
   loading: false,
   isAuthenticated: false,
@@ -72,56 +76,54 @@ export const login: (username: string, password: string, tenant: string, remembe
       const bearerToken = response?.data?.access_token;
       const refreshToken = response?.data?.refresh_token;
       if (bearerToken && refreshToken) {
-        // Storage.session.set(TENANT_KEY, tenant);
-        // if (rememberMe) {
-        Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
-        Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
-        Storage.local.set(TENANT_KEY, tenant);
-        sessionStorage.setItem(TENANT_KEY, tenant);
-        // } else {
-        //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
-        //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
-        // }
+        const tenantToUse = tenant || getActiveTenant();
+        const authKey = buildAuthTokenKey(tenantToUse);
+        const refreshKey = buildRefreshTokenKey(tenantToUse);
+        Storage.local.set(authKey, bearerToken);
+        Storage.local.set(refreshKey, refreshToken);
       }
       dispatch(getSession());
     };
 
-export const loginFromToken = (access_token: string, refresh_token: string, tenant: string) =>
-  dispatch => {
-    Storage.local.set(AUTH_TOKEN_KEY, access_token);
-    // Storage.local.set(REFRESH_TOKEN_KEY, refresh_token);
-    Storage.local.set(TENANT_KEY, tenant);
-    sessionStorage.setItem(TENANT_KEY, tenant);
-    dispatch(getSession());
-  };
-
-export const clearAuthToken = () => {
-  if (Storage.local.get(AUTH_TOKEN_KEY)) {
-    Storage.local.remove(AUTH_TOKEN_KEY);
-  }
-  if (Storage.session.get(TENANT_KEY)) {
-    Storage.session.remove(TENANT_KEY);
-  }
-  if (Storage.session.get(AUTH_TOKEN_KEY)) {
-    Storage.session.remove(AUTH_TOKEN_KEY);
-  }
-  if (Storage.local.get(REFRESH_TOKEN_KEY)) {
-    Storage.local.remove(REFRESH_TOKEN_KEY);
-  }
-  if (Storage.session.get(REFRESH_TOKEN_KEY)) {
-    Storage.session.remove(REFRESH_TOKEN_KEY);
-  }
-};
-
-export const clearAccessToken = () => {
-  if (Storage.local.get(AUTH_TOKEN_KEY)) {
-    Storage.local.remove(AUTH_TOKEN_KEY);
-  }
-  if (Storage.session.get(AUTH_TOKEN_KEY)) {
-    Storage.session.remove(AUTH_TOKEN_KEY);
-  }
-
-};
+    export const loginFromToken = (access_token: string, refresh_token: string, tenant?: string) =>
+      dispatch => {
+        const tenantToUse = tenant || getActiveTenant();
+        Storage.local.set(buildAuthTokenKey(tenantToUse), access_token);
+        Storage.local.set(buildRefreshTokenKey(tenantToUse), refresh_token);
+        dispatch(getSession());
+      };
+    
+    export const clearAuthToken = () => {
+      const tenant = getActiveTenant();
+      const authKey = buildAuthTokenKey(tenant);
+      const refreshKey = buildRefreshTokenKey(tenant);
+    
+      const removeKey = (key: string) => {
+        if (Storage.local.get(key)) {
+          Storage.local.remove(key);
+        }
+        if (Storage.session.get(key)) {
+          Storage.session.remove(key);
+        }
+        sessionStorage.removeItem(key);
+      };
+    
+      removeKey(authKey);
+      removeKey(refreshKey);
+    };
+    
+    export const clearAccessToken = () => {
+      const tenant = getActiveTenant();
+      const authKey = buildAuthTokenKey(tenant);
+      if (Storage.local.get(authKey)) {
+        Storage.local.remove(authKey);
+      }
+      if (Storage.session.get(authKey)) {
+        Storage.session.remove(authKey);
+      }
+      sessionStorage.removeItem(authKey);
+    };
+    
 
 export const logout: () => AppThunk = () => dispatch => {
   clearAuthToken();

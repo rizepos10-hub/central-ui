@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Mail, Lock } from 'lucide-react';
+import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 
 export const Login = () => {
   const dispatch = useAppDispatch();
@@ -40,15 +41,15 @@ export const Login = () => {
 
   useEffect(() => {
     const fetchData = () => {
-      if (tenant) {
-        if (access_token) {
-          dispatch(loginFromToken(access_token, refresh_token, tenant));
-          navigate('/');
-        }
+      const tenantFromUrl = getTenantFromURL();
+      const tenantToUse = tenantFromUrl || tenant;
+      if (tenantToUse && access_token) {
+        dispatch(loginFromToken(access_token, refresh_token, tenantToUse));
+        navigate('/');
       }
-    }
+    };
     fetchData();
-  }, [])
+  }, []);
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
   if (isAuthenticated) {

@@ -52,6 +52,7 @@ import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -77,6 +78,11 @@ export const OrderDetail = () => {
   const [editMode, setEditMode] = useState(false);
   const [refundMode, setRefundMode] = useState(false);
   const [processingStatus, setProcessingStatus] = useState(filteredOrderEntity.processingStatus);
+  
+  const getCurrentAuthToken = () => {
+    const tokenKey = buildAuthTokenKey();
+    return Storage.local.get(tokenKey) || Storage.session.get(tokenKey);
+  };
   const [deliveryStatus, setDeliveryStatus] = useState(filteredOrderEntity.deliveryStatus);
   const [processStatusTipAmount, setProcessStatusTipAmount] = useState(0);
   const [rowClick, setRowClick] = useState(true);
@@ -696,7 +702,7 @@ export const OrderDetail = () => {
                                       method: 'POST',
                                       headers: {
                                         'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${Storage.local.get('jhi-authenticationToken')}`,
+                                        'Authorization': `Bearer ${getCurrentAuthToken()}`
                                       },
                                     })
                                       .then((response) => {

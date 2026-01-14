@@ -7,6 +7,7 @@ import { Storage } from 'react-jhipster';
 // import { websocketActivityMessage } from 'app/modules/administration/administration.reducer';
 import { getAccount, logoutSession } from 'app/shared/reducers/authentication';
 import { toast } from 'react-toastify';
+import { buildAuthTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
 
 
 let stompClient = null;
@@ -34,11 +35,11 @@ const createNotificationListener = (): Observable<any> =>
   });
 
 export const sendActivity = (page: string) => {
-  const token = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+  const tenant = getActiveTenant();
+  const token = Storage.local.get(buildAuthTokenKey(tenant)) || Storage.session.get(buildAuthTokenKey(tenant));
 
-  let tenant = sessionStorage.getItem('TENANT');
 
-  let activity = '/topic/activity/' + tenant;
+  const activity = '/topic/activity/' + tenant;
   console.log('WS Sending Activity to : ' + activity)
 
   connection?.then(() => {
@@ -52,7 +53,7 @@ export const sendActivity = (page: string) => {
 
 const subscribe = () => {
   connection.then(() => {
-    let tenant = sessionStorage.getItem('TENANT');
+    const tenant = getActiveTenant();
     console.log("WS SUBSCRIBE : " + tenant)
     subscriber = stompClient.subscribe('/topic/tracker/' + tenant, data => {
       console.log("WS RECEIVED MESSAGE : " + data)
@@ -63,7 +64,7 @@ const subscribe = () => {
 
 const subscribeToNotifications = () => {
   connection.then(() => {
-    let tenant = sessionStorage.getItem('TENANT');
+    const tenant = getActiveTenant();
     console.log("WS SUBSCRIBE notifications : " + tenant)
     subscriber = stompClient.subscribe('/topic/notifications/' + tenant, data => {
       console.log("WS RECEIVED NOTIFICATION : " + data)
@@ -87,7 +88,8 @@ const connect = () => {
 
   const headers = {};
   let url = SERVER_API_URL + '/websocket/tracker';
-  const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+  const authTokenKey = buildAuthTokenKey();
+  const authToken = Storage.local.get(authTokenKey) || Storage.session.get(authTokenKey);
   if (authToken) {
     url += '?access_token=' + authToken;
   }
