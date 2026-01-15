@@ -25,6 +25,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2 } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
+import { formatNumber } from 'app/shared/util/price-utils';
 
 interface LazyTableState {
   first?: number;
@@ -114,6 +115,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
       "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: externalBranchId || '', matchMode: 'equals' },
+      total: { value: null, matchMode: 'equals' },
       tables: { value: '', matchMode: 'contains' },
       discount: { value: null, matchMode: 'equals' },
       refund: { value: null, matchMode: 'equals' }
@@ -167,6 +169,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
         customerId: lazyState.filters['customer.id']?.value || '',
         branchId: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
+        total: lazyState.filters.total?.value,
         discount: lazyState.filters.discount?.value,
         refund: lazyState.filters.refund?.value,
         size: lazyState.rows,
@@ -213,13 +216,14 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
     const storedFields = storedData[LOCAL_STORAGE_KEY] || {
       orderId: true,
       orderBranch: true,
+      orderTotal: true,
       OrderDate: true,
       orderStatus: true,
       orderSource: true,
       orderTable: true,
       customerEmail: true,
       customerPhone: true,
-      orderDiscount: true,
+      // orderDiscount: true,
       orderRefund: true,
     };
 
@@ -311,6 +315,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
           customerId: lazyState.filters['customer.id']?.value || '',
           branchId: lazyState.filters.branchId?.value || '',
           tables: lazyState.filters.tables?.value || '',
+          total: lazyState.filters.total?.value,
           discount: lazyState.filters.discount?.value,
           refund: lazyState.filters.refund?.value,
           size: lazyState.rows,
@@ -559,6 +564,13 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     </div>
                   </TableHead>
                 )}
+                {visibleColumns.orderTotal && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Total</div>
+                    </div>
+                  </TableHead>
+                )}
                 {visibleColumns.OrderDate && (
                   <TableHead className="min-w-[140px]">
                     <div className="space-y-1">
@@ -769,7 +781,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     </div>
                   </TableHead>
                 )}
-                {visibleColumns.orderDiscount && (
+                {/* {visibleColumns.orderDiscount && (
                   <TableHead>
                     <div className="space-y-1">
                       <div className="text-xs font-medium">{translate('orders.view.table.fields.discount')}</div>
@@ -800,7 +812,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                       />
                     </div>
                   </TableHead>
-                )}
+                )} */}
                 <TableHead className="w-16">
                   <div className="text-xs font-medium">Actions</div>
                 </TableHead>
@@ -836,6 +848,9 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     {visibleColumns.orderBranch && (
                       <TableCell className="text-xs">{getBranchName(order.branchId)}</TableCell>
                     )}
+                    {visibleColumns.orderTotal && (
+                      <TableCell className="text-xs">{formatNumber(order.total)}</TableCell>
+                    )}
                     {visibleColumns.OrderDate && (
                       <TableCell className="text-xs">
                         {order.createdDate && formatDateForDisplay(order.createdDate)}
@@ -865,7 +880,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     {!customer && visibleColumns.customerPhone && (
                       <TableCell className="text-xs">{order.customer?.phone}</TableCell>
                     )}
-                    {visibleColumns.orderDiscount && (
+                    {/* {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">
                         {order.discount ? (
                           <Check className="h-4 w-4 text-green-600 inline" />
@@ -873,7 +888,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                           <X className="h-4 w-4 text-red-600 inline" />
                         )}
                       </TableCell>
-                    )}
+                    )} */}
                     <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
