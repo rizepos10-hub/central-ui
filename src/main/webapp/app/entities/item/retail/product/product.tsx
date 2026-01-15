@@ -832,7 +832,7 @@ export const Product = () => {
         width: "100px",
       },
       {
-        field: "categories.id",
+        field: "categories.name",
         key: "categories",
         header: "Category",
         body: (rowData) => (

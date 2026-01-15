@@ -632,7 +632,7 @@ export const ComboItem = () => {
                 </TableHead>
               )}
               {visibleColumns.categories && (
-                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('categories.id')}>
+                <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('categories.name')}>
                   Category
                   {getSortIcon('categories.id')}
                 </TableHead>
