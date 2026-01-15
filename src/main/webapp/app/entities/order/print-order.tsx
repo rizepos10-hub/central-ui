@@ -6,8 +6,8 @@ import { getEntity as getSettings } from "app/entities/online-ordering/settings/
 // @ts-expect-error -- ignore
 import styles from './print-order.module.css';
 import { useReactToPrint } from 'react-to-print';
-import { Button } from 'primereact/button';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { Button } from '@/components/ui/button';
 
 const PrintOrder = () => {
     const ref = useRef(null);
@@ -106,13 +106,15 @@ const PrintOrder = () => {
                             <td colSpan={12}>
                                 <table>
                                     <tr className={styles.information}>
-                                        <td className={styles.title}>
-                                            <img
-                                                src={uiSettings?.logo?.url}
-                                                alt="Company logo"
-                                                className={styles.logo}
-                                            />
-                                        </td>
+                                        {uiSettings?.logo?.url && (
+                                            <td className={styles.title}>
+                                                <img
+                                                    src={uiSettings?.logo?.url}
+                                                    alt="Company logo"
+                                                    className={styles.logo}
+                                                />
+                                            </td>
+                                        )}
                                         <td>
                                             Invoice #: {orderEntity?.sequenceNumber}<br />
                                             Created: {formatDateForDisplay(orderEntity?.createdDate)}<br />
@@ -216,9 +218,9 @@ const PrintOrder = () => {
                     </table>
                 </div>
             </div>
-            <div className='d-flex gap-2 justify-content-end'>
-                <Button label='Back' onClick={() => navigate(`/order/${orderEntity?.id}`)} />
-                <Button label="Print" onClick={handlePrint} />
+            <div className='flex gap-2 justify-end'>
+                <Button onClick={() => navigate(`/order/${orderEntity?.id}`)}>Back</Button>
+                <Button onClick={handlePrint}>Print</Button>
             </div>
         </div>
     );

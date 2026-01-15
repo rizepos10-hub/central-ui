@@ -7,10 +7,10 @@ import { getEntity as getBill } from '../bill/bill.reducer';
 // @ts-expect-error -- ignore
 import styles from './print-bill.module.css';
 import { useReactToPrint } from 'react-to-print';
-import { Button } from 'primereact/button';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { Button } from '@/components/ui/button';
 
 const PrintBill = () => {
     const ref = useRef(null);
@@ -47,13 +47,15 @@ const PrintBill = () => {
                             <td colSpan={12}>
                                 <table>
                                     <tr className={styles.information}>
-                                        <td className={styles.title}>
-                                            <img
-                                                src={uiSettings?.logo?.url}
-                                                alt="Company logo"
-                                                className={styles.logo}
-                                            />
-                                        </td>
+                                        {uiSettings?.logo?.url && (
+                                            <td className={styles.title}>
+                                                <img
+                                                    src={uiSettings?.logo?.url}
+                                                    alt="Company logo"
+                                                    className={styles.logo}
+                                                />
+                                            </td>
+                                        )}
                                         <td>
                                             Date : {formatDateForDisplay(billEntity?.createdDate)}<br />
                                             {/* Due: February 1, 2023 */}
@@ -115,9 +117,9 @@ const PrintBill = () => {
                     </table>
                 </div>
             </div>
-            <div className='d-flex gap-2 justify-content-end'>
-                <Button label='Back' onClick={() => navigate(`/order/${orderEntity?.id}`)} />
-                <Button label="Print" onClick={handlePrint} />
+            <div className='flex gap-2 justify-end'>
+                <Button onClick={() => navigate(`/order/${orderEntity?.id}`)}>Back</Button>
+                <Button onClick={handlePrint}>Print</Button>
             </div>
         </div>
     );
