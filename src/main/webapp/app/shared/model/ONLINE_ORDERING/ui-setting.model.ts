@@ -34,9 +34,11 @@ export interface IUiSettings {
   orderTaking?: "TAKE_AWAY" | "DELIVERY" | "ALL",
   showDeliveryTips?: boolean,
   scheduleOrders?: boolean,
-  logo?: IAttachment;
+  logo?: IOnlineOrderingLogo;
   cookie?: string;
   privacyPolicy?: string;
+  returnPolicy?: string;
+  aboutUs?: string;
   email?: string;
   phoneNumber?: string;
   applicationName?: string;
@@ -54,6 +56,12 @@ export interface IUiSettings {
   hideBranchesSection?: boolean
   scriptSnippets?: IScriptSnippet[]
   languages?: ILanguages
+}
+
+export interface IOnlineOrderingLogo {
+  image: IAttachment;
+  width: number;
+  height: number;
 }
 
 export interface ISocialProfiles {
