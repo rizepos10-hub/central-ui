@@ -17,19 +17,7 @@ import VersionUpdateChecker from "app/version/version-checker";
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from 'app/shared/hooks/use-theme';
-
-// const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
-
-export function getTenantFromURL() {
-  // const subdomain = window.location.hostname.split('.')[0]; // for subdomain
-  const pathname = window.location.pathname;
-  const pathSegments = pathname.split('/').filter(segment => segment !== '');
-
-  // The first non-empty path segment will be considered as the base path (tenant)
-  if (pathSegments.length > 0) {
-    return pathSegments[0];
-  }
-}
+import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 
 const tenant = getTenantFromURL();
 const baseHref = tenant ? `/${tenant}/` : '/';

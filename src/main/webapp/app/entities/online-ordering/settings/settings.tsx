@@ -277,6 +277,34 @@ export const UiSettingsUpdate = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-returnPolicy" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.returnPolicy')}
+                    </Label>
+                    <Editor
+                      value={UiSettingsEntity.returnPolicy || null}
+                      onTextChange={e => dispatch(changeEntityField({ name: 'returnPolicy', value: e.htmlValue }))}
+                      style={{
+                        minHeight: '400px',
+                      }}
+                      headerTemplate={quillHeader}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-aboutUs" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.aboutUs')}
+                    </Label>
+                    <Editor
+                      value={UiSettingsEntity.aboutUs || null}
+                      onTextChange={e => dispatch(changeEntityField({ name: 'aboutUs', value: e.htmlValue }))}
+                      style={{
+                        minHeight: '400px',
+                      }}
+                      headerTemplate={quillHeader}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
                     <Label htmlFor="UiSettings-defaultLanguage" className="text-xs font-semibold">
                       {translate('tempApp.UiSettings.defaultLanguage')}
                     </Label>
@@ -473,15 +501,46 @@ export const UiSettingsUpdate = () => {
                         dispatch(
                           changeEntityField({
                             name: 'logo',
-                            value: transformAttachmentStructure(files, 'toIAttachment')[0],
+                            value: {
+                              image: transformAttachmentStructure(files, 'toIAttachment')[0],
+                              width: 0,
+                              height: 0
+                            },
                           })
                         )
                       }
                       defaultValues={transformAttachmentStructure(
-                        UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [],
+                        UiSettingsEntity.logo ? [UiSettingsEntity.logo.image] : [],
                         'toFileLibraryListItem'
                       )}
                     />
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="UiSettings-logoWidth" className="text-xs font-semibold">
+                          Width
+                        </Label>
+                        <Input
+                          id="UiSettings-logoWidth"
+                          value={UiSettingsEntity.logo?.width?.toString() || ''}
+                          onChange={e => dispatch(changeEntityField({ name: 'logo.width', value: parseInt(e.target.value, 10) }))}
+                          className="h-7 text-xs"
+                          type="number"
+                        />
+                        </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="UiSettings-logoHeight" className="text-xs font-semibold">
+                          Height
+                        </Label>
+                        <Input
+                          id="UiSettings-logoHeight"
+                          value={UiSettingsEntity.logo?.height?.toString() || ''}
+                          onChange={e => dispatch(changeEntityField({ name: 'logo.height', value: parseInt(e.target.value, 10) }))}
+                          className="h-7 text-xs"
+                          type="number"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">

@@ -24,7 +24,7 @@ export interface ILanguages {
 export interface IUiSettings {
   address?: string,
   key?: "ONLINE_ORDERING_UI",
-  currencySymbolPosition?: "LEFT" | "RIGHT",
+  currencySymbolPosition?: "LEFT" | "RIGHT" | "HIDDEN",
   digitsAfterDecimal?: number,
   hideItemDescription?: boolean,
   hideModalDescription?: boolean,
@@ -34,9 +34,11 @@ export interface IUiSettings {
   orderTaking?: "TAKE_AWAY" | "DELIVERY" | "ALL",
   showDeliveryTips?: boolean,
   scheduleOrders?: boolean,
-  logo?: IAttachment;
+  logo?: IOnlineOrderingLogo;
   cookie?: string;
   privacyPolicy?: string;
+  returnPolicy?: string;
+  aboutUs?: string;
   email?: string;
   phoneNumber?: string;
   applicationName?: string;
@@ -54,6 +56,12 @@ export interface IUiSettings {
   hideBranchesSection?: boolean
   scriptSnippets?: IScriptSnippet[]
   languages?: ILanguages
+}
+
+export interface IOnlineOrderingLogo {
+  image: IAttachment;
+  width: number;
+  height: number;
 }
 
 export interface ISocialProfiles {
@@ -96,7 +104,7 @@ export type IFontSetting = {
 }
 
 
-export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
+export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT", "HIDDEN"];
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY", "ALL"];
 export const languageOptions: Language[] = [Language.EN, Language.AR, Language.FR];
 

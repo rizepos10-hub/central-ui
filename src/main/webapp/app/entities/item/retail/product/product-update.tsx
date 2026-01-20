@@ -67,6 +67,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, GripVertical, Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1047,12 +1048,18 @@ export const ProductUpdate = () => {
     </div>
   );
 
+  const getCurrentAuthToken = () => {
+    const tokenKey = buildAuthTokenKey();
+    return Storage.local.get(tokenKey) || Storage.session.get(tokenKey);
+  };
+
+
   const generateSku = async () => {
     const response = await fetch(`${SERVER_API_URL}/api/settings/item/sku`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Storage.local.get('jhi-authenticationToken')}`,
+        'Authorization': `Bearer ${getCurrentAuthToken()}`,
       },
     })
 

@@ -18,7 +18,7 @@ import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
 import Footer from "app/shared/layout/footer/footer";
 import { ConfirmDialog } from "primereact/confirmdialog";
-import { getTenantFromURL } from "app/app";
+import { getTenantFromURL } from "app/shared/util/tenant-utils";
 import GuidedTour from "../components/guided-tour/guided-tour";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
