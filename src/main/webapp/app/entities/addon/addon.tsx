@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { Pencil, Trash2, RefreshCw, FileDown, Upload, Search as SearchIcon, RotateCcw } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, FileDown, Upload, Search as SearchIcon, RotateCcw, ArrowDown, ArrowUpDown, ArrowUp } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
@@ -243,6 +243,46 @@ export const Addon = () => {
     }
   };
 
+  const handleRowsPerPageChange = (newRows: number) => {
+    const newQuery = {
+      ...query,
+      rows: newRows,
+      first: 0,
+      page: 0
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+    setItemsPerPage(newRows);
+  };
+
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+    }
+
+    const newQuery = {
+      ...query,
+      sortField: newSortOrder === null ? null : field,
+      sortOrder: newSortOrder
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="h-3 w-3 ml-1 inline" />;
+    }
+    return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+  };
+
   const isSelected = (addon: IAddon) => selectedAddons.some(a => a.id === addon.id);
 
   const addonGroupsOptions = addonGroups.map(grp => ({ id: grp.id, label: grp.name }));
@@ -361,11 +401,37 @@ export const Addon = () => {
                       checked={selectedAddons.length === addonList.length && addonList.length > 0}
                     />
                   </TableHead>
-                  <TableHead className="px-2 text-xs">{translate('common.name')}</TableHead>
-                  <TableHead className="px-2 text-xs">{translate('tempApp.addon.addonGroups')}</TableHead>
-                  <TableHead className="px-2 text-xs">{translate('common.price')}</TableHead>
-                  <TableHead className="px-2 text-xs">{translate('common.discounts')}</TableHead>
-                  <TableHead className="px-2 text-xs">{translate('common.taxProfiles')}</TableHead>
+                  <TableHead
+                   className="px-2 text-xs cursor-pointer"
+                   onClick={() => handleSort('name')}
+                  >
+                    {translate('common.name')}
+                    {getSortIcon('name')}
+                  </TableHead>
+                  <TableHead className="px-2 text-xs cursor-pointer"
+                    onClick={() => handleSort('addonGroups.name')}
+                  >
+                    {translate('tempApp.addon.addonGroups')}
+                    {getSortIcon('addonGroups.name')}
+                  </TableHead>
+                  <TableHead className="px-2 text-xs cursor-pointer"
+                    onClick={() => handleSort('price')}
+                  >
+                    {translate('common.price')}
+                    {getSortIcon('price')}
+                  </TableHead>
+                  <TableHead className="px-2 text-xs cursor-pointer"
+                    onClick={() => handleSort('discounts.value')}
+                  >
+                    {translate('common.discounts')}
+                    {getSortIcon('discounts.value')}
+                  </TableHead>
+                  <TableHead className="px-2 text-xs cursor-pointer"
+                    onClick={() => handleSort('accountingGroups.name')}
+                  >
+                    {translate('common.taxProfiles')}
+                   {getSortIcon('accountingGroups.name')}
+                  </TableHead>
                   <TableHead className="px-2 text-xs w-24">{translate('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -487,6 +553,15 @@ export const Addon = () => {
           <div className="flex items-center justify-between px-1 py-2">
             <div className="text-xs text-muted-foreground">
               Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} results
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Rows per page:</span>
+              <Select
+                value={{ value: query.rows, label: query.rows.toString() }}
+                onChange={(option) => handleRowsPerPageChange(option.value)}
+                options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
+                className="w-20"
+              />
             </div>
             <div className="flex items-center gap-1">
               <Button
