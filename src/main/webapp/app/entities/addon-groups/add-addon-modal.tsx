@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
 import { ArrowLeftRight } from 'lucide-react';
 
 export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
@@ -31,6 +32,7 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
   const [stringValidationError, setStringValidationError] = useState<string>('');
 
   const discounts = useAppSelector(state => state.discount.entities);
+  const profileGroups = useAppSelector(state => state.profileGroup.entities);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -93,6 +95,12 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
         sort: `${paginationState.sort},${paginationState.order}`,
       })
     );
+
+    dispatch(getProfileGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
     return () => {
       reset();
@@ -220,6 +228,20 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
                       value={addon?.price ?? ''}
                       onChange={(e) => setAddon(prevState => ({ ...prevState, price: parseFloat(e.target.value) ?? 0 }))}
                       className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="addon-profileGroup" className="text-xs">
+                      <Translate contentKey={'common.profileGroup'}>Profile Group</Translate>
+                    </Label>
+                    <Select
+                      value={addon?.accountingGroups?.[0] || null}
+                      options={profileGroups}
+                      id="addon-profileGroup"
+                      getOptionLabel={option => option.name}
+                      getOptionValue={option => option.id}
+                      onChange={selectedProfileGroup => setAddon(prevState => ({ ...prevState, accountingGroups: selectedProfileGroup ? [selectedProfileGroup] : [] }))}
+                      isClearable
                     />
                   </div>
                   <div className="flex flex-col gap-2">
