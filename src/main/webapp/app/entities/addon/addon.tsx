@@ -555,36 +555,38 @@ export const Addon = () => {
               Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} results
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Rows per page:</span>
-              <Select
-                value={{ value: query.rows, label: query.rows.toString() }}
-                onChange={(option) => handleRowsPerPageChange(option.value)}
-                options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
-                className="w-20"
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPage(currentPage - 1)}
-                disabled={currentPage === 0}
-                className="h-8 text-xs"
-              >
-                Previous
-              </Button>
-              <span className="text-xs px-2">
-                Page {currentPage + 1} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPage(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1}
-                className="h-8 text-xs"
-              >
-                Next
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Rows per page:</span>
+                <Select
+                  value={{ value: query.rows, label: query.rows.toString() }}
+                  onChange={(option) => handleRowsPerPageChange(option.value)}
+                  options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
+                  className="w-20"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="h-8 text-xs"
+                >
+                  Previous
+                </Button>
+                <span className="text-xs px-2">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  className="h-8 text-xs"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </div>
 
