@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { RefreshCw, Plus, Pencil, Trash2, RotateCcw } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Trash2, RotateCcw, ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { FilterMatchMode } from 'primereact/api';
@@ -141,6 +141,34 @@ export const AddonGroups = () => {
     setShowRestoreDialog(false);
   };
 
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+    }
+
+    const newQuery = {
+      ...query,
+      sortField: newSortOrder === null ? null : field,
+      sortOrder: newSortOrder
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="h-3 w-3 ml-1 inline" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="h-3 w-3 ml-1 inline" />;
+    }
+    return <ArrowUpDown className="h-3 w-3 ml-1 inline" />;
+  };
+
   const filteredList = addonList;
 
   return (
@@ -207,18 +235,28 @@ export const AddonGroups = () => {
                     }}
                   />
                 </TableHead>
-                <TableHead className="text-xs h-8 font-semibold p-2">
+                <TableHead 
+                  className="text-xs h-8 font-semibold p-2 cursor-pointer"
+                  onClick={() => handleSort('name')}
+                >
                   {translate('common.name')}
+                  {getSortIcon('name')}
                 </TableHead>
-                <TableHead className="text-xs h-8 font-semibold p-2">
+                <TableHead 
+                  className="text-xs h-8 font-semibold p-2 cursor-pointer"
+                  onClick={() => handleSort('addons.name')}
+                >
                   {translate('tempApp.addon.addons')}
+                  {getSortIcon('addons.name')}
                 </TableHead>
-                <TableHead className="text-xs h-8 font-semibold p-2">
+                <TableHead 
+                  className="text-xs h-8 font-semibold p-2 cursor-pointer"
+                >
                   {translate('common.actions')}
                 </TableHead>
               </TableRow>
-              <TableRow>
-                <TableHead className="p-1">
+              <TableRow className="h-8">
+                <TableHead className="p-1 w-12">
                   <Input
                     placeholder={translate('common.search.name')}
                     value={localNameFilter}
