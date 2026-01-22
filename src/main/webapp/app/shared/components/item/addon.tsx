@@ -266,7 +266,8 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   const selectedVariantAddonGroupIds = item?.variants?.flatMap(variant => variant.addonGroups?.map(group => group.addonGroup.id) ?? []) ?? [];
   const allSelectedAddonGroupIds = [...selectedItemAddonGroupIds, ...selectedVariantAddonGroupIds];
 
-  const filteredAddonGroupsOptions = addonGroupsOptions;
+  // filter out selected addon group ids
+  const filteredAddonGroupsOptions = addonGroupsOptions.filter(group => !allSelectedAddonGroupIds.includes(group.id));
 
   const handleImportAddonModalSave = (groups: IAddonGroups[]) => {
     const newAddonGroups = [...groups];
