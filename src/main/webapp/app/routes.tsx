@@ -21,6 +21,7 @@ import Instructions from "app/modules/instructions/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
+import LogisticsRoutes from "app/modules/logistics/logisticsRoutes";
 import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -158,6 +159,15 @@ const AppRoutes = () => {
           element={
             <PrivateRoute >
               <AnalyticsRoutes />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="logistics/*"
+          element={
+            <PrivateRoute>
+              <LogisticsRoutes />
             </PrivateRoute>
           }
         />
