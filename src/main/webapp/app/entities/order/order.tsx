@@ -433,6 +433,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
     }),
   };
 
+  const cellClass = 'text-xs break-words whitespace-normal';
+
   return (
     <Card className={`${isEndOfDayMode ? 'p-0 w-full max-w-full' : 'p-4'}`}>
       <CardHeader className={`${isEndOfDayMode ? 'pb-2 px-2 pt-2' : 'pb-4'}`}>
@@ -501,7 +503,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
 
       <CardContent className={`overflow-hidden ${isEndOfDayMode ? 'px-2 pb-2' : ''}`}>
         <div className="border rounded-md overflow-x-auto max-w-full">
-          <Table className="min-w-[1200px] w-full">
+          <Table className={`w-full table-fixed ${isEndOfDayMode ? 'min-w-full' : 'min-w-[1200px]'}`}>
             <TableHeader>
               <TableRow>
                 {visibleColumns.orderId && (
@@ -839,28 +841,28 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     onClick={() => handleRowClick(order.id, order.items, order.sequenceNumber)}
                   >
                     {visibleColumns.orderId && (
-                      <TableCell className="text-xs">
+                      <TableCell className={cellClass}>
                         <Link to={`/order/${order.id}`} className="text-blue-600 hover:underline">
                           {order.sequenceNumber}
                         </Link>
                       </TableCell>
                     )}
                     {visibleColumns.orderBranch && (
-                      <TableCell className="text-xs">{getBranchName(order.branchId)}</TableCell>
+                      <TableCell className={cellClass}>{getBranchName(order.branchId)}</TableCell>
                     )}
                     {visibleColumns.orderTotal && (
-                      <TableCell className="text-xs">{formatNumber(order.total)}</TableCell>
+                      <TableCell className={cellClass}>{formatNumber(order.total)}</TableCell>
                     )}
                     {visibleColumns.OrderDate && (
-                      <TableCell className="text-xs">
+                      <TableCell className={cellClass}>
                         {order.createdDate && formatDateForDisplay(order.createdDate)}
                       </TableCell>
                     )}
                     {visibleColumns.orderStatus && (
-                      <TableCell className="text-xs">{order.processingStatus}</TableCell>
+                      <TableCell className={cellClass}>{order.processingStatus}</TableCell>
                     )}
                     {visibleColumns.orderRefund && (
-                      <TableCell className="text-xs text-center">
+                      <TableCell className={`${cellClass} text-center`}>
                         {order.refund ? (
                           <Check className="h-4 w-4 text-green-600 inline" />
                         ) : (
@@ -869,16 +871,16 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                       </TableCell>
                     )}
                     {visibleColumns.orderSource && (
-                      <TableCell className="text-xs">{order.sourceApp?.type}</TableCell>
+                      <TableCell className={cellClass}>{order.sourceApp?.type}</TableCell>
                     )}
                     {visibleColumns.orderTable && (
-                      <TableCell className="text-xs">{order.tables}</TableCell>
+                      <TableCell className={cellClass}>{order.tables}</TableCell>
                     )}
                     {!customer && visibleColumns.customerEmail && (
-                      <TableCell className="text-xs">{order.customer?.email}</TableCell>
+                      <TableCell className={cellClass}>{order.customer?.email}</TableCell>
                     )}
                     {!customer && visibleColumns.customerPhone && (
-                      <TableCell className="text-xs">{order.customer?.phone}</TableCell>
+                      <TableCell className={cellClass}>{order.customer?.phone}</TableCell>
                     )}
                     {/* {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">
@@ -889,7 +891,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                         )}
                       </TableCell>
                     )} */}
-                    <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
+                    <TableCell className={cellClass} onClick={(e) => e.stopPropagation()}>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button

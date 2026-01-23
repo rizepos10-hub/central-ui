@@ -98,8 +98,8 @@ const EndOfDayReportContainer = () => {
         </Button>
       </div>
       <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="lg:w-[420px] flex-shrink-0">
-          <div className="min-h-[520px] h-full rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="lg:basis-[65%] lg:pr-4">
+          <div className="min-h-[560px] h-full rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden">
             <OrdersTab
               branchId={ordersBranchId}
               fromDate={ordersFromDate}
@@ -107,8 +107,8 @@ const EndOfDayReportContainer = () => {
             />
           </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border">
+        <div className="lg:basis-[35%] flex-1 min-w-0">
+          <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border min-h-[560px]">
             <EodReportLayout summary={salesData} isEndOfDay={true} branchTimezone={endOfDay?.branch?.timezone} />
           </div>
         </div>
