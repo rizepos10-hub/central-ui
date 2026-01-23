@@ -281,6 +281,33 @@ export const model: MenuItem[] = [
     type: [BusinessTypeEnum.RETAIL],
   },
   {
+    label: 'Warehouse Catalog',
+    icon: 'pi pi-tags',
+    role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+    to: '/logistics/warehouse-orders',
+    items: [
+      {
+        label: 'Warehouses Orders',
+        to: '/logistics/warehouse-orders',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Routes',
+        to: '/logistics/routes',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Map',
+        to: '/logistics/map',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        type: [BusinessTypeEnum.RETAIL],
+      },
+    ],
+    type: [BusinessTypeEnum.RETAIL],
+  },
+  {
     label: 'Inventory',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
     icon: 'pi pi-box',
