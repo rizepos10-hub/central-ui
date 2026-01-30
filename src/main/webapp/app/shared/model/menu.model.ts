@@ -28,6 +28,7 @@ export interface IFontProperties {
   fontSize: number;
   bold: boolean;
   italic: boolean;
+  color: string;
 }
 
 export interface IMenuScreen {
@@ -44,7 +45,7 @@ export interface IMenuScreen {
   empty?: boolean;
   isPizza?: boolean;
   attachment?: IAttachment;
-  fontProperties?: IFontProperties;
+  fontProperties?: IFontProperties | null;
   component?: {
     item?: IItem;
   }
