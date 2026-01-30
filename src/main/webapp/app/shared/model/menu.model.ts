@@ -23,6 +23,13 @@ export interface IMenu {
   image?: IAttachment;
 }
 
+export interface IFontProperties {
+  fontFamily: string;
+  fontSize: number;
+  bold: boolean;
+  italic: boolean;
+}
+
 export interface IMenuScreen {
   id?: string;
   name?: string;
@@ -37,6 +44,7 @@ export interface IMenuScreen {
   empty?: boolean;
   isPizza?: boolean;
   attachment?: IAttachment;
+  fontProperties?: IFontProperties;
   component?: {
     item?: IItem;
   }

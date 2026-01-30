@@ -22,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import Select from 'app/shared/components/select/select';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -73,7 +74,16 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
     const [newMainScreenIsPizza, setNewMainScreenIsPizza] = useState(false);
     const [newMainScreenImage, setNewMainScreenImage] = useState<IAttachment>();
+    const [newMainScreenFontFamily, setNewMainScreenFontFamily] = useState('Montserrat');
+    const [newMainScreenBold, setNewMainScreenBold] = useState(false);
+    const [newMainScreenItalic, setNewMainScreenItalic] = useState(false);
     const [editingSubScreenId, setEditingSubScreenId] = useState(null);
+    const [newSubScreenFontFamily, setNewSubScreenFontFamily] = useState('Montserrat');
+    const [newSubScreenBold, setNewSubScreenBold] = useState(false);
+    const [newSubScreenItalic, setNewSubScreenItalic] = useState(false);
+    const [editScreenFontFamily, setEditScreenFontFamily] = useState('Montserrat');
+    const [editScreenBold, setEditScreenBold] = useState(false);
+    const [editScreenItalic, setEditScreenItalic] = useState(false);
 
     const [mainScreen, setMainScreen] = useState<IMenuScreen>({
         id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
@@ -140,6 +150,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             isMainScreenModalOpen: true,
         });
         setSelectedMainScreenIndex(null);
+        setNewMainScreenFontFamily('Montserrat');
+        setNewMainScreenBold(false);
+        setNewMainScreenItalic(false);
     };
 
     const openEditModal = (selectedScreen, screenIndex, screenType) => {
@@ -151,6 +164,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setEditScreenColor(selectedScreen.backgroundColor);
         setEditScreenIsPizza(selectedScreen.isPizza);
         setMainScreenImage(selectedScreen.attachment);
+        setEditScreenFontFamily(selectedScreen?.fontProperties?.fontFamily || 'Montserrat');
+        setEditScreenBold(!!selectedScreen?.fontProperties?.bold);
+        setEditScreenItalic(!!selectedScreen?.fontProperties?.italic);
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: true });
     };
 
@@ -873,6 +889,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             empty,
             isPizza: newMainScreenIsPizza,
             attachment: newMainScreenImage,
+            fontProperties: buildFontProperties({
+                fontFamily: newMainScreenFontFamily,
+                bold: newMainScreenBold,
+                italic: newMainScreenItalic,
+            }),
         };
         const newMenuScreens = [...data.menuScreens, newMainScreen];
         const newGroupedMainScreens = groupMainScreens(newMenuScreens, data.numberOfColumns);
@@ -891,6 +912,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenCols(1);
         setNewMainScreenIsPizza(false);
         setNewMainScreenImage(undefined);
+        setNewMainScreenFontFamily('Montserrat');
+        setNewMainScreenBold(false);
+        setNewMainScreenItalic(false);
         setGroupedMainScreens(newGroupedMainScreens);
     };
 
@@ -926,6 +950,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                             isPizza: newSubScreenIsPizza,
                             attachment: newSubScreenImage,
+                            fontProperties: buildFontProperties({
+                                fontFamily: newSubScreenFontFamily,
+                                bold: newSubScreenBold,
+                                italic: newSubScreenItalic,
+                            }),
                         },
                     ],
                 };
@@ -949,6 +978,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                         isPizza: newSubScreenIsPizza,
                         attachment: newSubScreenImage,
+                        fontProperties: buildFontProperties({
+                            fontFamily: newSubScreenFontFamily,
+                            bold: newSubScreenBold,
+                            italic: newSubScreenItalic,
+                        }),
                     }),
                 };
                 updatedSubScreenStack = subScreenStack.map(subScreen =>
@@ -968,6 +1002,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                                     isPizza: newSubScreenIsPizza,
                                     attachment: newSubScreenImage,
+                                    fontProperties: buildFontProperties({
+                                        fontFamily: newSubScreenFontFamily,
+                                        bold: newSubScreenBold,
+                                        italic: newSubScreenItalic,
+                                    }),
                                 },
                             ],
                         }
@@ -996,6 +1035,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewSubScreenCols(null);
         setNewSubScreenIsPizza(false);
         setNewSubScreenImage(undefined);
+        setNewSubScreenFontFamily('Montserrat');
+        setNewSubScreenBold(false);
+        setNewSubScreenItalic(false);
     };
 
     useEffect(() => {
@@ -1234,6 +1276,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             numberOfColumns: editScreenCols,
                             isPizza: editScreenIsPizza,
                             attachment: mainScreenImage,
+                            fontProperties: buildFontProperties(
+                                {
+                                    fontFamily: editScreenFontFamily,
+                                    bold: editScreenBold,
+                                    italic: editScreenItalic,
+                                },
+                                mainScreen.fontProperties
+                            ),
                         };
                     }
                     return mainScreen;
@@ -1249,6 +1299,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         numberOfColumns: editScreenCols,
                         isPizza: editScreenIsPizza,
                         attachment: mainScreenImage,
+                        fontProperties: buildFontProperties(
+                            {
+                                fontFamily: editScreenFontFamily,
+                                bold: editScreenBold,
+                                italic: editScreenItalic,
+                            },
+                            existingSubScreen.fontProperties
+                        ),
                     };
 
                     // Update using the existing updateSubScreenById
@@ -1267,6 +1325,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: false });
         setEditingSubScreenId(null);
+        setEditScreenFontFamily('Montserrat');
     };
 
     const handleMainRowHeightChange = (value: number | [number, number], rowIndex: number) => {
@@ -1305,6 +1364,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         '#856404',
         '#6c757d',
     ];
+    const fontFamilyOptions = [
+        { value: 'Montserrat', label: 'Montserrat' },
+        { value: 'Open_Sans', label: 'Open_Sans' },
+        { value: 'Roboto', label: 'Roboto' },
+        { value: 'Tinos', label: 'Tinos' },
+    ];
+    const resolveFontFamilyOption = (value: string) => fontFamilyOptions.find(option => option.value === value) || null;
+    const defaultFontSize = 14;
+    const buildFontProperties = (options: { fontFamily: string; bold: boolean; italic: boolean }, existing?: any) => ({
+        fontFamily: options.fontFamily,
+        fontSize: typeof existing?.fontSize === 'number' ? existing.fontSize : defaultFontSize,
+        bold: options.bold,
+        italic: options.italic,
+    });
 
     if (loading) {
         return (
@@ -1351,6 +1424,37 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 className="h-9 text-sm"
                                 placeholder="Enter screen name"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="newMainScreenFontFamily" className="text-xs font-medium">Font Family</Label>
+                            <Select
+                                inputId="newMainScreenFontFamily"
+                                options={fontFamilyOptions}
+                                value={resolveFontFamilyOption(newMainScreenFontFamily)}
+                                onChange={(option: any) => setNewMainScreenFontFamily(option?.value || 'Montserrat')}
+                            />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="newMainScreenBold"
+                                    checked={newMainScreenBold}
+                                    onCheckedChange={checked => setNewMainScreenBold(!!checked)}
+                                />
+                                <Label htmlFor="newMainScreenBold" className="text-sm font-medium cursor-pointer">
+                                    Bold
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="newMainScreenItalic"
+                                    checked={newMainScreenItalic}
+                                    onCheckedChange={checked => setNewMainScreenItalic(!!checked)}
+                                />
+                                <Label htmlFor="newMainScreenItalic" className="text-sm font-medium cursor-pointer">
+                                    Italic
+                                </Label>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -1444,6 +1548,37 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 className="h-9 text-sm"
                                 placeholder="Enter sub-screen name"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="newSubScreenFontFamily" className="text-xs font-medium">Font Family</Label>
+                            <Select
+                                inputId="newSubScreenFontFamily"
+                                options={fontFamilyOptions}
+                                value={resolveFontFamilyOption(newSubScreenFontFamily)}
+                                onChange={(option: any) => setNewSubScreenFontFamily(option?.value || 'Montserrat')}
+                            />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="newSubScreenBold"
+                                    checked={newSubScreenBold}
+                                    onCheckedChange={checked => setNewSubScreenBold(!!checked)}
+                                />
+                                <Label htmlFor="newSubScreenBold" className="text-sm font-medium cursor-pointer">
+                                    Bold
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="newSubScreenItalic"
+                                    checked={newSubScreenItalic}
+                                    onCheckedChange={checked => setNewSubScreenItalic(!!checked)}
+                                />
+                                <Label htmlFor="newSubScreenItalic" className="text-sm font-medium cursor-pointer">
+                                    Italic
+                                </Label>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -1544,6 +1679,37 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 className="h-9 text-sm"
                                 placeholder="Enter screen name"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="editScreenFontFamily" className="text-xs font-medium">Font Family</Label>
+                            <Select
+                                inputId="editScreenFontFamily"
+                                options={fontFamilyOptions}
+                                value={resolveFontFamilyOption(editScreenFontFamily)}
+                                onChange={(option: any) => setEditScreenFontFamily(option?.value || 'Montserrat')}
+                            />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="editScreenBold"
+                                    checked={editScreenBold}
+                                    onCheckedChange={checked => setEditScreenBold(!!checked)}
+                                />
+                                <Label htmlFor="editScreenBold" className="text-sm font-medium cursor-pointer">
+                                    Bold
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="editScreenItalic"
+                                    checked={editScreenItalic}
+                                    onCheckedChange={checked => setEditScreenItalic(!!checked)}
+                                />
+                                <Label htmlFor="editScreenItalic" className="text-sm font-medium cursor-pointer">
+                                    Italic
+                                </Label>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
