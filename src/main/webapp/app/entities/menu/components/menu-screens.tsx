@@ -4,7 +4,7 @@ import { Translate } from 'react-jhipster';
 import MenuPosPreview from './menu-pos-preview';
 import ItemSelectionModal from '../item-selection-modal';
 
-import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
+import { IMenu, IMenuScreen, IFontProperties } from 'app/shared/model/menu.model';
 import _, { update } from 'lodash';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { IMenuData } from '../menu-instance';
@@ -12,6 +12,7 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { IAttachment } from 'app/shared/model/attachment.model';
 
+import { ColorPicker } from 'primereact/colorpicker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -77,13 +78,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [newMainScreenFontFamily, setNewMainScreenFontFamily] = useState('Montserrat');
     const [newMainScreenBold, setNewMainScreenBold] = useState(false);
     const [newMainScreenItalic, setNewMainScreenItalic] = useState(false);
+    const [newMainScreenFontColor, setNewMainScreenFontColor] = useState('#000000');
+    const [newMainScreenFontSize, setNewMainScreenFontSize] = useState(14);
     const [editingSubScreenId, setEditingSubScreenId] = useState(null);
     const [newSubScreenFontFamily, setNewSubScreenFontFamily] = useState('Montserrat');
     const [newSubScreenBold, setNewSubScreenBold] = useState(false);
     const [newSubScreenItalic, setNewSubScreenItalic] = useState(false);
+    const [newSubScreenFontColor, setNewSubScreenFontColor] = useState('#000000');
+    const [newSubScreenFontSize, setNewSubScreenFontSize] = useState(14);
     const [editScreenFontFamily, setEditScreenFontFamily] = useState('Montserrat');
     const [editScreenBold, setEditScreenBold] = useState(false);
     const [editScreenItalic, setEditScreenItalic] = useState(false);
+    const [editScreenFontColor, setEditScreenFontColor] = useState('#000000');
+    const [editScreenFontSize, setEditScreenFontSize] = useState(14);
+    const [editScreenUseDefaultFont, setEditScreenUseDefaultFont] = useState(false);
 
     const [mainScreen, setMainScreen] = useState<IMenuScreen>({
         id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
@@ -153,9 +161,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenFontFamily('Montserrat');
         setNewMainScreenBold(false);
         setNewMainScreenItalic(false);
+        setNewMainScreenFontColor('#000000');
+        setNewMainScreenFontSize(14);
     };
 
-    const openEditModal = (selectedScreen, screenIndex, screenType) => {
+    const openEditModal = (selectedScreen, screenIndex, screenType, ancestorChain: IMenuScreen[] = []) => {
         setEditingSubScreenId(selectedScreen.id);
         setEditScreenCols(selectedScreen.numberOfColumns);
         setSelectedScreenIndex(screenIndex);
@@ -164,9 +174,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setEditScreenColor(selectedScreen.backgroundColor);
         setEditScreenIsPizza(selectedScreen.isPizza);
         setMainScreenImage(selectedScreen.attachment);
-        setEditScreenFontFamily(selectedScreen?.fontProperties?.fontFamily || 'Montserrat');
-        setEditScreenBold(!!selectedScreen?.fontProperties?.bold);
-        setEditScreenItalic(!!selectedScreen?.fontProperties?.italic);
+        const useDefaultFont = selectedScreen?.fontProperties == null;
+        setEditScreenUseDefaultFont(useDefaultFont);
+        const effective = useDefaultFont ? getEffectiveFontProperties(selectedScreen, ancestorChain) : selectedScreen.fontProperties;
+        setEditScreenFontFamily(effective?.fontFamily ?? 'Montserrat');
+        setEditScreenBold(!!effective?.bold);
+        setEditScreenItalic(!!effective?.italic);
+        setEditScreenFontColor(effective?.color ?? '#000000');
+        setEditScreenFontSize(typeof effective?.fontSize === 'number' ? effective.fontSize : 14);
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: true });
     };
 
@@ -653,13 +668,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         onDrop={(e) => handleDrop(e, { rowIndex, itemIndex: index })}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        <Card className={`flex flex-col p-0 cursor-pointer h-full transition-all hover:shadow-md border-2 hover:border-primary/50 overflow-hidden relative`}>
-                                            <div className="flex items-center justify-between p-2 pb-1">
+                                        <Card className={`flex flex-col p-0 cursor-pointer h-full transition-all hover:shadow-md border-2 hover:border-primary/50 overflow-visible relative`}>
+                                            <div className="flex items-center justify-between p-2 pb-1 shrink-0">
                                                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                                     {item?.componentType === 'SUB_SCREENS' ? 'Screen' : 'Item'}
                                                 </span>
                                                 <div className="flex gap-1">
-                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted" onClick={() => openEditModal(item, index, 'sub')}>
+                                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted" onClick={() => openEditModal(item, index, 'sub', subScreenStack)}>
                                                         <Edit2 className="h-3 w-3" />
                                                     </Button>
                                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={(e) => confirm1(mainScreenIndex, item)}>
@@ -674,9 +689,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                         handleNavigateToSubScreen(item);
                                                     }
                                                 }}
-                                                className="flex-1 flex flex-col items-center justify-center px-2 pb-2"
+                                                className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible"
                                             >
-                                                <h4 className="text-sm font-semibold truncate w-full text-center">{item?.name}</h4>
+                                                <h4 className="text-sm font-semibold w-full text-center line-clamp-2 break-words h-full flex items-center justify-center" style={getFontStyle(getInheritedFontProperties(subScreenStack))}>{item?.name}</h4>
                                                 {item?.numberOfColumns && (
                                                     <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                 )}
@@ -893,6 +908,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 fontFamily: newMainScreenFontFamily,
                 bold: newMainScreenBold,
                 italic: newMainScreenItalic,
+                color: newMainScreenFontColor,
+                fontSize: newMainScreenFontSize,
             }),
         };
         const newMenuScreens = [...data.menuScreens, newMainScreen];
@@ -915,6 +932,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenFontFamily('Montserrat');
         setNewMainScreenBold(false);
         setNewMainScreenItalic(false);
+        setNewMainScreenFontColor('#000000');
+        setNewMainScreenFontSize(14);
         setGroupedMainScreens(newGroupedMainScreens);
     };
 
@@ -954,6 +973,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 fontFamily: newSubScreenFontFamily,
                                 bold: newSubScreenBold,
                                 italic: newSubScreenItalic,
+                                color: newSubScreenFontColor,
+                                fontSize: newSubScreenFontSize,
                             }),
                         },
                     ],
@@ -982,6 +1003,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             fontFamily: newSubScreenFontFamily,
                             bold: newSubScreenBold,
                             italic: newSubScreenItalic,
+                            color: newSubScreenFontColor,
+                            fontSize: newSubScreenFontSize,
                         }),
                     }),
                 };
@@ -1006,6 +1029,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         fontFamily: newSubScreenFontFamily,
                                         bold: newSubScreenBold,
                                         italic: newSubScreenItalic,
+                                        color: newSubScreenFontColor,
+                                        fontSize: newSubScreenFontSize,
                                     }),
                                 },
                             ],
@@ -1038,6 +1063,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewSubScreenFontFamily('Montserrat');
         setNewSubScreenBold(false);
         setNewSubScreenItalic(false);
+        setNewSubScreenFontColor('#000000');
+        setNewSubScreenFontSize(14);
     };
 
     useEffect(() => {
@@ -1276,11 +1303,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             numberOfColumns: editScreenCols,
                             isPizza: editScreenIsPizza,
                             attachment: mainScreenImage,
-                            fontProperties: buildFontProperties(
+                            fontProperties: editScreenUseDefaultFont ? null : buildFontProperties(
                                 {
                                     fontFamily: editScreenFontFamily,
                                     bold: editScreenBold,
                                     italic: editScreenItalic,
+                                    color: editScreenFontColor,
+                                    fontSize: editScreenFontSize,
                                 },
                                 mainScreen.fontProperties
                             ),
@@ -1299,11 +1328,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         numberOfColumns: editScreenCols,
                         isPizza: editScreenIsPizza,
                         attachment: mainScreenImage,
-                        fontProperties: buildFontProperties(
+                        fontProperties: editScreenUseDefaultFont ? null : buildFontProperties(
                             {
                                 fontFamily: editScreenFontFamily,
                                 bold: editScreenBold,
                                 italic: editScreenItalic,
+                                color: editScreenFontColor,
+                                fontSize: editScreenFontSize,
                             },
                             existingSubScreen.fontProperties
                         ),
@@ -1326,6 +1357,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: false });
         setEditingSubScreenId(null);
         setEditScreenFontFamily('Montserrat');
+        setEditScreenFontColor('#000000');
+        setEditScreenFontSize(14);
+        setEditScreenUseDefaultFont(false);
     };
 
     const handleMainRowHeightChange = (value: number | [number, number], rowIndex: number) => {
@@ -1372,11 +1406,47 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     ];
     const resolveFontFamilyOption = (value: string) => fontFamilyOptions.find(option => option.value === value) || null;
     const defaultFontSize = 14;
-    const buildFontProperties = (options: { fontFamily: string; bold: boolean; italic: boolean }, existing?: any) => ({
+    const defaultFontColor = '#000000';
+    const defaultFontProperties: IFontProperties = {
+        fontFamily: 'Montserrat',
+        fontSize: defaultFontSize,
+        bold: false,
+        italic: false,
+        color: defaultFontColor,
+    };
+
+    /** First non-null fontProperties from screen then ancestors (root → parent). Used for sub-screens/items. */
+    const getEffectiveFontProperties = (screen: IMenuScreen, ancestorChain: IMenuScreen[]): IFontProperties => {
+        if (screen?.fontProperties != null) return screen.fontProperties;
+        for (let i = ancestorChain.length - 1; i >= 0; i--) {
+            if (ancestorChain[i]?.fontProperties != null) return ancestorChain[i].fontProperties;
+        }
+        return defaultFontProperties;
+    };
+
+    /** First non-null fontProperties from ancestors only (not the screen itself). Use for the screen card label. */
+    const getInheritedFontProperties = (ancestorChain: IMenuScreen[]): IFontProperties => {
+        for (let i = ancestorChain.length - 1; i >= 0; i--) {
+            if (ancestorChain[i]?.fontProperties != null) return ancestorChain[i].fontProperties;
+        }
+        return defaultFontProperties;
+    };
+
+    /** Inline style for a screen label from effective font properties. */
+    const getFontStyle = (font: IFontProperties): React.CSSProperties => ({
+        fontFamily: font.fontFamily,
+        fontSize: font.fontSize,
+        fontWeight: font.bold ? 'bold' : 'normal',
+        fontStyle: font.italic ? 'italic' : 'normal',
+        color: font.color,
+    });
+
+    const buildFontProperties = (options: { fontFamily: string; bold: boolean; italic: boolean; color?: string; fontSize?: number }, existing?: any) => ({
         fontFamily: options.fontFamily,
-        fontSize: typeof existing?.fontSize === 'number' ? existing.fontSize : defaultFontSize,
+        fontSize: typeof options.fontSize === 'number' ? options.fontSize : (typeof existing?.fontSize === 'number' ? existing.fontSize : defaultFontSize),
         bold: options.bold,
         italic: options.italic,
+        color: options.color ?? existing?.color ?? defaultFontColor,
     });
 
     if (loading) {
@@ -1433,6 +1503,34 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 value={resolveFontFamilyOption(newMainScreenFontFamily)}
                                 onChange={(option: any) => setNewMainScreenFontFamily(option?.value || 'Montserrat')}
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Size</Label>
+                            <Input
+                                type="number"
+                                min={8}
+                                max={72}
+                                value={newMainScreenFontSize}
+                                onChange={e => setNewMainScreenFontSize(parseInt(e.target.value, 10) || 14)}
+                                className="h-9 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={newMainScreenFontColor.replace('#', '')}
+                                    onChange={e => setNewMainScreenFontColor(e.value ? `#${e.value}` : '#000000')}
+                                    format="hex"
+                                    appendTo="self"
+                                />
+                                <Input
+                                    value={newMainScreenFontColor}
+                                    onChange={e => setNewMainScreenFontColor(e.target.value)}
+                                    placeholder="#000000"
+                                    className="h-9 text-sm flex-1"
+                                />
+                            </div>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center space-x-2">
@@ -1558,6 +1656,34 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 onChange={(option: any) => setNewSubScreenFontFamily(option?.value || 'Montserrat')}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Size</Label>
+                            <Input
+                                type="number"
+                                min={8}
+                                max={72}
+                                value={newSubScreenFontSize}
+                                onChange={e => setNewSubScreenFontSize(parseInt(e.target.value, 10) || 14)}
+                                className="h-9 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={newSubScreenFontColor.replace('#', '')}
+                                    onChange={e => setNewSubScreenFontColor(e.value ? `#${e.value}` : '#000000')}
+                                    format="hex"
+                                    appendTo="self"
+                                />
+                                <Input
+                                    value={newSubScreenFontColor}
+                                    onChange={e => setNewSubScreenFontColor(e.target.value)}
+                                    placeholder="#000000"
+                                    className="h-9 text-sm flex-1"
+                                />
+                            </div>
+                        </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center space-x-2">
                                 <Checkbox
@@ -1680,6 +1806,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 placeholder="Enter screen name"
                             />
                         </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="editScreenUseDefaultFont"
+                                checked={editScreenUseDefaultFont}
+                                onCheckedChange={checked => setEditScreenUseDefaultFont(!!checked)}
+                            />
+                            <Label htmlFor="editScreenUseDefaultFont" className="text-sm font-medium cursor-pointer">
+                                Use default font (inherit from parent)
+                            </Label>
+                        </div>
+                        {!editScreenUseDefaultFont && (
+                        <>
                         <div className="space-y-2">
                             <Label htmlFor="editScreenFontFamily" className="text-xs font-medium">Font Family</Label>
                             <Select
@@ -1711,6 +1849,36 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 </Label>
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Size</Label>
+                            <Input
+                                type="number"
+                                min={8}
+                                max={72}
+                                value={editScreenFontSize}
+                                onChange={e => setEditScreenFontSize(parseInt(e.target.value, 10) || 14)}
+                                className="h-9 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs font-medium">Font Color</Label>
+                            <div className="flex items-center gap-2">
+                                <ColorPicker
+                                    value={editScreenFontColor.replace('#', '')}
+                                    onChange={e => setEditScreenFontColor(e.value ? `#${e.value}` : '#000000')}
+                                    format="hex"
+                                    appendTo="self"
+                                />
+                                <Input
+                                    value={editScreenFontColor}
+                                    onChange={e => setEditScreenFontColor(e.target.value)}
+                                    placeholder="#000000"
+                                    className="h-9 text-sm flex-1"
+                                />
+                            </div>
+                        </div>
+                        </>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="editCols" className="text-xs font-medium">Number of columns</Label>
@@ -1911,7 +2079,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     onDragEnd={handleMainDragEnd}
                                                 >
                                                     <Card
-                                                        className={`flex flex-col p-0 cursor-pointer h-full transition-all hover:shadow-md border-2 overflow-hidden relative ${
+                                                        className={`flex flex-col p-0 cursor-pointer h-full transition-all hover:shadow-md border-2 overflow-visible relative ${
                                                             selectedMainScreenIndex === globalIndex && !item.empty
                                                                 ? 'border-primary shadow-md'
                                                                 : 'border-border/60 hover:border-primary/50'
@@ -1925,8 +2093,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                                 : {}
                                                         }
                                                     >
-                                                        <div className="w-full flex-1 flex flex-col">
-                                                            <div className="flex justify-end gap-1 p-2 pb-1">
+                                                        <div className="w-full flex-1 flex flex-col min-h-0">
+                                                            <div className="flex justify-end gap-1 p-2 pb-1 shrink-0">
                                                                 {!item?.empty && (
                                                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted" onClick={() => openEditModal(item, globalIndex, 'main')}>
                                                                         <Edit2 className="h-3 w-3" />
@@ -1938,8 +2106,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                             </div>
                                                             {!item?.empty && (
                                                                 <>
-                                                                    <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2">
-                                                                        <h5 className="text-sm font-semibold truncate w-full text-center">{item?.name}</h5>
+                                                                    <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible">
+                                                                        <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words" style={getFontStyle(getInheritedFontProperties([]))}>{item?.name}</h5>
                                                                         {item?.numberOfColumns && (
                                                                             <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                                         )}
