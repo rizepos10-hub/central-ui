@@ -6,6 +6,7 @@ import { useAppDispatch } from 'app/config/store';
 import DynamicEndOfDayReportUI from './dynamic-end-of-day-report';
 import { exportExcelEodSummaryReport } from 'app/shared/util/excel-utils';
 import { IBranch } from 'app/shared/model/branch.model';
+import { OrdersTab } from 'app/entities/end-of-day/orders-tab';
 import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
 import { useReactToPrint } from 'react-to-print';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,10 @@ const EndOfDayReportContainer = () => {
     `,
   });
 
+  const ordersFromDate = endOfDay?.fromDate ?? endOfDay?.fromDateString ?? '';
+  const ordersToDate = endOfDay?.toDate ?? endOfDay?.toDateString ?? null;
+  const ordersBranchId = branch?.id ?? null;
+
   useEffect(() => {
     const fetchData = async () => {
       await handleSubmit();
@@ -80,8 +85,8 @@ const EndOfDayReportContainer = () => {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-end gap-2 mb-3">
+    <div className="space-y-4 p-4">
+      <div className="flex justify-end gap-2">
         <Button
           onClick={handlePrint}
           disabled={loading}
@@ -92,8 +97,21 @@ const EndOfDayReportContainer = () => {
           Print
         </Button>
       </div>
-      <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border">
-        <EodReportLayout summary={salesData} isEndOfDay={true} branchTimezone={endOfDay?.branch?.timezone} />
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <div className="lg:basis-[65%] lg:pr-4">
+          <div className="min-h-[560px] h-full rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <OrdersTab
+              branchId={ordersBranchId}
+              fromDate={ordersFromDate}
+              toDate={ordersToDate}
+            />
+          </div>
+        </div>
+        <div className="lg:basis-[35%] flex-1 min-w-0">
+          <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border min-h-[560px]">
+            <EodReportLayout summary={salesData} isEndOfDay={true} branchTimezone={endOfDay?.branch?.timezone} />
+          </div>
+        </div>
       </div>
     </div>
   );

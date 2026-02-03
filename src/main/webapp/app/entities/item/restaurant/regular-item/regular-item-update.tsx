@@ -1073,7 +1073,7 @@ export const RegularItemUpdate = () => {
                                                       .map(addonGroup => ({
                                                         id: addonGroup.id,
                                                         name: addonGroup.name
-                                                      })),
+                                                      })).filter(group => !variant.addonGroups?.some(a => a.addonGroup.id === group.id)),
                                                     handleAddonGroupChange,
                                                     variant.addonGroups || [],
                                                     addonGroupsList,
