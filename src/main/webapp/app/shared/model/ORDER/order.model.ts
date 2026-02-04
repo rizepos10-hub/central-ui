@@ -12,6 +12,7 @@ import { ServiceChargeKey } from '../service-charge.model';
 export interface IOrder extends IOrderAudit {
   id?: string;
   discount?: number | null;
+  wholesale?: boolean;
   walkin?: boolean | null;
   status?: OrderStatus | null;
   sequenceNumber?: number | null;

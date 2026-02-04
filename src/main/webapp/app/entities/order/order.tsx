@@ -38,16 +38,17 @@ interface LazyTableState {
 }
 
 type OrderProps = {
-  pageType?: 'history' | 'today' | 'scheduled';
+  pageType?: 'history' | 'today' | 'scheduled' | '';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
   externalFromDate?: string;
   externalToDate?: string;
   externalBranchId?: string | null;
   isEndOfDayMode?: boolean;
+  wholesale?: boolean;
 }
 
-export const Order = ({ pageType = 'history', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false }: OrderProps) => {
+export const Order = ({ pageType = '', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false, wholesale = false }: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -59,6 +60,16 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
   to.setHours(23, 59, 59, 999);
 
   const config = {
+    '': {
+      storageKey: 'order-columns',
+      title: 'Orders',
+      sortField: 'createdDate',
+      sortOrder: 'asc' as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
+    },
     history: {
       storageKey: 'order-history-columns',
       title: 'Order History',
@@ -304,6 +315,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
         (isEndOfDayMode && externalFromDate && externalToDate)
       ) {
         const queryParams = {
+          ...(wholesale && { wholesale: true }),
           id: lazyState.filters._id?.value || '',
           client: appSourceProp || lazyState.filters.orderSource?.value || '',
           orderProcessingStatus: lazyState.filters.status?.value || '',

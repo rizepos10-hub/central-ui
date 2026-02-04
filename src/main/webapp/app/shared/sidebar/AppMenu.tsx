@@ -284,11 +284,11 @@ export const model: MenuItem[] = [
     label: 'Warehouse Catalog',
     icon: 'pi pi-tags',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-    to: '/logistics/warehouse-orders',
+    to: '/logistics/wholesale-orders',
     items: [
       {
-        label: 'Warehouses Orders',
-        to: '/logistics/warehouse-orders',
+        label: 'Wholesale Orders',
+        to: '/logistics/wholesale-orders',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
         type: [BusinessTypeEnum.RETAIL],
       },
