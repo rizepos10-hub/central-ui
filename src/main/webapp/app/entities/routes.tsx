@@ -20,6 +20,8 @@ const ProfileGroups = React.lazy(() => import('./settings/profile-group'));
 const VoidReasons = React.lazy(() => import('./settings/void-reason'));
 const BranchPosUser = React.lazy(() => import('./branch-pos-user'));
 const BackOfficeUser = React.lazy(() => import('./back-office-user'));
+const SalesmenUser = React.lazy(() => import('./salesmen-user'));
+const BookkeeperUser = React.lazy(() => import('./bookkeeper-user'));
 const Printer = React.lazy(() => import('app/entities/settings/printing/printer'));
 const PrintingProfiles = React.lazy(() => import('app/entities/settings/printing/printing-profiles'));
 const ProductionCenter = React.lazy(() => import('app/entities/location/production-center'));
@@ -73,6 +75,8 @@ export default () => {
         <Route path="menu/*" element={<Menu />} />
         <Route path="back-office-user/*" element={<BackOfficeUser />} />
         <Route path="branch-pos-user/*" element={<BranchPosUser />} />
+        <Route path="salesmen-user/*" element={<SalesmenUser />} />
+        <Route path="bookkeeper-user/*" element={<BookkeeperUser />} />
         <Route path="pos-authority-group/*" element={<PosAuthorityGroupRoutes />} />
 
         <Route path="branches/*" element={<Branches />} />

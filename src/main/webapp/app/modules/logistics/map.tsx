@@ -1,12 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Map, Marker, useMap } from '@vis.gl/react-google-maps';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,32 +11,74 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import {
-  logisticsOrders,
-  logisticsRoutes,
-  LogisticsRoute,
-} from './logistics.mock';
+import { fetchRoutes } from './logistics.reducer';
+import { IWholesaleRoute, WholesaleRouteStatus } from './logistics.model';
 
-const MapRoutesOverlay = ({ onRouteClick }: { onRouteClick: (route: LogisticsRoute) => void }) => {
+type RouteWithPath = IWholesaleRoute & { path: google.maps.LatLngLiteral[] };
+
+const parseLatLng = (value?: string) => {
+  if (!value) return null;
+  const [latStr, lngStr] = value.split(',');
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+  return { lat, lng };
+};
+
+const buildPathFromNavigationUrl = (navigationUrl?: string) => {
+  if (!navigationUrl) return [];
+  try {
+    const url = new URL(navigationUrl);
+    const origin = parseLatLng(url.searchParams.get('origin') || undefined);
+    const destination = parseLatLng(url.searchParams.get('destination') || undefined);
+    const waypointsParam = url.searchParams.get('waypoints') || '';
+    const waypoints = waypointsParam
+      .split('|')
+      .map(point => parseLatLng(point))
+      .filter(Boolean) as google.maps.LatLngLiteral[];
+
+    const path = [];
+    if (origin) path.push(origin);
+    path.push(...waypoints);
+    if (destination) path.push(destination);
+    return path;
+  } catch (error) {
+    return [];
+  }
+};
+
+const getRouteColor = (status?: WholesaleRouteStatus) => {
+  switch (status) {
+    case WholesaleRouteStatus.IN_PROGRESS:
+      return '#3b82f6';
+    case WholesaleRouteStatus.COMPLETED:
+      return '#16a34a';
+    case WholesaleRouteStatus.CANCELLED:
+      return '#dc2626';
+    case WholesaleRouteStatus.PLANNED:
+    default:
+      return '#64748b';
+  }
+};
+
+const MapRoutesOverlay = ({
+  routes,
+  onRouteClick,
+}: {
+  routes: RouteWithPath[];
+  onRouteClick: (route: RouteWithPath) => void;
+}) => {
   const map = useMap();
 
   useEffect(() => {
     if (!map) return;
 
-    const overlays = logisticsRoutes.map(route => {
+    const overlays = routes.map(route => {
       const polyline = new google.maps.Polyline({
         path: route.path,
-        strokeColor: route.color,
+        strokeColor: getRouteColor(route.status),
         strokeOpacity: 0.85,
         strokeWeight: 5,
         clickable: true,
@@ -62,21 +100,23 @@ const MapRoutesOverlay = ({ onRouteClick }: { onRouteClick: (route: LogisticsRou
         polyline.setMap(null);
       });
     };
-  }, [map, onRouteClick]);
+  }, [map, onRouteClick, routes]);
 
   return null;
 };
 
 const LogisticsMap = () => {
-  const [selectedRoute, setSelectedRoute] = useState<LogisticsRoute | null>(null);
+  const dispatch = useAppDispatch();
+  const routes = useAppSelector(state => state.logistics.entities);
+  const loading = useAppSelector(state => state.logistics.loading);
+  const [selectedRoute, setSelectedRoute] = useState<RouteWithPath | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const routeOrders = useMemo(
-    () => (selectedRoute ? logisticsOrders.filter(order => order.routeId === selectedRoute.id) : []),
-    [selectedRoute]
-  );
+  useEffect(() => {
+    dispatch(fetchRoutes({ page: 0, size: 1000, sort: 'routeDate,desc' }));
+  }, [dispatch]);
 
-  const handleRouteSelect = useCallback((route: LogisticsRoute) => {
+  const handleRouteSelect = useCallback((route: RouteWithPath) => {
     setSelectedRoute(route);
     setDialogOpen(true);
   }, []);
@@ -86,7 +126,19 @@ const LogisticsMap = () => {
     setSelectedRoute(null);
   };
 
+  const routesWithPath = useMemo(
+    () =>
+      routes
+        .map(route => ({
+          ...route,
+          path: buildPathFromNavigationUrl(route.navigationUrl),
+        }))
+        .filter(route => route.path.length > 1),
+    [routes]
+  );
+
   const defaultCenter = useMemo(() => ({ lat: 42.315, lng: -83.036 }), []);
+  const mapCenter = useMemo(() => routesWithPath[0]?.path?.[0] || defaultCenter, [routesWithPath, defaultCenter]);
 
   return (
     <PageWrapper className="space-y-6">
@@ -97,19 +149,19 @@ const LogisticsMap = () => {
         <CardContent className="h-[560px] p-0">
           <Map
             id="logistics-map"
-            defaultCenter={defaultCenter}
+            defaultCenter={mapCenter}
             defaultZoom={11.2}
             style={{ width: '100%', height: '100%' }}
             mapTypeControl={false}
             fullscreenControl={false}
             streetViewControl={false}
           >
-            <MapRoutesOverlay onRouteClick={handleRouteSelect} />
-            {logisticsRoutes.map(route => (
+            <MapRoutesOverlay routes={routesWithPath} onRouteClick={handleRouteSelect} />
+            {routesWithPath.map(route => (
               <Marker
                 key={route.id}
                 position={route.path[0]}
-                label={{ text: route.truck, fontWeight: '600' }}
+                label={{ text: route.name || '', fontWeight: '600' }}
               />
             ))}
           </Map>
@@ -120,51 +172,31 @@ const LogisticsMap = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedRoute ? `${selectedRoute.name} — ${selectedRoute.truck}` : 'Route orders'}
+              {selectedRoute ? `${selectedRoute.name}` : 'Route'}
             </DialogTitle>
             <DialogDescription>
-              Clicked route orders are grouped here for quick review.
+              Clicked route details are shown here for quick review.
             </DialogDescription>
           </DialogHeader>
 
           {selectedRoute && (
             <>
               <div className="mb-4 flex items-center justify-between">
-                <Badge className="bg-slate-100 text-slate-800">{selectedRoute.status}</Badge>
-                <div className="text-sm text-slate-500">
-                  Estimated arrival {selectedRoute.estimatedTime}
-                </div>
+                <Badge className="bg-slate-100 text-slate-800">{selectedRoute.status || '—'}</Badge>
+                {selectedRoute.navigationUrl && (
+                  <a
+                    className="text-sm text-primary hover:underline"
+                    href={selectedRoute.navigationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open navigation
+                  </a>
+                )}
               </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>ETA</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {routeOrders.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No mock orders assigned yet.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {routeOrders.map(order => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.reference}</TableCell>
-                      <TableCell>{order.destination}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{order.status}</TableCell>
-                      <TableCell>{order.eta}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="text-sm text-muted-foreground">
+                Route has {selectedRoute.stops?.length || 0} stops.
+              </div>
             </>
           )}
 

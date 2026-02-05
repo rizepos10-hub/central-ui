@@ -17,6 +17,8 @@
     "activated": "Activated",
     "permissions": "Permissions",
     "posUsers": "POS Users",
+    "salesmenUsers": "Salesmen Users",
+    "bookkeeperUsers": "Bookkeeper Users",
     "password": "Password",
     "pinCode": "Pin Code",
     "activateRole": "Activate Role",

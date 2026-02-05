@@ -17,6 +17,7 @@ import analyticsReducers from "app/modules/analytics/reducers";
 import tenant from '../../shared/tenant/TenantContext';
 import entityLogs from "../components/logs/audit-logs.reducer"
 import dataImport from "./import-data"
+import logistics from "app/modules/logistics/logistics.reducer"
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const rootReducer: ReducersMapObject = {
@@ -33,6 +34,7 @@ const rootReducer: ReducersMapObject = {
   tenant,
   entityLogs,
   dataImport,
+  logistics,
   loadingBar,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   ...entitiesReducers,
