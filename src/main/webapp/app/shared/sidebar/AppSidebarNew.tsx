@@ -87,6 +87,13 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
   const navigate = useNavigate();
   const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
 
+  const hasMatchingRoles = (roles?: MenuItem['role']) => !roles || roles.length === 0 || roles.some(role => authorities.includes(role));
+  const hasMatchingBusinessTypes = (types?: MenuItem['type']) =>
+    !types ||
+    types.length === 0 ||
+    (businessTypes?.types && types.some(type => businessTypes.types.includes(type))) ||
+    true;
+
   // Get shortcuts from Redux state
   const shortcuts = useAppSelector(state => state.shortcuts.shortcuts);
 
@@ -126,12 +133,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
 
   // Filter menu items based on user access
   const getFilteredMenuItems = (items: MenuItem[]) => {
-    return items.filter(item => {
-      const hasRoleAccess = !item.role || item.role.length === 0 || item.role.some(role => authorities.includes(role));
-      const hasBusinessTypeAccess =
-        !item.type || item.type.length === 0 || (businessTypes?.types && item.type.some(type => businessTypes.types.includes(type))) || true;
-      return hasRoleAccess && hasBusinessTypeAccess;
-    });
+    return items.filter(item => hasMatchingRoles(item.role) && hasMatchingBusinessTypes(item.type));
   };
 
   const filteredMainMenuItems = getFilteredMenuItems(modelWithShortcuts);
@@ -315,11 +317,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                   const subHasChildren = subItem.items && subItem.items.length > 0;
 
                   // Check role and business type access for sub-items
-                  const hasRoleAccess = !subItem.role || subItem.role.length === 0 || subItem.role.some(role => authorities.includes(role));
-                  const hasBusinessTypeAccess =
-                    !subItem.type || subItem.type.length === 0 || (businessTypes?.types && subItem.type.some(type => businessTypes.types.includes(type))) || true;
-
-                  if (!hasRoleAccess || !hasBusinessTypeAccess) {
+                  if (!hasMatchingRoles(subItem.role) || !hasMatchingBusinessTypes(subItem.type)) {
                     return null;
                   }
 
@@ -518,16 +516,9 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
 
                             if (!isOnChildRoute) {
                               if (item.items && item.items.length > 0) {
-                                const firstAccessibleItem = item.items.find(subItem => {
-                                  const hasRoleAccess =
-                                    !subItem.role || subItem.role.length === 0 || subItem.role.some(role => authorities.includes(role));
-                                  const hasBusinessTypeAccess =
-                                    !subItem.type ||
-                                    subItem.type.length === 0 ||
-                                    (businessTypes?.types && subItem.type.some(type => businessTypes.types.includes(type))) ||
-                                    true;
-                                  return hasRoleAccess && hasBusinessTypeAccess && subItem.to;
-                                });
+                                const firstAccessibleItem = item.items.find(
+                                  subItem => hasMatchingRoles(subItem.role) && hasMatchingBusinessTypes(subItem.type) && subItem.to
+                                );
 
                                 if (firstAccessibleItem?.to) {
                                   navigate(firstAccessibleItem.to);
