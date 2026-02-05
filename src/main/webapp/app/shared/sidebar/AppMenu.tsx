@@ -105,6 +105,11 @@ export const model: MenuItem[] = [
         to: '/salesmen-user',
         type: [BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Bookkeeper',
+        to: '/bookkeeper-user',
+        type: [BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
@@ -287,7 +292,7 @@ export const model: MenuItem[] = [
   },
   {
     label: 'Warehouse Catalog',
-    icon: 'pi pi-tags',
+    icon: 'pi pi-truck',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
     to: '/logistics/wholesale-orders',
     items: [
