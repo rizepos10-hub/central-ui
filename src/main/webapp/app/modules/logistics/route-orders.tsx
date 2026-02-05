@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { filterOrders } from 'app/entities/order/order.reducer';
+import { getEntities as getSalesmenUsers } from 'app/entities/salesmen-user/user.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import Select from 'app/shared/components/select/select';
 
 import { createRoute, deleteRoute, fetchRoute, updateRoute } from './logistics.reducer';
 import { IWholesaleRoute, IWholesaleRouteStop, WholesaleRouteStatus, WholesaleRouteStopStatus } from './logistics.model';
@@ -27,7 +29,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select as UiSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const RouteOrders = () => {
   const { routeId } = useParams<{ routeId: string }>();
@@ -39,6 +41,7 @@ const RouteOrders = () => {
   const loading = useAppSelector(state => state.logistics.loading);
   const updating = useAppSelector(state => state.logistics.updating);
   const branches = useAppSelector(state => state.branch.entities);
+  const salesmenUsers = useAppSelector(state => state.SalesmenUser.entities);
   const orders = useAppSelector(state => state.order.entities);
   const ordersLoading = useAppSelector(state => state.order.loading);
   const totalOrders = useAppSelector(state => state.order.totalOrders || 0);
@@ -47,6 +50,7 @@ const RouteOrders = () => {
   const [status, setStatus] = useState<WholesaleRouteStatus | ''>('');
   const [routeDate, setRouteDate] = useState('');
   const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [selectedSalesmenIds, setSelectedSalesmenIds] = useState<string[]>([]);
   const [stops, setStops] = useState<IWholesaleRouteStop[]>([]);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [activeStopIndex, setActiveStopIndex] = useState<number | null>(null);
@@ -62,6 +66,7 @@ const RouteOrders = () => {
 
   useEffect(() => {
     dispatch(getBranches({}));
+    dispatch(getSalesmenUsers({ page: 0, size: 1000, sort: 'id,asc' }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -77,6 +82,7 @@ const RouteOrders = () => {
       setRouteDate(new Date().toISOString().slice(0, 16));
       setSelectedBranchId('');
       setStops([]);
+      setSelectedSalesmenIds([]);
       return;
     }
 
@@ -86,6 +92,7 @@ const RouteOrders = () => {
       setRouteDate(route.routeDate ? new Date(route.routeDate).toISOString().slice(0, 16) : '');
       setSelectedBranchId(route.warehouseBranchId || '');
       setStops(route.stops || []);
+      setSelectedSalesmenIds(route.salesmanIds || []);
     }
   }, [route, isCreateMode]);
 
@@ -97,6 +104,7 @@ const RouteOrders = () => {
       status: status || route.status,
       routeDate: nextRouteDate,
       warehouseBranchId: selectedBranchId || route.warehouseBranchId,
+      salesmanIds: selectedSalesmenIds,
       stops,
     };
     if (isCreateMode) {
@@ -256,7 +264,7 @@ const RouteOrders = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Status</Label>
-                  <Select value={status || route?.status || ''} onValueChange={(value) => setStatus(value as WholesaleRouteStatus)}>
+                  <UiSelect value={status || route?.status || ''} onValueChange={(value) => setStatus(value as WholesaleRouteStatus)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -267,11 +275,11 @@ const RouteOrders = () => {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </UiSelect>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Warehouse Branch</Label>
-                  <Select
+                  <UiSelect
                     value={selectedBranchId || route?.warehouseBranchId || ''}
                     onValueChange={(value) => setSelectedBranchId(value)}
                   >
@@ -285,7 +293,7 @@ const RouteOrders = () => {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </UiSelect>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Route Date</Label>
@@ -307,9 +315,21 @@ const RouteOrders = () => {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-xs">Salesmen</Label>
-                  <div className="text-sm text-muted-foreground">
-                    {route?.salesmanIds?.length ? route.salesmanIds.join(', ') : '—'}
-                  </div>
+                  <Select
+                    isMulti
+                    options={salesmenUsers.map(user => ({
+                      label: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.login || user.id,
+                      value: user.id,
+                    }))}
+                    value={salesmenUsers
+                      .map(user => ({
+                        label: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.login || user.id,
+                        value: user.id,
+                      }))
+                      .filter(option => selectedSalesmenIds.includes(option.value))}
+                    onChange={(options) => setSelectedSalesmenIds(options?.map(option => option.value) || [])}
+                    placeholder="Select salesmen"
+                  />
                 </div>
               </div>
 
@@ -376,7 +396,7 @@ const RouteOrders = () => {
                             />
                           </TableCell>
                           <TableCell>
-                            <Select
+                            <UiSelect
                               value={stop.status || ''}
                               onValueChange={(value) => handleStopChange(index, 'status', value)}
                             >
@@ -390,7 +410,7 @@ const RouteOrders = () => {
                                   </SelectItem>
                                 ))}
                               </SelectContent>
-                            </Select>
+                            </UiSelect>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -433,7 +453,7 @@ const RouteOrders = () => {
                 onChange={(e) => setOrderSearch(e.target.value)}
                 placeholder="Search by order ID or sequence number"
               />
-              <Select value={orderBranchId} onValueChange={setOrderBranchId}>
+              <UiSelect value={orderBranchId} onValueChange={setOrderBranchId}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="All branches" />
                 </SelectTrigger>
@@ -445,7 +465,7 @@ const RouteOrders = () => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </UiSelect>
               <Button
                 variant="outline"
                 onClick={() => {

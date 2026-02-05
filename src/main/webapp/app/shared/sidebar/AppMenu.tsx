@@ -100,6 +100,11 @@ export const model: MenuItem[] = [
         to: '/pos-authority-group',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Salesmen',
+        to: '/salesmen-user',
+        type: [BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
