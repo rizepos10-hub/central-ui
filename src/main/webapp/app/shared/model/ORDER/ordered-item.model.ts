@@ -30,6 +30,11 @@ export interface IOrderedItem extends IOrderAudit {
   addonsTotal?: number | null,
   totalDiscount?: number | null,
   askForPrice?: boolean;
+  itemTotal?: number | null;
+  taxTotal?: number | null;
+  grandTotal?: number | null;
+  priceOverridden?: boolean;
+  priceBeforeDiscount?: number | null;
 }
 
 interface orderSelectedRetailAttributes {

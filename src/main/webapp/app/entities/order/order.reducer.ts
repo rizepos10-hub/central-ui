@@ -7,6 +7,27 @@ import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 import { IAuditLog } from "app/shared/model/audit-log.model";
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 
+export interface ItemPriceTotals {
+  grandTotal: number;
+  itemTotal: number;
+  taxTotal: number;
+}
+
+export interface CalculateItemPricePayload {
+  itemId: string;
+  variantId?: string;
+  quantity: number;
+  branchId?: string;
+  orderMethod?: string;
+  customerId?: string;
+  priceOverride?: number;
+  discountOverride?: {
+    discountId?: string;
+    type?: "PERCENTAGE" | "FLAT";
+    value?: number;
+  };
+}
+
 const initialState: EntityState<IOrder> = {
   loading: false,
   errorMessage: null,
@@ -14,7 +35,10 @@ const initialState: EntityState<IOrder> = {
   entity: defaultValue,
   updating: false,
   updateSuccess: false,
-  orderSources: []
+  orderSources: [],
+  itemPriceCalculations: {},
+  itemPriceLoading: {},
+  itemPriceErrors: {}
 };
 
 const apiUrl = 'api/orders';
@@ -49,6 +73,18 @@ export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list',
   const response = await axios.get<IOrder[]>(requestUrl);
   return response.data
 });
+
+export const calculateItemPrice = createAsyncThunk(
+  'order/calculate_item_price',
+  async ({ cartId, payload }: { cartId: string; payload: CalculateItemPricePayload }) => {
+    const result = await axios.post<ItemPriceTotals>(`${apiUrl}/calculate-item-price`, cleanEntity(payload));
+    return {
+      cartId,
+      data: result.data,
+    };
+  },
+  { serializeError: serializeAxiosError }
+);
 
 // export const filterOrders = createAsyncThunk(
 //   'order/filter_orders',
@@ -205,6 +241,21 @@ export const OrderSlice = createEntitySlice({
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
+      })
+      .addCase(calculateItemPrice.pending, (state, action) => {
+        const { cartId } = action.meta.arg;
+        state.itemPriceLoading[cartId] = true;
+        state.itemPriceErrors[cartId] = null;
+      })
+      .addCase(calculateItemPrice.fulfilled, (state, action) => {
+        const { cartId, data } = action.payload;
+        state.itemPriceLoading[cartId] = false;
+        state.itemPriceCalculations[cartId] = data;
+      })
+      .addCase(calculateItemPrice.rejected, (state, action) => {
+        const { cartId } = action.meta.arg;
+        state.itemPriceLoading[cartId] = false;
+        state.itemPriceErrors[cartId] = action.error?.message || 'Failed to calculate item price';
       })
       .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
         const { data, headers } = action.payload;
