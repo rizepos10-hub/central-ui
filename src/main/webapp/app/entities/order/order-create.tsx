@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { changeEntityField, createEntity, reset } from './order.reducer';
+import { calculateItemPrice, changeEntityField, createEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
@@ -107,7 +107,8 @@ const OrderCreate = () => {
 
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
     const [visible, setVisible] = useState(false);
-    const [priceLoadingItems, setPriceLoadingItems] = useState<Record<string, boolean>>({});
+    const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
+    const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
     useEffect(() => {
@@ -320,12 +321,6 @@ const OrderCreate = () => {
         debouncedItemNameNavigate(searchTermProduct);
     }, [searchTermProduct, debouncedItemNameNavigate]);
 
-    const fetchPriceForItem = (itemId: string, variantId?: string): Promise<number> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(0), 600);
-        });
-    };
-
     const updateCartItem = useCallback((cartId: string, updates: Partial<IOrder['items'][number]>) => {
         const currentItems = orderItemsRef.current ?? [];
         const updatedItems = currentItems.map(item => item.cartId === cartId ? { ...item, ...updates } : item);
@@ -336,26 +331,50 @@ const OrderCreate = () => {
         }));
     }, [dispatch]);
 
-    const queuePriceFetch = useCallback((cartId: string, itemId: string, variantId?: string) => {
-        if (!itemId) {
+    const recalculateItemTotals = useCallback((item: IOrder['items'][number]) => {
+        if (!item?.cartId || !item?.itemId || !orderEntity?.branchId) {
             return;
         }
-        setPriceLoadingItems(prev => ({
-            ...prev,
-            [cartId]: true,
-        }));
-        fetchPriceForItem(itemId, variantId)
-            .then(price => {
-                updateCartItem(cartId, { price });
-            })
-            .finally(() => {
-                setPriceLoadingItems(prev => {
-                    const next = { ...prev };
-                    delete next[cartId];
-                    return next;
-                });
+
+        if (item.priceOverridden) {
+            const itemTotal = (item.price ?? 0) * (item.amount ?? 0);
+            updateCartItem(item.cartId, {
+                itemTotal,
+                taxTotal: item.taxTotal ?? 0,
+                grandTotal: itemTotal + (item.taxTotal ?? 0),
             });
-    }, [updateCartItem]);
+            return;
+        }
+
+        const discountOverride = item.customDiscount ? {
+            type: item?.discount?.type || 'PERCENTAGE',
+            value: item.customDiscount,
+        } : undefined;
+
+        dispatch(calculateItemPrice({
+            cartId: item.cartId,
+            payload: {
+                itemId: item.itemId,
+                variantId: item.variantId,
+                quantity: item.amount ?? 0,
+                branchId: orderEntity.branchId,
+                orderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
+                customerId: orderEntity.customer?.id,
+                discountOverride,
+            }
+        })).then((action) => {
+            if (calculateItemPrice.fulfilled.match(action)) {
+                const computedPrice = item.price ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0);
+                updateCartItem(item.cartId, {
+                    itemTotal: action.payload.data.itemTotal,
+                    taxTotal: action.payload.data.taxTotal,
+                    grandTotal: action.payload.data.grandTotal,
+                    price: computedPrice,
+                    priceBeforeDiscount: item.priceBeforeDiscount ?? computedPrice,
+                });
+            }
+        });
+    }, [dispatch, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
 
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
         const currentItems = orderItemsRef.current ?? [];
@@ -366,9 +385,59 @@ const OrderCreate = () => {
             value: updatedItems,
         }));
         if (shouldFetchPrice) {
-            queuePriceFetch(item.cartId, item.itemId, item.variantId);
+            recalculateItemTotals(item);
         }
-    }, [dispatch, queuePriceFetch]);
+    }, [dispatch, recalculateItemTotals]);
+
+    const handleAmountChange = useCallback((item: IOrder['items'][number], amount: number) => {
+        updateCartItem(item.cartId, { amount });
+        recalculateItemTotals({ ...item, amount });
+    }, [recalculateItemTotals, updateCartItem]);
+
+    const applyCustomDiscount = useCallback((item: IOrder['items'][number], discountValue: number, discountType: 'PERCENTAGE' | 'FLAT') => {
+        const quantity = item.amount ?? 0;
+        const basePrice = item.priceBeforeDiscount ?? item.price ?? 0;
+        const baseTotal = basePrice * quantity;
+        const discountAmount = discountType === 'PERCENTAGE'
+            ? (baseTotal * (discountValue ?? 0)) / 100
+            : (discountValue ?? 0);
+        const discountedTotal = Math.max(0, baseTotal - discountAmount);
+        const discountedPrice = quantity > 0 ? discountedTotal / quantity : 0;
+
+        updateCartItem(item.cartId, {
+            discount: {
+                value: discountValue,
+                type: discountType,
+            },
+            customDiscount: discountValue,
+            price: discountedPrice,
+            priceOverridden: true,
+            priceBeforeDiscount: basePrice,
+            itemTotal: discountedTotal,
+            taxTotal: 0,
+            grandTotal: discountedTotal,
+        });
+    }, [updateCartItem]);
+
+    const handleDiscountChange = useCallback((item: IOrder['items'][number], discountValue: number) => {
+        applyCustomDiscount(item, discountValue, (item?.discount?.type || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT');
+    }, [applyCustomDiscount]);
+
+    const handleDiscountTypeChange = useCallback((item: IOrder['items'][number], type: 'PERCENTAGE' | 'FLAT') => {
+        applyCustomDiscount(item, item?.customDiscount ?? 0, type);
+    }, [applyCustomDiscount]);
+
+    const handlePriceChange = useCallback((item: IOrder['items'][number], priceValue: number | null) => {
+        const amount = item.amount ?? 0;
+        const itemTotal = (priceValue ?? 0) * amount;
+        updateCartItem(item.cartId, {
+            price: priceValue,
+            priceOverridden: true,
+            priceBeforeDiscount: priceValue,
+            itemTotal,
+            grandTotal: itemTotal + (item.taxTotal ?? 0),
+        });
+    }, [updateCartItem]);
 
     const findCombinationVariants = () => {
         const formValues = variantDialog.selectedRetailAttributes;
@@ -446,24 +515,28 @@ const OrderCreate = () => {
             tillId: till?.id,
         }
 
-        dispatch(createEntity(structuredEntity)).then(() => {
-            setVariantDialog({
-                visible: false,
-                product: {},
-                selectedRetailAttributes: [],
-                chosenVariant: null,
-                availableVariants: []
-            })
+        dispatch(createEntity(structuredEntity)).then((action) => {
+            if (createEntity.fulfilled.match(action)) {
+                setVariantDialog({
+                    visible: false,
+                    product: {},
+                    selectedRetailAttributes: [],
+                    chosenVariant: null,
+                    availableVariants: []
+                })
 
-            const branchId = orderEntity.branchId;
-            dispatch(reset());
-            if (branchId) {
-                dispatch(changeEntityField({
-                    name: 'branchId',
-                    value: branchId,
-                }));
+                const branchId = orderEntity.branchId;
+                dispatch(reset());
+                if (branchId) {
+                    dispatch(changeEntityField({
+                        name: 'branchId',
+                        value: branchId,
+                    }));
+                }
+                toast.success('Order Created Successfully!')
+            } else {
+                toast.error(action.error?.message || 'Failed to create order');
             }
-            toast.success('Order Created Successfully!')
         }).finally(() => {
             setOpenPaymentModal(false)
         })
@@ -629,20 +702,14 @@ const OrderCreate = () => {
                                         <Input
                                             type="number"
                                             value={product.amount ?? ''}
-                                            onChange={e => dispatch((changeEntityField({
-                                                name: 'items',
-                                                value: cartItems.map(item => item.cartId === product.cartId ? {
-                                                    ...item,
-                                                    amount: Number(e.target.value)
-                                                } : item)
-                                            })))}
+                                            onChange={e => handleAmountChange(product, Number(e.target.value))}
                                             className="h-8 text-xs"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <Label className="text-[10px] uppercase tracking-wide">
                                             Price
-                                            {priceLoadingItems[product.cartId] && (
+                                            {itemPriceLoading?.[product.cartId] && (
                                                 <Loader2 className="ml-1 inline h-3 w-3 animate-spin text-muted-foreground" />
                                             )}
                                         </Label>
@@ -653,12 +720,7 @@ const OrderCreate = () => {
                                             onChange={e => {
                                                 const value = e.target.value;
                                                 const numericValue = value === '' ? null : Number(value);
-                                                updateCartItem(product.cartId, { price: numericValue });
-                                                setPriceLoadingItems(prev => {
-                                                    const next = { ...prev };
-                                                    delete next[product.cartId];
-                                                    return next;
-                                                });
+                                                handlePriceChange(product, numericValue);
                                             }}
                                             step="0.01"
                                             className="h-8 text-xs"
@@ -670,17 +732,7 @@ const OrderCreate = () => {
                                             type="number"
                                             placeholder="Discount"
                                             value={product.customDiscount ?? ''}
-                                            onChange={e => dispatch((changeEntityField({
-                                                name: 'items',
-                                                value: cartItems.map(item => item.cartId === product.cartId ? {
-                                                    ...item,
-                                                    discount: {
-                                                        value: Number(e.target.value),
-                                                        type: product?.discount?.type || 'PERCENTAGE'
-                                                    },
-                                                    customDiscount: Number(e.target.value)
-                                                } : item)
-                                            })))}
+                                            onChange={e => handleDiscountChange(product, Number(e.target.value))}
                                             step="0.01"
                                             className="h-8 text-xs"
                                         />
@@ -691,16 +743,7 @@ const OrderCreate = () => {
                                         <Label className="text-[10px] uppercase tracking-wide">Discount Type</Label>
                                         <Select
                                             value={product?.discount?.type || 'PERCENTAGE'}
-                                            onValueChange={value => dispatch((changeEntityField({
-                                                name: 'items',
-                                                value: cartItems.map(item => item.cartId === product.cartId ? {
-                                                    ...item,
-                                                    discount: {
-                                                        value: item?.customDiscount,
-                                                        type: value
-                                                    }
-                                                } : item)
-                                            })))}
+                                            onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
                                         >
                                             <SelectTrigger className="w-full h-7 text-xs">
                                                 <SelectValue placeholder="Type" />
@@ -775,7 +818,7 @@ const OrderCreate = () => {
                                 <div className="col-span-7 text-xs">{item.variantName}</div>
                                 <div className="col-span-3 text-right text-xs flex items-center justify-end gap-1">
                                     <span>{item.price != null ? `$${item.price.toFixed(2)}` : 'Awaiting price'}</span>
-                                    {priceLoadingItems[item.cartId] && (
+                                    {itemPriceLoading?.[item.cartId] && (
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                     )}
                                 </div>
@@ -835,6 +878,7 @@ const OrderCreate = () => {
                         <Button
                             onClick={() => {
                                 const defaultVariant = customPriceModalData.product.variants?.[0];
+                                const customPrice = customPriceModalData.price ?? 0;
                                 addCartItem({
                                     askForPrice: true,
                                     cartId: customPriceModalData.product.id + new Date().getTime().toString(),
@@ -842,12 +886,17 @@ const OrderCreate = () => {
                                     variantId: defaultVariant?.id ?? '',
                                     itemName: customPriceModalData.product.name,
                                     variantName: defaultVariant?.name ?? '',
-                                    price: customPriceModalData.price ?? 0,
+                                    price: customPrice,
                                     amount: 1,
                                     discount: {},
                                     selectedRetailAttributes: [],
                                     customDiscount: 0,
                                     accountingGroups: customPriceModalData.product.accountingGroups,
+                                    priceOverridden: true,
+                                    priceBeforeDiscount: customPrice,
+                                    itemTotal: customPrice,
+                                    taxTotal: 0,
+                                    grandTotal: customPrice,
                                 }, false);
                                 setCustomPriceModalData({
                                     visible: false,
@@ -1346,7 +1395,11 @@ const OrderCreate = () => {
                             <ScrollArea className="flex-1 px-4 py-3">
                                 {displayUserSelectionPricingPoint()}
                                 <Accordion type="multiple" className="space-y-2">
-                                    {orderEntity?.items?.map((product, idx) => (
+                                    {orderEntity?.items?.map((product, idx) => {
+                                        const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
+                                        const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
+
+                                        return (
                                         <AccordionItem
                                             key={idx}
                                             value={`item-${idx}`}
@@ -1366,7 +1419,7 @@ const OrderCreate = () => {
                                                     <div className='flex justify-between items-center gap-2'>
                                                         <div className="flex flex-col items-end">
                                                             <div className="mb-1 text-xs flex items-center gap-1">
-                                                                {priceLoadingItems[product.cartId] ? (
+                                                                {itemPriceLoading?.[product.cartId] ? (
                                                                     <>
                                                                         <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                                                                         <span>Fetching price...</span>
@@ -1375,7 +1428,11 @@ const OrderCreate = () => {
                                                                     product.price != null ? `$${product.price.toFixed(2)}` : 'Awaiting backend price'
                                                                 )}
                                                             </div>
-                                                            <div className="text-muted-foreground text-[10px]">Backend price</div>
+                                                        <div className="text-muted-foreground text-[10px]">Backend price</div>
+                                                        <div className="text-[10px] text-muted-foreground">
+                                                            Item total: {itemTotal != null ? `$${itemTotal.toFixed(2)}` : '—'}
+                                                            {taxTotal && taxTotal > 0 ? ' (t)' : ''}
+                                                        </div>
                                                         </div>
                                                         <Button
                                                             variant="ghost"
@@ -1402,20 +1459,14 @@ const OrderCreate = () => {
                                                             type="number"
                                                             placeholder="Quantity"
                                                             value={product.amount ?? ''}
-                                                            onChange={e => dispatch((changeEntityField({
-                                                                name: 'items',
-                                                                value: orderEntity.items.map(item => item.cartId === product.cartId ? {
-                                                                    ...item,
-                                                                    amount: Number(e.target.value)
-                                                                } : item)
-                                                            })))}
+                                                            onChange={e => handleAmountChange(product, Number(e.target.value))}
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs flex items-center gap-1">
                                                             Price
-                                                            {priceLoadingItems[product.cartId] && (
+                                                            {itemPriceLoading?.[product.cartId] && (
                                                                 <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                                                             )}
                                                         </Label>
@@ -1426,12 +1477,7 @@ const OrderCreate = () => {
                                                             onChange={e => {
                                                                 const value = e.target.value;
                                                                 const numericValue = value === '' ? null : Number(value);
-                                                                updateCartItem(product.cartId, { price: numericValue });
-                                                                setPriceLoadingItems(prev => {
-                                                                    const next = { ...prev };
-                                                                    delete next[product.cartId];
-                                                                    return next;
-                                                                });
+                                                                handlePriceChange(product, numericValue);
                                                             }}
                                                             step="0.01"
                                                             className="h-7 text-xs"
@@ -1443,17 +1489,7 @@ const OrderCreate = () => {
                                                             type="number"
                                                             placeholder="Discount"
                                                             value={product.customDiscount ?? ''}
-                                                            onChange={e => dispatch((changeEntityField({
-                                                                name: 'items',
-                                                                value: orderEntity.items.map(item => item.cartId === product.cartId ? {
-                                                                    ...item,
-                                                                    discount: {
-                                                                        value: Number(e.target.value),
-                                                                        type: product?.discount?.type || 'PERCENTAGE'
-                                                                    },
-                                                                    customDiscount: Number(e.target.value)
-                                                                } : item)
-                                                            })))}
+                                                            onChange={e => handleDiscountChange(product, Number(e.target.value))}
                                                             step="0.01"
                                                             className="h-7 text-xs"
                                                         />
@@ -1464,16 +1500,7 @@ const OrderCreate = () => {
                                                     <Label className="text-xs">Discount Type</Label>
                                                     <Select
                                                         value={product?.discount?.type || 'PERCENTAGE'}
-                                                        onValueChange={value => dispatch((changeEntityField({
-                                                            name: 'items',
-                                                            value: orderEntity.items.map(item => item.cartId === product.cartId ? {
-                                                                ...item,
-                                                                discount: {
-                                                                    value: item?.customDiscount,
-                                                                    type: value
-                                                                }
-                                                            } : item)
-                                                        })))}
+                                                        onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
                                                     >
                                                         <SelectTrigger className="w-full h-7 text-xs">
                                                             <SelectValue placeholder="Select Discount Type" />
@@ -1494,7 +1521,7 @@ const OrderCreate = () => {
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>
-                                    ))}
+                                    )})}
                                 </Accordion>
                             </ScrollArea>
                             <Separator />
