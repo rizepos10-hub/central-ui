@@ -14,6 +14,7 @@ import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { IVariantPackage } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import { IAddress } from 'app/shared/model/address.model';
 import { IBranch } from 'app/shared/model/branch.model';
 import { toast } from 'react-toastify';
 import CustomerUpdate from '../customer/customer-update';
@@ -49,6 +50,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
+import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -61,6 +63,7 @@ const OrderCreate = () => {
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
+    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
@@ -77,6 +80,10 @@ const OrderCreate = () => {
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
     const [scheduledAtLocal, setScheduledAtLocal] = useState('');
+    const [roleMode, setRoleMode] = useState<'salesman' | 'admin' | null>(null);
+    const [roleChoiceOpen, setRoleChoiceOpen] = useState(false);
+    const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+    const [addressDialogAddress, setAddressDialogAddress] = useState<IAddress | null>(null);
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -114,6 +121,31 @@ const OrderCreate = () => {
     const isFirstContextRun = useRef(true);
     const hasHydratedCart = useRef(false);
     const hasInitializedOrder = useRef(false);
+    const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
+    const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
+    const requiresRoleChoice = isSalesmanRole && isAdminRole;
+    const isSalesmanMode = roleMode === 'salesman' || (isSalesmanRole && !isAdminRole);
+    const isRoleSelectionPending = requiresRoleChoice && roleMode === null;
+    const missingSchedule = !scheduledAtLocal;
+    const missingCustomer = !orderEntity.customer?.id;
+    const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
+    const isSalesmanFlowReady = !missingSchedule && !missingCustomer && !missingDelivery;
+    const shouldGateSalesman = (isSalesmanMode && !isSalesmanFlowReady) || isRoleSelectionPending;
+    const missingSalesmanFields = useMemo(() => {
+        const fields: string[] = [];
+        if (missingCustomer) fields.push('customer');
+        if (missingSchedule) fields.push('schedule time');
+        if (missingDelivery) fields.push('delivery address');
+        return fields;
+    }, [missingCustomer, missingDelivery, missingSchedule]);
+    const salesmanGateMessage = useMemo(() => {
+        if (!missingSalesmanFields.length) {
+            return 'Required fields are missing';
+        }
+        const label = missingSalesmanFields.join(' and ');
+        const verb = missingSalesmanFields.length === 1 ? 'is' : 'are';
+        return `${label} ${verb} required`;
+    }, [missingSalesmanFields]);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
 
@@ -183,6 +215,12 @@ const OrderCreate = () => {
                     value: parsed.scheduledAt,
                 }));
             }
+            if (parsed?.deliverTo) {
+                dispatch(changeEntityField({
+                    name: 'deliverTo',
+                    value: parsed.deliverTo,
+                }));
+            }
         } catch (error) {
             console.error('Failed to parse stored cart', error);
         } finally {
@@ -201,9 +239,10 @@ const OrderCreate = () => {
             pricingPointId: pricingPointId || null,
             scheduledAtLocal: scheduledAtLocal || null,
             scheduledAt: orderEntity.scheduledAt ?? null,
+            deliverTo: orderEntity.deliverTo ?? null,
         };
         localStorage.setItem(cartStorageKey, JSON.stringify(payload));
-    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, selectedRegistryId]);
+    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, pricingPointId, selectedRegistryId, scheduledAtLocal]);
 
     const getOpenTills = (ids: string[]) => {
         dispatch(
@@ -473,6 +512,10 @@ const OrderCreate = () => {
     }, [recalculateItemTotals]);
 
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
+        if (shouldGateSalesman) {
+            toast.error(`${salesmanGateMessage} before adding items.`);
+            return;
+        }
         const currentItems = orderItemsRef.current ?? [];
         const updatedItems = [...currentItems, item];
         orderItemsRef.current = updatedItems;
@@ -483,7 +526,7 @@ const OrderCreate = () => {
         if (shouldFetchPrice) {
             recalculateItemTotals(item);
         }
-    }, [dispatch, recalculateItemTotals]);
+    }, [dispatch, recalculateItemTotals, salesmanGateMessage, shouldGateSalesman]);
 
     const handleAmountChange = useCallback((item: IOrder['items'][number], amount: number) => {
         updateCartItem(item.cartId, { amount });
@@ -543,6 +586,48 @@ const OrderCreate = () => {
         recalculateAllPrices();
     }, [orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, recalculateAllPrices]);
 
+    useEffect(() => {
+        if (requiresRoleChoice) {
+            setRoleChoiceOpen(true);
+            setRoleMode(null);
+        } else if (isSalesmanRole && !isAdminRole) {
+            setRoleMode('salesman');
+        } else {
+            setRoleMode('admin');
+        }
+    }, [requiresRoleChoice, isSalesmanRole, isAdminRole]);
+
+    useEffect(() => {
+        if (!isSalesmanMode) {
+            return;
+        }
+        if (orderEntity.orderMethod !== OrderMethod.Delivery) {
+            dispatch(changeEntityField({
+                name: 'orderMethod',
+                value: OrderMethod.Delivery,
+            }));
+            localStorage.setItem(ORDER_METHOD, OrderMethod.Delivery);
+        }
+    }, [dispatch, isSalesmanMode, orderEntity.orderMethod]);
+
+    useEffect(() => {
+        if (orderEntity.orderMethod !== OrderMethod.Delivery && orderEntity.deliverTo) {
+            dispatch(changeEntityField({
+                name: 'deliverTo',
+                value: null,
+            }));
+        }
+    }, [dispatch, orderEntity.deliverTo, orderEntity.orderMethod]);
+
+    useEffect(() => {
+        if (!orderEntity.customer?.id && orderEntity.deliverTo) {
+            dispatch(changeEntityField({
+                name: 'deliverTo',
+                value: null,
+            }));
+        }
+    }, [dispatch, orderEntity.customer?.id, orderEntity.deliverTo]);
+
     const findCombinationVariants = () => {
         const formValues = variantDialog.selectedRetailAttributes;
 
@@ -596,6 +681,10 @@ const OrderCreate = () => {
     }, [variantDialog.product.variants, JSON.stringify(variantDialog.selectedRetailAttributes)])
 
     const handlePayment = () => {
+        if (shouldGateSalesman) {
+            toast.error(`${salesmanGateMessage} before placing the order.`);
+            return;
+        }
         const structuredEntity = {
             items: orderEntity?.items?.map(item => ({
                 itemId: item.itemId,
@@ -615,6 +704,7 @@ const OrderCreate = () => {
             orderCharges: [],
             scheduledAt: orderEntity?.scheduledAt ?? null,
             orderMethod: orderEntity?.orderMethod,
+            deliverTo: orderEntity?.deliverTo ?? null,
             processingStatus: OrderStatus.PROCESSING,
             tillId: till?.id,
         }
@@ -683,6 +773,7 @@ const OrderCreate = () => {
                         placeholder="Select a Pricing Point"
                         className="text-xs"
                         isClearable
+                        isDisabled={shouldGateSalesman}
                     />
                 </div>
             );
@@ -746,6 +837,26 @@ const OrderCreate = () => {
         })),
         [customers]
     );
+
+    const selectedCustomer = useMemo(
+        () => customers.find(customer => customer.id === orderEntity.customer?.id) || null,
+        [customers, orderEntity.customer?.id]
+    );
+
+    const deliveryAddressOptions = useMemo(() => {
+        const addresses = selectedCustomer?.deliveryAddresses || [];
+        return addresses.map(address => {
+            const label = address.address
+                || address.fullAddress
+                || [address.street, address.city, address.country].filter(Boolean).join(', ')
+                || 'Delivery address';
+            return {
+                value: address.id ?? address.tempId ?? label,
+                label,
+                address,
+            };
+        });
+    }, [selectedCustomer]);
 
     const pricingPointOptions = useMemo(
         () => pricingPoints
@@ -958,7 +1069,7 @@ const OrderCreate = () => {
                         <div className="flex justify-end">
                             <Button
                                 onClick={handlePayment}
-                                disabled={orderLoading}
+                                disabled={orderLoading || shouldGateSalesman}
                                 className="mt-3 text-lg h-12 px-4"
                             >
                                 Cash
@@ -967,6 +1078,58 @@ const OrderCreate = () => {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Select your mode</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 p-2 text-sm text-muted-foreground">
+                        You have both administrator and wholesale salesman roles. Choose how you want to continue.
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setRoleMode('admin');
+                                setRoleChoiceOpen(false);
+                            }}
+                            className="h-9 text-xs"
+                        >
+                            Continue as Admin
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setRoleMode('salesman');
+                                setRoleChoiceOpen(false);
+                            }}
+                            className="h-9 text-xs"
+                        >
+                            Continue as Salesman
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <DeliveryAddressDialog
+                open={addressDialogOpen}
+                onOpenChange={(open) => {
+                    setAddressDialogOpen(open);
+                    if (!open) {
+                        setAddressDialogAddress(null);
+                    }
+                }}
+                customer={selectedCustomer}
+                address={addressDialogAddress}
+                onSaved={(savedAddress) => {
+                    dispatch(changeEntityField({
+                        name: 'deliverTo',
+                        value: savedAddress,
+                    }));
+                    setAddressDialogOpen(false);
+                    setAddressDialogAddress(null);
+                }}
+            />
 
             <Dialog
                 open={customPriceModalData.visible}
@@ -1216,10 +1379,11 @@ const OrderCreate = () => {
                                             placeholder="Search for products"
                                             value={searchParams.get("name")}
                                             onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                                            disabled={shouldGateSalesman}
                                             className="h-10 pl-10 text-xs"
                                         />
                                     </div>
-                                    <div className="min-w-[220px]">
+                                    <div className={cn("min-w-[220px]", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
                                         <DropDownFilter
                                             placeholder={'Select Category'}
                                             dropDownOptionType={'RETAIL_CATEGORY'}
@@ -1340,6 +1504,7 @@ const OrderCreate = () => {
                                                         variant="outline"
                                                         size="sm"
                                                         className="h-8 text-xs"
+                                                        disabled={shouldGateSalesman}
                                                         onClick={() => {
                                                             addCartItem({
                                                                 cartId: variantDialog.product.id + new Date().getTime().toString(),
@@ -1374,8 +1539,14 @@ const OrderCreate = () => {
                                         <Tooltip key={index}>
                                             <TooltipTrigger asChild>
                                                 <Card
-                                                    className="group h-[140px] cursor-pointer overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md"
+                                                className={cn(
+                                                    "group h-[140px] overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md",
+                                                    shouldGateSalesman ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                                                )}
                                                     onClick={() => {
+                                                    if (shouldGateSalesman) {
+                                                        return;
+                                                    }
                                                         if (product.itemVariantType === "RETAIL_SIMPLE") {
                                                             if (product.askForPrice) {
                                                                 setCustomPriceModalData({
@@ -1447,6 +1618,11 @@ const OrderCreate = () => {
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
                             <CardContent className="flex flex-col gap-3 p-4">
                                 <div className="grid gap-2">
+                                    {isSalesmanMode && !isSalesmanFlowReady && (
+                                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+                                            {salesmanGateMessage} before creating an order.
+                                        </div>
+                                    )}
                                     <Select
                                         options={orderMethodOptions}
                                         value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
@@ -1464,33 +1640,44 @@ const OrderCreate = () => {
                                         }}
                                         placeholder="Select an order method"
                                         className="text-xs"
+                                        isDisabled={isSalesmanMode || shouldGateSalesman}
                                     />
-                                    <Select
-                                        options={customerOptions}
-                                        value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
-                                        onChange={(option) => {
-                                            dispatch(changeEntityField({
-                                                name: 'customer',
-                                                value: option?.value ? { id: option.value } : null,
-                                            }))
-                                        }}
-                                        onMenuOpen={() => {
-                                            dispatch(getCustomers({
-                                                query: '',
-                                                size: 1000,
-                                                sort: 'createdAt,asc',
-                                                page: 0
-                                            }))
-                                        }}
-                                        onInputChange={handleCustomerInputChange}
-                                        components={{ MenuList: CustomerMenuList }}
-                                        placeholder="Add a customer"
-                                        className="text-xs"
-                                        isClearable
-                                    />
-                                    {displayUserSelectionPricingPoint()}
                                     <div className="flex flex-col gap-1">
-                                        <Label className="text-xs">Schedule At</Label>
+                                        <Label className={cn("text-xs", isSalesmanMode && missingCustomer ? "text-destructive" : undefined)}>
+                                            Customer {isSalesmanMode && <span className="text-destructive">*</span>}
+                                        </Label>
+                                        <Select
+                                            options={customerOptions}
+                                            value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                            onChange={(option) => {
+                                                dispatch(changeEntityField({
+                                                    name: 'customer',
+                                                    value: option?.value ? { id: option.value } : null,
+                                                }));
+                                                dispatch(changeEntityField({
+                                                    name: 'deliverTo',
+                                                    value: null,
+                                                }));
+                                            }}
+                                            onMenuOpen={() => {
+                                                dispatch(getCustomers({
+                                                    query: '',
+                                                    size: 1000,
+                                                    sort: 'createdAt,asc',
+                                                    page: 0
+                                                }))
+                                            }}
+                                            onInputChange={handleCustomerInputChange}
+                                            components={{ MenuList: CustomerMenuList }}
+                                            placeholder="Add a customer"
+                                            className="text-xs"
+                                            isClearable
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <Label className={cn("text-xs", isSalesmanMode && missingSchedule ? "text-destructive" : undefined)}>
+                                            Schedule At {isSalesmanMode && <span className="text-destructive">*</span>}
+                                        </Label>
                                         <Input
                                             type="datetime-local"
                                             value={scheduledAtLocal}
@@ -1505,6 +1692,57 @@ const OrderCreate = () => {
                                             className="h-9 text-xs"
                                         />
                                     </div>
+                                    {orderEntity.orderMethod === OrderMethod.Delivery && (
+                                        <div className="flex flex-col gap-1">
+                                            <Label className={cn("text-xs", isSalesmanMode && missingDelivery ? "text-destructive" : undefined)}>
+                                                Delivery Address {isSalesmanMode && <span className="text-destructive">*</span>}
+                                            </Label>
+                                            <Select
+                                                options={deliveryAddressOptions}
+                                                value={
+                                                    deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
+                                                    || (orderEntity.deliverTo ? {
+                                                        value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
+                                                        label: orderEntity.deliverTo.address
+                                                            || orderEntity.deliverTo.fullAddress
+                                                            || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
+                                                            || 'Selected address',
+                                                        address: orderEntity.deliverTo,
+                                                    } : null)
+                                                }
+                                                onChange={(option: any) => {
+                                                    dispatch(changeEntityField({
+                                                        name: 'deliverTo',
+                                                        value: option?.address || null,
+                                                    }));
+                                                }}
+                                                placeholder={selectedCustomer ? "Select a delivery address" : "Select a customer first"}
+                                                className="text-xs"
+                                                isClearable
+                                                isDisabled={!selectedCustomer}
+                                            />
+                                            {!selectedCustomer?.deliveryAddresses?.length && (
+                                                <span className="text-[10px] text-muted-foreground">No delivery addresses saved.</span>
+                                            )}
+                                            <div className="flex justify-end">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 text-xs"
+                                                    disabled={!selectedCustomer}
+                                                    onClick={() => {
+                                                        setAddressDialogAddress(null);
+                                                        setAddressDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus className="mr-1 h-3.5 w-3.5" />
+                                                    Add address
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {displayUserSelectionPricingPoint()}
                                 </div>
                             </CardContent>
                             <Separator />
@@ -1555,6 +1793,7 @@ const OrderCreate = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                                        disabled={shouldGateSalesman}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             dispatch(changeEntityField({
@@ -1577,6 +1816,7 @@ const OrderCreate = () => {
                                                             placeholder="Quantity"
                                                             value={product.amount ?? ''}
                                                             onChange={e => handleAmountChange(product, Number(e.target.value))}
+                                                            disabled={shouldGateSalesman}
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
@@ -1596,6 +1836,7 @@ const OrderCreate = () => {
                                                                 const numericValue = value === '' ? null : Number(value);
                                                                 handlePriceChange(product, numericValue);
                                                             }}
+                                                            disabled={shouldGateSalesman}
                                                             step="0.01"
                                                             className="h-7 text-xs"
                                                         />
@@ -1610,6 +1851,7 @@ const OrderCreate = () => {
                                                             placeholder="Discount"
                                                             value={product.customDiscount ?? ''}
                                                             onChange={e => handleDiscountChange(product, Number(e.target.value))}
+                                                            disabled={shouldGateSalesman}
                                                             step="0.01"
                                                             className="h-7 text-xs"
                                                         />
@@ -1622,6 +1864,7 @@ const OrderCreate = () => {
                                                             onChange={(option) => handleDiscountTypeChange(product, (option?.value || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT')}
                                                             placeholder="Select Discount Type"
                                                             className="text-xs"
+                                                        isDisabled={shouldGateSalesman}
                                                         />
                                                     </div>
                                                 </div>
@@ -1708,32 +1951,31 @@ const OrderCreate = () => {
                                         </Button>
                                     </span>
                                     </div> */}
-                                    <div className="rounded-xl border border-border/50 bg-muted-foreground/20 p-2 text-xs">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <span>Items</span>
-                                                    <span className="text-muted-foreground">{cartQuantityTotal}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span>Sub-total</span>
-                                                    <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>Taxes</span>
-                                                    <span>${cartTotals.totalTaxes.toFixed(2)}</span>
-                                                </div>
+                                    <div className="rounded-xl border border-border/50 bg-muted-foreground/20 p-1 text-xs">
+                                    <div className="grid grid-cols-2 gap-1">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span>Items</span>
+                                                <span className="text-muted-foreground">{cartQuantityTotal}</span>
                                             </div>
-                                            <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
-                                                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</span>
-                                                <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+                                            <div className="flex items-center justify-between">
+                                                <span>Sub-total</span>
+                                                <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-muted-foreground">
+                                                <span>Taxes</span>
+                                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
                                             </div>
                                         </div>
+                                        <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
+                                            <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+                                        </div>
+                                    </div>
                                     </div>
                                     <Button
                                         className="mt-2 mb-0 w-full flex justify-between items-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                         onClick={() => setOpenPaymentModal(true)}
-                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId}
+                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
                                     >
                                         <span>Pay</span>
                                         <span>${cartTotals.total.toFixed(2)}</span>
