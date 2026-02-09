@@ -97,7 +97,11 @@ export interface AuditLogState {
  * A wrapper on top of createSlice from Redux Toolkit to extract
  * common reducers and matchers used by entities
  */
-export const createEntitySlice = <T, Reducers extends SliceCaseReducers<EntityState<T>>>({
+export const createEntitySlice = <
+  T,
+  State extends EntityState<T>,
+  Reducers extends SliceCaseReducers<State>
+>({
   name = '',
   initialState,
   reducers,
@@ -105,9 +109,9 @@ export const createEntitySlice = <T, Reducers extends SliceCaseReducers<EntitySt
   skipRejectionHandling,
 }: {
   name: string;
-  initialState: EntityState<T>;
-  reducers?: ValidateSliceCaseReducers<EntityState<T>, Reducers>;
-  extraReducers?: (builder: ActionReducerMapBuilder<EntityState<T>>) => void;
+  initialState: State;
+  reducers?: ValidateSliceCaseReducers<State, Reducers>;
+  extraReducers?: (builder: ActionReducerMapBuilder<State>) => void;
   skipRejectionHandling?: boolean;
 }) => {
   return createSlice({
