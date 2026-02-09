@@ -18,6 +18,7 @@ import { IBranch } from 'app/shared/model/branch.model';
 import { toast } from 'react-toastify';
 import CustomerUpdate from '../customer/customer-update';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { toLocalISOString } from 'app/shared/util/date-utils';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
@@ -75,6 +76,7 @@ const OrderCreate = () => {
     const [loading, setLoading] = useState(false);
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
+    const [scheduledAtLocal, setScheduledAtLocal] = useState('');
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -172,6 +174,15 @@ const OrderCreate = () => {
             if (parsed?.pricingPointId) {
                 setPricingPointId(parsed.pricingPointId);
             }
+            if (parsed?.scheduledAtLocal) {
+                setScheduledAtLocal(parsed.scheduledAtLocal);
+            }
+            if (parsed?.scheduledAt) {
+                dispatch(changeEntityField({
+                    name: 'scheduledAt',
+                    value: parsed.scheduledAt,
+                }));
+            }
         } catch (error) {
             console.error('Failed to parse stored cart', error);
         } finally {
@@ -188,6 +199,8 @@ const OrderCreate = () => {
             customerId: orderEntity.customer?.id ?? null,
             orderMethod: orderEntity.orderMethod ?? null,
             pricingPointId: pricingPointId || null,
+            scheduledAtLocal: scheduledAtLocal || null,
+            scheduledAt: orderEntity.scheduledAt ?? null,
         };
         localStorage.setItem(cartStorageKey, JSON.stringify(payload));
     }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, selectedRegistryId]);
@@ -600,7 +613,7 @@ const OrderCreate = () => {
             branchId: orderEntity?.branchId,
             customer: orderEntity?.customer,
             orderCharges: [],
-            scheduledAt: null,
+            scheduledAt: orderEntity?.scheduledAt ?? null,
             orderMethod: orderEntity?.orderMethod,
             processingStatus: OrderStatus.PROCESSING,
             tillId: till?.id,
@@ -1222,7 +1235,7 @@ const OrderCreate = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                {/* <div className="flex flex-wrap gap-2">
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button disabled variant="secondary" className="h-8 text-xs">More Actions</Button>
@@ -1237,7 +1250,7 @@ const OrderCreate = () => {
                                     </Popover>
                                     <Button disabled variant="secondary" className="h-8 text-xs">Retrieve Sale</Button>
                                     <Button disabled variant="secondary" className="h-8 text-xs">Park Sale</Button>
-                                </div>
+                                </div> */}
                             </CardContent>
                         </Card>
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
@@ -1476,6 +1489,22 @@ const OrderCreate = () => {
                                         isClearable
                                     />
                                     {displayUserSelectionPricingPoint()}
+                                    <div className="flex flex-col gap-1">
+                                        <Label className="text-xs">Schedule At</Label>
+                                        <Input
+                                            type="datetime-local"
+                                            value={scheduledAtLocal}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setScheduledAtLocal(value);
+                                                dispatch(changeEntityField({
+                                                    name: 'scheduledAt',
+                                                    value: value ? toLocalISOString(new Date(value)) : null,
+                                                }));
+                                            }}
+                                            className="h-9 text-xs"
+                                        />
+                                    </div>
                                 </div>
                             </CardContent>
                             <Separator />
