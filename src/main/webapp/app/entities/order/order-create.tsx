@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { components } from 'react-select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
@@ -29,13 +30,13 @@ import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { ITill, TillStatus } from 'app/shared/model/till.model';
 import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitiesByStatusOpened } from '../settings/branch-registry/till/till.reducer';
-import { ArrowLeft, X, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from 'app/shared/components/select/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -62,7 +63,6 @@ const OrderCreate = () => {
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
-    const filterInputRef = useRef();
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
     const discountOP = useRef(null);
@@ -75,7 +75,6 @@ const OrderCreate = () => {
     const [loading, setLoading] = useState(false);
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
-    const [filteredOptions, setFilteredOptions] = useState(customers);
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -109,16 +108,89 @@ const OrderCreate = () => {
     const [visible, setVisible] = useState(false);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
-
-    useEffect(() => {
-        setFilteredOptions(customers)
-    }, [customers])
+    const cartStorageKey = `pos-cart:${selectedRegistryId || 'unknown'}`;
+    const isFirstContextRun = useRef(true);
+    const hasHydratedCart = useRef(false);
+    const hasInitializedOrder = useRef(false);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
 
     useEffect(() => {
         orderItemsRef.current = orderEntity.items ?? [];
     }, [orderEntity.items]);
+
+    useEffect(() => {
+        if (!selectedRegistryId || hasInitializedOrder.current) {
+            return;
+        }
+        hasInitializedOrder.current = true;
+        const storedCart = localStorage.getItem(cartStorageKey);
+        if (!storedCart) {
+            dispatch(reset());
+        }
+    }, [cartStorageKey, dispatch, selectedRegistryId]);
+
+    useEffect(() => {
+        if (!selectedRegistryId) {
+            return;
+        }
+        const storedCart = localStorage.getItem(cartStorageKey);
+        if (!storedCart) {
+            dispatch(changeEntityField({
+                name: 'items',
+                value: [],
+            }));
+            dispatch(changeEntityField({
+                name: 'customer',
+                value: null,
+            }));
+            setPricingPointId('');
+            hasHydratedCart.current = true;
+            return;
+        }
+        try {
+            const parsed = JSON.parse(storedCart);
+            if (Array.isArray(parsed?.items)) {
+                dispatch(changeEntityField({
+                    name: 'items',
+                    value: parsed.items,
+                }));
+            }
+            if (parsed?.customerId) {
+                dispatch(changeEntityField({
+                    name: 'customer',
+                    value: { id: parsed.customerId },
+                }));
+            }
+            if (parsed?.orderMethod) {
+                dispatch(changeEntityField({
+                    name: 'orderMethod',
+                    value: parsed.orderMethod as OrderMethod,
+                }));
+                localStorage.setItem(ORDER_METHOD, parsed.orderMethod);
+            }
+            if (parsed?.pricingPointId) {
+                setPricingPointId(parsed.pricingPointId);
+            }
+        } catch (error) {
+            console.error('Failed to parse stored cart', error);
+        } finally {
+            hasHydratedCart.current = true;
+        }
+    }, [cartStorageKey, dispatch, selectedRegistryId]);
+
+    useEffect(() => {
+        if (!selectedRegistryId || !hasHydratedCart.current) {
+            return;
+        }
+        const payload = {
+            items: orderEntity.items ?? [],
+            customerId: orderEntity.customer?.id ?? null,
+            orderMethod: orderEntity.orderMethod ?? null,
+            pricingPointId: pricingPointId || null,
+        };
+        localStorage.setItem(cartStorageKey, JSON.stringify(payload));
+    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, selectedRegistryId]);
 
     const getOpenTills = (ids: string[]) => {
         dispatch(
@@ -294,7 +366,6 @@ const OrderCreate = () => {
                 type: RegisterType.ONLINE,
             })
         )
-        dispatch(reset())
     }, [])
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
@@ -306,7 +377,7 @@ const OrderCreate = () => {
         const sParams = new URLSearchParams(searchParams);
         sParams.delete(name);
         return `?${sParams.toString()}`;
-    }, []);
+    }, [searchParams]);
 
     const debouncedItemNameNavigate = useCallback(
         _.debounce((newItemName) => {
@@ -379,6 +450,15 @@ const OrderCreate = () => {
         });
     }, [dispatch, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
 
+    const recalculateAllPrices = useCallback(() => {
+        const items = orderItemsRef.current ?? [];
+        items.forEach(item => {
+            if (!item?.priceOverridden) {
+                recalculateItemTotals(item);
+            }
+        });
+    }, [recalculateItemTotals]);
+
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
         const currentItems = orderItemsRef.current ?? [];
         const updatedItems = [...currentItems, item];
@@ -441,6 +521,14 @@ const OrderCreate = () => {
             grandTotal: itemTotal + (item.taxTotal ?? 0),
         });
     }, [updateCartItem]);
+
+    useEffect(() => {
+        if (isFirstContextRun.current) {
+            isFirstContextRun.current = false;
+            return;
+        }
+        recalculateAllPrices();
+    }, [orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, recalculateAllPrices]);
 
     const findCombinationVariants = () => {
         const formValues = variantDialog.selectedRetailAttributes;
@@ -574,24 +662,15 @@ const OrderCreate = () => {
 
         if (userSelectedPricingPoint) {
             return (
-                <div className="pt-3 pb-3">
+                <div className="">
                     <Select
-                        value={pricingPointId}
-                        onValueChange={(value) => setPricingPointId(value)}
-                    >
-                        <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue placeholder="Select a Pricing Point" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {pricingPoints
-                                .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED)
-                                .map(pricingPoint => (
-                                    <SelectItem key={pricingPoint.id} value={pricingPoint.id} className="text-xs">
-                                        {pricingPoint.name}
-                                    </SelectItem>
-                                ))}
-                        </SelectContent>
-                    </Select>
+                        options={pricingPointOptions}
+                        value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
+                        onChange={(option) => setPricingPointId(option?.value || '')}
+                        placeholder="Select a Pricing Point"
+                        className="text-xs"
+                        isClearable
+                    />
                 </div>
             );
         }
@@ -599,41 +678,6 @@ const OrderCreate = () => {
         return <></>;
     }
 
-
-    const filterTemplate = (options) => {
-        const handleFilterChange = (event) => {
-            const value = event.target.value.toLowerCase();
-            setFilterValue(value);
-
-            // Apply manual filtering
-            const filtered = customers.filter(customer =>
-                `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(value)
-            );
-            setFilteredOptions(filtered);
-        };
-
-        const handleFilterReset = () => {
-            setFilterValue('');
-            setFilteredOptions(customers);
-            // @ts-expect-error -- type never
-            filterInputRef.current && filterInputRef.current?.focus();
-        };
-
-        return (
-            <div className="flex gap-1">
-                <Input
-                    ref={filterInputRef}
-                    value={filterValue}
-                    onChange={handleFilterChange}
-                    placeholder="Search"
-                    className="h-8 text-xs"
-                />
-                <Button variant="ghost" size="sm" onClick={handleFilterReset} className="h-8 w-8 p-0">
-                    <X className="h-4 w-4" />
-                </Button>
-            </div>
-        );
-    };
 
     const closePopUp = (id) => {
         setVisible(false)
@@ -647,156 +691,233 @@ const OrderCreate = () => {
 
     const cartItems = orderEntity.items ?? [];
     const cartItemCount = cartItems.length;
+    const productById = useMemo(() => {
+        return new Map(products.map(product => [product.id, product]));
+    }, [products]);
+    const cartQuantityTotal = useMemo(() => {
+        return cartItems.reduce((acc, item) => {
+            const byWeight = productById.get(item.itemId)?.byWeight;
+            if (byWeight) {
+                return acc + 1;
+            }
+            return acc + (item.amount ?? 0);
+        }, 0);
+    }, [cartItems, productById]);
+    const cartTotals = useMemo(() => {
+        return cartItems.reduce<{ itemsTotal: number; totalTaxes: number; total: number }>((acc, item) => {
+            const itemTotal = item.itemTotal ?? ((item.price ?? 0) * (item.amount ?? 0));
+            const taxTotal = item.taxTotal ?? 0;
+            const grandTotal = item.grandTotal ?? (itemTotal + taxTotal);
+            return {
+                itemsTotal: acc.itemsTotal + itemTotal,
+                totalTaxes: acc.totalTaxes + taxTotal,
+                total: acc.total + grandTotal,
+            };
+        }, { itemsTotal: 0, totalTaxes: 0, total: 0 });
+    }, [cartItems]);
 
-    const CartPanel = ({ className }: { className?: string }) => (
-        <div
-            className={cn(
-                "flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-white p-4 shadow-lg",
-                className
-            )}
-        >
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-semibold">Cart</p>
-                    <p className="text-xs text-muted-foreground">
-                        {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
-                    </p>
-                </div>
-                <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                    POS
-                </Badge>
-            </div>
-            <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                {cartItems.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/60 bg-muted-foreground/20 p-4 text-xs text-muted-foreground">
-                        Cart is empty. Add products to start.
-                    </div>
-                ) : (
-                    cartItems.map(product => (
-                        <Card key={product.cartId} className="border border-border/60 bg-white/90 shadow-sm">
-                            <CardContent className="space-y-3">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <p className="text-sm font-semibold">{product.variantName}</p>
-                                        {product.selectedRetailAttributes?.length > 0 && (
-                                            <p className="text-[10px] text-muted-foreground">
-                                                Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-destructive"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            dispatch(changeEntityField({
-                                                name: 'items',
-                                                value: cartItems.filter(item => item.cartId !== product.cartId)
-                                            }))
-                                        }}
-                                    >
-                                        <RiDeleteBin6Fill size={16} />
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-3 gap-2 text-[10px]">
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Qty</Label>
-                                        <Input
-                                            type="number"
-                                            value={product.amount ?? ''}
-                                            onChange={e => handleAmountChange(product, Number(e.target.value))}
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">
-                                            Price
-                                            {itemPriceLoading?.[product.cartId] && (
-                                                <Loader2 className="ml-1 inline h-3 w-3 animate-spin text-muted-foreground" />
-                                            )}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Price"
-                                            value={product.price ?? ''}
-                                            onChange={e => {
-                                                const value = e.target.value;
-                                                const numericValue = value === '' ? null : Number(value);
-                                                handlePriceChange(product, numericValue);
-                                            }}
-                                            step="0.01"
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Discount</Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Discount"
-                                            value={product.customDiscount ?? ''}
-                                            onChange={e => handleDiscountChange(product, Number(e.target.value))}
-                                            step="0.01"
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Discount Type</Label>
-                                        <Select
-                                            value={product?.discount?.type || 'PERCENTAGE'}
-                                            onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
-                                        >
-                                            <SelectTrigger className="w-full h-7 text-xs">
-                                                <SelectValue placeholder="Type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="PERCENTAGE" className="text-xs">Percentage</SelectItem>
-                                                <SelectItem value="FLAT" className="text-xs">Flat</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Notes</Label>
-                                        <Textarea
-                                            placeholder="Add note..."
-                                            className="h-16 text-xs resize-none"
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
-            </div>
-            <div className="space-y-2 rounded-2xl border border-border/50 bg-muted-foreground/30 px-3 py-3 text-xs">
-                <div className="flex items-center justify-between">
-                    <span>Subtotal</span>
-                    <span className="text-muted-foreground">Awaiting backend</span>
-                </div>
-                <div className="flex items-center justify-between text-muted-foreground">
-                    <span>Tax</span>
-                    <span>Awaiting backend</span>
-                </div>
-                <div className="flex items-center justify-between text-sm font-semibold">
-                    <span>Total</span>
-                    <span>Backend total</span>
-                </div>
-                <Button
-                    onClick={handlePayment}
-                    disabled={cartItemCount === 0 || !orderEntity?.branchId || orderLoading}
-                    className="mt-2 h-12 w-full justify-between text-sm bg-emerald-600 hover:bg-emerald-700"
-                >
-                    <span>Pay</span>
-                    <span>Backend total</span>
-                </Button>
-                <p className="text-[10px] text-muted-foreground">
-                    Totals are computed server-side once backend endpoints are ready.
-                </p>
-            </div>
-        </div>
+    const orderMethodOptions = useMemo(
+        () => Object.values(OrderMethod)
+            .filter((type) => type !== OrderMethod.DineIn)
+            .map(type => ({
+                value: type,
+                label: formatPricingPointOrderType(type),
+            })),
+        []
     );
+
+    const customerOptions = useMemo(
+        () => customers.map(customer => ({
+            value: customer.id,
+            label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`.trim() || 'Unnamed customer',
+        })),
+        [customers]
+    );
+
+    const pricingPointOptions = useMemo(
+        () => pricingPoints
+            .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED
+                && pricingPoint.applicableBranches?.some(branch => branch.id === orderEntity.branchId))
+            .map(pricingPoint => ({
+                value: pricingPoint.id,
+                label: pricingPoint.name,
+            })),
+        [pricingPoints, orderEntity.branchId]
+    );
+
+    const discountTypeOptions = useMemo(
+        () => ([
+            { value: 'PERCENTAGE', label: 'Percentage' },
+            { value: 'FLAT', label: 'Flat' },
+        ]),
+        []
+    );
+
+    const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
+        if (action === 'input-change') {
+            setFilterValue(value);
+        }
+        return value;
+    }, []);
+
+    const CustomerMenuList = (props) => (
+        <components.MenuList {...props}>
+            {props.children}
+            {footerTemplate()}
+        </components.MenuList>
+    );
+
+    // const CartPanel = ({ className }: { className?: string }) => (
+    //     <div
+    //         className={cn(
+    //             "flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-white p-4 shadow-lg",
+    //             className
+    //         )}
+    //     >
+    //         <div className="flex items-center justify-between">
+    //             <div>
+    //                 <p className="text-sm font-semibold">Cart</p>
+    //                 <p className="text-xs text-muted-foreground">
+    //                     {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
+    //                 </p>
+    //             </div>
+    //             <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
+    //                 POS
+    //             </Badge>
+    //         </div>
+    //         <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+    //             {cartItems.length === 0 ? (
+    //                 <div className="rounded-lg border border-dashed border-border/60 bg-muted-foreground/20 p-4 text-xs text-muted-foreground">
+    //                     Cart is empty. Add products to start.
+    //                 </div>
+    //             ) : (
+    //                 cartItems.map(product => (
+    //                     <Card key={product.cartId} className="border border-border/60 bg-white/90 shadow-sm">
+    //                         <CardContent className="space-y-3">
+    //                             <div className="flex items-start justify-between gap-2">
+    //                                 <div>
+    //                                     <p className="text-sm font-semibold">{product.variantName}</p>
+    //                                     {product.selectedRetailAttributes?.length > 0 && (
+    //                                         <p className="text-[10px] text-muted-foreground">
+    //                                             Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
+    //                                         </p>
+    //                                     )}
+    //                                 </div>
+    //                                 <Button
+    //                                     variant="ghost"
+    //                                     size="sm"
+    //                                     className="h-6 w-6 p-0 text-destructive"
+    //                                     onClick={(e) => {
+    //                                         e.stopPropagation();
+    //                                         dispatch(changeEntityField({
+    //                                             name: 'items',
+    //                                             value: cartItems.filter(item => item.cartId !== product.cartId)
+    //                                         }))
+    //                                     }}
+    //                                 >
+    //                                     <RiDeleteBin6Fill size={16} />
+    //                                 </Button>
+    //                             </div>
+    //                             <div className="grid grid-cols-3 gap-2 text-[10px]">
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Qty</Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         value={product.amount ?? ''}
+    //                                         onChange={e => handleAmountChange(product, Number(e.target.value))}
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">
+    //                                         Price
+    //                                         {itemPriceLoading?.[product.cartId] && (
+    //                                             <Loader2 className="ml-1 inline h-3 w-3 animate-spin text-muted-foreground" />
+    //                                         )}
+    //                                     </Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         placeholder="Price"
+    //                                         value={product.price ?? ''}
+    //                                         onChange={e => {
+    //                                             const value = e.target.value;
+    //                                             const numericValue = value === '' ? null : Number(value);
+    //                                             handlePriceChange(product, numericValue);
+    //                                         }}
+    //                                         step="0.01"
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Discount</Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         placeholder="Discount"
+    //                                         value={product.customDiscount ?? ''}
+    //                                         onChange={e => handleDiscountChange(product, Number(e.target.value))}
+    //                                         step="0.01"
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                             </div>
+    //                             <div className="grid grid-cols-2 gap-2 text-[10px]">
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Discount Type</Label>
+    //                                     <Select
+    //                                         options={discountTypeOptions}
+    //                                         value={discountTypeOptions.find(option => option.value === (product?.discount?.type || 'PERCENTAGE')) || null}
+    //                                         onChange={(option) => handleDiscountTypeChange(product, (option?.value || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT')}
+    //                                         placeholder="Type"
+    //                                         className="text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Notes</Label>
+    //                                     <Textarea
+    //                                         placeholder="Add note..."
+    //                                         className="h-16 text-xs resize-none"
+    //                                     />
+    //                                 </div>
+    //                             </div>
+    //                         </CardContent>
+    //                     </Card>
+    //                 ))
+    //             )}
+    //         </div>
+    //         <div className="rounded-2xl border border-border/50 bg-muted-foreground/30 px-3 py-3 text-xs">
+    //             <div className="grid grid-cols-2 gap-3">
+    //                 <div className="space-y-2">
+    //                     <div className="flex items-center justify-between">
+    //                         <span>Items</span>
+    //                         <span className="text-muted-foreground">{cartQuantityTotal}</span>
+    //                     </div>
+    //                     <div className="flex items-center justify-between">
+    //                         <span>Sub-total</span>
+    //                         <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+    //                     </div>
+    //                     <div className="flex items-center justify-between text-muted-foreground">
+    //                         <span>Taxes</span>
+    //                         <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+    //                     </div>
+    //                 </div>
+    //                 <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
+    //                     <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+    //                 </div>
+    //             </div>
+    //             <Button
+    //                 onClick={handlePayment}
+    //                 disabled={cartItemCount === 0 || !orderEntity?.branchId || orderLoading}
+    //                 className="mt-2 h-12 w-full justify-between text-sm bg-emerald-600 hover:bg-emerald-700"
+    //             >
+    //                 <span>Pay</span>
+    //                 <span>${cartTotals.total.toFixed(2)}</span>
+    //             </Button>
+    //             <p className="text-[10px] text-muted-foreground">
+    //                 Totals are computed locally from cart item values.
+    //             </p>
+    //         </div>
+    //     </div>
+    // );
 
     return (
         <div className="flex min-h-screen flex-col bg-muted-foreground/10">
@@ -808,13 +929,7 @@ const OrderCreate = () => {
 
             <Dialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
                 <DialogContent className="max-w-[50vw]">
-                    <DialogHeader>
-                        <DialogTitle>Order totals handled by backend</DialogTitle>
-                    </DialogHeader>
                     <div className="space-y-2 p-3">
-                        <p className="text-xs text-muted-foreground">
-                            Subtotal, tax, and grand total will be provided by the backend once the APIs are available. Review item prices below.
-                        </p>
                         {orderEntity?.items.map(item => (
                             <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2">
                                 <div className="col-span-2 text-xs">{item.amount}</div>
@@ -827,9 +942,6 @@ const OrderCreate = () => {
                                 </div>
                             </div>
                         ))}
-                        <div className="flex flex-col gap-1 pt-2 text-xs text-muted-foreground">
-                            <span>Totals will be calculated by the backend later.</span>
-                        </div>
                         <div className="flex justify-end">
                             <Button
                                 onClick={handlePayment}
@@ -1321,141 +1433,114 @@ const OrderCreate = () => {
                     <div className="flex min-h-0 flex-col gap-4 lg:col-span-4 lg:h-[72vh]">
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
                             <CardContent className="flex flex-col gap-3 p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-semibold">Cart</p>
-                                        <p className="text-xs text-muted-foreground">Review items and apply discounts</p>
-                                    </div>
-                                    <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                                        {cartItemCount} items
-                                    </Badge>
-                                </div>
                                 <div className="grid gap-2">
                                     <Select
-                                        value={orderEntity?.orderMethod}
-                                        onValueChange={(value) => {
+                                        options={orderMethodOptions}
+                                        value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
+                                        onChange={(option) => {
+                                            if (!option) {
+                                                return;
+                                            }
                                             dispatch(
                                                 changeEntityField({
                                                     name: 'orderMethod',
-                                                    value: value as any,
+                                                    value: option.value as any,
                                                 })
                                             )
-                                            localStorage.setItem(ORDER_METHOD, value)
+                                            localStorage.setItem(ORDER_METHOD, option.value)
                                         }}
-                                    >
-                                        <SelectTrigger className="w-full h-9 text-xs">
-                                            <SelectValue placeholder="Select an order method" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.values(OrderMethod)
-                                                .filter((type) => type !== OrderMethod.DineIn)
-                                                .map(type => (
-                                                    <SelectItem key={type} value={type} className="text-xs">
-                                                        {formatPricingPointOrderType(type)}
-                                                    </SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
+                                        placeholder="Select an order method"
+                                        className="text-xs"
+                                    />
                                     <Select
-                                        value={orderEntity?.customer?.id}
-                                        onValueChange={(value) => dispatch(changeEntityField({
-                                            name: 'customer',
-                                            value: {
-                                                id: value,
-                                            },
-                                        }))}
-                                        onOpenChange={(open) => {
-                                            if (open) {
-                                                dispatch(getCustomers({
-                                                    query: '',
-                                                    size: 1000,
-                                                    sort: 'createdAt,asc',
-                                                    page: 0
-                                                }))
-                                            }
+                                        options={customerOptions}
+                                        value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                        onChange={(option) => {
+                                            dispatch(changeEntityField({
+                                                name: 'customer',
+                                                value: option?.value ? { id: option.value } : null,
+                                            }))
                                         }}
-                                    >
-                                        <SelectTrigger className="w-full h-9 text-xs">
-                                            <SelectValue placeholder="Add a customer" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <div className="p-2 border-b">
-                                                {filterTemplate(null)}
-                                            </div>
-                                            {filteredOptions.map(customer => (
-                                                <SelectItem key={customer.id} value={customer.id} className="text-xs">
-                                                    {`${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`}
-                                                </SelectItem>
-                                            ))}
-                                            <div className="p-2 border-t">
-                                                {footerTemplate()}
-                                            </div>
-                                        </SelectContent>
-                                    </Select>
+                                        onMenuOpen={() => {
+                                            dispatch(getCustomers({
+                                                query: '',
+                                                size: 1000,
+                                                sort: 'createdAt,asc',
+                                                page: 0
+                                            }))
+                                        }}
+                                        onInputChange={handleCustomerInputChange}
+                                        components={{ MenuList: CustomerMenuList }}
+                                        placeholder="Add a customer"
+                                        className="text-xs"
+                                        isClearable
+                                    />
+                                    {displayUserSelectionPricingPoint()}
                                 </div>
                             </CardContent>
                             <Separator />
-                            <ScrollArea className="flex-1 px-4 py-3">
-                                {displayUserSelectionPricingPoint()}
+                            <div className="px-4 pt-3 text-[10px] uppercase tracking-wide text-muted-foreground">
+                                <div className="grid w-full grid-cols-[32px,1fr,16px,110px,20px,20px] items-center gap-2 pr-2">
+                                    <div>Qty</div>
+                                    <div>Name</div>
+                                    <div className="text-center">Taxes</div>
+                                    <div className="text-right">Amount</div>
+                                    <div />
+                                    <div />
+                                </div>
+                            </div>
+                            <ScrollArea className="flex-1 px-2 py-3">
                                 <Accordion type="multiple" className="space-y-2">
                                     {orderEntity?.items?.map((product, idx) => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
                                         const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
+                                        const byWeight = productById.get(product.itemId)?.byWeight;
+                                        const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
+                                        const unitPrice = product.price ?? 0;
+                                        const amountTotal = unitPrice * qtyDisplay;
 
                                         return (
                                         <AccordionItem
                                             key={idx}
                                             value={`item-${idx}`}
                                             disabled={!orderEntity?.branchId}
-                                            className="rounded-lg border border-border/60 px-2"
+                                            className="rounded-lg border border-border/60"
                                         >
                                             <AccordionTrigger className="hover:no-underline py-2">
-                                                <div className='flex justify-between items-center w-full pr-2'>
-                                                    <div className="flex flex-col items-start">
-                                                        <div className="mb-1 text-xs font-medium">{product.variantName}</div>
-                                                        {product.selectedRetailAttributes?.length > 0 && (
-                                                            <div className="text-muted-foreground text-[10px]">
-                                                                Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
-                                                            </div>
+                                                <div className='grid w-full grid-cols-[32px,1fr,16px,110px,20px,20px] items-center gap-2 pr-2 text-xs'>
+                                                    <div className="text-muted-foreground">{qtyDisplay}</div>
+                                                    <div className="truncate font-medium text-foreground">
+                                                        {product.variantName}
+                                                    </div>
+                                                    <div className="text-center text-muted-foreground">
+                                                        {taxTotal && taxTotal > 0 ? 'T' : ''}
+                                                    </div>
+                                                    <div className="text-right font-semibold">
+                                                        {itemPriceLoading?.[product.cartId] ? (
+                                                            <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
+                                                        ) : (
+                                                            `$${amountTotal.toFixed(2)}`
                                                         )}
                                                     </div>
-                                                    <div className='flex justify-between items-center gap-2'>
-                                                        <div className="flex flex-col items-end">
-                                                            <div className="mb-1 text-xs flex items-center gap-1">
-                                                                {itemPriceLoading?.[product.cartId] ? (
-                                                                    <>
-                                                                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                                                        <span>Fetching price...</span>
-                                                                    </>
-                                                                ) : (
-                                                                    product.price != null ? `$${product.price.toFixed(2)}` : 'Awaiting backend price'
-                                                                )}
-                                                            </div>
-                                                        <div className="text-muted-foreground text-[10px]">Backend price</div>
-                                                        <div className="text-[10px] text-muted-foreground">
-                                                            Item total: {itemTotal != null ? `$${itemTotal.toFixed(2)}` : '—'}
-                                                            {taxTotal && taxTotal > 0 ? ' (t)' : ''}
-                                                        </div>
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                dispatch(changeEntityField({
-                                                                    name: 'items',
-                                                                    value: orderEntity.items.filter(item => item.cartId !== product.cartId)
-                                                                }))
-                                                            }}
-                                                        >
-                                                            <RiDeleteBin6Fill size={16} />
-                                                        </Button>
-                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            dispatch(changeEntityField({
+                                                                name: 'items',
+                                                                value: orderEntity.items.filter(item => item.cartId !== product.cartId)
+                                                            }))
+                                                        }}
+                                                    >
+                                                        <RiDeleteBin6Fill size={16} />
+                                                    </Button>
+                                                    <div />
                                                 </div>
                                             </AccordionTrigger>
                                             <AccordionContent className="px-2 pb-2">
-                                                <div className="grid grid-cols-3 gap-2 mb-3">
+                                                <div className="grid grid-cols-2 gap-2 mb-3">
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs">Quantity</Label>
                                                         <Input
@@ -1468,7 +1553,7 @@ const OrderCreate = () => {
                                                     </div>
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs flex items-center gap-1">
-                                                            Price
+                                                            Unit Price
                                                             {itemPriceLoading?.[product.cartId] && (
                                                                 <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                                                             )}
@@ -1486,6 +1571,9 @@ const OrderCreate = () => {
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2 mb-3">
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs">Discount</Label>
                                                         <Input
@@ -1497,22 +1585,16 @@ const OrderCreate = () => {
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
-                                                </div>
-
-                                                <div className="flex flex-col gap-1 mb-3">
-                                                    <Label className="text-xs">Discount Type</Label>
-                                                    <Select
-                                                        value={product?.discount?.type || 'PERCENTAGE'}
-                                                        onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
-                                                    >
-                                                        <SelectTrigger className="w-full h-7 text-xs">
-                                                            <SelectValue placeholder="Select Discount Type" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="PERCENTAGE" className="text-xs">Percentage</SelectItem>
-                                                            <SelectItem value="FLAT" className="text-xs">Flat</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
+                                                    <div className="flex flex-col gap-1">
+                                                        <Label className="text-xs">Discount Type</Label>
+                                                        <Select
+                                                            options={discountTypeOptions}
+                                                            value={discountTypeOptions.find(option => option.value === (product?.discount?.type || 'PERCENTAGE')) || null}
+                                                            onChange={(option) => handleDiscountTypeChange(product, (option?.value || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT')}
+                                                            placeholder="Select Discount Type"
+                                                            className="text-xs"
+                                                        />
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex flex-col gap-1">
@@ -1528,81 +1610,96 @@ const OrderCreate = () => {
                                 </Accordion>
                             </ScrollArea>
                             <Separator />
-                            <div className="px-4 pb-4 pt-3">
+                            <div className="px-4 pt-1">
                                 <div className='w-full flex flex-col gap-2'>
-                                    <div className="mb-0 w-full flex justify-between items-center">
+                                    {/* <div className="mb-0 w-full flex justify-between items-center">
                                         <span className="text-xs">ADD</span>
                                         <span className="flex gap-1">
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button disabled variant="ghost" className="h-7 text-xs">
-                                                        Discount
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-80">
-                                                    <div className='flex flex-col gap-3'>
-                                                        <div className="text-sm font-semibold">Add Discount</div>
-                                                        <div className='flex justify-between items-center gap-2'>
-                                                            <div className='flex items-center justify-center gap-1'>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className='h-8 w-10 text-xs'
-                                                                    onClick={() => dispatch(changeEntityField({
-                                                                        name: 'customDiscount',
-                                                                        value: {
-                                                                            type: 'PERCENTAGE',
-                                                                        }
-                                                                    }))}
-                                                                >
-                                                                    %
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className='h-8 w-10 text-xs'
-                                                                    onClick={() => dispatch(changeEntityField({
-                                                                        name: 'customDiscount',
-                                                                        value: {
-                                                                            type: 'FLAT',
-                                                                        }
-                                                                    }))}
-                                                                >
-                                                                    $
-                                                                </Button>
-                                                            </div>
-                                                            <Input
-                                                                type="number"
-                                                                placeholder="Discount"
-                                                                value={orderEntity.customDiscount?.value ?? ''}
-                                                                onChange={e => dispatch((changeEntityField({
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button disabled variant="ghost" className="h-7 text-xs">
+                                                    Discount
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-80">
+                                                <div className='flex flex-col gap-3'>
+                                                    <div className="text-sm font-semibold">Add Discount</div>
+                                                    <div className='flex justify-between items-center gap-2'>
+                                                        <div className='flex items-center justify-center gap-1'>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className='h-8 w-10 text-xs'
+                                                                onClick={() => dispatch(changeEntityField({
                                                                     name: 'customDiscount',
                                                                     value: {
-                                                                        value: Number(e.target.value),
+                                                                        type: 'PERCENTAGE',
                                                                     }
-                                                                })))}
-                                                                className="h-8 text-xs w-24"
-                                                                step="0.01"
-                                                            />
+                                                                }))}
+                                                            >
+                                                                %
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className='h-8 w-10 text-xs'
+                                                                onClick={() => dispatch(changeEntityField({
+                                                                    name: 'customDiscount',
+                                                                    value: {
+                                                                        type: 'FLAT',
+                                                                    }
+                                                                }))}
+                                                            >
+                                                                $
+                                                            </Button>
                                                         </div>
-                                                        <div className='text-xs text-muted-foreground'>This discount will be applied to all items</div>
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Discount"
+                                                            value={orderEntity.customDiscount?.value ?? ''}
+                                                            onChange={e => dispatch((changeEntityField({
+                                                                name: 'customDiscount',
+                                                                value: {
+                                                                    value: Number(e.target.value),
+                                                                }
+                                                            })))}
+                                                            className="h-8 text-xs w-24"
+                                                            step="0.01"
+                                                        />
                                                     </div>
-                                                </PopoverContent>
-                                            </Popover>
-                                            <Button disabled variant="ghost" className="h-7 text-xs">
-                                                Promo Code
-                                            </Button>
-                                            <Button disabled variant="ghost" className="h-7 text-xs">
-                                                Note
-                                            </Button>
-                                        </span>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        Totals (subtotal, tax, grand total) will be calculated by the backend soon.
-                                    </div>
-                                    <div className="text-xs flex justify-between text-muted-foreground">
-                                        <span>Items in cart</span>
-                                        <span>{orderEntity?.items.length ?? 0}</span>
+                                                    <div className='text-xs text-muted-foreground'>This discount will be applied to all items</div>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Button disabled variant="ghost" className="h-7 text-xs">
+                                            Promo Code
+                                        </Button>
+                                        <Button disabled variant="ghost" className="h-7 text-xs">
+                                            Note
+                                        </Button>
+                                    </span>
+                                    </div> */}
+                                    <div className="rounded-xl border border-border/50 bg-muted-foreground/20 p-2 text-xs">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span>Items</span>
+                                                    <span className="text-muted-foreground">{cartQuantityTotal}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span>Sub-total</span>
+                                                    <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>Taxes</span>
+                                                    <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
+                                                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</span>
+                                                <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <Button
                                         className="mt-2 mb-0 w-full flex justify-between items-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
@@ -1610,7 +1707,7 @@ const OrderCreate = () => {
                                         disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId}
                                     >
                                         <span>Pay</span>
-                                        <span>Backend total</span>
+                                        <span>${cartTotals.total.toFixed(2)}</span>
                                     </Button>
                                 </div>
                             </div>
