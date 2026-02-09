@@ -38,6 +38,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import Select from 'app/shared/components/select/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -1051,14 +1061,20 @@ const OrderCreate = () => {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
-                <DialogContent className="max-w-[50vw]">
-                    <div className="space-y-2 p-3">
+            <AlertDialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
+                <AlertDialogContent className="max-w-lg">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Payment</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Review your order before confirming payment.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
                         {orderEntity?.items.map(item => (
-                            <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2">
-                                <div className="col-span-2 text-xs">{item.amount}</div>
-                                <div className="col-span-7 text-xs">{item.variantName}</div>
-                                <div className="col-span-3 text-right text-xs flex items-center justify-end gap-1">
+                            <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2 text-sm">
+                                <div className="col-span-2">{item.amount}</div>
+                                <div className="col-span-7 truncate">{item.variantName}</div>
+                                <div className="col-span-3 text-right flex items-center justify-end gap-1">
                                     <span>{item.price != null ? `$${item.price.toFixed(2)}` : 'Awaiting price'}</span>
                                     {itemPriceLoading?.[item.cartId] && (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -1066,18 +1082,44 @@ const OrderCreate = () => {
                                 </div>
                             </div>
                         ))}
-                        <div className="flex justify-end">
-                            <Button
-                                onClick={handlePayment}
-                                disabled={orderLoading || shouldGateSalesman}
-                                className="mt-3 text-lg h-12 px-4"
-                            >
-                                Cash
-                            </Button>
+                        <div className="pt-2 border-t space-y-1">
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Items:</span>
+                                <span>{cartQuantityTotal}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Sub-total:</span>
+                                <span>${cartTotals.itemsTotal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Taxes:</span>
+                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t">
+                                <span>Total:</span>
+                                <span>${cartTotals.total.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
-                </DialogContent>
-            </Dialog>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handlePayment}
+                            disabled={orderLoading || shouldGateSalesman}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            {orderLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                'Confirm Payment'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
                 <DialogContent className="max-w-md">
