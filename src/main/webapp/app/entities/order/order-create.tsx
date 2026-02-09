@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { components } from 'react-select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
@@ -13,10 +14,12 @@ import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { IVariantPackage } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import { IAddress } from 'app/shared/model/address.model';
 import { IBranch } from 'app/shared/model/branch.model';
 import { toast } from 'react-toastify';
 import CustomerUpdate from '../customer/customer-update';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { toLocalISOString } from 'app/shared/util/date-utils';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
@@ -29,13 +32,23 @@ import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { ITill, TillStatus } from 'app/shared/model/till.model';
 import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitiesByStatusOpened } from '../settings/branch-registry/till/till.reducer';
-import { ArrowLeft, X, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Select from 'app/shared/components/select/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,6 +60,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
+import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -59,10 +73,10 @@ const OrderCreate = () => {
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
+    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
-    const filterInputRef = useRef();
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
     const discountOP = useRef(null);
@@ -75,7 +89,11 @@ const OrderCreate = () => {
     const [loading, setLoading] = useState(false);
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
-    const [filteredOptions, setFilteredOptions] = useState(customers);
+    const [scheduledAtLocal, setScheduledAtLocal] = useState('');
+    const [roleMode, setRoleMode] = useState<'salesman' | 'admin' | null>(null);
+    const [roleChoiceOpen, setRoleChoiceOpen] = useState(false);
+    const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+    const [addressDialogAddress, setAddressDialogAddress] = useState<IAddress | null>(null);
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -109,16 +127,132 @@ const OrderCreate = () => {
     const [visible, setVisible] = useState(false);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
-
-    useEffect(() => {
-        setFilteredOptions(customers)
-    }, [customers])
+    const cartStorageKey = `pos-cart:${selectedRegistryId || 'unknown'}`;
+    const isFirstContextRun = useRef(true);
+    const hasHydratedCart = useRef(false);
+    const hasInitializedOrder = useRef(false);
+    const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
+    const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
+    const requiresRoleChoice = isSalesmanRole && isAdminRole;
+    const isSalesmanMode = roleMode === 'salesman' || (isSalesmanRole && !isAdminRole);
+    const isRoleSelectionPending = requiresRoleChoice && roleMode === null;
+    const missingSchedule = !scheduledAtLocal;
+    const missingCustomer = !orderEntity.customer?.id;
+    const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
+    const isSalesmanFlowReady = !missingSchedule && !missingCustomer && !missingDelivery;
+    const shouldGateSalesman = (isSalesmanMode && !isSalesmanFlowReady) || isRoleSelectionPending;
+    const missingSalesmanFields = useMemo(() => {
+        const fields: string[] = [];
+        if (missingCustomer) fields.push('customer');
+        if (missingSchedule) fields.push('schedule time');
+        if (missingDelivery) fields.push('delivery address');
+        return fields;
+    }, [missingCustomer, missingDelivery, missingSchedule]);
+    const salesmanGateMessage = useMemo(() => {
+        if (!missingSalesmanFields.length) {
+            return 'Required fields are missing';
+        }
+        const label = missingSalesmanFields.join(' and ');
+        const verb = missingSalesmanFields.length === 1 ? 'is' : 'are';
+        return `${label} ${verb} required`;
+    }, [missingSalesmanFields]);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
 
     useEffect(() => {
         orderItemsRef.current = orderEntity.items ?? [];
     }, [orderEntity.items]);
+
+    useEffect(() => {
+        if (!selectedRegistryId || hasInitializedOrder.current) {
+            return;
+        }
+        hasInitializedOrder.current = true;
+        const storedCart = localStorage.getItem(cartStorageKey);
+        if (!storedCart) {
+            dispatch(reset());
+        }
+    }, [cartStorageKey, dispatch, selectedRegistryId]);
+
+    useEffect(() => {
+        if (!selectedRegistryId) {
+            return;
+        }
+        const storedCart = localStorage.getItem(cartStorageKey);
+        if (!storedCart) {
+            dispatch(changeEntityField({
+                name: 'items',
+                value: [],
+            }));
+            dispatch(changeEntityField({
+                name: 'customer',
+                value: null,
+            }));
+            setPricingPointId('');
+            hasHydratedCart.current = true;
+            return;
+        }
+        try {
+            const parsed = JSON.parse(storedCart);
+            if (Array.isArray(parsed?.items)) {
+                dispatch(changeEntityField({
+                    name: 'items',
+                    value: parsed.items,
+                }));
+            }
+            if (parsed?.customerId) {
+                dispatch(changeEntityField({
+                    name: 'customer',
+                    value: { id: parsed.customerId },
+                }));
+            }
+            if (parsed?.orderMethod) {
+                dispatch(changeEntityField({
+                    name: 'orderMethod',
+                    value: parsed.orderMethod as OrderMethod,
+                }));
+                localStorage.setItem(ORDER_METHOD, parsed.orderMethod);
+            }
+            if (parsed?.pricingPointId) {
+                setPricingPointId(parsed.pricingPointId);
+            }
+            if (parsed?.scheduledAtLocal) {
+                setScheduledAtLocal(parsed.scheduledAtLocal);
+            }
+            if (parsed?.scheduledAt) {
+                dispatch(changeEntityField({
+                    name: 'scheduledAt',
+                    value: parsed.scheduledAt,
+                }));
+            }
+            if (parsed?.deliverTo) {
+                dispatch(changeEntityField({
+                    name: 'deliverTo',
+                    value: parsed.deliverTo,
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to parse stored cart', error);
+        } finally {
+            hasHydratedCart.current = true;
+        }
+    }, [cartStorageKey, dispatch, selectedRegistryId]);
+
+    useEffect(() => {
+        if (!selectedRegistryId || !hasHydratedCart.current) {
+            return;
+        }
+        const payload = {
+            items: orderEntity.items ?? [],
+            customerId: orderEntity.customer?.id ?? null,
+            orderMethod: orderEntity.orderMethod ?? null,
+            pricingPointId: pricingPointId || null,
+            scheduledAtLocal: scheduledAtLocal || null,
+            scheduledAt: orderEntity.scheduledAt ?? null,
+            deliverTo: orderEntity.deliverTo ?? null,
+        };
+        localStorage.setItem(cartStorageKey, JSON.stringify(payload));
+    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, pricingPointId, selectedRegistryId, scheduledAtLocal]);
 
     const getOpenTills = (ids: string[]) => {
         dispatch(
@@ -294,7 +428,6 @@ const OrderCreate = () => {
                 type: RegisterType.ONLINE,
             })
         )
-        dispatch(reset())
     }, [])
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
@@ -306,7 +439,7 @@ const OrderCreate = () => {
         const sParams = new URLSearchParams(searchParams);
         sParams.delete(name);
         return `?${sParams.toString()}`;
-    }, []);
+    }, [searchParams]);
 
     const debouncedItemNameNavigate = useCallback(
         _.debounce((newItemName) => {
@@ -379,7 +512,20 @@ const OrderCreate = () => {
         });
     }, [dispatch, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
 
+    const recalculateAllPrices = useCallback(() => {
+        const items = orderItemsRef.current ?? [];
+        items.forEach(item => {
+            if (!item?.priceOverridden) {
+                recalculateItemTotals(item);
+            }
+        });
+    }, [recalculateItemTotals]);
+
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
+        if (shouldGateSalesman) {
+            toast.error(`${salesmanGateMessage} before adding items.`);
+            return;
+        }
         const currentItems = orderItemsRef.current ?? [];
         const updatedItems = [...currentItems, item];
         orderItemsRef.current = updatedItems;
@@ -390,7 +536,7 @@ const OrderCreate = () => {
         if (shouldFetchPrice) {
             recalculateItemTotals(item);
         }
-    }, [dispatch, recalculateItemTotals]);
+    }, [dispatch, recalculateItemTotals, salesmanGateMessage, shouldGateSalesman]);
 
     const handleAmountChange = useCallback((item: IOrder['items'][number], amount: number) => {
         updateCartItem(item.cartId, { amount });
@@ -441,6 +587,56 @@ const OrderCreate = () => {
             grandTotal: itemTotal + (item.taxTotal ?? 0),
         });
     }, [updateCartItem]);
+
+    useEffect(() => {
+        if (isFirstContextRun.current) {
+            isFirstContextRun.current = false;
+            return;
+        }
+        recalculateAllPrices();
+    }, [orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, recalculateAllPrices]);
+
+    useEffect(() => {
+        if (requiresRoleChoice) {
+            setRoleChoiceOpen(true);
+            setRoleMode(null);
+        } else if (isSalesmanRole && !isAdminRole) {
+            setRoleMode('salesman');
+        } else {
+            setRoleMode('admin');
+        }
+    }, [requiresRoleChoice, isSalesmanRole, isAdminRole]);
+
+    useEffect(() => {
+        if (!isSalesmanMode) {
+            return;
+        }
+        if (orderEntity.orderMethod !== OrderMethod.Delivery) {
+            dispatch(changeEntityField({
+                name: 'orderMethod',
+                value: OrderMethod.Delivery,
+            }));
+            localStorage.setItem(ORDER_METHOD, OrderMethod.Delivery);
+        }
+    }, [dispatch, isSalesmanMode, orderEntity.orderMethod]);
+
+    useEffect(() => {
+        if (orderEntity.orderMethod !== OrderMethod.Delivery && orderEntity.deliverTo) {
+            dispatch(changeEntityField({
+                name: 'deliverTo',
+                value: null,
+            }));
+        }
+    }, [dispatch, orderEntity.deliverTo, orderEntity.orderMethod]);
+
+    useEffect(() => {
+        if (!orderEntity.customer?.id && orderEntity.deliverTo) {
+            dispatch(changeEntityField({
+                name: 'deliverTo',
+                value: null,
+            }));
+        }
+    }, [dispatch, orderEntity.customer?.id, orderEntity.deliverTo]);
 
     const findCombinationVariants = () => {
         const formValues = variantDialog.selectedRetailAttributes;
@@ -495,6 +691,10 @@ const OrderCreate = () => {
     }, [variantDialog.product.variants, JSON.stringify(variantDialog.selectedRetailAttributes)])
 
     const handlePayment = () => {
+        if (shouldGateSalesman) {
+            toast.error(`${salesmanGateMessage} before placing the order.`);
+            return;
+        }
         const structuredEntity = {
             items: orderEntity?.items?.map(item => ({
                 itemId: item.itemId,
@@ -512,8 +712,9 @@ const OrderCreate = () => {
             branchId: orderEntity?.branchId,
             customer: orderEntity?.customer,
             orderCharges: [],
-            scheduledAt: null,
+            scheduledAt: orderEntity?.scheduledAt ?? null,
             orderMethod: orderEntity?.orderMethod,
+            deliverTo: orderEntity?.deliverTo ?? null,
             processingStatus: OrderStatus.PROCESSING,
             tillId: till?.id,
         }
@@ -574,24 +775,16 @@ const OrderCreate = () => {
 
         if (userSelectedPricingPoint) {
             return (
-                <div className="pt-3 pb-3">
+                <div className="">
                     <Select
-                        value={pricingPointId}
-                        onValueChange={(value) => setPricingPointId(value)}
-                    >
-                        <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue placeholder="Select a Pricing Point" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {pricingPoints
-                                .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED)
-                                .map(pricingPoint => (
-                                    <SelectItem key={pricingPoint.id} value={pricingPoint.id} className="text-xs">
-                                        {pricingPoint.name}
-                                    </SelectItem>
-                                ))}
-                        </SelectContent>
-                    </Select>
+                        options={pricingPointOptions}
+                        value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
+                        onChange={(option) => setPricingPointId(option?.value || '')}
+                        placeholder="Select a Pricing Point"
+                        className="text-xs"
+                        isClearable
+                        isDisabled={shouldGateSalesman}
+                    />
                 </div>
             );
         }
@@ -599,41 +792,6 @@ const OrderCreate = () => {
         return <></>;
     }
 
-
-    const filterTemplate = (options) => {
-        const handleFilterChange = (event) => {
-            const value = event.target.value.toLowerCase();
-            setFilterValue(value);
-
-            // Apply manual filtering
-            const filtered = customers.filter(customer =>
-                `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(value)
-            );
-            setFilteredOptions(filtered);
-        };
-
-        const handleFilterReset = () => {
-            setFilterValue('');
-            setFilteredOptions(customers);
-            // @ts-expect-error -- type never
-            filterInputRef.current && filterInputRef.current?.focus();
-        };
-
-        return (
-            <div className="flex gap-1">
-                <Input
-                    ref={filterInputRef}
-                    value={filterValue}
-                    onChange={handleFilterChange}
-                    placeholder="Search"
-                    className="h-8 text-xs"
-                />
-                <Button variant="ghost" size="sm" onClick={handleFilterReset} className="h-8 w-8 p-0">
-                    <X className="h-4 w-4" />
-                </Button>
-            </div>
-        );
-    };
 
     const closePopUp = (id) => {
         setVisible(false)
@@ -647,156 +805,253 @@ const OrderCreate = () => {
 
     const cartItems = orderEntity.items ?? [];
     const cartItemCount = cartItems.length;
+    const productById = useMemo(() => {
+        return new Map(products.map(product => [product.id, product]));
+    }, [products]);
+    const cartQuantityTotal = useMemo(() => {
+        return cartItems.reduce((acc, item) => {
+            const byWeight = productById.get(item.itemId)?.byWeight;
+            if (byWeight) {
+                return acc + 1;
+            }
+            return acc + (item.amount ?? 0);
+        }, 0);
+    }, [cartItems, productById]);
+    const cartTotals = useMemo(() => {
+        return cartItems.reduce<{ itemsTotal: number; totalTaxes: number; total: number }>((acc, item) => {
+            const itemTotal = item.itemTotal ?? ((item.price ?? 0) * (item.amount ?? 0));
+            const taxTotal = item.taxTotal ?? 0;
+            const grandTotal = item.grandTotal ?? (itemTotal + taxTotal);
+            return {
+                itemsTotal: acc.itemsTotal + itemTotal,
+                totalTaxes: acc.totalTaxes + taxTotal,
+                total: acc.total + grandTotal,
+            };
+        }, { itemsTotal: 0, totalTaxes: 0, total: 0 });
+    }, [cartItems]);
 
-    const CartPanel = ({ className }: { className?: string }) => (
-        <div
-            className={cn(
-                "flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-white p-4 shadow-lg",
-                className
-            )}
-        >
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-semibold">Cart</p>
-                    <p className="text-xs text-muted-foreground">
-                        {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
-                    </p>
-                </div>
-                <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                    POS
-                </Badge>
-            </div>
-            <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                {cartItems.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/60 bg-muted-foreground/20 p-4 text-xs text-muted-foreground">
-                        Cart is empty. Add products to start.
-                    </div>
-                ) : (
-                    cartItems.map(product => (
-                        <Card key={product.cartId} className="border border-border/60 bg-white/90 shadow-sm">
-                            <CardContent className="space-y-3">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <p className="text-sm font-semibold">{product.variantName}</p>
-                                        {product.selectedRetailAttributes?.length > 0 && (
-                                            <p className="text-[10px] text-muted-foreground">
-                                                Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-destructive"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            dispatch(changeEntityField({
-                                                name: 'items',
-                                                value: cartItems.filter(item => item.cartId !== product.cartId)
-                                            }))
-                                        }}
-                                    >
-                                        <RiDeleteBin6Fill size={16} />
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-3 gap-2 text-[10px]">
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Qty</Label>
-                                        <Input
-                                            type="number"
-                                            value={product.amount ?? ''}
-                                            onChange={e => handleAmountChange(product, Number(e.target.value))}
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">
-                                            Price
-                                            {itemPriceLoading?.[product.cartId] && (
-                                                <Loader2 className="ml-1 inline h-3 w-3 animate-spin text-muted-foreground" />
-                                            )}
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Price"
-                                            value={product.price ?? ''}
-                                            onChange={e => {
-                                                const value = e.target.value;
-                                                const numericValue = value === '' ? null : Number(value);
-                                                handlePriceChange(product, numericValue);
-                                            }}
-                                            step="0.01"
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Discount</Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Discount"
-                                            value={product.customDiscount ?? ''}
-                                            onChange={e => handleDiscountChange(product, Number(e.target.value))}
-                                            step="0.01"
-                                            className="h-8 text-xs"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Discount Type</Label>
-                                        <Select
-                                            value={product?.discount?.type || 'PERCENTAGE'}
-                                            onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
-                                        >
-                                            <SelectTrigger className="w-full h-7 text-xs">
-                                                <SelectValue placeholder="Type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="PERCENTAGE" className="text-xs">Percentage</SelectItem>
-                                                <SelectItem value="FLAT" className="text-xs">Flat</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className="text-[10px] uppercase tracking-wide">Notes</Label>
-                                        <Textarea
-                                            placeholder="Add note..."
-                                            className="h-16 text-xs resize-none"
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
-            </div>
-            <div className="space-y-2 rounded-2xl border border-border/50 bg-muted-foreground/30 px-3 py-3 text-xs">
-                <div className="flex items-center justify-between">
-                    <span>Subtotal</span>
-                    <span className="text-muted-foreground">Awaiting backend</span>
-                </div>
-                <div className="flex items-center justify-between text-muted-foreground">
-                    <span>Tax</span>
-                    <span>Awaiting backend</span>
-                </div>
-                <div className="flex items-center justify-between text-sm font-semibold">
-                    <span>Total</span>
-                    <span>Backend total</span>
-                </div>
-                <Button
-                    onClick={handlePayment}
-                    disabled={cartItemCount === 0 || !orderEntity?.branchId || orderLoading}
-                    className="mt-2 h-12 w-full justify-between text-sm bg-emerald-600 hover:bg-emerald-700"
-                >
-                    <span>Pay</span>
-                    <span>Backend total</span>
-                </Button>
-                <p className="text-[10px] text-muted-foreground">
-                    Totals are computed server-side once backend endpoints are ready.
-                </p>
-            </div>
-        </div>
+    const orderMethodOptions = useMemo(
+        () => Object.values(OrderMethod)
+            .filter((type) => type !== OrderMethod.DineIn)
+            .map(type => ({
+                value: type,
+                label: formatPricingPointOrderType(type),
+            })),
+        []
     );
+
+    const customerOptions = useMemo(
+        () => customers.map(customer => ({
+            value: customer.id,
+            label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`.trim() || 'Unnamed customer',
+        })),
+        [customers]
+    );
+
+    const selectedCustomer = useMemo(
+        () => customers.find(customer => customer.id === orderEntity.customer?.id) || null,
+        [customers, orderEntity.customer?.id]
+    );
+
+    const deliveryAddressOptions = useMemo(() => {
+        const addresses = selectedCustomer?.deliveryAddresses || [];
+        return addresses.map(address => {
+            const label = address.address
+                || address.fullAddress
+                || [address.street, address.city, address.country].filter(Boolean).join(', ')
+                || 'Delivery address';
+            return {
+                value: address.id ?? address.tempId ?? label,
+                label,
+                address,
+            };
+        });
+    }, [selectedCustomer]);
+
+    const pricingPointOptions = useMemo(
+        () => pricingPoints
+            .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED
+                && pricingPoint.applicableBranches?.some(branch => branch.id === orderEntity.branchId))
+            .map(pricingPoint => ({
+                value: pricingPoint.id,
+                label: pricingPoint.name,
+            })),
+        [pricingPoints, orderEntity.branchId]
+    );
+
+    const discountTypeOptions = useMemo(
+        () => ([
+            { value: 'PERCENTAGE', label: 'Percentage' },
+            { value: 'FLAT', label: 'Flat' },
+        ]),
+        []
+    );
+
+    const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
+        if (action === 'input-change') {
+            setFilterValue(value);
+        }
+        return value;
+    }, []);
+
+    const CustomerMenuList = (props) => (
+        <components.MenuList {...props}>
+            {props.children}
+            {footerTemplate()}
+        </components.MenuList>
+    );
+
+    // const CartPanel = ({ className }: { className?: string }) => (
+    //     <div
+    //         className={cn(
+    //             "flex h-full flex-col gap-4 rounded-2xl border border-border/70 bg-white p-4 shadow-lg",
+    //             className
+    //         )}
+    //     >
+    //         <div className="flex items-center justify-between">
+    //             <div>
+    //                 <p className="text-sm font-semibold">Cart</p>
+    //                 <p className="text-xs text-muted-foreground">
+    //                     {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
+    //                 </p>
+    //             </div>
+    //             <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
+    //                 POS
+    //             </Badge>
+    //         </div>
+    //         <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+    //             {cartItems.length === 0 ? (
+    //                 <div className="rounded-lg border border-dashed border-border/60 bg-muted-foreground/20 p-4 text-xs text-muted-foreground">
+    //                     Cart is empty. Add products to start.
+    //                 </div>
+    //             ) : (
+    //                 cartItems.map(product => (
+    //                     <Card key={product.cartId} className="border border-border/60 bg-white/90 shadow-sm">
+    //                         <CardContent className="space-y-3">
+    //                             <div className="flex items-start justify-between gap-2">
+    //                                 <div>
+    //                                     <p className="text-sm font-semibold">{product.variantName}</p>
+    //                                     {product.selectedRetailAttributes?.length > 0 && (
+    //                                         <p className="text-[10px] text-muted-foreground">
+    //                                             Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
+    //                                         </p>
+    //                                     )}
+    //                                 </div>
+    //                                 <Button
+    //                                     variant="ghost"
+    //                                     size="sm"
+    //                                     className="h-6 w-6 p-0 text-destructive"
+    //                                     onClick={(e) => {
+    //                                         e.stopPropagation();
+    //                                         dispatch(changeEntityField({
+    //                                             name: 'items',
+    //                                             value: cartItems.filter(item => item.cartId !== product.cartId)
+    //                                         }))
+    //                                     }}
+    //                                 >
+    //                                     <RiDeleteBin6Fill size={16} />
+    //                                 </Button>
+    //                             </div>
+    //                             <div className="grid grid-cols-3 gap-2 text-[10px]">
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Qty</Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         value={product.amount ?? ''}
+    //                                         onChange={e => handleAmountChange(product, Number(e.target.value))}
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">
+    //                                         Price
+    //                                         {itemPriceLoading?.[product.cartId] && (
+    //                                             <Loader2 className="ml-1 inline h-3 w-3 animate-spin text-muted-foreground" />
+    //                                         )}
+    //                                     </Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         placeholder="Price"
+    //                                         value={product.price ?? ''}
+    //                                         onChange={e => {
+    //                                             const value = e.target.value;
+    //                                             const numericValue = value === '' ? null : Number(value);
+    //                                             handlePriceChange(product, numericValue);
+    //                                         }}
+    //                                         step="0.01"
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Discount</Label>
+    //                                     <Input
+    //                                         type="number"
+    //                                         placeholder="Discount"
+    //                                         value={product.customDiscount ?? ''}
+    //                                         onChange={e => handleDiscountChange(product, Number(e.target.value))}
+    //                                         step="0.01"
+    //                                         className="h-8 text-xs"
+    //                                     />
+    //                                 </div>
+    //                             </div>
+    //                             <div className="grid grid-cols-2 gap-2 text-[10px]">
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Discount Type</Label>
+    //                                     <Select
+    //                                         options={discountTypeOptions}
+    //                                         value={discountTypeOptions.find(option => option.value === (product?.discount?.type || 'PERCENTAGE')) || null}
+    //                                         onChange={(option) => handleDiscountTypeChange(product, (option?.value || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT')}
+    //                                         placeholder="Type"
+    //                                         className="text-xs"
+    //                                     />
+    //                                 </div>
+    //                                 <div className="flex flex-col gap-1">
+    //                                     <Label className="text-[10px] uppercase tracking-wide">Notes</Label>
+    //                                     <Textarea
+    //                                         placeholder="Add note..."
+    //                                         className="h-16 text-xs resize-none"
+    //                                     />
+    //                                 </div>
+    //                             </div>
+    //                         </CardContent>
+    //                     </Card>
+    //                 ))
+    //             )}
+    //         </div>
+    //         <div className="rounded-2xl border border-border/50 bg-muted-foreground/30 px-3 py-3 text-xs">
+    //             <div className="grid grid-cols-2 gap-3">
+    //                 <div className="space-y-2">
+    //                     <div className="flex items-center justify-between">
+    //                         <span>Items</span>
+    //                         <span className="text-muted-foreground">{cartQuantityTotal}</span>
+    //                     </div>
+    //                     <div className="flex items-center justify-between">
+    //                         <span>Sub-total</span>
+    //                         <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+    //                     </div>
+    //                     <div className="flex items-center justify-between text-muted-foreground">
+    //                         <span>Taxes</span>
+    //                         <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+    //                     </div>
+    //                 </div>
+    //                 <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
+    //                     <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+    //                 </div>
+    //             </div>
+    //             <Button
+    //                 onClick={handlePayment}
+    //                 disabled={cartItemCount === 0 || !orderEntity?.branchId || orderLoading}
+    //                 className="mt-2 h-12 w-full justify-between text-sm bg-emerald-600 hover:bg-emerald-700"
+    //             >
+    //                 <span>Pay</span>
+    //                 <span>${cartTotals.total.toFixed(2)}</span>
+    //             </Button>
+    //             <p className="text-[10px] text-muted-foreground">
+    //                 Totals are computed locally from cart item values.
+    //             </p>
+    //         </div>
+    //     </div>
+    // );
 
     return (
         <div className="flex min-h-screen flex-col bg-muted-foreground/10">
@@ -806,20 +1061,20 @@ const OrderCreate = () => {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
-                <DialogContent className="max-w-[50vw]">
-                    <DialogHeader>
-                        <DialogTitle>Order totals handled by backend</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-2 p-3">
-                        <p className="text-xs text-muted-foreground">
-                            Subtotal, tax, and grand total will be provided by the backend once the APIs are available. Review item prices below.
-                        </p>
+            <AlertDialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
+                <AlertDialogContent className="max-w-lg">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Payment</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Review your order before confirming payment.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
                         {orderEntity?.items.map(item => (
-                            <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2">
-                                <div className="col-span-2 text-xs">{item.amount}</div>
-                                <div className="col-span-7 text-xs">{item.variantName}</div>
-                                <div className="col-span-3 text-right text-xs flex items-center justify-end gap-1">
+                            <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2 text-sm">
+                                <div className="col-span-2">{item.amount}</div>
+                                <div className="col-span-7 truncate">{item.variantName}</div>
+                                <div className="col-span-3 text-right flex items-center justify-end gap-1">
                                     <span>{item.price != null ? `$${item.price.toFixed(2)}` : 'Awaiting price'}</span>
                                     {itemPriceLoading?.[item.cartId] && (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -827,21 +1082,96 @@ const OrderCreate = () => {
                                 </div>
                             </div>
                         ))}
-                        <div className="flex flex-col gap-1 pt-2 text-xs text-muted-foreground">
-                            <span>Totals will be calculated by the backend later.</span>
-                        </div>
-                        <div className="flex justify-end">
-                            <Button
-                                onClick={handlePayment}
-                                disabled={orderLoading}
-                                className="mt-3 text-lg h-12 px-4"
-                            >
-                                Cash
-                            </Button>
+                        <div className="pt-2 border-t space-y-1">
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Items:</span>
+                                <span>{cartQuantityTotal}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Sub-total:</span>
+                                <span>${cartTotals.itemsTotal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span>Taxes:</span>
+                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t">
+                                <span>Total:</span>
+                                <span>${cartTotals.total.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handlePayment}
+                            disabled={orderLoading || shouldGateSalesman}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            {orderLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                'Confirm Payment'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Select your mode</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 p-2 text-sm text-muted-foreground">
+                        You have both administrator and wholesale salesman roles. Choose how you want to continue.
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setRoleMode('admin');
+                                setRoleChoiceOpen(false);
+                            }}
+                            className="h-9 text-xs"
+                        >
+                            Continue as Admin
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setRoleMode('salesman');
+                                setRoleChoiceOpen(false);
+                            }}
+                            className="h-9 text-xs"
+                        >
+                            Continue as Salesman
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <DeliveryAddressDialog
+                open={addressDialogOpen}
+                onOpenChange={(open) => {
+                    setAddressDialogOpen(open);
+                    if (!open) {
+                        setAddressDialogAddress(null);
+                    }
+                }}
+                customer={selectedCustomer}
+                address={addressDialogAddress}
+                onSaved={(savedAddress) => {
+                    dispatch(changeEntityField({
+                        name: 'deliverTo',
+                        value: savedAddress,
+                    }));
+                    setAddressDialogOpen(false);
+                    setAddressDialogAddress(null);
+                }}
+            />
 
             <Dialog
                 open={customPriceModalData.visible}
@@ -1091,10 +1421,11 @@ const OrderCreate = () => {
                                             placeholder="Search for products"
                                             value={searchParams.get("name")}
                                             onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                                            disabled={shouldGateSalesman}
                                             className="h-10 pl-10 text-xs"
                                         />
                                     </div>
-                                    <div className="min-w-[220px]">
+                                    <div className={cn("min-w-[220px]", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
                                         <DropDownFilter
                                             placeholder={'Select Category'}
                                             dropDownOptionType={'RETAIL_CATEGORY'}
@@ -1110,7 +1441,7 @@ const OrderCreate = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                {/* <div className="flex flex-wrap gap-2">
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button disabled variant="secondary" className="h-8 text-xs">More Actions</Button>
@@ -1125,7 +1456,7 @@ const OrderCreate = () => {
                                     </Popover>
                                     <Button disabled variant="secondary" className="h-8 text-xs">Retrieve Sale</Button>
                                     <Button disabled variant="secondary" className="h-8 text-xs">Park Sale</Button>
-                                </div>
+                                </div> */}
                             </CardContent>
                         </Card>
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
@@ -1215,6 +1546,7 @@ const OrderCreate = () => {
                                                         variant="outline"
                                                         size="sm"
                                                         className="h-8 text-xs"
+                                                        disabled={shouldGateSalesman}
                                                         onClick={() => {
                                                             addCartItem({
                                                                 cartId: variantDialog.product.id + new Date().getTime().toString(),
@@ -1249,8 +1581,14 @@ const OrderCreate = () => {
                                         <Tooltip key={index}>
                                             <TooltipTrigger asChild>
                                                 <Card
-                                                    className="group h-[140px] cursor-pointer overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md"
+                                                className={cn(
+                                                    "group h-[140px] overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md",
+                                                    shouldGateSalesman ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                                                )}
                                                     onClick={() => {
+                                                    if (shouldGateSalesman) {
+                                                        return;
+                                                    }
                                                         if (product.itemVariantType === "RETAIL_SIMPLE") {
                                                             if (product.askForPrice) {
                                                                 setCustomPriceModalData({
@@ -1321,141 +1659,198 @@ const OrderCreate = () => {
                     <div className="flex min-h-0 flex-col gap-4 lg:col-span-4 lg:h-[72vh]">
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
                             <CardContent className="flex flex-col gap-3 p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-semibold">Cart</p>
-                                        <p className="text-xs text-muted-foreground">Review items and apply discounts</p>
-                                    </div>
-                                    <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                                        {cartItemCount} items
-                                    </Badge>
-                                </div>
                                 <div className="grid gap-2">
+                                    {isSalesmanMode && !isSalesmanFlowReady && (
+                                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+                                            {salesmanGateMessage} before creating an order.
+                                        </div>
+                                    )}
                                     <Select
-                                        value={orderEntity?.orderMethod}
-                                        onValueChange={(value) => {
+                                        options={orderMethodOptions}
+                                        value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
+                                        onChange={(option) => {
+                                            if (!option) {
+                                                return;
+                                            }
                                             dispatch(
                                                 changeEntityField({
                                                     name: 'orderMethod',
-                                                    value: value as any,
+                                                    value: option.value as any,
                                                 })
                                             )
-                                            localStorage.setItem(ORDER_METHOD, value)
+                                            localStorage.setItem(ORDER_METHOD, option.value)
                                         }}
-                                    >
-                                        <SelectTrigger className="w-full h-9 text-xs">
-                                            <SelectValue placeholder="Select an order method" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.values(OrderMethod)
-                                                .filter((type) => type !== OrderMethod.DineIn)
-                                                .map(type => (
-                                                    <SelectItem key={type} value={type} className="text-xs">
-                                                        {formatPricingPointOrderType(type)}
-                                                    </SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Select
-                                        value={orderEntity?.customer?.id}
-                                        onValueChange={(value) => dispatch(changeEntityField({
-                                            name: 'customer',
-                                            value: {
-                                                id: value,
-                                            },
-                                        }))}
-                                        onOpenChange={(open) => {
-                                            if (open) {
+                                        placeholder="Select an order method"
+                                        className="text-xs"
+                                        isDisabled={isSalesmanMode || shouldGateSalesman}
+                                    />
+                                    <div className="flex flex-col gap-1">
+                                        <Label className={cn("text-xs", isSalesmanMode && missingCustomer ? "text-destructive" : undefined)}>
+                                            Customer {isSalesmanMode && <span className="text-destructive">*</span>}
+                                        </Label>
+                                        <Select
+                                            options={customerOptions}
+                                            value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                            onChange={(option) => {
+                                                dispatch(changeEntityField({
+                                                    name: 'customer',
+                                                    value: option?.value ? { id: option.value } : null,
+                                                }));
+                                                dispatch(changeEntityField({
+                                                    name: 'deliverTo',
+                                                    value: null,
+                                                }));
+                                            }}
+                                            onMenuOpen={() => {
                                                 dispatch(getCustomers({
                                                     query: '',
                                                     size: 1000,
                                                     sort: 'createdAt,asc',
                                                     page: 0
                                                 }))
-                                            }
-                                        }}
-                                    >
-                                        <SelectTrigger className="w-full h-9 text-xs">
-                                            <SelectValue placeholder="Add a customer" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <div className="p-2 border-b">
-                                                {filterTemplate(null)}
+                                            }}
+                                            onInputChange={handleCustomerInputChange}
+                                            components={{ MenuList: CustomerMenuList }}
+                                            placeholder="Add a customer"
+                                            className="text-xs"
+                                            isClearable
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <Label className={cn("text-xs", isSalesmanMode && missingSchedule ? "text-destructive" : undefined)}>
+                                            Schedule At {isSalesmanMode && <span className="text-destructive">*</span>}
+                                        </Label>
+                                        <Input
+                                            type="datetime-local"
+                                            value={scheduledAtLocal}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setScheduledAtLocal(value);
+                                                dispatch(changeEntityField({
+                                                    name: 'scheduledAt',
+                                                    value: value ? toLocalISOString(new Date(value)) : null,
+                                                }));
+                                            }}
+                                            className="h-9 text-xs"
+                                        />
+                                    </div>
+                                    {orderEntity.orderMethod === OrderMethod.Delivery && (
+                                        <div className="flex flex-col gap-1">
+                                            <Label className={cn("text-xs", isSalesmanMode && missingDelivery ? "text-destructive" : undefined)}>
+                                                Delivery Address {isSalesmanMode && <span className="text-destructive">*</span>}
+                                            </Label>
+                                            <Select
+                                                options={deliveryAddressOptions}
+                                                value={
+                                                    deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
+                                                    || (orderEntity.deliverTo ? {
+                                                        value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
+                                                        label: orderEntity.deliverTo.address
+                                                            || orderEntity.deliverTo.fullAddress
+                                                            || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
+                                                            || 'Selected address',
+                                                        address: orderEntity.deliverTo,
+                                                    } : null)
+                                                }
+                                                onChange={(option: any) => {
+                                                    dispatch(changeEntityField({
+                                                        name: 'deliverTo',
+                                                        value: option?.address || null,
+                                                    }));
+                                                }}
+                                                placeholder={selectedCustomer ? "Select a delivery address" : "Select a customer first"}
+                                                className="text-xs"
+                                                isClearable
+                                                isDisabled={!selectedCustomer}
+                                            />
+                                            {!selectedCustomer?.deliveryAddresses?.length && (
+                                                <span className="text-[10px] text-muted-foreground">No delivery addresses saved.</span>
+                                            )}
+                                            <div className="flex justify-end">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 text-xs"
+                                                    disabled={!selectedCustomer}
+                                                    onClick={() => {
+                                                        setAddressDialogAddress(null);
+                                                        setAddressDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus className="mr-1 h-3.5 w-3.5" />
+                                                    Add address
+                                                </Button>
                                             </div>
-                                            {filteredOptions.map(customer => (
-                                                <SelectItem key={customer.id} value={customer.id} className="text-xs">
-                                                    {`${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`}
-                                                </SelectItem>
-                                            ))}
-                                            <div className="p-2 border-t">
-                                                {footerTemplate()}
-                                            </div>
-                                        </SelectContent>
-                                    </Select>
+                                        </div>
+                                    )}
+                                    {displayUserSelectionPricingPoint()}
                                 </div>
                             </CardContent>
                             <Separator />
-                            <ScrollArea className="flex-1 px-4 py-3">
-                                {displayUserSelectionPricingPoint()}
+                            <div className="px-4 pt-3 text-[10px] uppercase tracking-wide text-muted-foreground">
+                                <div className="grid w-full grid-cols-[32px,1fr,16px,110px,20px,20px] items-center gap-2 pr-2">
+                                    <div>Qty</div>
+                                    <div>Name</div>
+                                    <div className="text-center">Taxes</div>
+                                    <div className="text-right">Amount</div>
+                                    <div />
+                                    <div />
+                                </div>
+                            </div>
+                            <ScrollArea className="flex-1 px-2 py-3">
                                 <Accordion type="multiple" className="space-y-2">
                                     {orderEntity?.items?.map((product, idx) => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
                                         const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
+                                        const byWeight = productById.get(product.itemId)?.byWeight;
+                                        const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
+                                        const unitPrice = product.price ?? 0;
+                                        const amountTotal = unitPrice * qtyDisplay;
 
                                         return (
                                         <AccordionItem
                                             key={idx}
                                             value={`item-${idx}`}
                                             disabled={!orderEntity?.branchId}
-                                            className="rounded-lg border border-border/60 px-2"
+                                            className="rounded-lg border border-border/60"
                                         >
                                             <AccordionTrigger className="hover:no-underline py-2">
-                                                <div className='flex justify-between items-center w-full pr-2'>
-                                                    <div className="flex flex-col items-start">
-                                                        <div className="mb-1 text-xs font-medium">{product.variantName}</div>
-                                                        {product.selectedRetailAttributes?.length > 0 && (
-                                                            <div className="text-muted-foreground text-[10px]">
-                                                                Attributes: {product.selectedRetailAttributes?.map(attr => attr.name).join(', ')}
-                                                            </div>
+                                                <div className='grid w-full grid-cols-[32px,1fr,16px,110px,20px,20px] items-center gap-2 pr-2 text-xs'>
+                                                    <div className="text-muted-foreground">{qtyDisplay}</div>
+                                                    <div className="truncate font-medium text-foreground">
+                                                        {product.variantName}
+                                                    </div>
+                                                    <div className="text-center text-muted-foreground">
+                                                        {taxTotal && taxTotal > 0 ? 'T' : ''}
+                                                    </div>
+                                                    <div className="text-right font-semibold">
+                                                        {itemPriceLoading?.[product.cartId] ? (
+                                                            <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
+                                                        ) : (
+                                                            `$${amountTotal.toFixed(2)}`
                                                         )}
                                                     </div>
-                                                    <div className='flex justify-between items-center gap-2'>
-                                                        <div className="flex flex-col items-end">
-                                                            <div className="mb-1 text-xs flex items-center gap-1">
-                                                                {itemPriceLoading?.[product.cartId] ? (
-                                                                    <>
-                                                                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                                                        <span>Fetching price...</span>
-                                                                    </>
-                                                                ) : (
-                                                                    product.price != null ? `$${product.price.toFixed(2)}` : 'Awaiting backend price'
-                                                                )}
-                                                            </div>
-                                                        <div className="text-muted-foreground text-[10px]">Backend price</div>
-                                                        <div className="text-[10px] text-muted-foreground">
-                                                            Item total: {itemTotal != null ? `$${itemTotal.toFixed(2)}` : '—'}
-                                                            {taxTotal && taxTotal > 0 ? ' (t)' : ''}
-                                                        </div>
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                dispatch(changeEntityField({
-                                                                    name: 'items',
-                                                                    value: orderEntity.items.filter(item => item.cartId !== product.cartId)
-                                                                }))
-                                                            }}
-                                                        >
-                                                            <RiDeleteBin6Fill size={16} />
-                                                        </Button>
-                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                                        disabled={shouldGateSalesman}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            dispatch(changeEntityField({
+                                                                name: 'items',
+                                                                value: orderEntity.items.filter(item => item.cartId !== product.cartId)
+                                                            }))
+                                                        }}
+                                                    >
+                                                        <RiDeleteBin6Fill size={16} />
+                                                    </Button>
+                                                    <div />
                                                 </div>
                                             </AccordionTrigger>
                                             <AccordionContent className="px-2 pb-2">
-                                                <div className="grid grid-cols-3 gap-2 mb-3">
+                                                <div className="grid grid-cols-2 gap-2 mb-3">
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs">Quantity</Label>
                                                         <Input
@@ -1463,12 +1858,13 @@ const OrderCreate = () => {
                                                             placeholder="Quantity"
                                                             value={product.amount ?? ''}
                                                             onChange={e => handleAmountChange(product, Number(e.target.value))}
+                                                            disabled={shouldGateSalesman}
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs flex items-center gap-1">
-                                                            Price
+                                                            Unit Price
                                                             {itemPriceLoading?.[product.cartId] && (
                                                                 <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
                                                             )}
@@ -1482,10 +1878,14 @@ const OrderCreate = () => {
                                                                 const numericValue = value === '' ? null : Number(value);
                                                                 handlePriceChange(product, numericValue);
                                                             }}
+                                                            disabled={shouldGateSalesman}
                                                             step="0.01"
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2 mb-3">
                                                     <div className="flex flex-col gap-1">
                                                         <Label className="text-xs">Discount</Label>
                                                         <Input
@@ -1493,26 +1893,22 @@ const OrderCreate = () => {
                                                             placeholder="Discount"
                                                             value={product.customDiscount ?? ''}
                                                             onChange={e => handleDiscountChange(product, Number(e.target.value))}
+                                                            disabled={shouldGateSalesman}
                                                             step="0.01"
                                                             className="h-7 text-xs"
                                                         />
                                                     </div>
-                                                </div>
-
-                                                <div className="flex flex-col gap-1 mb-3">
-                                                    <Label className="text-xs">Discount Type</Label>
-                                                    <Select
-                                                        value={product?.discount?.type || 'PERCENTAGE'}
-                                                        onValueChange={value => handleDiscountTypeChange(product, value as 'PERCENTAGE' | 'FLAT')}
-                                                    >
-                                                        <SelectTrigger className="w-full h-7 text-xs">
-                                                            <SelectValue placeholder="Select Discount Type" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="PERCENTAGE" className="text-xs">Percentage</SelectItem>
-                                                            <SelectItem value="FLAT" className="text-xs">Flat</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
+                                                    <div className="flex flex-col gap-1">
+                                                        <Label className="text-xs">Discount Type</Label>
+                                                        <Select
+                                                            options={discountTypeOptions}
+                                                            value={discountTypeOptions.find(option => option.value === (product?.discount?.type || 'PERCENTAGE')) || null}
+                                                            onChange={(option) => handleDiscountTypeChange(product, (option?.value || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT')}
+                                                            placeholder="Select Discount Type"
+                                                            className="text-xs"
+                                                        isDisabled={shouldGateSalesman}
+                                                        />
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex flex-col gap-1">
@@ -1528,89 +1924,103 @@ const OrderCreate = () => {
                                 </Accordion>
                             </ScrollArea>
                             <Separator />
-                            <div className="px-4 pb-4 pt-3">
+                            <div className="px-4 pt-1">
                                 <div className='w-full flex flex-col gap-2'>
-                                    <div className="mb-0 w-full flex justify-between items-center">
+                                    {/* <div className="mb-0 w-full flex justify-between items-center">
                                         <span className="text-xs">ADD</span>
                                         <span className="flex gap-1">
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button disabled variant="ghost" className="h-7 text-xs">
-                                                        Discount
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-80">
-                                                    <div className='flex flex-col gap-3'>
-                                                        <div className="text-sm font-semibold">Add Discount</div>
-                                                        <div className='flex justify-between items-center gap-2'>
-                                                            <div className='flex items-center justify-center gap-1'>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className='h-8 w-10 text-xs'
-                                                                    onClick={() => dispatch(changeEntityField({
-                                                                        name: 'customDiscount',
-                                                                        value: {
-                                                                            type: 'PERCENTAGE',
-                                                                        }
-                                                                    }))}
-                                                                >
-                                                                    %
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className='h-8 w-10 text-xs'
-                                                                    onClick={() => dispatch(changeEntityField({
-                                                                        name: 'customDiscount',
-                                                                        value: {
-                                                                            type: 'FLAT',
-                                                                        }
-                                                                    }))}
-                                                                >
-                                                                    $
-                                                                </Button>
-                                                            </div>
-                                                            <Input
-                                                                type="number"
-                                                                placeholder="Discount"
-                                                                value={orderEntity.customDiscount?.value ?? ''}
-                                                                onChange={e => dispatch((changeEntityField({
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button disabled variant="ghost" className="h-7 text-xs">
+                                                    Discount
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-80">
+                                                <div className='flex flex-col gap-3'>
+                                                    <div className="text-sm font-semibold">Add Discount</div>
+                                                    <div className='flex justify-between items-center gap-2'>
+                                                        <div className='flex items-center justify-center gap-1'>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className='h-8 w-10 text-xs'
+                                                                onClick={() => dispatch(changeEntityField({
                                                                     name: 'customDiscount',
                                                                     value: {
-                                                                        value: Number(e.target.value),
+                                                                        type: 'PERCENTAGE',
                                                                     }
-                                                                })))}
-                                                                className="h-8 text-xs w-24"
-                                                                step="0.01"
-                                                            />
+                                                                }))}
+                                                            >
+                                                                %
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className='h-8 w-10 text-xs'
+                                                                onClick={() => dispatch(changeEntityField({
+                                                                    name: 'customDiscount',
+                                                                    value: {
+                                                                        type: 'FLAT',
+                                                                    }
+                                                                }))}
+                                                            >
+                                                                $
+                                                            </Button>
                                                         </div>
-                                                        <div className='text-xs text-muted-foreground'>This discount will be applied to all items</div>
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Discount"
+                                                            value={orderEntity.customDiscount?.value ?? ''}
+                                                            onChange={e => dispatch((changeEntityField({
+                                                                name: 'customDiscount',
+                                                                value: {
+                                                                    value: Number(e.target.value),
+                                                                }
+                                                            })))}
+                                                            className="h-8 text-xs w-24"
+                                                            step="0.01"
+                                                        />
                                                     </div>
-                                                </PopoverContent>
-                                            </Popover>
-                                            <Button disabled variant="ghost" className="h-7 text-xs">
-                                                Promo Code
-                                            </Button>
-                                            <Button disabled variant="ghost" className="h-7 text-xs">
-                                                Note
-                                            </Button>
-                                        </span>
+                                                    <div className='text-xs text-muted-foreground'>This discount will be applied to all items</div>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Button disabled variant="ghost" className="h-7 text-xs">
+                                            Promo Code
+                                        </Button>
+                                        <Button disabled variant="ghost" className="h-7 text-xs">
+                                            Note
+                                        </Button>
+                                    </span>
+                                    </div> */}
+                                    <div className="rounded-xl border border-border/50 bg-muted-foreground/20 p-1 text-xs">
+                                    <div className="grid grid-cols-2 gap-1">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span>Items</span>
+                                                <span className="text-muted-foreground">{cartQuantityTotal}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span>Sub-total</span>
+                                                <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-muted-foreground">
+                                                <span>Taxes</span>
+                                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
+                                            <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        Totals (subtotal, tax, grand total) will be calculated by the backend soon.
-                                    </div>
-                                    <div className="text-xs flex justify-between text-muted-foreground">
-                                        <span>Items in cart</span>
-                                        <span>{orderEntity?.items.length ?? 0}</span>
                                     </div>
                                     <Button
                                         className="mt-2 mb-0 w-full flex justify-between items-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                         onClick={() => setOpenPaymentModal(true)}
-                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId}
+                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
                                     >
                                         <span>Pay</span>
-                                        <span>Backend total</span>
+                                        <span>${cartTotals.total.toFixed(2)}</span>
                                     </Button>
                                 </div>
                             </div>
