@@ -28,7 +28,13 @@ export interface CalculateItemPricePayload {
   };
 }
 
-const initialState: EntityState<IOrder> = {
+export interface OrderState extends EntityState<IOrder> {
+  itemPriceCalculations: Record<string, ItemPriceTotals>;
+  itemPriceLoading: Record<string, boolean>;
+  itemPriceErrors: Record<string, string | null>;
+}
+
+const initialState: OrderState = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -220,7 +226,7 @@ export const deleteEntities = createAsyncThunk(
 // slice
 export const changeEntityField = createAction<ChangeFieldPayload<IOrder>>('online-ordering-settings/change-entity-field');
 
-export const OrderSlice = createEntitySlice({
+export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, never>>({
   name: 'order',
   initialState,
   extraReducers(builder) {
