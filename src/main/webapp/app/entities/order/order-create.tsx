@@ -46,6 +46,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
+import { FilterMatchMode } from 'primereact/api';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -75,7 +76,6 @@ const OrderCreate = () => {
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(customers);
-    const [searchTermProduct, setSearchTermProduct] = useState('');
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -109,7 +109,6 @@ const OrderCreate = () => {
     const [visible, setVisible] = useState(false);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
-    const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
     useEffect(() => {
         setFilteredOptions(customers)
@@ -246,22 +245,26 @@ const OrderCreate = () => {
     };
     const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
     useEffect(() => {
-        const newQuery = {
-            ...query,
-            page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            rows: parseInt(searchParams.get("size"), 10) || 24,
-            filters: {
-                ...query.filters,
-                'categories.id': { value: searchParams.get("categoryId"), matchMode: 'equals' },
-                'name': { value: searchParams.get("name"), matchMode: 'contains' }
+        // debounce the query
+        const debouncedQuery = _.debounce(() => {
+            const newQuery = {
+                ...query,
+                page: parseInt(searchParams.get("page"), 10) - 1 || 0,
+                rows: parseInt(searchParams.get("size"), 10) || 24,
+                filters: {
+                    ...query.filters,
+                    'categories.id': { value: searchParams.get("categoryId"), matchMode: FilterMatchMode.EQUALS },
+                    'name': { value: searchParams.get("name"), matchMode: FilterMatchMode.CONTAINS }
+                }
             }
-        }
-        const updatedQuery = applyMatchModeMap(newQuery);
-
-        dispatch(getProducts({
-            query: updatedQuery,
-        }))
-    }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId")])
+            const updatedQuery = applyMatchModeMap(newQuery);
+            dispatch(getProducts({
+                query: updatedQuery,
+            }))
+        }, 300);
+        debouncedQuery();
+        return () => debouncedQuery.cancel();
+    }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId"), searchParams.get("name")])
 
     useEffect(() => {
         dispatch(
@@ -318,8 +321,8 @@ const OrderCreate = () => {
         if (initialRender.current) {
             return;
         }
-        debouncedItemNameNavigate(searchTermProduct);
-    }, [searchTermProduct, debouncedItemNameNavigate]);
+        debouncedItemNameNavigate(searchParams.get("name"));
+    }, [searchParams.get("name"), debouncedItemNameNavigate]);
 
     const updateCartItem = useCallback((cartId: string, updates: Partial<IOrder['items'][number]>) => {
         const currentItems = orderItemsRef.current ?? [];
@@ -1083,11 +1086,11 @@ const OrderCreate = () => {
                             <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="flex flex-1 flex-wrap items-center gap-3">
                                     <div className="relative flex-1 min-w-[220px]">
-                                        <Search className="absolute left-3 top-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Search className="absolute left-3 top-1/3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search for products"
-                                            value={searchTermProduct}
-                                            onChange={(e) => setSearchTermProduct(e.target.value)}
+                                            value={searchParams.get("name")}
+                                            onChange={(e) => navigate(createQueryString('name', e.target.value))}
                                             className="h-10 pl-10 text-xs"
                                         />
                                     </div>
