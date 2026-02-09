@@ -1,10 +1,55 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, X } from "lucide-react"
 
 import { cn } from "@/src/main/webapp/app/lib/utils"
 
-const Select = SelectPrimitive.Root
+type SelectContextValue = {
+  value?: string
+  onValueChange?: (value: string) => void
+  disabled?: boolean
+}
+
+const SelectContext = React.createContext<SelectContextValue | null>(null)
+
+const Select = ({
+  value,
+  defaultValue,
+  onValueChange,
+  disabled,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => {
+  const [internalValue, setInternalValue] = React.useState(defaultValue)
+  const isControlled = value !== undefined
+  const currentValue = isControlled ? value : internalValue
+
+  const handleValueChange = React.useCallback(
+    (nextValue: string) => {
+      if (!isControlled) {
+        setInternalValue(nextValue)
+      }
+      onValueChange?.(nextValue)
+    },
+    [isControlled, onValueChange]
+  )
+
+  return (
+    <SelectContext.Provider
+      value={{
+        value: currentValue,
+        onValueChange: handleValueChange,
+        disabled,
+      }}
+    >
+      <SelectPrimitive.Root
+        value={currentValue}
+        onValueChange={handleValueChange}
+        disabled={disabled}
+        {...props}
+      />
+    </SelectContext.Provider>
+  )
+}
 
 const SelectGroup = SelectPrimitive.Group
 
@@ -12,22 +57,70 @@ const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-))
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+    clearable?: boolean
+  }
+>(({ className, children, clearable = true, ...props }, ref) => {
+  const selectContext = React.useContext(SelectContext)
+  const hasValue =
+    selectContext?.value !== undefined && selectContext.value !== ""
+  const isDisabled = props.disabled ?? selectContext?.disabled
+
+  const handleClearPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (isDisabled) {
+      return
+    }
+    selectContext?.onValueChange?.("")
+  }
+
+  const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (event.detail > 0) {
+      return
+    }
+    if (isDisabled) {
+      return
+    }
+    selectContext?.onValueChange?.("")
+  }
+
+  return (
+    <SelectPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <span className="flex items-center gap-1">
+        {clearable && hasValue ? (
+          <button
+            type="button"
+            aria-label="Clear selection"
+            className={cn(
+              "inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground",
+              isDisabled && "pointer-events-none opacity-50"
+            )}
+            onPointerDown={handleClearPointerDown}
+            onClick={handleClearClick}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+        <SelectPrimitive.Icon asChild>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </SelectPrimitive.Icon>
+      </span>
+    </SelectPrimitive.Trigger>
+  )
+})
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
 const SelectScrollUpButton = React.forwardRef<
