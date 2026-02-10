@@ -122,6 +122,37 @@ export const deleteEntity = createAsyncThunk(
 
 export const changeEntityField = createAction<ChangeFieldPayload<IUser>>('pos-user-authority/change_field');
 
+export const assignCategory = createAsyncThunk(
+  'salesmen-user/assign_category',
+  async ({ id, salesmanId, categoryId }: { id?: string; salesmanId: string; categoryId: string }, thunkAPI) => {
+    const result = await axios.post('/api/wholesale/category-assignments', {
+      id,
+      salesmanId,
+      categoryId,
+    });
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unassignCategory = createAsyncThunk(
+  'salesmen-user/unassign_category',
+  async (assignmentId: string, thunkAPI) => {
+    const result = await axios.delete(`/api/wholesale/category-assignments/${assignmentId}`);
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getCategoryAssignments = createAsyncThunk(
+  'salesmen-user/get_category_assignments',
+  async (salesmanId: string, thunkAPI) => {
+    const result = await axios.get(`/api/wholesale/category-assignments/by-salesman/${salesmanId}`);
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // slice
 
 export const UserSlice = createEntitySlice({

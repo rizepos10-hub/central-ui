@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { getEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import Select from 'app/shared/components/select/select';
 import {
   getEntity,
   updateEntity,
   reset,
   createEntity,
-  changeEntityField
+  changeEntityField,
+  assignCategory,
+  unassignCategory,
+  getCategoryAssignments
 } from './user.reducer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Save } from 'lucide-react';
 import { IUser } from 'app/shared/model/user.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { ITerm } from 'app/shared/model/term.model';
+import { toast } from 'react-toastify';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -31,6 +37,8 @@ export const UserUpdate = () => {
   const updating = useAppSelector(state => state.SalesmenUser.updating);
   const updateSuccess = useAppSelector(state => state.SalesmenUser.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+  const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
+  const [assignedCategoryIds, setAssignedCategoryIds] = useState<Map<string, string>>(new Map()); // categoryId -> assignmentId
 
   const handleClose = () => {
     navigate('/salesmen-user');
@@ -72,12 +80,112 @@ export const UserUpdate = () => {
       })
     );
 
+    dispatch(
+      getRetailCategories({
+        page: 0,
+        size: 1000,
+        sort: `id,asc`,
+      })
+    );
+
     if (isNew) {
       dispatch(reset());
+      setAssignedCategoryIds(new Map());
     } else {
-      dispatch(getEntity(id));
+      const userId = id;
+      dispatch(getEntity(userId)).then(() => {
+        // Try to fetch existing category assignments
+        if (userId) {
+          dispatch(getCategoryAssignments(userId))
+            .then((result) => {
+              if (getCategoryAssignments.fulfilled.match(result)) {
+                const assignments = result.payload || [];
+                const assignmentMap = new Map<string, string>();
+                assignments.forEach((assignment: any) => {
+                  if (assignment.categoryId && assignment.id) {
+                    assignmentMap.set(assignment.categoryId, assignment.id as string);
+                  }
+                });
+                setAssignedCategoryIds(assignmentMap);
+              }
+            })
+            .catch(() => {
+              // If endpoint doesn't exist or fails, we'll track assignments locally
+            });
+        }
+      });
     }
-  }, [updateSuccess]);
+  }, [updateSuccess, dispatch, id]);
+
+  const categoryOptions = useMemo(() => {
+    return retailCategories.map(category => ({
+      value: category.id,
+      label: category.name || 'Unnamed category',
+    }));
+  }, [retailCategories]);
+
+  const selectedCategories = useMemo(() => {
+    return Array.from(assignedCategoryIds.keys()).map(categoryId => ({
+      value: categoryId,
+      label: retailCategories.find(cat => cat.id === categoryId)?.name || 'Unknown',
+    }));
+  }, [assignedCategoryIds, retailCategories]);
+
+  const handleCategoryChange = async (selectedOptions: any[]) => {
+    if (!userEntity.id) {
+      toast.error('Please save the user first before assigning categories');
+      return;
+    }
+
+    const currentCategoryIds = new Set(Array.from(assignedCategoryIds.keys()));
+    const newCategoryIds = new Set(selectedOptions.map(opt => opt.value));
+
+    // Find categories to assign (in new but not in current)
+    const toAssign = selectedOptions.filter(opt => !currentCategoryIds.has(opt.value));
+
+    // Find categories to unassign (in current but not in new)
+    const toUnassign = Array.from(currentCategoryIds).filter(catId => !newCategoryIds.has(catId));
+
+    // Unassign categories
+    for (const categoryId of toUnassign) {
+      const assignmentId = assignedCategoryIds.get(categoryId);
+      if (assignmentId) {
+        try {
+          await dispatch(unassignCategory(assignmentId)).unwrap();
+          setAssignedCategoryIds(prev => {
+            const next = new Map(prev);
+            next.delete(categoryId);
+            return next;
+          });
+        } catch (error) {
+          toast.error(`Failed to unassign category: ${error}`);
+        }
+      }
+    }
+
+    // Assign new categories
+    for (const option of toAssign) {
+      try {
+        const result = await dispatch(
+          assignCategory({
+            salesmanId: userEntity.id,
+            categoryId: option.value,
+          })
+        ).unwrap();
+        
+        // Store the assignment ID for future unassignment
+        if (result?.id) {
+          setAssignedCategoryIds(prev => {
+            const next = new Map(prev);
+            next.set(option.value, result.id);
+            return next;
+          });
+        }
+      } catch (error) {
+        toast.error(`Failed to assign category: ${error}`);
+      }
+    }
+  };
 
   return (
     <PageWrapper>
@@ -175,6 +283,22 @@ export const UserUpdate = () => {
                   className="text-xs"
                 />
               </div>
+
+              {!isNew && (
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    Categories
+                  </Label>
+                  <Select
+                    value={selectedCategories}
+                    isMulti
+                    onChange={handleCategoryChange}
+                    options={categoryOptions}
+                    className="text-xs"
+                    placeholder="Select categories to assign"
+                  />
+                </div>
+              )}
 
               <div className="flex gap-2 pt-4">
                 <Button
