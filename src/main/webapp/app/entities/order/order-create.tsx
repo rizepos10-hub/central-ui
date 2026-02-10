@@ -190,7 +190,16 @@ const OrderCreate = () => {
                 name: 'customer',
                 value: null,
             }));
+            dispatch(changeEntityField({
+                name: 'scheduledAt',
+                value: null,
+            }));
+            dispatch(changeEntityField({
+                name: 'deliverTo',
+                value: null,
+            }));
             setPricingPointId('');
+            setScheduledAtLocal('');
             hasHydratedCart.current = true;
             return;
         }
@@ -218,14 +227,32 @@ const OrderCreate = () => {
             if (parsed?.pricingPointId) {
                 setPricingPointId(parsed.pricingPointId);
             }
+            // Synchronize scheduledAtLocal and scheduledAt
             if (parsed?.scheduledAtLocal) {
                 setScheduledAtLocal(parsed.scheduledAtLocal);
-            }
-            if (parsed?.scheduledAt) {
-                dispatch(changeEntityField({
-                    name: 'scheduledAt',
-                    value: parsed.scheduledAt,
-                }));
+                // Also set scheduledAt if scheduledAtLocal exists
+                if (parsed.scheduledAt) {
+                    dispatch(changeEntityField({
+                        name: 'scheduledAt',
+                        value: parsed.scheduledAt,
+                    }));
+                } else {
+                    // Convert scheduledAtLocal to scheduledAt if not present
+                    const dateValue = parsed.scheduledAtLocal ? toLocalISOString(new Date(parsed.scheduledAtLocal)) : null;
+                    dispatch(changeEntityField({
+                        name: 'scheduledAt',
+                        value: dateValue,
+                    }));
+                }
+            } else {
+                // Clear both if scheduledAtLocal is not present
+                setScheduledAtLocal('');
+                if (parsed?.scheduledAt) {
+                    dispatch(changeEntityField({
+                        name: 'scheduledAt',
+                        value: null,
+                    }));
+                }
             }
             if (parsed?.deliverTo) {
                 dispatch(changeEntityField({
@@ -239,6 +266,24 @@ const OrderCreate = () => {
             hasHydratedCart.current = true;
         }
     }, [cartStorageKey, dispatch, selectedRegistryId]);
+
+    // Sync scheduledAtLocal with orderEntity.scheduledAt when entity changes (e.g., after reset)
+    useEffect(() => {
+        if (!hasHydratedCart.current) {
+            return;
+        }
+        // Convert orderEntity.scheduledAt to datetime-local format for the input
+        if (orderEntity.scheduledAt) {
+            const date = new Date(orderEntity.scheduledAt);
+            const localDateTimeString = date.toISOString().slice(0, 16);
+            if (scheduledAtLocal !== localDateTimeString) {
+                setScheduledAtLocal(localDateTimeString);
+            }
+        } else if (scheduledAtLocal !== '') {
+            // Clear scheduledAtLocal if orderEntity.scheduledAt is null/undefined
+            setScheduledAtLocal('');
+        }
+    }, [orderEntity.scheduledAt]);
 
     useEffect(() => {
         if (!selectedRegistryId || !hasHydratedCart.current) {
@@ -254,7 +299,7 @@ const OrderCreate = () => {
             deliverTo: orderEntity.deliverTo ?? null,
         };
         localStorage.setItem(cartStorageKey, JSON.stringify(payload));
-    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, pricingPointId, selectedRegistryId, scheduledAtLocal]);
+    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, orderEntity.scheduledAt, pricingPointId, selectedRegistryId, scheduledAtLocal]);
 
     const getOpenTills = (ids: string[]) => {
         dispatch(
