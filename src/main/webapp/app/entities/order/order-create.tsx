@@ -94,6 +94,8 @@ const OrderCreate = () => {
     const [roleChoiceOpen, setRoleChoiceOpen] = useState(false);
     const [addressDialogOpen, setAddressDialogOpen] = useState(false);
     const [addressDialogAddress, setAddressDialogAddress] = useState<IAddress | null>(null);
+    const [mobileProductDialogOpen, setMobileProductDialogOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [tillStatus, setTillStatus] = useState<TillStatus>(null);
     const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
@@ -608,6 +610,15 @@ const OrderCreate = () => {
     }, [requiresRoleChoice, isSalesmanRole, isAdminRole]);
 
     useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024); // lg breakpoint
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
         if (!isSalesmanMode) {
             return;
         }
@@ -762,9 +773,7 @@ const OrderCreate = () => {
     };
 
     const displayUserSelectionPricingPoint = () => {
-
         const branchId = orderEntity.branchId;
-
         if (!branchId) return null;
 
         const userSelectedPricingPoint = pricingPoints.find(
@@ -775,21 +784,19 @@ const OrderCreate = () => {
 
         if (userSelectedPricingPoint) {
             return (
-                <div className="">
-                    <Select
-                        options={pricingPointOptions}
-                        value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
-                        onChange={(option) => setPricingPointId(option?.value || '')}
-                        placeholder="Select a Pricing Point"
-                        className="text-xs"
-                        isClearable
-                        isDisabled={shouldGateSalesman}
-                    />
-                </div>
+                <Select
+                    options={pricingPointOptions}
+                    value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
+                    onChange={(option) => setPricingPointId(option?.value || '')}
+                    placeholder="Pricing point"
+                    className="text-xs"
+                    isClearable
+                    isDisabled={shouldGateSalesman}
+                />
             );
         }
 
-        return <></>;
+        return null;
     }
 
 
@@ -886,6 +893,27 @@ const OrderCreate = () => {
         ]),
         []
     );
+
+    const selectedBranchName = useMemo(() => {
+        if (!orderEntity?.branchId) return null;
+        return branchRegistry.find(reg => reg.branch?.id === orderEntity.branchId)?.branch?.name;
+    }, [orderEntity.branchId, branchRegistry]);
+
+    const branchSelectOptions = useMemo(() => {
+        return branchRegistry
+            .filter((res) => {
+                if (selectedRegistryId) {
+                    return res.id === selectedRegistryId;
+                } else {
+                    return res.type === RegisterType.ONLINE;
+                }
+            })
+            .map((registry) => ({
+                value: registry.id,
+                label: registry?.branch?.name || 'Unknown Branch',
+                registry,
+            }));
+    }, [branchRegistry, selectedRegistryId]);
 
     const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
         if (action === 'input-change') {
@@ -1259,73 +1287,49 @@ const OrderCreate = () => {
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
+                                <Select
+                                    options={branchSelectOptions}
+                                    value={branchSelectOptions.find(opt => opt.registry?.branch?.id === orderEntity?.branchId) || null}
+                                    onChange={(option: any) => {
+                                        if (option?.registry) {
+                                            checkTillStatus(option.registry);
+                                        }
+                                    }}
+                                    placeholder="Select Branch"
+                                    className="text-xs min-w-[140px]"
+                                    isClearable={false}
+                                />
                                 {orderEntity?.branchId && (
-                                    <Badge
-                                        className={cn(
-                                            "rounded-full px-3 py-1 text-[10px] uppercase tracking-wider",
-                                            tillStatus === "OPENED" ? "bg-emerald-600 text-white" : "bg-rose-500 text-white"
-                                        )}
-                                    >
-                                        {tillStatus === "OPENED" ? "Till Open" : "Till Closed"}
-                                    </Badge>
-                                )}
-                                {orderEntity?.branchId && (
-                                    tillStatus !== "OPENED" ? (
-                                        <Button onClick={() => setDialogTillOpen(true)} className="h-9 text-xs">
-                                            Open Till
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={() => setCloseTillDialog(true)}
-                                            variant="destructive"
-                                            className="h-9 text-xs"
-                                        >
-                                            Close Till
-                                        </Button>
-                                    )
-                                )}
-                            </div>
-                        </div>
-                        <Separator />
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                {branchRegistry.filter((res) => {
-                                    if (selectedRegistryId) {
-                                        return res.id === selectedRegistryId;
-                                    } else {
-                                        return res.type === RegisterType.ONLINE;
-                                    }
-                                }).map((registry) => (
-                                    <div
-                                        key={registry.id}
-                                        className={cn(
-                                            "relative flex min-w-[160px] flex-1 cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2 transition hover:border-primary/60",
-                                            orderEntity?.branchId === registry?.branch?.id
-                                                ? "border-emerald-500 bg-emerald-50/40"
-                                                : "border-border/70 bg-white"
-                                        )}
-                                        onClick={() => checkTillStatus(registry)}
-                                    >
-                                        <div className="flex flex-col">
-                                            <span className="text-xs text-muted-foreground">Branch</span>
-                                            <span className="text-sm font-semibold">{registry?.branch?.name}</span>
-                                        </div>
+                                    <>
                                         <Badge
                                             className={cn(
-                                                "h-2 w-2 rounded-full p-0",
-                                                tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id)?.status === "OPENED"
-                                                    ? "bg-emerald-500"
-                                                    : "bg-rose-500"
+                                                "rounded-full px-3 py-1 text-[10px] uppercase tracking-wider",
+                                                tillStatus === "OPENED" ? "bg-emerald-600 text-white" : "bg-rose-500 text-white"
                                             )}
-                                        />
-                                    </div>
-                                ))}
+                                        >
+                                            {tillStatus === "OPENED" ? "Till Open" : "Till Closed"}
+                                        </Badge>
+                                        {tillStatus !== "OPENED" ? (
+                                            <Button onClick={() => setDialogTillOpen(true)} className="h-9 text-xs">
+                                                Open Till
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={() => setCloseTillDialog(true)}
+                                                variant="destructive"
+                                                className="h-9 text-xs"
+                                            >
+                                                Close Till
+                                            </Button>
+                                        )}
+                                    </>
+                                )}
+                                {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
+                                    <span className="text-xs text-destructive">
+                                        Please select a branch
+                                    </span>
+                                )}
                             </div>
-                            {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
-                                <div className="text-xs text-destructive">
-                                    Please select a branch
-                                </div>
-                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -1411,96 +1415,97 @@ const OrderCreate = () => {
 
             {till && (
                 <div className="grid flex-1 gap-4 lg:grid-cols-12">
-                    <div className="flex min-h-0 flex-col gap-4 lg:col-span-8 lg:h-[72vh]">
-                        <Card className="border-border/60 bg-white/90 shadow-sm">
-                            <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
-                                <div className="flex flex-1 flex-wrap items-center gap-3">
-                                    <div className="relative flex-1 min-w-[220px]">
-                                        <Search className="absolute left-3 top-1/3 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search for products"
-                                            value={searchParams.get("name")}
-                                            onChange={(e) => navigate(createQueryString('name', e.target.value))}
-                                            disabled={shouldGateSalesman}
-                                            className="h-10 pl-10 text-xs"
-                                        />
+                    {!isMobile ? (
+                        <div className="flex min-h-0 flex-col gap-4 lg:col-span-8 lg:h-[72vh]">
+                            <Card className="border-border/60 bg-white/90 shadow-sm">
+                                <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="flex flex-1 flex-wrap items-center gap-3">
+                                        <div className="relative flex-1 min-w-[220px]">
+                                            <Search className="absolute left-3 top-1/3 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search for products"
+                                                value={searchParams.get("name")}
+                                                onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                                                disabled={shouldGateSalesman}
+                                                className="h-10 pl-10 text-xs"
+                                            />
+                                        </div>
+                                        <div className={cn("min-w-[220px]", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
+                                            <DropDownFilter
+                                                placeholder={'Select Category'}
+                                                dropDownOptionType={'RETAIL_CATEGORY'}
+                                                selectedOption={searchParams.get("categoryId")}
+                                                fieldName={'categories.id'}
+                                                handleDropdownChange={(f, v) => {
+                                                    if (!v.value) {
+                                                        navigate(deleteQueryString('categoryId'));
+                                                    } else {
+                                                        navigate(createQueryString('categoryId', v.value))
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className={cn("min-w-[220px]", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
-                                        <DropDownFilter
-                                            placeholder={'Select Category'}
-                                            dropDownOptionType={'RETAIL_CATEGORY'}
-                                            selectedOption={searchParams.get("categoryId")}
-                                            fieldName={'categories.id'}
-                                            handleDropdownChange={(f, v) => {
-                                                if (!v.value) {
-                                                    navigate(deleteQueryString('categoryId'));
-                                                } else {
-                                                    navigate(createQueryString('categoryId', v.value))
-                                                }
-                                            }}
-                                        />
+                                    {/* <div className="flex flex-wrap gap-2">
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button disabled variant="secondary" className="h-8 text-xs">More Actions</Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-48">
+                                                <div className="flex flex-col gap-2">
+                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Create quote</Button>
+                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Mark as unfulfilled...</Button>
+                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Discard sale</Button>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Button disabled variant="secondary" className="h-8 text-xs">Retrieve Sale</Button>
+                                        <Button disabled variant="secondary" className="h-8 text-xs">Park Sale</Button>
+                                    </div> */}
+                                </CardContent>
+                            </Card>
+                            <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
+                                <CardContent className="flex items-center justify-between p-4 pb-2">
+                                    <div>
+                                        <p className="text-sm font-semibold">Products</p>
+                                        <p className="text-xs text-muted-foreground">Tap a tile to add it to the cart</p>
                                     </div>
-                                </div>
-                                {/* <div className="flex flex-wrap gap-2">
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button disabled variant="secondary" className="h-8 text-xs">More Actions</Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-48">
-                                            <div className="flex flex-col gap-2">
-                                                <Button variant="secondary" className='w-full h-7 text-xs'>Create quote</Button>
-                                                <Button variant="secondary" className='w-full h-7 text-xs'>Mark as unfulfilled...</Button>
-                                                <Button variant="secondary" className='w-full h-7 text-xs'>Discard sale</Button>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <Button disabled variant="secondary" className="h-8 text-xs">Retrieve Sale</Button>
-                                    <Button disabled variant="secondary" className="h-8 text-xs">Park Sale</Button>
-                                </div> */}
-                            </CardContent>
-                        </Card>
-                        <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
-                            <CardContent className="flex items-center justify-between p-4 pb-2">
-                                <div>
-                                    <p className="text-sm font-semibold">Products</p>
-                                    <p className="text-xs text-muted-foreground">Tap a tile to add it to the cart</p>
-                                </div>
-                                <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                                    {totalItems} items
-                                </Badge>
-                            </CardContent>
-                            <Separator />
-                            <ScrollArea className="flex-1 px-4 py-3">
-                                <Dialog
-                                    open={variantDialog.visible}
-                                    onOpenChange={(open) => {
-                                        if (!open) {
-                                            setVariantDialog({
-                                                visible: false,
-                                                product: {},
-                                                selectedRetailAttributes: [],
-                                                chosenVariant: null,
-                                                availableVariants: []
-                                            });
-                                        }
-                                    }}
-                                >
-                                    <DialogContent className="max-w-2xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Select Attributes</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="space-y-4 p-2">
-                                            {variantDialog.product?.attributes?.map((attr, idx) => {
-                                                return (
-                                                    <div className="space-y-2" key={idx}>
-                                                        <Label className="font-semibold">{attr.attributeTax.name}</Label>
-                                                        <RadioGroup
-                                                            value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
-                                                            onValueChange={(value) => {
-                                                                const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
-                                                                const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
+                                    <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
+                                        {totalItems} items
+                                    </Badge>
+                                </CardContent>
+                                <Separator />
+                                <ScrollArea className="flex-1 px-4 py-3">
+                                    <Dialog
+                                        open={variantDialog.visible}
+                                        onOpenChange={(open) => {
+                                            if (!open) {
+                                                setVariantDialog({
+                                                    visible: false,
+                                                    product: {},
+                                                    selectedRetailAttributes: [],
+                                                    chosenVariant: null,
+                                                    availableVariants: []
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <DialogContent className="max-w-2xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Select Attributes</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4 p-2">
+                                                {variantDialog.product?.attributes?.map((attr, idx) => {
+                                                    return (
+                                                        <div className="space-y-2" key={idx}>
+                                                            <Label className="font-semibold">{attr.attributeTax.name}</Label>
+                                                            <RadioGroup
+                                                                value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
+                                                                onValueChange={(value) => {
+                                                                    const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
+                                                                    const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
 
-                                                                if (taxonomyExistInFormValues) {
+                                                                    if (taxonomyExistInFormValues) {
                                                                     const index = variantDialog.selectedRetailAttributes.findIndex(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
                                                                     variantDialog.selectedRetailAttributes[index] = {
                                                                         id: selectedValue.id,
@@ -1576,13 +1581,14 @@ const OrderCreate = () => {
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+                                <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6")}>
                                     {products.map((product, index) => (
                                         <Tooltip key={index}>
                                             <TooltipTrigger asChild>
                                                 <Card
                                                 className={cn(
-                                                    "group h-[140px] overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md",
+                                                    "group overflow-hidden border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md",
+                                                    isMobile ? "h-auto" : "h-[140px]",
                                                     shouldGateSalesman ? "cursor-not-allowed opacity-60" : "cursor-pointer"
                                                 )}
                                                     onClick={() => {
@@ -1611,6 +1617,9 @@ const OrderCreate = () => {
                                                                     customDiscount: 0,
                                                                     accountingGroups: product.accountingGroups,
                                                                 });
+                                                                if (isMobile) {
+                                                                    setMobileProductDialogOpen(false);
+                                                                }
                                                             }
                                                         } else {
                                                             setVariantDialog({
@@ -1623,21 +1632,25 @@ const OrderCreate = () => {
                                                         }
                                                     }}
                                                 >
-                                                    <CardContent className="flex h-full flex-col p-0">
-                                                        {product.attachments[0]?.url ? (
-                                                            <img
-                                                                src={product.attachments[0]?.url}
-                                                                alt={product.name}
-                                                                className="h-[80px] w-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-[80px] items-center justify-center bg-muted/30">
-                                                                <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-                                                            </div>
+                                                    <CardContent className={cn("flex flex-col p-0", isMobile ? "p-2" : "h-full")}>
+                                                        {!isMobile && (
+                                                            <>
+                                                                {product.attachments[0]?.url ? (
+                                                                    <img
+                                                                        src={product.attachments[0]?.url}
+                                                                        alt={product.name}
+                                                                        className="h-[80px] w-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="flex h-[80px] items-center justify-center bg-muted/30">
+                                                                        <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+                                                                    </div>
+                                                                )}
+                                                            </>
                                                         )}
                                                         <div className="flex flex-1 flex-col gap-1 p-2">
                                                             <h6 className="text-xs font-semibold truncate">{product.name}</h6>
-                                                            <span className="text-[10px] text-muted-foreground">Tap to add</span>
+                                                            {!isMobile && <span className="text-[10px] text-muted-foreground">Tap to add</span>}
                                                         </div>
                                                     </CardContent>
                                                 </Card>
@@ -1656,15 +1669,30 @@ const OrderCreate = () => {
                             </div>
                         </Card>
                     </div>
+                    ) : null}
                     <div className="flex min-h-0 flex-col gap-4 lg:col-span-4 lg:h-[72vh]">
+                        {isMobile && (
+                            <div className="flex justify-end">
+                                <Button
+                                    onClick={() => setMobileProductDialogOpen(true)}
+                                    disabled={shouldGateSalesman}
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                >
+                                    <Plus className="h-3.5 w-3.5 mr-1" />
+                                    Add Item
+                                </Button>
+                            </div>
+                        )}
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
-                            <CardContent className="flex flex-col gap-3 p-4">
-                                <div className="grid gap-2">
-                                    {isSalesmanMode && !isSalesmanFlowReady && (
-                                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-                                            {salesmanGateMessage} before creating an order.
-                                        </div>
-                                    )}
+                            <CardContent className="flex flex-col gap-2 p-3">
+                                {isSalesmanMode && !isSalesmanFlowReady && (
+                                    <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive mb-1">
+                                        {salesmanGateMessage} before creating an order.
+                                    </div>
+                                )}
+                                {/* Row 1: Order Method, Customer, Pricing Point */}
+                                <div className="grid grid-cols-3 gap-2">
                                     <Select
                                         options={orderMethodOptions}
                                         value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
@@ -1680,46 +1708,42 @@ const OrderCreate = () => {
                                             )
                                             localStorage.setItem(ORDER_METHOD, option.value)
                                         }}
-                                        placeholder="Select an order method"
+                                        placeholder="Order method"
                                         className="text-xs"
                                         isDisabled={isSalesmanMode || shouldGateSalesman}
                                     />
-                                    <div className="flex flex-col gap-1">
-                                        <Label className={cn("text-xs", isSalesmanMode && missingCustomer ? "text-destructive" : undefined)}>
-                                            Customer {isSalesmanMode && <span className="text-destructive">*</span>}
-                                        </Label>
-                                        <Select
-                                            options={customerOptions}
-                                            value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
-                                            onChange={(option) => {
-                                                dispatch(changeEntityField({
-                                                    name: 'customer',
-                                                    value: option?.value ? { id: option.value } : null,
-                                                }));
-                                                dispatch(changeEntityField({
-                                                    name: 'deliverTo',
-                                                    value: null,
-                                                }));
-                                            }}
-                                            onMenuOpen={() => {
-                                                dispatch(getCustomers({
-                                                    query: '',
-                                                    size: 1000,
-                                                    sort: 'createdAt,asc',
-                                                    page: 0
-                                                }))
-                                            }}
-                                            onInputChange={handleCustomerInputChange}
-                                            components={{ MenuList: CustomerMenuList }}
-                                            placeholder="Add a customer"
-                                            className="text-xs"
-                                            isClearable
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className={cn("text-xs", isSalesmanMode && missingSchedule ? "text-destructive" : undefined)}>
-                                            Schedule At {isSalesmanMode && <span className="text-destructive">*</span>}
-                                        </Label>
+                                    <Select
+                                        options={customerOptions}
+                                        value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                        onChange={(option) => {
+                                            dispatch(changeEntityField({
+                                                name: 'customer',
+                                                value: option?.value ? { id: option.value } : null,
+                                            }));
+                                            dispatch(changeEntityField({
+                                                name: 'deliverTo',
+                                                value: null,
+                                            }));
+                                        }}
+                                        onMenuOpen={() => {
+                                            dispatch(getCustomers({
+                                                query: '',
+                                                size: 1000,
+                                                sort: 'createdAt,asc',
+                                                page: 0
+                                            }))
+                                        }}
+                                        onInputChange={handleCustomerInputChange}
+                                        components={{ MenuList: CustomerMenuList }}
+                                        placeholder="Customer"
+                                        className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                        isClearable
+                                    />
+                                    {displayUserSelectionPricingPoint() ?? <div />}
+                                </div>
+                                {/* Row 2: Schedule At (2/3), Delivery Address + Add Button (1/3) */}
+                                <div className="grid grid-cols-5 gap-2">
+                                    <div className="col-span-3">
                                         <Input
                                             type="datetime-local"
                                             value={scheduledAtLocal}
@@ -1731,14 +1755,12 @@ const OrderCreate = () => {
                                                     value: value ? toLocalISOString(new Date(value)) : null,
                                                 }));
                                             }}
-                                            className="h-9 text-xs"
+                                            className={cn("h-8 text-xs", isSalesmanMode && missingSchedule ? "border-destructive" : undefined)}
+                                            placeholder="Schedule at"
                                         />
                                     </div>
-                                    {orderEntity.orderMethod === OrderMethod.Delivery && (
-                                        <div className="flex flex-col gap-1">
-                                            <Label className={cn("text-xs", isSalesmanMode && missingDelivery ? "text-destructive" : undefined)}>
-                                                Delivery Address {isSalesmanMode && <span className="text-destructive">*</span>}
-                                            </Label>
+                                    {orderEntity.orderMethod === OrderMethod.Delivery && selectedCustomer ? (
+                                        <div className="flex gap-1 items-center col-span-2">
                                             <Select
                                                 options={deliveryAddressOptions}
                                                 value={
@@ -1758,33 +1780,28 @@ const OrderCreate = () => {
                                                         value: option?.address || null,
                                                     }));
                                                 }}
-                                                placeholder={selectedCustomer ? "Select a delivery address" : "Select a customer first"}
-                                                className="text-xs"
+                                                placeholder={selectedCustomer ? "Address" : "Select customer"}
+                                                className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
                                                 isClearable
                                                 isDisabled={!selectedCustomer}
                                             />
-                                            {!selectedCustomer?.deliveryAddresses?.length && (
-                                                <span className="text-[10px] text-muted-foreground">No delivery addresses saved.</span>
-                                            )}
-                                            <div className="flex justify-end">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 text-xs"
-                                                    disabled={!selectedCustomer}
-                                                    onClick={() => {
-                                                        setAddressDialogAddress(null);
-                                                        setAddressDialogOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus className="mr-1 h-3.5 w-3.5" />
-                                                    Add address
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 flex-shrink-0"
+                                                disabled={!selectedCustomer}
+                                                onClick={() => {
+                                                    setAddressDialogAddress(null);
+                                                    setAddressDialogOpen(true);
+                                                }}
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                            </Button>
                                         </div>
+                                    ) : (
+                                        <div />
                                     )}
-                                    {displayUserSelectionPricingPoint()}
                                 </div>
                             </CardContent>
                             <Separator />
@@ -2015,12 +2032,11 @@ const OrderCreate = () => {
                                     </div>
                                     </div>
                                     <Button
-                                        className="mt-2 mb-0 w-full flex justify-between items-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                        className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                         onClick={() => setOpenPaymentModal(true)}
                                         disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
                                     >
-                                        <span>Pay</span>
-                                        <span>${cartTotals.total.toFixed(2)}</span>
+                                        <span>Place Order</span>
                                     </Button>
                                 </div>
                             </div>
@@ -2028,6 +2044,88 @@ const OrderCreate = () => {
                     </div>
                 </div>
             )}
+
+            {/* Mobile Product Dialog */}
+            <Dialog open={mobileProductDialogOpen} onOpenChange={setMobileProductDialogOpen}>
+                <DialogContent className="max-w-full max-h-[85vh] flex flex-col p-0 overflow-hidden">
+                    <DialogHeader className="p-4 pb-2 flex-shrink-0">
+                        <DialogTitle>Add Item</DialogTitle>
+                    </DialogHeader>
+                    <div className="px-4 pb-2 flex-shrink-0">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Search for products"
+                                value={searchParams.get("name") || ''}
+                                onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                                className="h-10 pl-10 text-xs"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-y-auto px-4">
+                        <div className="space-y-2 py-2">
+                            {products.map((product, index) => (
+                                <Card
+                                    key={index}
+                                    className={cn(
+                                        "cursor-pointer border-border/60 transition hover:border-primary/60 hover:shadow-md",
+                                        shouldGateSalesman ? "cursor-not-allowed opacity-60" : ""
+                                    )}
+                                    onClick={() => {
+                                        if (shouldGateSalesman) {
+                                            return;
+                                        }
+                                        if (product.itemVariantType === "RETAIL_SIMPLE") {
+                                            if (product.askForPrice) {
+                                                setCustomPriceModalData({
+                                                    visible: true,
+                                                    product,
+                                                    price: 0
+                                                });
+                                                setMobileProductDialogOpen(false);
+                                            } else {
+                                                const defaultVariant = product.variants?.[0];
+                                                addCartItem({
+                                                    cartId: product.id + new Date().getTime().toString(),
+                                                    itemId: product.id,
+                                                    variantId: defaultVariant?.id ?? '',
+                                                    itemName: product.name,
+                                                    variantName: defaultVariant?.name ?? '',
+                                                    price: null,
+                                                    amount: 1,
+                                                    discount: {},
+                                                    selectedRetailAttributes: [],
+                                                    customDiscount: 0,
+                                                    accountingGroups: product.accountingGroups,
+                                                });
+                                                setMobileProductDialogOpen(false);
+                                            }
+                                        } else {
+                                            setVariantDialog({
+                                                visible: true,
+                                                product,
+                                                selectedRetailAttributes: [],
+                                                chosenVariant: null,
+                                                availableVariants: []
+                                            });
+                                            setMobileProductDialogOpen(false);
+                                        }
+                                    }}
+                                >
+                                    <CardContent className="p-3">
+                                        <h6 className="text-sm font-semibold break-words">{product.name}</h6>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="border-t border-border/60 p-3 flex-shrink-0">
+                        <div className="flex justify-center items-center">
+                            <PaginationFilter totalPages={Math.ceil(totalItems / 24)} />
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
             </div>
         </div>
     )

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import { filterOrders } from 'app/entities/order/order.reducer';
+import { filterAssignedOrders } from 'app/entities/order/order.reducer';
 import { getEntities as getSalesmenUsers } from 'app/entities/salesmen-user/user.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
@@ -134,7 +134,7 @@ const RouteOrders = () => {
       {
         sequenceNumber: prev.length + 1,
         orderId: '',
-        plannedArrivalTime: '',
+        plannedArrivalTime: null,
         actualArrivalTime: null,
         status: 'PENDING',
         notes: '',
@@ -179,7 +179,7 @@ const RouteOrders = () => {
 
   useEffect(() => {
     if (!isOrderModalOpen) return;
-    dispatch(filterOrders(buildOrdersQuery()));
+    dispatch(filterAssignedOrders(buildOrdersQuery()));
   }, [dispatch, isOrderModalOpen, orderLazyState, orderSearch, orderBranchId]);
 
   const handleSelectOrder = (order: IOrder) => {
@@ -384,7 +384,7 @@ const RouteOrders = () => {
                               type="datetime-local"
                               className="h-8 text-xs"
                               value={stop.plannedArrivalTime ? new Date(stop.plannedArrivalTime).toISOString().slice(0, 16) : ''}
-                              onChange={(e) => handleStopChange(index, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                              onChange={(e) => handleStopChange(index, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
                             />
                           </TableCell>
                           <TableCell>
@@ -470,7 +470,7 @@ const RouteOrders = () => {
                 variant="outline"
                 onClick={() => {
                   setOrderLazyState(prev => ({ ...prev, page: 0, first: 0 }));
-                  dispatch(filterOrders(buildOrdersQuery()));
+                  dispatch(filterAssignedOrders(buildOrdersQuery()));
                 }}
               >
                 Search
@@ -504,7 +504,7 @@ const RouteOrders = () => {
                     </TableRow>
                   )}
                   {!ordersLoading &&
-                    orders.map(order => (
+                   orders.filter(order => !stops.some(stop => stop.orderId === order.id)).map(order => (
                       <TableRow key={order.id}>
                         <TableCell>{order.sequenceNumber ?? '—'}</TableCell>
                         <TableCell className="text-xs">{order.id}</TableCell>

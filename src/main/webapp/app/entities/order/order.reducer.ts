@@ -121,6 +121,17 @@ export const filterOrders = createAsyncThunk(
   }
 );
 
+export const filterAssignedOrders = createAsyncThunk(
+  'order/filter_assigned_orders',
+  async (queryParams: any) => {
+    try {
+      const response = await axios.post<IOrder[]>(`api/wholesale/routes/assignable-orders?page=${queryParams.page}&size=${queryParams.size}&sort=${queryParams.sort}`, cleanEntity(queryParams));
+      return response;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
 
 export const getEntity = createAsyncThunk(
   'order/fetch_entity',
@@ -272,7 +283,7 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, n
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities, filterOrders), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterOrders, filterAssignedOrders), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -297,12 +308,12 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, n
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterOrders), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterOrders, filterAssignedOrders), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, createBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
+      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
