@@ -762,9 +762,7 @@ const OrderCreate = () => {
     };
 
     const displayUserSelectionPricingPoint = () => {
-
         const branchId = orderEntity.branchId;
-
         if (!branchId) return null;
 
         const userSelectedPricingPoint = pricingPoints.find(
@@ -775,21 +773,19 @@ const OrderCreate = () => {
 
         if (userSelectedPricingPoint) {
             return (
-                <div className="">
-                    <Select
-                        options={pricingPointOptions}
-                        value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
-                        onChange={(option) => setPricingPointId(option?.value || '')}
-                        placeholder="Select a Pricing Point"
-                        className="text-xs"
-                        isClearable
-                        isDisabled={shouldGateSalesman}
-                    />
-                </div>
+                <Select
+                    options={pricingPointOptions}
+                    value={pricingPointOptions.find(option => option.value === pricingPointId) || null}
+                    onChange={(option) => setPricingPointId(option?.value || '')}
+                    placeholder="Pricing point"
+                    className="text-xs"
+                    isClearable
+                    isDisabled={shouldGateSalesman}
+                />
             );
         }
 
-        return <></>;
+        return null;
     }
 
 
@@ -1658,13 +1654,14 @@ const OrderCreate = () => {
                     </div>
                     <div className="flex min-h-0 flex-col gap-4 lg:col-span-4 lg:h-[72vh]">
                         <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
-                            <CardContent className="flex flex-col gap-3 p-4">
-                                <div className="grid gap-2">
-                                    {isSalesmanMode && !isSalesmanFlowReady && (
-                                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-                                            {salesmanGateMessage} before creating an order.
-                                        </div>
-                                    )}
+                            <CardContent className="flex flex-col gap-2 p-3">
+                                {isSalesmanMode && !isSalesmanFlowReady && (
+                                    <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive mb-1">
+                                        {salesmanGateMessage} before creating an order.
+                                    </div>
+                                )}
+                                {/* Row 1: Order Method, Customer, Pricing Point */}
+                                <div className="grid grid-cols-3 gap-2">
                                     <Select
                                         options={orderMethodOptions}
                                         value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
@@ -1680,46 +1677,42 @@ const OrderCreate = () => {
                                             )
                                             localStorage.setItem(ORDER_METHOD, option.value)
                                         }}
-                                        placeholder="Select an order method"
+                                        placeholder="Order method"
                                         className="text-xs"
                                         isDisabled={isSalesmanMode || shouldGateSalesman}
                                     />
-                                    <div className="flex flex-col gap-1">
-                                        <Label className={cn("text-xs", isSalesmanMode && missingCustomer ? "text-destructive" : undefined)}>
-                                            Customer {isSalesmanMode && <span className="text-destructive">*</span>}
-                                        </Label>
-                                        <Select
-                                            options={customerOptions}
-                                            value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
-                                            onChange={(option) => {
-                                                dispatch(changeEntityField({
-                                                    name: 'customer',
-                                                    value: option?.value ? { id: option.value } : null,
-                                                }));
-                                                dispatch(changeEntityField({
-                                                    name: 'deliverTo',
-                                                    value: null,
-                                                }));
-                                            }}
-                                            onMenuOpen={() => {
-                                                dispatch(getCustomers({
-                                                    query: '',
-                                                    size: 1000,
-                                                    sort: 'createdAt,asc',
-                                                    page: 0
-                                                }))
-                                            }}
-                                            onInputChange={handleCustomerInputChange}
-                                            components={{ MenuList: CustomerMenuList }}
-                                            placeholder="Add a customer"
-                                            className="text-xs"
-                                            isClearable
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <Label className={cn("text-xs", isSalesmanMode && missingSchedule ? "text-destructive" : undefined)}>
-                                            Schedule At {isSalesmanMode && <span className="text-destructive">*</span>}
-                                        </Label>
+                                    <Select
+                                        options={customerOptions}
+                                        value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                        onChange={(option) => {
+                                            dispatch(changeEntityField({
+                                                name: 'customer',
+                                                value: option?.value ? { id: option.value } : null,
+                                            }));
+                                            dispatch(changeEntityField({
+                                                name: 'deliverTo',
+                                                value: null,
+                                            }));
+                                        }}
+                                        onMenuOpen={() => {
+                                            dispatch(getCustomers({
+                                                query: '',
+                                                size: 1000,
+                                                sort: 'createdAt,asc',
+                                                page: 0
+                                            }))
+                                        }}
+                                        onInputChange={handleCustomerInputChange}
+                                        components={{ MenuList: CustomerMenuList }}
+                                        placeholder="Customer"
+                                        className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                        isClearable
+                                    />
+                                    {displayUserSelectionPricingPoint() ?? <div />}
+                                </div>
+                                {/* Row 2: Schedule At (2/3), Delivery Address + Add Button (1/3) */}
+                                <div className="grid grid-cols-5 gap-2">
+                                    <div className="col-span-3">
                                         <Input
                                             type="datetime-local"
                                             value={scheduledAtLocal}
@@ -1731,14 +1724,12 @@ const OrderCreate = () => {
                                                     value: value ? toLocalISOString(new Date(value)) : null,
                                                 }));
                                             }}
-                                            className="h-9 text-xs"
+                                            className={cn("h-8 text-xs", isSalesmanMode && missingSchedule ? "border-destructive" : undefined)}
+                                            placeholder="Schedule at"
                                         />
                                     </div>
-                                    {orderEntity.orderMethod === OrderMethod.Delivery && (
-                                        <div className="flex flex-col gap-1">
-                                            <Label className={cn("text-xs", isSalesmanMode && missingDelivery ? "text-destructive" : undefined)}>
-                                                Delivery Address {isSalesmanMode && <span className="text-destructive">*</span>}
-                                            </Label>
+                                    {orderEntity.orderMethod === OrderMethod.Delivery && selectedCustomer ? (
+                                        <div className="flex gap-1 items-center col-span-2">
                                             <Select
                                                 options={deliveryAddressOptions}
                                                 value={
@@ -1758,33 +1749,28 @@ const OrderCreate = () => {
                                                         value: option?.address || null,
                                                     }));
                                                 }}
-                                                placeholder={selectedCustomer ? "Select a delivery address" : "Select a customer first"}
-                                                className="text-xs"
+                                                placeholder={selectedCustomer ? "Address" : "Select customer"}
+                                                className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
                                                 isClearable
                                                 isDisabled={!selectedCustomer}
                                             />
-                                            {!selectedCustomer?.deliveryAddresses?.length && (
-                                                <span className="text-[10px] text-muted-foreground">No delivery addresses saved.</span>
-                                            )}
-                                            <div className="flex justify-end">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 text-xs"
-                                                    disabled={!selectedCustomer}
-                                                    onClick={() => {
-                                                        setAddressDialogAddress(null);
-                                                        setAddressDialogOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus className="mr-1 h-3.5 w-3.5" />
-                                                    Add address
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 flex-shrink-0"
+                                                disabled={!selectedCustomer}
+                                                onClick={() => {
+                                                    setAddressDialogAddress(null);
+                                                    setAddressDialogOpen(true);
+                                                }}
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                            </Button>
                                         </div>
+                                    ) : (
+                                        <div />
                                     )}
-                                    {displayUserSelectionPricingPoint()}
                                 </div>
                             </CardContent>
                             <Separator />
