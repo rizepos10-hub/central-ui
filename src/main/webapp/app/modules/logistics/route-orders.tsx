@@ -3,10 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { filterAssignedOrders } from 'app/entities/order/order.reducer';
-import { getEntities as getSalesmenUsers } from 'app/entities/salesmen-user/user.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import Select from 'app/shared/components/select/select';
 
 import { createRoute, deleteRoute, fetchRoute, updateRoute } from './logistics.reducer';
 import { IWholesaleRoute, IWholesaleRouteStop, WholesaleRouteStatus, WholesaleRouteStopStatus } from './logistics.model';
@@ -30,6 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select as UiSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertTriangle, Copy, ExternalLink } from 'lucide-react';
 
 const RouteOrders = () => {
   const { routeId } = useParams<{ routeId: string }>();
@@ -41,7 +40,6 @@ const RouteOrders = () => {
   const loading = useAppSelector(state => state.logistics.loading);
   const updating = useAppSelector(state => state.logistics.updating);
   const branches = useAppSelector(state => state.branch.entities);
-  const salesmenUsers = useAppSelector(state => state.SalesmenUser.entities);
   const orders = useAppSelector(state => state.order.entities);
   const ordersLoading = useAppSelector(state => state.order.loading);
   const totalOrders = useAppSelector(state => state.order.totalOrders || 0);
@@ -50,7 +48,6 @@ const RouteOrders = () => {
   const [status, setStatus] = useState<WholesaleRouteStatus | ''>('');
   const [routeDate, setRouteDate] = useState('');
   const [selectedBranchId, setSelectedBranchId] = useState('');
-  const [selectedSalesmenIds, setSelectedSalesmenIds] = useState<string[]>([]);
   const [stops, setStops] = useState<IWholesaleRouteStop[]>([]);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [activeStopIndex, setActiveStopIndex] = useState<number | null>(null);
@@ -66,7 +63,6 @@ const RouteOrders = () => {
 
   useEffect(() => {
     dispatch(getBranches({}));
-    dispatch(getSalesmenUsers({ page: 0, size: 1000, sort: 'id,asc' }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -82,7 +78,6 @@ const RouteOrders = () => {
       setRouteDate(new Date().toISOString().slice(0, 16));
       setSelectedBranchId('');
       setStops([]);
-      setSelectedSalesmenIds([]);
       return;
     }
 
@@ -92,7 +87,6 @@ const RouteOrders = () => {
       setRouteDate(route.routeDate ? new Date(route.routeDate).toISOString().slice(0, 16) : '');
       setSelectedBranchId(route.warehouseBranchId || '');
       setStops(route.stops || []);
-      setSelectedSalesmenIds(route.salesmanIds || []);
     }
   }, [route, isCreateMode]);
 
@@ -104,7 +98,6 @@ const RouteOrders = () => {
       status: status || route.status,
       routeDate: nextRouteDate,
       warehouseBranchId: selectedBranchId || route.warehouseBranchId,
-      salesmanIds: selectedSalesmenIds,
       stops,
     };
     if (isCreateMode) {
@@ -129,6 +122,7 @@ const RouteOrders = () => {
     branches.find(branch => branch.id === branchId)?.name || '—';
 
   const handleAddStop = () => {
+    const newIndex = stops.length;
     setStops(prev => [
       ...prev,
       {
@@ -140,6 +134,9 @@ const RouteOrders = () => {
         notes: '',
       },
     ]);
+    // Automatically open the order dialog for the newly added stop
+    setActiveStopIndex(newIndex);
+    setIsOrderModalOpen(true);
   };
 
   const handleRemoveStop = (index: number) => {
@@ -305,31 +302,40 @@ const RouteOrders = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Navigation URL (auto)</Label>
-                  {route?.navigationUrl ? (
-                    <a className="text-sm text-primary hover:underline" href={route.navigationUrl} target="_blank" rel="noreferrer">
-                      Open navigation link
-                    </a>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">—</div>
-                  )}
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-xs">Salesmen</Label>
-                  <Select
-                    isMulti
-                    options={salesmenUsers.map(user => ({
-                      label: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.login || user.id,
-                      value: user.id,
-                    }))}
-                    value={salesmenUsers
-                      .map(user => ({
-                        label: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.login || user.id,
-                        value: user.id,
-                      }))
-                      .filter(option => selectedSalesmenIds.includes(option.value))}
-                    onChange={(options) => setSelectedSalesmenIds(options?.map(option => option.value) || [])}
-                    placeholder="Select salesmen"
-                  />
+                  <div className="flex items-center gap-1">
+                    <Input
+                      value={route?.navigationUrl || ''}
+                      readOnly
+                      placeholder="No navigation URL available"
+                      className="flex-1 p-2"
+                    />
+                    {route?.navigationUrl && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-10 w-10 p-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(route.navigationUrl);
+                          }}
+                          title="Copy URL"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-10 w-10 p-2"
+                          onClick={() => {
+                            window.open(route.navigationUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                          title="Open in new tab"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -373,6 +379,12 @@ const RouteOrders = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
+                              {!stop.orderId && (
+                                <div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-1 text-sm text-yellow-800">
+                                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                                  <span>No order selected</span>
+                                </div>
+                              )}
                               <span className="text-xs">{stop.orderId || '—'}</span>
                               <Button variant="outline" size="sm" onClick={() => openOrderModal(index)}>
                                 Select

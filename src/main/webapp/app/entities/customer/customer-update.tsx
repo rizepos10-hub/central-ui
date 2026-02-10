@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { ArrowLeft, Save, Pencil, Trash2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Pencil, Trash2, Plus } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -25,9 +25,8 @@ import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import AsyncSelect from 'app/shared/components/select/async-select';
 import { ILoyaltyCard } from 'app/shared/model/loyalty-card.model';
-import { AddressTypeEnum, IAddress } from 'app/shared/model/address.model';
-import { v4 as uuidv4 } from 'uuid';
-import { COUNTRIES } from './customer-addresses';
+import { IAddress } from 'app/shared/model/address.model';
+import DeliveryAddressDialog from './components/DeliveryAddressDialog';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { IBranch } from 'app/shared/model/branch.model';
@@ -35,7 +34,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,16 +75,10 @@ export const CustomerUpdate = ({
     isOpen: false,
     address: null,
   });
-  const [currentAddress, setCurrentAddress] = useState<IAddress | null>(null);
   const [confirmAssignCardOpen, setConfirmAssignCardOpen] = useState(false);
   const [deleteAddressConfirm, setDeleteAddressConfirm] = useState<{ open: boolean; address: IAddress | null }>({ open: false, address: null });
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
-  useEffect(() => {
-    if (addressDialogOptions.isOpen) {
-      setCurrentAddress(addressDialogOptions.address || {});
-    }
-  }, [addressDialogOptions.isOpen]);
 
   const handleBranchPricingPointChange = (branchId, pricingPoint) => {
     dispatch(
@@ -238,41 +230,12 @@ export const CustomerUpdate = ({
     setDeleteAddressConfirm({ open: false, address: null });
   };
 
-  const handleAddressChange = (fieldName, value) => {
-    setCurrentAddress(prevState => ({
-      ...prevState,
-      [fieldName]: value,
-    }));
-  };
-
-  const handleCloseAddressDialog = () => {
-    let updatedAddresses = [...(customerEntity.deliveryAddresses || [])];
-    if (currentAddress.id) {
-      // Update existing address
-      updatedAddresses = updatedAddresses.map(address => {
-        if (address.id === currentAddress.id) {
-          return currentAddress;
-        } else {
-          return address;
-        }
-      });
-    } else {
-      // Add new address
-      currentAddress.id = uuidv4();
-      updatedAddresses.push(currentAddress);
+  const handleAddressSaved = (savedAddress: IAddress, updatedCustomer: ICustomer) => {
+    // API response will update Redux state automatically, no need to manually update local state
+    // Optionally refresh the customer entity to get the latest data
+    if (updatedCustomer.id) {
+      dispatch(getEntity(updatedCustomer.id));
     }
-
-    dispatch(
-      changeEntityField({
-        name: 'deliveryAddresses',
-        value: updatedAddresses,
-      })
-    );
-
-    setAddressDialogOptions({
-      isOpen: false,
-      address: null,
-    });
   };
 
   const getPricingPointsPerBranch = (branchId) => {
@@ -614,140 +577,15 @@ export const CustomerUpdate = ({
       </Card>
 
       {/* Address Dialog */}
-      <Dialog open={addressDialogOptions.isOpen} onOpenChange={(open) => {
-        if (!open) {
-          setAddressDialogOptions({ isOpen: false, address: null });
-        }
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base">Address Details</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Contact Person Name</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.contactPersonName || ''}
-                onChange={e => handleAddressChange('contactPersonName', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Phone Number</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.phoneNumber || ''}
-                onChange={e => handleAddressChange('phoneNumber', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1 col-span-2">
-              <Label className="text-xs">Address</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.address || ''}
-                onChange={e => handleAddressChange('address', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Address Type</Label>
-              <Select
-                value={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val })).find(opt => opt.value === currentAddress?.addressType) || null}
-                options={Object.values(AddressTypeEnum).map(val => ({ label: val, value: val }))}
-                onChange={option => handleAddressChange('addressType', option?.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Country/Region</Label>
-              <Select
-                value={COUNTRIES.map(c => ({ label: c.name, value: c.name })).find(opt => opt.value === currentAddress?.country) || null}
-                options={COUNTRIES.map(c => ({ label: c.name, value: c.name }))}
-                onChange={option => handleAddressChange('country', option?.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">City</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.city || ''}
-                onChange={e => handleAddressChange('city', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Street</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.street || ''}
-                onChange={e => handleAddressChange('street', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">State</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.state || ''}
-                onChange={e => handleAddressChange('state', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Floor</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.floor || ''}
-                onChange={e => handleAddressChange('floor', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Postal Code</Label>
-              <Input
-                className="h-8 text-xs"
-                value={currentAddress?.postalCode || ''}
-                onChange={e => handleAddressChange('postalCode', e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Longitude</Label>
-              <Input
-                className="h-8 text-xs"
-                type="number"
-                step="0.00000001"
-                value={currentAddress?.longitude ?? ''}
-                onChange={e => handleAddressChange('longitude', e.target.value ? parseFloat(e.target.value) : null)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs">Latitude</Label>
-              <Input
-                className="h-8 text-xs"
-                type="number"
-                step="0.00000001"
-                value={currentAddress?.latitude ?? ''}
-                onChange={e => handleAddressChange('latitude', e.target.value ? parseFloat(e.target.value) : null)}
-              />
-            </div>
-          </div>
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => setAddressDialogOptions({ isOpen: false, address: null })}
-            >
-              <X className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={handleCloseAddressDialog}
-            >
-              <Save className="h-4 w-4 mr-1" />
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeliveryAddressDialog
+        open={addressDialogOptions.isOpen}
+        onOpenChange={(open) => {
+          setAddressDialogOptions({ isOpen: open, address: open ? addressDialogOptions.address : null });
+        }}
+        customer={customerEntity}
+        address={addressDialogOptions.address}
+        onSaved={handleAddressSaved}
+      />
 
       {/* Confirm Assign Card AlertDialog */}
       <AlertDialog open={confirmAssignCardOpen} onOpenChange={setConfirmAssignCardOpen}>

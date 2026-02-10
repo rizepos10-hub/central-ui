@@ -38,12 +38,38 @@ const DeliveryAddressDialog = ({
 
   useEffect(() => {
     if (!open) return;
-    setCurrentAddress(address ? { ...address } : { ...emptyAddress });
+    // Create a clean address object with only serializable properties
+    if (address) {
+      const cleanedAddress: IAddress = {
+        id: address.id,
+        address: address.address,
+        addressType: address.addressType,
+        contactPersonName: address.contactPersonName,
+        phoneNumber: address.phoneNumber,
+        floor: address.floor,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country,
+        // Convert to numbers if they're strings (API sometimes returns strings)
+        latitude: typeof address.latitude === 'string' ? parseFloat(address.latitude) : address.latitude,
+        longitude: typeof address.longitude === 'string' ? parseFloat(address.longitude) : address.longitude,
+      };
+      setCurrentAddress(cleanedAddress);
+    } else {
+      setCurrentAddress({ ...emptyAddress });
+    }
   }, [address, open]);
 
   const mapCenter = useMemo(() => {
-    if (currentAddress.latitude != null && currentAddress.longitude != null) {
-      return { lat: currentAddress.latitude, lng: currentAddress.longitude };
+    const lat = typeof currentAddress.latitude === 'number' ? currentAddress.latitude : 
+                (currentAddress.latitude != null ? parseFloat(String(currentAddress.latitude)) : null);
+    const lng = typeof currentAddress.longitude === 'number' ? currentAddress.longitude : 
+                (currentAddress.longitude != null ? parseFloat(String(currentAddress.longitude)) : null);
+    
+    if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
+      return { lat, lng };
     }
     return { lat: 0, lng: 0 };
   }, [currentAddress.latitude, currentAddress.longitude]);
@@ -87,9 +113,26 @@ const DeliveryAddressDialog = ({
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!customer?.id) return;
+    if (!customer) return;
     setSaving(true);
-    const updatedAddress = { ...currentAddress };
+    
+    // Ensure currentAddress is clean and serializable
+    const updatedAddress: IAddress = {
+      id: currentAddress.id || uuidv4(),
+      address: currentAddress.address,
+      addressType: currentAddress.addressType,
+      contactPersonName: currentAddress.contactPersonName,
+      phoneNumber: currentAddress.phoneNumber,
+      floor: currentAddress.floor,
+      street: currentAddress.street,
+      city: currentAddress.city,
+      state: currentAddress.state,
+      postalCode: currentAddress.postalCode,
+      country: currentAddress.country,
+      latitude: currentAddress.latitude,
+      longitude: currentAddress.longitude,
+    };
+
     const updatedAddresses = [...(customer.deliveryAddresses || [])];
     if (updatedAddress.id) {
       const index = updatedAddresses.findIndex(item => item.id === updatedAddress.id);
@@ -99,18 +142,25 @@ const DeliveryAddressDialog = ({
         updatedAddresses.push(updatedAddress);
       }
     } else {
-      updatedAddress.id = uuidv4();
       updatedAddresses.push(updatedAddress);
     }
 
+    // Create customer object with only the necessary fields - let cleanEntity and axios handle serialization
     const updatedCustomer: ICustomer = {
       ...customer,
       deliveryAddresses: updatedAddresses,
     };
 
-    const result = await dispatch(updateEntity(updatedCustomer));
-    if (updateEntity.fulfilled.match(result)) {
-      onSaved?.(updatedAddress, result.payload.data);
+    // If customer has an ID, save via API; otherwise, just update local state
+    if (customer.id) {
+      const result = await dispatch(updateEntity(updatedCustomer));
+      if (updateEntity.fulfilled.match(result)) {
+        onSaved?.(updatedAddress, result.payload.data);
+        onOpenChange(false);
+      }
+    } else {
+      // For new customers, just call the callback with local state
+      onSaved?.(updatedAddress, updatedCustomer);
       onOpenChange(false);
     }
     setSaving(false);
@@ -242,15 +292,15 @@ const DeliveryAddressDialog = ({
             <Label className="text-xs">Pin location (click to set)</Label>
             <div className="h-[360px] w-full overflow-hidden rounded-md border border-border">
               <Map
-                defaultZoom={currentAddress.latitude != null && currentAddress.longitude != null ? 14 : 3}
-                center={mapCenter}
+                defaultZoom={mapCenter.lat !== 0 && mapCenter.lng !== 0 ? 14 : 3}
+                defaultCenter={mapCenter}
                 onClick={handleMapClick}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
                 style={{ width: '100%', height: '100%' }}
               >
-                {currentAddress.latitude != null && currentAddress.longitude != null && (
-                  <Marker position={{ lat: currentAddress.latitude, lng: currentAddress.longitude }} />
+                {mapCenter.lat !== 0 && mapCenter.lng !== 0 && (
+                  <Marker position={mapCenter} />
                 )}
                 <MapControl position={ControlPosition.TOP_CENTER}>
                   <div className="rounded bg-white/90 px-2 py-1 text-[10px] text-muted-foreground shadow">
@@ -273,7 +323,7 @@ const DeliveryAddressDialog = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!customer?.id || saving}
+            disabled={!customer || saving}
             className="h-8 text-xs"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Address'}
