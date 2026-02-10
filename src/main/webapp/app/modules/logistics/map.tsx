@@ -105,12 +105,104 @@ const MapRoutesOverlay = ({
   return null;
 };
 
+// Convert navigation URL to embeddable iframe URL
+const convertToEmbedUrl = (navigationUrl?: string): string | null => {
+  if (!navigationUrl) return null;
+  try {
+    const url = new URL(navigationUrl);
+    const origin = url.searchParams.get('origin');
+    const destination = url.searchParams.get('destination');
+    const waypoints = url.searchParams.get('waypoints');
+    
+    if (!origin || !destination) return null;
+    
+    // Build embed URL - Google Maps Embed API format
+    const embedUrl = new URL('https://www.google.com/maps/embed/v1/directions');
+    embedUrl.searchParams.set('key', typeof GOOGLE_MAPS_API_KEY !== 'undefined' ? GOOGLE_MAPS_API_KEY : '');
+    embedUrl.searchParams.set('origin', origin);
+    embedUrl.searchParams.set('destination', destination);
+    if (waypoints) {
+      embedUrl.searchParams.set('waypoints', waypoints);
+    }
+    
+    return embedUrl.toString();
+  } catch (error) {
+    return null;
+  }
+};
+
+// Combine all routes into one iframe URL with all waypoints
+const combineAllRoutesToEmbedUrl = (routes: RouteWithPath[]): string | null => {
+  if (routes.length === 0) return null;
+  
+  try {
+    // Collect all origins, destinations, and waypoints from all routes
+    const allWaypoints: string[] = [];
+    let firstOrigin: string | null = null;
+    let lastDestination: string | null = null;
+    
+    routes.forEach(route => {
+      if (!route.navigationUrl) return;
+      
+      try {
+        const url = new URL(route.navigationUrl);
+        const origin = url.searchParams.get('origin');
+        const destination = url.searchParams.get('destination');
+        const waypoints = url.searchParams.get('waypoints');
+        
+        if (origin && !firstOrigin) {
+          firstOrigin = origin;
+        }
+        
+        if (destination) {
+          lastDestination = destination;
+        }
+        
+        if (waypoints) {
+          // Split waypoints and add them
+          const wpArray = waypoints.split('|').filter(Boolean);
+          allWaypoints.push(...wpArray);
+        }
+        
+        // Add origin and destination as waypoints for routes in between
+        if (origin && firstOrigin && origin !== firstOrigin) {
+          allWaypoints.push(origin);
+        }
+        if (destination && lastDestination && destination !== lastDestination) {
+          allWaypoints.push(destination);
+        }
+      } catch (e) {
+        // Skip invalid URLs
+      }
+    });
+    
+    if (!firstOrigin || !lastDestination) return null;
+    
+    // Build embed URL with all waypoints
+    const embedUrl = new URL('https://www.google.com/maps/embed/v1/directions');
+    embedUrl.searchParams.set('key', typeof GOOGLE_MAPS_API_KEY !== 'undefined' ? GOOGLE_MAPS_API_KEY : '');
+    embedUrl.searchParams.set('origin', firstOrigin);
+    embedUrl.searchParams.set('destination', lastDestination);
+    
+    // Combine all waypoints (limit to 25 for API)
+    if (allWaypoints.length > 0) {
+      const limitedWaypoints = allWaypoints.slice(0, 25).join('|');
+      embedUrl.searchParams.set('waypoints', limitedWaypoints);
+    }
+    
+    return embedUrl.toString();
+  } catch (error) {
+    return null;
+  }
+};
+
 const LogisticsMap = () => {
   const dispatch = useAppDispatch();
   const routes = useAppSelector(state => state.logistics.entities);
   const loading = useAppSelector(state => state.logistics.loading);
   const [selectedRoute, setSelectedRoute] = useState<RouteWithPath | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'map' | 'iframe'>('iframe');
 
   useEffect(() => {
     dispatch(fetchRoutes({ page: 0, size: 1000, sort: 'routeDate,desc' }));
@@ -119,7 +211,11 @@ const LogisticsMap = () => {
   const handleRouteSelect = useCallback((route: RouteWithPath) => {
     setSelectedRoute(route);
     setDialogOpen(true);
-  }, []);
+    // If in iframe mode, switch to show the selected route
+    if (viewMode === 'iframe') {
+      // The embedUrl will update automatically via useMemo
+    }
+  }, [viewMode]);
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -140,31 +236,79 @@ const LogisticsMap = () => {
   const defaultCenter = useMemo(() => ({ lat: 42.315, lng: -83.036 }), []);
   const mapCenter = useMemo(() => routesWithPath[0]?.path?.[0] || defaultCenter, [routesWithPath, defaultCenter]);
 
+  // Use selected route for iframe, or combine all routes if none selected
+  const embedUrl = useMemo(() => {
+    if (selectedRoute) {
+      // Show selected route
+      return convertToEmbedUrl(selectedRoute.navigationUrl);
+    } else if (routesWithPath.length > 0) {
+      // Combine all routes into one iframe
+      return combineAllRoutesToEmbedUrl(routesWithPath);
+    }
+    return null;
+  }, [selectedRoute, routesWithPath]);
+
   return (
     <PageWrapper className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Route Map</CardTitle>
+          <div className="flex gap-2 items-center">
+            {viewMode === 'iframe' && (
+              <span className="text-sm text-muted-foreground mr-2">
+                {selectedRoute 
+                  ? `Showing: ${selectedRoute.name || 'Route'}` 
+                  : `Showing: All ${routesWithPath.length} routes combined`}
+              </span>
+            )}
+            <Button
+              variant={viewMode === 'map' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('map')}
+            >
+              Custom Map ({routesWithPath.length})
+            </Button>
+            <Button
+              variant={viewMode === 'iframe' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('iframe')}
+              disabled={!embedUrl}
+            >
+              Google Maps
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="h-[560px] p-0">
-          <Map
-            id="logistics-map"
-            defaultCenter={mapCenter}
-            defaultZoom={11.2}
-            style={{ width: '100%', height: '100%' }}
-            mapTypeControl={false}
-            fullscreenControl={false}
-            streetViewControl={false}
-          >
-            <MapRoutesOverlay routes={routesWithPath} onRouteClick={handleRouteSelect} />
-            {routesWithPath.map(route => (
-              <Marker
-                key={route.id}
-                position={route.path[0]}
-                label={{ text: route.name || '', fontWeight: '600' }}
-              />
-            ))}
-          </Map>
+          {viewMode === 'iframe' && embedUrl ? (
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              src={embedUrl}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          ) : (
+            <Map
+              id="logistics-map"
+              defaultCenter={mapCenter}
+              defaultZoom={11.2}
+              style={{ width: '100%', height: '100%' }}
+              mapTypeControl={false}
+              fullscreenControl={false}
+              streetViewControl={false}
+            >
+              <MapRoutesOverlay routes={routesWithPath} onRouteClick={handleRouteSelect} />
+              {routesWithPath.map(route => (
+                <Marker
+                  key={route.id}
+                  position={route.path[0]}
+                  label={{ text: route.name || '', fontWeight: '600' }}
+                />
+              ))}
+            </Map>
+          )}
         </CardContent>
       </Card>
 
