@@ -2015,12 +2015,11 @@ const OrderCreate = () => {
                                     </div>
                                     </div>
                                     <Button
-                                        className="mt-2 mb-0 w-full flex justify-between items-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                        className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                         onClick={() => setOpenPaymentModal(true)}
                                         disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
                                     >
-                                        <span>Pay</span>
-                                        <span>${cartTotals.total.toFixed(2)}</span>
+                                        <span>Place Order</span>
                                     </Button>
                                 </div>
                             </div>

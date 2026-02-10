@@ -134,7 +134,7 @@ const RouteOrders = () => {
       {
         sequenceNumber: prev.length + 1,
         orderId: '',
-        plannedArrivalTime: '',
+        plannedArrivalTime: null,
         actualArrivalTime: null,
         status: 'PENDING',
         notes: '',
@@ -384,7 +384,7 @@ const RouteOrders = () => {
                               type="datetime-local"
                               className="h-8 text-xs"
                               value={stop.plannedArrivalTime ? new Date(stop.plannedArrivalTime).toISOString().slice(0, 16) : ''}
-                              onChange={(e) => handleStopChange(index, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                              onChange={(e) => handleStopChange(index, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
                             />
                           </TableCell>
                           <TableCell>
