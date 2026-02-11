@@ -1,5 +1,6 @@
 import { IBranch } from './branch.model';
 import { SourceType } from './ENUMS/source-type.model';
+import { IPaymentMethodSetting } from './payment-method-setting.model';
 import { IProfileGroup } from './TAX/profile-group.model';
 
 export interface IServiceCharge {
@@ -34,7 +35,7 @@ export interface IServiceChargeSetting {
 
 export interface ServiceChargeApplicableOn {
   orderMethods?: ServiceChargeOrderMethod[];
-  transactionMethods?: TransactionMethodEnum[];
+  transactionMethods?: IPaymentMethodSetting[];
   orderSources?: SourceType[];
 }
 
@@ -61,6 +62,7 @@ export enum TransactionMethodEnum {
   japanCreditBureau = "japanCreditBureau",
   electronicBenefitTransferCashBenefit = "electronicBenefitTransferCashBenefit",
   electronicBenefitTransferFoodStamp = "electronicBenefitTransferFoodStamp",
+  custom = "custom",
   convergeLightbox = "convergeLightbox",
 }
 

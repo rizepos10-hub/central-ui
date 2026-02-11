@@ -676,6 +676,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Payment Method Settings',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/payment-method-setting',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Discounts',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/discount',

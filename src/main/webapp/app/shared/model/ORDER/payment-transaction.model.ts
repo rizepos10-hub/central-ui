@@ -8,8 +8,15 @@ export interface IPaymentTransaction extends IOrderAudit {
   description?: string;
   dateTime?: string;
   type?: TransactionType | string;
-  method?: TransactionMethod | string;
+  method?: IPaymentMethodSetting;
   status?: string;
+}
+
+export interface IPaymentMethodSetting {
+  id?: string;
+  transactionMethod?: TransactionMethod;
+  name?: string;
+  show?: boolean;
 }
 
 export const defaultValue: Readonly<IPaymentTransaction> = {};

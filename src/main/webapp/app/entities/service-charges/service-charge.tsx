@@ -546,7 +546,7 @@ export const ServiceCharge = () => {
                     {charge.setting?.applicableOn?.orderSources?.map(os => formatServiceChargeOrderSource(os)).join(', ') || '-'}
                   </TableCell>
                   <TableCell className="text-xs">
-                    {charge.setting?.applicableOn?.transactionMethods?.map(tm => formatTransactionMethod(tm)).join(', ') || '-'}
+                    {charge.setting?.applicableOn?.transactionMethods?.map(tm => formatTransactionMethod(tm.name)).join(', ') || '-'}
                   </TableCell>
                   <TableCell className="text-xs">{editColumnTemplate(charge)}</TableCell>
                   <TableCell className="text-xs">{deleteColumnTemplate(charge)}</TableCell>
