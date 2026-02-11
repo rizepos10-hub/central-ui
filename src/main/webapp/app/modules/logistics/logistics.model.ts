@@ -1,3 +1,5 @@
+import { IOrder } from 'app/shared/model/ORDER/order.model';
+
 export enum WholesaleRouteStatus {
   PLANNED = 'PLANNED',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -14,6 +16,7 @@ export enum WholesaleRouteStopStatus {
 export interface IWholesaleRouteStop {
   sequenceNumber?: number;
   orderId?: string;
+  order?: IOrder;
   plannedArrivalTime?: string;
   actualArrivalTime?: string | null;
   status?: WholesaleRouteStopStatus | string;
