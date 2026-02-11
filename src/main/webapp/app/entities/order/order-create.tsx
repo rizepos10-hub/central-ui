@@ -4,11 +4,11 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { calculateItemPrice, changeEntityField, createEntity, reset } from './order.reducer';
+import { calculateItemPrice, changeEntityField, createEntity, updateEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { IVariantPackage } from 'app/shared/model/ITEM/retail/variable-item.model';
@@ -65,9 +65,11 @@ import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddr
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const ORDER_METHOD = 'orderMethod';
     const orderEntity: IOrder = useAppSelector(state => state.order.entity);
     const orderLoading = useAppSelector(state => state.order.loading);
+    
     const products: IProduct[] = useAppSelector(state => state.product.entities)
     const totalItems: number = useAppSelector(state => state.product.totalItems)
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
@@ -76,6 +78,12 @@ const OrderCreate = () => {
     const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
+    
+    // Check if we're in edit mode
+    const locationState = (location.state as { editOrder?: IOrder; orderId?: string } | null) || null;
+    const editOrderData = locationState?.editOrder;
+    const editOrderId = locationState?.orderId;
+    const isEditMode = !!editOrderId && !!editOrderData;
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
@@ -133,6 +141,8 @@ const OrderCreate = () => {
     const isFirstContextRun = useRef(true);
     const hasHydratedCart = useRef(false);
     const hasInitializedOrder = useRef(false);
+    const hasInitializedEditOrder = useRef(false);
+    const hasRecalculatedEditTaxes = useRef(false);
     const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
     const requiresRoleChoice = isSalesmanRole && isAdminRole;
@@ -166,22 +176,36 @@ const OrderCreate = () => {
     }, [orderEntity.items]);
 
     useEffect(() => {
+        // Skip reset logic in edit mode - edit mode handles its own initialization
+        if (isEditMode) {
+            console.log('fixing branch... skipping reset in edit mode');
+            hasInitializedOrder.current = true;
+            return;
+        }
         if (!selectedRegistryId || hasInitializedOrder.current) {
             return;
         }
         hasInitializedOrder.current = true;
         const storedCart = localStorage.getItem(cartStorageKey);
         if (!storedCart) {
+            console.log('fixing branch... calling reset() - this should not happen in edit mode');
             dispatch(reset());
         }
-    }, [cartStorageKey, dispatch, selectedRegistryId]);
+    }, [cartStorageKey, dispatch, selectedRegistryId, isEditMode]);
 
     useEffect(() => {
+        // Skip cart hydration in edit mode - we load data from location state instead
+        if (isEditMode) {
+            console.log('fixing branch... skipping cart hydration in edit mode');
+            hasHydratedCart.current = true;
+            return;
+        }
         if (!selectedRegistryId) {
             return;
         }
         const storedCart = localStorage.getItem(cartStorageKey);
         if (!storedCart) {
+            console.log('fixing branch... clearing fields in cart hydration - this should not happen in edit mode');
             dispatch(changeEntityField({
                 name: 'items',
                 value: [],
@@ -265,7 +289,148 @@ const OrderCreate = () => {
         } finally {
             hasHydratedCart.current = true;
         }
-    }, [cartStorageKey, dispatch, selectedRegistryId]);
+    }, [cartStorageKey, dispatch, selectedRegistryId, isEditMode]);
+
+    // Load edit order data when in edit mode
+    useEffect(() => {
+        console.log('fixing branch... edit mode useEffect triggered:', {
+            isEditMode,
+            hasEditOrderData: !!editOrderData,
+            hasInitializedEditOrder: hasInitializedEditOrder.current,
+            editOrderBranchId: editOrderData?.branchId
+        });
+        if (isEditMode && editOrderData && !hasInitializedEditOrder.current) {
+            console.log('fixing branch... initializing edit order data');
+            hasInitializedEditOrder.current = true;
+            // Set flag early to prevent other initialization logic from running
+            hasInitializedOrder.current = true;
+            hasHydratedCart.current = true;
+            console.log('fixing branch... flags set, hasInitializedOrder:', hasInitializedOrder.current, 'hasHydratedCart:', hasHydratedCart.current);
+            
+            // Set order ID
+            if (editOrderId) {
+                dispatch(changeEntityField({
+                    name: 'id',
+                    value: editOrderId,
+                }));
+            }
+            
+            // Set branch - will be properly initialized with till status once branchRegistry is loaded
+            if (editOrderData.branchId) {
+                console.log('fixing branch... setting branchId in edit mode:', editOrderData.branchId);
+                dispatch(changeEntityField({
+                    name: 'branchId',
+                    value: editOrderData.branchId,
+                }));
+            } else {
+                console.log('fixing branch... editOrderData.branchId is missing:', editOrderData);
+            }
+            
+            // Set customer
+            if (editOrderData.customer) {
+                dispatch(changeEntityField({
+                    name: 'customer',
+                    value: editOrderData.customer,
+                }));
+            }
+            
+            // Set order method
+            if (editOrderData.orderMethod) {
+                dispatch(changeEntityField({
+                    name: 'orderMethod',
+                    value: editOrderData.orderMethod,
+                }));
+                localStorage.setItem(ORDER_METHOD, editOrderData.orderMethod);
+            }
+            
+            // Set scheduled date
+            if (editOrderData.scheduledAt) {
+                dispatch(changeEntityField({
+                    name: 'scheduledAt',
+                    value: editOrderData.scheduledAt,
+                }));
+                const date = new Date(editOrderData.scheduledAt);
+                const localDateTimeString = date.toISOString().slice(0, 16);
+                setScheduledAtLocal(localDateTimeString);
+            }
+            
+            // Set delivery address
+            if (editOrderData.deliverTo) {
+                dispatch(changeEntityField({
+                    name: 'deliverTo',
+                    value: editOrderData.deliverTo,
+                }));
+            }
+            
+            // Set order charges
+            if (editOrderData.orderCharges) {
+                dispatch(changeEntityField({
+                    name: 'orderCharges',
+                    value: editOrderData.orderCharges,
+                }));
+            }
+            
+            // Set custom discount
+            if (editOrderData.customDiscount) {
+                dispatch(changeEntityField({
+                    name: 'customDiscount',
+                    value: editOrderData.customDiscount,
+                }));
+            }
+            
+            // Set items - API will recalculate totals including taxes
+            if (editOrderData.items && editOrderData.items.length > 0) {
+                // Mark items with custom prices as priceOverridden so API receives priceOverride
+                const itemsWithPriceOverrideFlag = editOrderData.items.map(item => {
+                    // If item has a price set, mark it as priceOverridden so API receives priceOverride
+                    const hasCustomPrice = item.price !== undefined && item.price !== null && item.price > 0;
+                    return {
+                        ...item,
+                        priceOverridden: item.priceOverridden ?? hasCustomPrice,
+                    };
+                });
+                
+                dispatch(changeEntityField({
+                    name: 'items',
+                    value: itemsWithPriceOverrideFlag,
+                }));
+            }
+        }
+    }, [isEditMode, editOrderData, editOrderId, dispatch]);
+
+    // Initialize branch registry and till status for edit mode
+    useEffect(() => {
+        if (isEditMode && editOrderData?.branchId && branchRegistry.length > 0 && tillList.length >= 0) {
+            const matchingRegistry = branchRegistry.find(record => record.branch?.id === editOrderData.branchId);
+            console.log('fixing branch... initializing branch registry and till status:', {
+                isEditMode,
+                branchId: editOrderData.branchId,
+                branchRegistryLength: branchRegistry.length,
+                tillListLength: tillList.length,
+                matchingRegistry: matchingRegistry ? 'found' : 'not found'
+            });
+            if (matchingRegistry) {
+                // Set branchId first (checkTillStatus will also set it, but this ensures it's set immediately)
+                console.log('fixing branch... setting branchId again before checkTillStatus:', editOrderData.branchId);
+                dispatch(changeEntityField({
+                    name: 'branchId',
+                    value: editOrderData.branchId,
+                }));
+                // Then check till status - pass skipClosedStatus=true in edit mode to allow editing even if till is closed
+                console.log('fixing branch... calling checkTillStatus');
+                checkTillStatus(matchingRegistry, true);
+            } else {
+                console.log('fixing branch... matching registry not found for branchId:', editOrderData.branchId);
+            }
+        } else {
+            console.log('fixing branch... conditions not met for branch registry init:', {
+                isEditMode,
+                hasBranchId: !!editOrderData?.branchId,
+                branchRegistryLength: branchRegistry.length,
+                tillListLength: tillList.length
+            });
+        }
+    }, [isEditMode, editOrderData?.branchId, branchRegistry, tillList, dispatch]);
 
     // Sync scheduledAtLocal with orderEntity.scheduledAt when entity changes (e.g., after reset)
     useEffect(() => {
@@ -316,13 +481,23 @@ const OrderCreate = () => {
     }, [branchRegistry])
 
     useEffect(() => {
+        // Skip in edit mode - edit mode handles till status initialization separately
+        if (isEditMode) {
+            return;
+        }
         checkTillStatus(branchRegistry.find(record => record.id === selectedRegistryId));
-    }, [tillList])
+    }, [tillList, isEditMode, branchRegistry, selectedRegistryId])
 
-    const checkTillStatus = (registry: IBranchRegistry) => {
+    const checkTillStatus = (registry: IBranchRegistry, skipClosedStatus = false) => {
+        // Guard against undefined registry to prevent resetting branchId
+        if (!registry || !registry.branch?.id) {
+            console.log('fixing branch... checkTillStatus called with invalid registry, skipping');
+            return;
+        }
+        console.log('fixing branch... checkTillStatus called with branchId:', registry.branch.id);
         dispatch(changeEntityField({
             name: 'branchId',
-            value: registry?.branch?.id,
+            value: registry.branch.id,
         }))
 
         const orderMethod = localStorage.getItem(ORDER_METHOD) || OrderMethod.PickUp;
@@ -336,7 +511,10 @@ const OrderCreate = () => {
         console.log(registry);
         console.log(tillList);
         if (tillList.length === 0) {
-            setTillStatus("CLOSED");
+            // In edit mode, don't force tillStatus to CLOSED - allow editing even if till is closed
+            if (!skipClosedStatus) {
+                setTillStatus("CLOSED");
+            }
             setTill(null);
             return;
         }
@@ -349,7 +527,10 @@ const OrderCreate = () => {
             setTillStatus("OPENED");
         } else {
             setTill(null);
-            setTillStatus("CLOSED");
+            // In edit mode, don't force tillStatus to CLOSED - allow editing even if till is closed
+            if (!skipClosedStatus) {
+                setTillStatus("CLOSED");
+            }
         }
     }
 
@@ -519,16 +700,8 @@ const OrderCreate = () => {
             return;
         }
 
-        if (item.priceOverridden) {
-            const itemTotal = (item.price ?? 0) * (item.amount ?? 0);
-            updateCartItem(item.cartId, {
-                itemTotal,
-                taxTotal: item.taxTotal ?? 0,
-                grandTotal: itemTotal + (item.taxTotal ?? 0),
-            });
-            return;
-        }
-
+        // Always call API for price calculation - backend handles priceOverride and discountOverride
+        const priceOverride = item.priceOverridden ? item.price : undefined;
         const discountOverride = item.customDiscount ? {
             type: item?.discount?.type || 'PERCENTAGE',
             value: item.customDiscount,
@@ -543,11 +716,14 @@ const OrderCreate = () => {
                 branchId: orderEntity.branchId,
                 orderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
                 customerId: orderEntity.customer?.id,
+                priceOverride,
                 discountOverride,
             }
         })).then((action) => {
             if (calculateItemPrice.fulfilled.match(action)) {
-                const computedPrice = item.price ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0);
+                // Use the price from API response, or keep existing price if priceOverridden
+                const computedPrice = item.priceOverridden ? item.price : 
+                    (item.price ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0));
                 updateCartItem(item.cartId, {
                     itemTotal: action.payload.data.itemTotal,
                     taxTotal: action.payload.data.taxTotal,
@@ -561,12 +737,25 @@ const OrderCreate = () => {
 
     const recalculateAllPrices = useCallback(() => {
         const items = orderItemsRef.current ?? [];
-        items.forEach(item => {
-            if (!item?.priceOverridden) {
-                recalculateItemTotals(item);
-            }
+        // Always recalculate all items - API handles priceOverride and discountOverride
+        items?.forEach(item => {
+            recalculateItemTotals(item);
         });
     }, [recalculateItemTotals]);
+
+    
+    // Recalculate taxes for items in edit mode after branchId and items are initialized
+    useEffect(() => {
+        if (isEditMode && hasInitializedEditOrder.current && !hasRecalculatedEditTaxes.current && orderEntity.branchId && orderEntity.items && orderEntity.items.length > 0 && orderEntity.orderMethod) {
+            // Small delay to ensure all state updates are complete
+            const timer = setTimeout(() => {
+                console.log('fixing taxes... recalculating taxes for edit mode items');
+                recalculateAllPrices();
+                hasRecalculatedEditTaxes.current = true;
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isEditMode, orderEntity.branchId, orderEntity.items, orderEntity.orderMethod, recalculateAllPrices]);
 
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
         if (shouldGateSalesman) {
@@ -591,29 +780,24 @@ const OrderCreate = () => {
     }, [recalculateItemTotals, updateCartItem]);
 
     const applyCustomDiscount = useCallback((item: IOrder['items'][number], discountValue: number, discountType: 'PERCENTAGE' | 'FLAT') => {
-        const quantity = item.amount ?? 0;
-        const basePrice = item.priceBeforeDiscount ?? item.price ?? 0;
-        const baseTotal = basePrice * quantity;
-        const discountAmount = discountType === 'PERCENTAGE'
-            ? (baseTotal * (discountValue ?? 0)) / 100
-            : (discountValue ?? 0);
-        const discountedTotal = Math.max(0, baseTotal - discountAmount);
-        const discountedPrice = quantity > 0 ? discountedTotal / quantity : 0;
-
+        // Just update discount fields - API will handle all calculations
         updateCartItem(item.cartId, {
             discount: {
                 value: discountValue,
                 type: discountType,
             },
             customDiscount: discountValue,
-            price: discountedPrice,
-            priceOverridden: true,
-            priceBeforeDiscount: basePrice,
-            itemTotal: discountedTotal,
-            taxTotal: 0,
-            grandTotal: discountedTotal,
         });
-    }, [updateCartItem]);
+        // Recalculate via API with the new discount
+        recalculateItemTotals({
+            ...item,
+            discount: {
+                value: discountValue,
+                type: discountType,
+            },
+            customDiscount: discountValue,
+        });
+    }, [updateCartItem, recalculateItemTotals]);
 
     const handleDiscountChange = useCallback((item: IOrder['items'][number], discountValue: number) => {
         applyCustomDiscount(item, discountValue, (item?.discount?.type || 'PERCENTAGE') as 'PERCENTAGE' | 'FLAT');
@@ -624,16 +808,19 @@ const OrderCreate = () => {
     }, [applyCustomDiscount]);
 
     const handlePriceChange = useCallback((item: IOrder['items'][number], priceValue: number | null) => {
-        const amount = item.amount ?? 0;
-        const itemTotal = (priceValue ?? 0) * amount;
+        // Update price and mark as overridden - API will handle all calculations
         updateCartItem(item.cartId, {
             price: priceValue,
             priceOverridden: true,
             priceBeforeDiscount: priceValue,
-            itemTotal,
-            grandTotal: itemTotal + (item.taxTotal ?? 0),
         });
-    }, [updateCartItem]);
+        // Recalculate via API with the new price override
+        recalculateItemTotals({
+            ...item,
+            price: priceValue,
+            priceOverridden: true,
+        });
+    }, [updateCartItem, recalculateItemTotals]);
 
     useEffect(() => {
         if (isFirstContextRun.current) {
@@ -752,6 +939,7 @@ const OrderCreate = () => {
             return;
         }
         const structuredEntity = {
+            ...(isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
             items: orderEntity?.items?.map(item => ({
                 itemId: item.itemId,
                 variantId: item.variantId,
@@ -767,7 +955,7 @@ const OrderCreate = () => {
             })),
             branchId: orderEntity?.branchId,
             customer: orderEntity?.customer,
-            orderCharges: [],
+            orderCharges: orderEntity?.orderCharges || [],
             scheduledAt: orderEntity?.scheduledAt ?? null,
             orderMethod: orderEntity?.orderMethod,
             deliverTo: orderEntity?.deliverTo ?? null,
@@ -775,8 +963,12 @@ const OrderCreate = () => {
             tillId: till?.id,
         }
 
-        dispatch(createEntity(structuredEntity)).then((action) => {
-            if (createEntity.fulfilled.match(action)) {
+        const action = isEditMode && orderEntity?.id 
+            ? dispatch(updateEntity(structuredEntity))
+            : dispatch(createEntity(structuredEntity));
+
+        action.then((actionResult) => {
+            if ((isEditMode ? updateEntity : createEntity).fulfilled.match(actionResult)) {
                 setVariantDialog({
                     visible: false,
                     product: {},
@@ -785,7 +977,13 @@ const OrderCreate = () => {
                     availableVariants: []
                 })
 
+                if (isEditMode) {
+                    toast.success('Order Updated Successfully!');
+                    // Navigate back to order detail page
+                    navigate(`/order/${orderEntity.id}`);
+                } else {
                 const branchId = orderEntity.branchId;
+                console.log('fixing branch... reset() called after order creation, preserving branchId:', branchId);
                 dispatch(reset());
                 if (branchId) {
                     dispatch(changeEntityField({
@@ -793,9 +991,10 @@ const OrderCreate = () => {
                         value: branchId,
                     }));
                 }
-                toast.success('Order Created Successfully!')
+                toast.success('Order Created Successfully!');
+                }
             } else {
-                toast.error(action.error?.message || 'Failed to create order');
+                toast.error(actionResult.error?.message || `Failed to ${isEditMode ? 'update' : 'create'} order`);
             }
         }).finally(() => {
             setOpenPaymentModal(false)
@@ -945,20 +1144,32 @@ const OrderCreate = () => {
     }, [orderEntity.branchId, branchRegistry]);
 
     const branchSelectOptions = useMemo(() => {
-        return branchRegistry
-            .filter((res) => {
-                if (selectedRegistryId) {
-                    return res.id === selectedRegistryId;
-                } else {
-                    return res.type === RegisterType.ONLINE;
+        const filtered = branchRegistry.filter((res) => {
+            if (selectedRegistryId) {
+                return res.id === selectedRegistryId;
+            } else {
+                // In edit mode, include the branch that matches the order's branchId
+                if (isEditMode && orderEntity?.branchId && res.branch?.id === orderEntity.branchId) {
+                    return true;
                 }
-            })
-            .map((registry) => ({
-                value: registry.id,
-                label: registry?.branch?.name || 'Unknown Branch',
-                registry,
-            }));
-    }, [branchRegistry, selectedRegistryId]);
+                return res.type === RegisterType.ONLINE;
+            }
+        });
+        
+        // Ensure we have the branch in edit mode even if it doesn't match the filter
+        if (isEditMode && orderEntity?.branchId && !filtered.some(reg => reg.branch?.id === orderEntity.branchId)) {
+            const matchingRegistry = branchRegistry.find(reg => reg.branch?.id === orderEntity.branchId);
+            if (matchingRegistry) {
+                filtered.push(matchingRegistry);
+            }
+        }
+        
+        return filtered.map((registry) => ({
+            value: registry.id,
+            label: registry?.branch?.name || 'Unknown Branch',
+            registry,
+        }));
+    }, [branchRegistry, selectedRegistryId, isEditMode, orderEntity?.branchId]);
 
     const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
         if (action === 'input-change') {
@@ -1285,6 +1496,7 @@ const OrderCreate = () => {
                             onClick={() => {
                                 const defaultVariant = customPriceModalData.product.variants?.[0];
                                 const customPrice = customPriceModalData.price ?? 0;
+                                // Add item with custom price - API will calculate totals including taxes
                                 addCartItem({
                                     askForPrice: true,
                                     cartId: customPriceModalData.product.id + new Date().getTime().toString(),
@@ -1300,10 +1512,8 @@ const OrderCreate = () => {
                                     accountingGroups: customPriceModalData.product.accountingGroups,
                                     priceOverridden: true,
                                     priceBeforeDiscount: customPrice,
-                                    itemTotal: customPrice,
-                                    taxTotal: 0,
-                                    grandTotal: customPrice,
-                                }, false);
+                                    // Don't set itemTotal, taxTotal, grandTotal - API will calculate them
+                                }, true); // Set to true to fetch price from API with priceOverride
                                 setCustomPriceModalData({
                                     visible: false,
                                     product: {},
@@ -1369,7 +1579,7 @@ const OrderCreate = () => {
                                         )}
                                     </>
                                 )}
-                                {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
+                                {!orderEntity?.branchId && orderEntity?.items?.length > 0 && !isEditMode && (
                                     <span className="text-xs text-destructive">
                                         Please select a branch
                                     </span>
@@ -1458,7 +1668,7 @@ const OrderCreate = () => {
             </Dialog>
 
 
-            {till && (
+            {(till || isEditMode) && (
                 <div className="grid flex-1 gap-4 lg:grid-cols-12">
                     {!isMobile ? (
                         <div className="flex min-h-0 flex-col gap-4 lg:col-span-8 lg:h-[72vh]">
@@ -2081,7 +2291,7 @@ const OrderCreate = () => {
                                         onClick={() => setOpenPaymentModal(true)}
                                         disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
                                     >
-                                        <span>Place Order</span>
+                                        <span>{isEditMode ? 'Update Order' : 'Place Order'}</span>
                                     </Button>
                                 </div>
                             </div>

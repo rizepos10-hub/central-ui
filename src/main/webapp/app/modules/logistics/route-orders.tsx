@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -52,7 +52,11 @@ const RouteOrders = () => {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [activeStopIndex, setActiveStopIndex] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
-  const [orderBranchId, setOrderBranchId] = useState('');
+  // const [orderBranchId, setOrderBranchId] = useState('');
+  const [groupBy, setGroupBy] = useState<'none' | 'customer' | 'address' | 'status' | 'plannedArrival'>('customer');
+  const [filterCustomerName, setFilterCustomerName] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterDeliveryAddress, setFilterDeliveryAddress] = useState('');
   const [orderLazyState, setOrderLazyState] = useState({
     first: 0,
     rows: 10,
@@ -121,6 +125,96 @@ const RouteOrders = () => {
   const getBranchDisplay = (branchId?: string) =>
     branches.find(branch => branch.id === branchId)?.name || '—';
 
+  const getCustomerName = (stop: IWholesaleRouteStop) => {
+    if (!stop.order?.customer) return '—';
+    const customer = stop.order.customer;
+    if (customer.businessDetails?.businessName) {
+      return customer.businessDetails.businessName;
+    }
+    return `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || '—';
+  };
+
+  const getDeliveryAddress = (stop: IWholesaleRouteStop) => {
+    if (!stop.order?.deliverTo) return '—';
+    const address = stop.order.deliverTo;
+    return address.address || `${address.street || ''} ${address.city || ''}`.trim() || '—';
+  };
+
+  // Filter stops based on filters
+  const filteredStops = useMemo(() => {
+    return stops.filter(stop => {
+      // Filter by customer name
+      if (filterCustomerName) {
+        const customerName = getCustomerName(stop).toLowerCase();
+        if (!customerName.includes(filterCustomerName.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filter by status
+      if (filterStatus && stop.status !== filterStatus) {
+        return false;
+      }
+
+      // Filter by delivery address
+      if (filterDeliveryAddress) {
+        const address = getDeliveryAddress(stop).toLowerCase();
+        if (!address.includes(filterDeliveryAddress.toLowerCase())) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [stops, filterCustomerName, filterStatus, filterDeliveryAddress]);
+
+  // Group stops by customer, address, status, or planned arrival
+  const groupedStops = useMemo(() => {
+    if (groupBy === 'none') {
+      return { ungrouped: filteredStops };
+    }
+
+    const groups: Record<string, IWholesaleRouteStop[]> = {};
+    
+    filteredStops.forEach(stop => {
+      let key: string;
+      if (groupBy === 'customer') {
+        key = stop.order?.customer?.id || 'no-customer';
+      } else if (groupBy === 'address') {
+        // Use address ID or a combination of address fields as key
+        const address = stop.order?.deliverTo;
+        if (address?.id) {
+          key = address.id;
+        } else if (address?.latitude && address?.longitude) {
+          key = `${address.latitude}_${address.longitude}`;
+        } else if (address?.address) {
+          // Use address string as fallback key
+          key = address.address;
+        } else {
+          key = 'no-address';
+        }
+      } else if (groupBy === 'status') {
+        key = stop.status || 'no-status';
+      } else if (groupBy === 'plannedArrival') {
+        if (stop.plannedArrivalTime) {
+          const date = new Date(stop.plannedArrivalTime);
+          key = date.toISOString().split('T')[0]; // Group by date
+        } else {
+          key = 'no-date';
+        }
+      } else {
+        key = 'ungrouped';
+      }
+
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(stop);
+    });
+
+    return groups;
+  }, [filteredStops, groupBy]);
+
   const handleAddStop = () => {
     const newIndex = stops.length;
     setStops(prev => [
@@ -164,7 +258,9 @@ const RouteOrders = () => {
       sort: orderLazyState.sortField
         ? `${orderLazyState.sortField},${orderLazyState.sortOrder === 1 ? 'asc' : 'desc'}`
         : '_id,desc',
-      ...(orderBranchId ? { branchId: orderBranchId } : {}),
+        // selected branch or warehouseBranchId
+      ...(selectedBranchId || route?.warehouseBranchId ? { branchId: selectedBranchId || route?.warehouseBranchId } : {}),
+      // ...(orderBranchId ? { branchId: orderBranchId } : {}),
       ...(trimmed
         ? {
             sequenceId: isNumeric ? trimmed : '',
@@ -177,11 +273,17 @@ const RouteOrders = () => {
   useEffect(() => {
     if (!isOrderModalOpen) return;
     dispatch(filterAssignedOrders(buildOrdersQuery()));
-  }, [dispatch, isOrderModalOpen, orderLazyState, orderSearch, orderBranchId]);
+  }, [dispatch, isOrderModalOpen, orderLazyState, orderSearch, selectedBranchId, route?.warehouseBranchId]);
 
   const handleSelectOrder = (order: IOrder) => {
     if (activeStopIndex === null) return;
-    handleStopChange(activeStopIndex, 'orderId', order.id);
+    setStops(prev =>
+      prev.map((stop, idx) => 
+        idx === activeStopIndex 
+          ? { ...stop, orderId: order.id, order: order }
+          : stop
+      )
+    );
     setIsOrderModalOpen(false);
   };
 
@@ -342,16 +444,68 @@ const RouteOrders = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold">Stops</h3>
-                  <Button variant="outline" size="sm" onClick={handleAddStop}>
-                    Add Stop
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <UiSelect value={groupBy} onValueChange={(value) => setGroupBy(value as 'none' | 'customer' | 'address' | 'status' | 'plannedArrival')}>
+                      <SelectTrigger className="w-[180px] h-8 text-xs">
+                        <SelectValue placeholder="Group by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No grouping</SelectItem>
+                        <SelectItem value="customer">Group by Customer</SelectItem>
+                        <SelectItem value="address">Group by Address</SelectItem>
+                        <SelectItem value="status">Group by Status</SelectItem>
+                        <SelectItem value="plannedArrival">Group by Planned Arrival</SelectItem>
+                      </SelectContent>
+                    </UiSelect>
+                    <Button variant="outline" size="sm" onClick={handleAddStop}>
+                      Add Stop
+                    </Button>
+                  </div>
+                </div>
+                {/* Filters row */}
+                <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md border">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Label className="text-xs whitespace-nowrap">Customer:</Label>
+                    <Input
+                      placeholder="Search customer..."
+                      value={filterCustomerName}
+                      onChange={(e) => setFilterCustomerName(e.target.value)}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 flex-1">
+                    <Label className="text-xs whitespace-nowrap">Address:</Label>
+                    <Input
+                      placeholder="Search address..."
+                      value={filterDeliveryAddress}
+                      onChange={(e) => setFilterDeliveryAddress(e.target.value)}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs whitespace-nowrap">Status:</Label>
+                    <UiSelect value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="h-8 text-xs w-[140px]">
+                        <SelectValue placeholder="All" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>All</SelectItem>
+                        {Object.values(WholesaleRouteStopStatus).map(option => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </UiSelect>
+                  </div>
                 </div>
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[80px]">Seq</TableHead>
-                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Delivery Address</TableHead>
                         <TableHead>Planned Arrival</TableHead>
                         <TableHead>Actual Arrival</TableHead>
                         <TableHead>Status</TableHead>
@@ -360,85 +514,138 @@ const RouteOrders = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {!stops.length && (
+                      {!filteredStops.length && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-6">
-                            No stops available.
+                          <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-6">
+                            {stops.length === 0 ? 'No stops available.' : 'No stops match the current filters.'}
                           </TableCell>
                         </TableRow>
                       )}
-                      {stops.map((stop, index) => (
-                        <TableRow key={`${stop.orderId || 'stop'}-${index}`}>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              className="h-8 text-xs"
-                              value={stop.sequenceNumber ?? ''}
-                              onChange={(e) => handleStopChange(index, 'sequenceNumber', parseInt(e.target.value, 10) || 0)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {!stop.orderId && (
-                                <div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-1 text-sm text-yellow-800">
-                                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                                  <span>No order selected</span>
-                                </div>
-                              )}
-                              <span className="text-xs">{stop.orderId || '—'}</span>
-                              <Button variant="outline" size="sm" onClick={() => openOrderModal(index)}>
-                                Select
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="datetime-local"
-                              className="h-8 text-xs"
-                              value={stop.plannedArrivalTime ? new Date(stop.plannedArrivalTime).toISOString().slice(0, 16) : ''}
-                              onChange={(e) => handleStopChange(index, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="datetime-local"
-                              className="h-8 text-xs"
-                              value={stop.actualArrivalTime ? new Date(stop.actualArrivalTime).toISOString().slice(0, 16) : ''}
-                              onChange={(e) => handleStopChange(index, 'actualArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <UiSelect
-                              value={stop.status || ''}
-                              onValueChange={(value) => handleStopChange(index, 'status', value)}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.values(WholesaleRouteStopStatus).map(option => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </UiSelect>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              className="h-8 text-xs"
-                              value={stop.notes || ''}
-                              onChange={(e) => handleStopChange(index, 'notes', e.target.value)}
-                              placeholder="Notes"
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleRemoveStop(index)}>
-                              Remove
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {Object.entries(groupedStops).map(([groupKey, groupStops]) => {
+                        const isGrouped = groupBy !== 'none';
+                        let groupLabel: string | null = null;
+                        
+                        if (isGrouped && groupStops.length > 0) {
+                          if (groupBy === 'customer') {
+                            groupLabel = getCustomerName(groupStops[0]);
+                          } else if (groupBy === 'address') {
+                            groupLabel = getDeliveryAddress(groupStops[0]);
+                          } else if (groupBy === 'status') {
+                            groupLabel = groupStops[0].status || 'No Status';
+                          } else if (groupBy === 'plannedArrival') {
+                            if (groupStops[0].plannedArrivalTime) {
+                              const date = new Date(groupStops[0].plannedArrivalTime);
+                              groupLabel = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            } else {
+                              groupLabel = 'No Planned Arrival';
+                            }
+                          }
+                        }
+
+                        return (
+                          <React.Fragment key={groupKey}>
+                            {isGrouped && groupLabel && (
+                              <TableRow className="bg-muted/50">
+                                <TableCell colSpan={8} className="font-semibold text-sm py-2">
+                                  {groupBy === 'customer' && 'Customer: '}
+                                  {groupBy === 'address' && 'Address: '}
+                                  {groupBy === 'status' && 'Status: '}
+                                  {groupBy === 'plannedArrival' && 'Planned Arrival: '}
+                                  {groupLabel} ({groupStops.length} {groupStops.length === 1 ? 'stop' : 'stops'})
+                                </TableCell>
+                              </TableRow>
+                            )}
+                            {groupStops.map((stop, groupIndex) => {
+                              const originalIndex = stops.findIndex(s => s === stop);
+                              if (originalIndex === -1) return null;
+                              return (
+                                <TableRow key={`${stop.orderId || 'stop'}-${originalIndex}`}>
+                                  <TableCell>
+                                    <Input
+                                      type="number"
+                                      className="h-8 text-xs"
+                                      value={stop.sequenceNumber ?? ''}
+                                      onChange={(e) => handleStopChange(originalIndex, 'sequenceNumber', parseInt(e.target.value, 10) || 0)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      {!stop.orderId && (
+                                        <div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-1 text-sm text-yellow-800">
+                                          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                                          <span>No order selected</span>
+                                        </div>
+                                      )}
+                                      {stop.orderId && (
+                                        <>
+                                          <span className="text-xs">{getCustomerName(stop)}</span>
+                                          <Button variant="outline" className="text-xs" size="sm" onClick={() => openOrderModal(originalIndex)}>
+                                            Change
+                                          </Button>
+                                        </>
+                                      )}
+                                      {!stop.orderId && (
+                                        <Button variant="outline" className="text-xs" size="sm" onClick={() => openOrderModal(originalIndex)}>
+                                          Select
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="text-xs">{getDeliveryAddress(stop)}</span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="datetime-local"
+                                      className="h-8 text-xs"
+                                      value={stop.plannedArrivalTime ? new Date(stop.plannedArrivalTime).toISOString().slice(0, 16) : ''}
+                                      onChange={(e) => handleStopChange(originalIndex, 'plannedArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="datetime-local"
+                                      className="h-8 text-xs"
+                                      value={stop.actualArrivalTime ? new Date(stop.actualArrivalTime).toISOString().slice(0, 16) : ''}
+                                      onChange={(e) => handleStopChange(originalIndex, 'actualArrivalTime', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <UiSelect
+                                      value={stop.status || ''}
+                                      onValueChange={(value) => handleStopChange(originalIndex, 'status', value)}
+                                    >
+                                      <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue placeholder="Select status" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Object.values(WholesaleRouteStopStatus).map(option => (
+                                          <SelectItem key={option} value={option}>
+                                            {option}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </UiSelect>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      className="h-8 text-xs"
+                                      value={stop.notes || ''}
+                                      onChange={(e) => handleStopChange(originalIndex, 'notes', e.target.value)}
+                                      placeholder="Notes"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button variant="ghost" size="sm" onClick={() => handleRemoveStop(originalIndex)}>
+                                      Remove
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </React.Fragment>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -465,7 +672,7 @@ const RouteOrders = () => {
                 onChange={(e) => setOrderSearch(e.target.value)}
                 placeholder="Search by order ID or sequence number"
               />
-              <UiSelect value={orderBranchId} onValueChange={setOrderBranchId}>
+              {/* <UiSelect value={orderBranchId} onValueChange={setOrderBranchId}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="All branches" />
                 </SelectTrigger>
@@ -477,7 +684,7 @@ const RouteOrders = () => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </UiSelect>
+              </UiSelect> */}
               <Button
                 variant="outline"
                 onClick={() => {

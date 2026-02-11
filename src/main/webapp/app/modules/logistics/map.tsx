@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,10 +12,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import Select from 'react-select';
 import { fetchRoutes } from './logistics.reducer';
 import { IWholesaleRoute, WholesaleRouteStatus } from './logistics.model';
+import { format } from 'date-fns';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { EyeIcon } from 'lucide-react';
 
 type RouteWithPath = IWholesaleRoute & { path: google.maps.LatLngLiteral[] };
 
@@ -77,32 +81,21 @@ const convertToEmbedUrl = (navigationUrl?: string): string | null => {
 
 const LogisticsMap = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const routes = useAppSelector(state => state.logistics.entities);
   const loading = useAppSelector(state => state.logistics.loading);
+  const branches = useAppSelector(state => state.branch.entities);
   const [selectedRoute, setSelectedRoute] = useState<RouteWithPath | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     dispatch(fetchRoutes({ page: 0, size: 1000, sort: 'routeDate,desc' }));
+    dispatch(getBranches({}));
   }, [dispatch]);
 
-  const handleRouteSelect = useCallback((route: RouteWithPath) => {
-    setSelectedRoute(route);
-    setDialogOpen(true);
-  }, []);
-
-  const handleRouteToggle = useCallback((routeId: string) => {
-    setSelectedRouteIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(routeId)) {
-        newSet.delete(routeId);
-      } else {
-        newSet.add(routeId);
-      }
-      return newSet;
-    });
-  }, []);
+  const getBranchName = (branchId?: string) => {
+    return branches.find(branch => branch.id === branchId)?.name || '—';
+  };
 
   const routesWithPath = useMemo(
     () =>
@@ -111,115 +104,119 @@ const LogisticsMap = () => {
           ...route,
           path: buildPathFromNavigationUrl(route.navigationUrl),
         }))
-        .filter(route => route.path.length > 1),
+        .filter(route => {
+          // Filter out completed and cancelled routes
+          if (route.status === WholesaleRouteStatus.COMPLETED || route.status === WholesaleRouteStatus.CANCELLED) {
+            return false;
+          }
+          // Only include routes with valid paths
+          return route.path.length > 1;
+        }),
     [routes]
   );
 
-  const handleSelectAll = useCallback(() => {
-    if (selectedRouteIds.size === routesWithPath.length) {
-      setSelectedRouteIds(new Set());
-    } else {
-      const allIds = routesWithPath.map(r => r.id).filter(Boolean) as string[];
-      setSelectedRouteIds(new Set(allIds));
+  // Set first route as selected by default
+  useEffect(() => {
+    if (routesWithPath.length > 0 && !selectedRoute) {
+      setSelectedRoute(routesWithPath[0]);
     }
-  }, [selectedRouteIds.size, routesWithPath]);
+  }, [routesWithPath, selectedRoute]);
+
+  // Create options for react-select
+  const routeOptions = useMemo(() => {
+    return routesWithPath.map(route => ({
+      value: route.id,
+      label: route.name || 'Unnamed Route',
+      route: route,
+    }));
+  }, [routesWithPath]);
+
+  const handleRouteSelect = useCallback((option: { value: string; label: string; route: RouteWithPath } | null) => {
+    if (option?.route) {
+      setSelectedRoute(option.route);
+    }
+  }, []);
+
+  const handleNavigateToRoute = useCallback(() => {
+    if (selectedRoute?.id) {
+      navigate(`/logistics/routes/${selectedRoute.id}`);
+    }
+  }, [selectedRoute, navigate]);
 
   const handleDialogClose = () => {
     setDialogOpen(false);
     setSelectedRoute(null);
   };
 
-  // Get selected routes for iframe display
-  const selectedRoutes = useMemo(() => {
-    return routesWithPath.filter(route => route.id && selectedRouteIds.has(route.id));
-  }, [routesWithPath, selectedRouteIds]);
+  // Get embed URL for selected route
+  const selectedRouteEmbedUrl = useMemo(() => {
+    return selectedRoute ? convertToEmbedUrl(selectedRoute.navigationUrl) : null;
+  }, [selectedRoute]);
 
   return (
     <PageWrapper className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Route Maps</CardTitle>
-          <div className="flex gap-2 items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSelectAll}
-            >
-              {selectedRouteIds.size === routesWithPath.length ? 'Deselect All' : 'Select All'}
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {selectedRouteIds.size} of {routesWithPath.length} selected
-            </span>
-          </div>
+        <CardHeader>
+          <CardTitle>Route Map</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Route selection list */}
-          <div className="border rounded-lg p-4 max-h-[200px] overflow-y-auto">
-            <div className="space-x-2 flex flex-row gap-2">
-              {routesWithPath.map(route => {
-                const isSelected = route.id && selectedRouteIds.has(route.id);
-                const embedUrl = convertToEmbedUrl(route.navigationUrl);
-                return (
-                  <div
-                    key={route.id}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-muted cursor-pointer"
-                    onClick={() => route.id && handleRouteToggle(route.id)}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => route.id && handleRouteToggle(route.id)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <span className="font-medium text-sm">{route.name || 'Unnamed Route'}</span>
-                        <Badge className="ml-2 text-xs" variant="outline">
-                          {route.status || 'PLANNED'}
-                        </Badge>
-                      </div>
-                      {!embedUrl && (
-                        <span className="text-xs text-muted-foreground">No navigation URL</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Route selection dropdown and details */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <div className="flex-1 min-w-[200px] max-w-[300px]">
+              <Select
+                options={routeOptions}
+                value={routeOptions.find(opt => opt.value === selectedRoute?.id) || null}
+                onChange={(option) => handleRouteSelect(option as { value: string; label: string; route: RouteWithPath } | null)}
+                placeholder="Select a route"
+                isClearable={false}
+                className="text-sm"
+              />
             </div>
+            
+            {/* Route details */}
+            {selectedRoute && (
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <Badge variant="outline">
+                  {selectedRoute.status || 'PLANNED'}
+                </Badge>
+                {selectedRoute.routeDate && (
+                  <span className="text-muted-foreground">
+                    {format(new Date(selectedRoute.routeDate), 'MMM dd, yyyy')}
+                  </span>
+                )}
+                <span className="text-muted-foreground">
+                  {selectedRoute.stops?.length || 0} stops
+                </span>
+                {selectedRoute.id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNavigateToRoute}
+                  >
+                    <EyeIcon className="w-4 h-4" />
+                    View
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Iframe maps for selected routes */}
-          {selectedRoutes.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedRoutes.map(route => {
-                const embedUrl = convertToEmbedUrl(route.navigationUrl);
-                if (!embedUrl) return null;
-                
-                return (
-                  <Card key={route.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">{route.name || 'Route'}</CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        {route.status || 'PLANNED'}
-                      </Badge>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <iframe
-                        width="100%"
-                        height="400"
-                        style={{ border: 0 }}
-                        src={embedUrl}
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                      />
-                    </CardContent>
-                  </Card>
-                );
-              })}
+          {/* Single iframe map for selected route */}
+          {selectedRouteEmbedUrl ? (
+            <div className="h-[500px] rounded-lg overflow-hidden border">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                src={selectedRouteEmbedUrl}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-              Select routes above to view their maps
+            <div className="flex items-center justify-center h-[500px] text-muted-foreground border rounded-lg">
+              {selectedRoute ? 'No navigation URL available for this route' : 'Select a route above to view its map'}
             </div>
           )}
         </CardContent>
