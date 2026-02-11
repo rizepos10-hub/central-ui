@@ -65,6 +65,7 @@ const Barcode = React.lazy(() => import('./item/retail/barcode/barcode'));
 const EndOfDay = React.lazy(() => import('./end-of-day'));
 const PayoutType = React.lazy(() => import('./payout-type'));
 const CashPayment = React.lazy(() => import('./cash-payment'));
+const PaymentMethodSetting = React.lazy(() => import('./settings/payment-method-setting/index'));
 
 export default () => {
   return (
@@ -153,6 +154,7 @@ export default () => {
         <Route path="end-of-day/*" element={<EndOfDay />} />
         <Route path="payout-type/*" element={<PayoutType />} />
         <Route path="cash-payment/*" element={<CashPayment />} />
+        <Route path="payment-method-setting/*" element={<PaymentMethodSetting />} />
       </ErrorBoundaryRoutes>
     </Suspense>
   );
