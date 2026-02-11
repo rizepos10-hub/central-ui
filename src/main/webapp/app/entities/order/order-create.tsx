@@ -1348,9 +1348,9 @@ const OrderCreate = () => {
             <AlertDialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
                 <AlertDialogContent className="max-w-lg">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Payment</AlertDialogTitle>
+                        <AlertDialogTitle>Confirm Order</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Review your order before confirming payment.
+                            Review your order before confirming.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -1398,7 +1398,7 @@ const OrderCreate = () => {
                                     Processing...
                                 </>
                             ) : (
-                                'Confirm Payment'
+                                'Confirm'
                             )}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -1538,7 +1538,7 @@ const OrderCreate = () => {
                                 </Button>
                                 <div>
                                     <p className="text-sm font-semibold">Point of Sale</p>
-                                    <p className="text-xs text-muted-foreground">Create a new order and take payment</p>
+                                    <p className="text-xs text-muted-foreground">Create a new order</p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
