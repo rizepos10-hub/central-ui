@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -257,6 +257,48 @@ export const OrderDetail = () => {
     setShowCancelBookingConfirm(false);
   };
 
+  const transformOrderForEdit = (order: IOrder): IOrder => {
+    const transformedItems = order.items?.map((item, index) => {
+      // Generate unique cartId for each item
+      const cartId = `${item.id || item.itemId || 'item'}-${Date.now()}-${index}`;
+      
+      return {
+        ...item,
+        cartId,
+        itemId: item.itemId || item.id,
+        variantId: item.variantId || '',
+        amount: item.amount || 1,
+        price: item.price || 0,
+        selectedRetailAttributes: item.selectedRetailAttributes || [],
+        discount: item.discount || {},
+        customDiscount: item.discount?.value || 0,
+      };
+    }) || [];
+
+    return {
+      ...order,
+      id: order.id,
+      items: transformedItems,
+      branchId: order.branchId,
+      customer: order.customer,
+      orderMethod: order.orderMethod,
+      scheduledAt: order.scheduledAt,
+      deliverTo: order.deliverTo,
+      orderCharges: order.orderCharges || [],
+      customDiscount: order.customDiscount,
+    };
+  };
+
+  const handleEditOrder = () => {
+    const transformedOrder = transformOrderForEdit(filteredOrderEntity);
+    navigate('/order/create', {
+      state: {
+        editOrder: transformedOrder,
+        orderId: filteredOrderEntity.id,
+      },
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -315,6 +357,20 @@ export const OrderDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-sm font-medium">Items</span>
+                    {!editMode && !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEditOrder}
+                        className="h-8 text-xs"
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        Edit Order
+                      </Button>
+                    )}
+                  </div>
                   {dataTableValues && dataTableValues.length > 0 && (
                     <OrderedItems dataTableValues={dataTableValues} />
                   )}
