@@ -172,6 +172,26 @@ export const createBill = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const createDraftBill = createAsyncThunk(
+  'order/create_draft_bill',
+  async ({ orderId, payee, createdBy, discount }: { orderId: string | number; payee?: string | null; createdBy?: string | null; discount?: any | null }, thunkAPI) => {
+    const result = await axios.post<IBill>(`${apiUrl}/${orderId}/create-draft-bill`, cleanEntity({ payee, createdBy, discount }));
+    thunkAPI.dispatch(getEntity(orderId));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const addPaymentToBill = createAsyncThunk(
+  'order/add_payment_to_bill',
+  async ({ orderId, billId, amount, tipAmount, transactionMethod }: { orderId: string | number; billId: string | number; amount: number; tipAmount?: number; transactionMethod: string }, thunkAPI) => {
+    const result = await axios.post<IBill>(`${apiUrl}/${orderId}/bills/${billId}/add-payment`, cleanEntity({ amount, tipAmount, transactionMethod }));
+    thunkAPI.dispatch(getEntity(orderId));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const refundBill = createAsyncThunk(
   'order/refund_bill',
   async (entity: IBill, thunkAPI) => {
@@ -313,7 +333,7 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, n
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
+      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, createDraftBill, addPaymentToBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
