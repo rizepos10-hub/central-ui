@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
 import { filterAssignedOrders } from 'app/entities/order/order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select as UiSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from 'app/shared/components/select/select';
 import { AlertTriangle, Copy, ExternalLink } from 'lucide-react';
 
 const RouteOrders = () => {
@@ -40,6 +42,8 @@ const RouteOrders = () => {
   const loading = useAppSelector(state => state.logistics.loading);
   const updating = useAppSelector(state => state.logistics.updating);
   const branches = useAppSelector(state => state.branch.entities);
+  const customers = useAppSelector(state => state.customer.entities);
+  const customersLoading = useAppSelector(state => state.customer.loading);
   const orders = useAppSelector(state => state.order.entities);
   const ordersLoading = useAppSelector(state => state.order.loading);
   const totalOrders = useAppSelector(state => state.order.totalOrders || 0);
@@ -52,6 +56,7 @@ const RouteOrders = () => {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [activeStopIndex, setActiveStopIndex] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   // const [orderBranchId, setOrderBranchId] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'customer' | 'address' | 'status' | 'plannedArrival'>('customer');
   const [filterCustomerName, setFilterCustomerName] = useState('');
@@ -68,6 +73,18 @@ const RouteOrders = () => {
   useEffect(() => {
     dispatch(getBranches({}));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isOrderModalOpen) {
+      // Fetch customers when modal opens
+      dispatch(getCustomers({
+        query: '',
+        size: 1000,
+        sort: 'createdAt,asc',
+        page: 0
+      }));
+    }
+  }, [dispatch, isOrderModalOpen]);
 
   useEffect(() => {
     if (routeId && !isCreateMode) {
@@ -245,6 +262,8 @@ const RouteOrders = () => {
 
   const openOrderModal = (index: number) => {
     setActiveStopIndex(index);
+    setSelectedCustomerId(''); // Reset customer selection when opening modal
+    setOrderSearch(''); // Reset search
     setIsOrderModalOpen(true);
   };
 
@@ -260,6 +279,8 @@ const RouteOrders = () => {
         : '_id,desc',
         // selected branch or warehouseBranchId
       ...(selectedBranchId || route?.warehouseBranchId ? { branchId: selectedBranchId || route?.warehouseBranchId } : {}),
+      // Filter by customerId if selected
+      ...(selectedCustomerId ? { customerId: selectedCustomerId } : {}),
       // ...(orderBranchId ? { branchId: orderBranchId } : {}),
       ...(trimmed
         ? {
@@ -271,9 +292,9 @@ const RouteOrders = () => {
   };
 
   useEffect(() => {
-    if (!isOrderModalOpen) return;
+    if (!isOrderModalOpen || !selectedCustomerId) return;
     dispatch(filterAssignedOrders(buildOrdersQuery()));
-  }, [dispatch, isOrderModalOpen, orderLazyState, orderSearch, selectedBranchId, route?.warehouseBranchId]);
+  }, [dispatch, isOrderModalOpen, orderLazyState, orderSearch, selectedBranchId, selectedCustomerId, route?.warehouseBranchId]);
 
   const handleSelectOrder = (order: IOrder) => {
     if (activeStopIndex === null) return;
@@ -666,11 +687,35 @@ const RouteOrders = () => {
             <DialogTitle>Select Wholesale Order</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Select Customer *</Label>
+              <Select
+                options={customers.map(customer => ({
+                  value: customer.id,
+                  label: customer.businessDetails?.businessName || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unnamed customer',
+                }))}
+                value={customers.find(c => c.id === selectedCustomerId) ? {
+                  value: selectedCustomerId,
+                  label: (() => {
+                    const customer = customers.find(c => c.id === selectedCustomerId);
+                    return customer?.businessDetails?.businessName || `${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Unnamed customer';
+                  })()
+                } : null}
+                onChange={(option) => {
+                  setSelectedCustomerId(option?.value || '');
+                  setOrderLazyState(prev => ({ ...prev, page: 0, first: 0 })); // Reset pagination
+                }}
+                placeholder="Select a customer..."
+                isClearable
+                isLoading={customersLoading}
+              />
+            </div>
             <div className="flex items-center gap-3">
               <Input
                 value={orderSearch}
                 onChange={(e) => setOrderSearch(e.target.value)}
                 placeholder="Search by order ID or sequence number"
+                disabled={!selectedCustomerId}
               />
               {/* <UiSelect value={orderBranchId} onValueChange={setOrderBranchId}>
                 <SelectTrigger className="w-[200px]">
@@ -691,10 +736,16 @@ const RouteOrders = () => {
                   setOrderLazyState(prev => ({ ...prev, page: 0, first: 0 }));
                   dispatch(filterAssignedOrders(buildOrdersQuery()));
                 }}
+                disabled={!selectedCustomerId}
               >
                 Search
               </Button>
             </div>
+            {!selectedCustomerId && (
+              <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                Please select a customer first to view their orders.
+              </div>
+            )}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -708,21 +759,28 @@ const RouteOrders = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ordersLoading && (
+                  {!selectedCustomerId && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
+                        Please select a customer to view orders.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {selectedCustomerId && ordersLoading && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
                         Loading orders...
                       </TableCell>
                     </TableRow>
                   )}
-                  {!ordersLoading && orders.length === 0 && (
+                  {selectedCustomerId && !ordersLoading && orders.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
-                        No wholesale orders found.
+                        No wholesale orders found for this customer.
                       </TableCell>
                     </TableRow>
                   )}
-                  {!ordersLoading &&
+                  {selectedCustomerId && !ordersLoading &&
                    orders.filter(order => !stops.some(stop => stop.orderId === order.id)).map(order => (
                       <TableRow key={order.id}>
                         <TableCell>{order.sequenceNumber ?? '—'}</TableCell>
@@ -744,11 +802,12 @@ const RouteOrders = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {orderLazyState.first + 1}-{Math.min(orderLazyState.first + orderLazyState.rows, totalOrders)} of {totalOrders}
-              </span>
-              <div className="flex items-center gap-2">
+            {selectedCustomerId && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  {orderLazyState.first + 1}-{Math.min(orderLazyState.first + orderLazyState.rows, totalOrders)} of {totalOrders}
+                </span>
+                <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -777,8 +836,9 @@ const RouteOrders = () => {
                 >
                   Next
                 </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

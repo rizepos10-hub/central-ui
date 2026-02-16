@@ -9,6 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
+/**
+ * Formats authority/role names from "ROLE_SOME_THING" to "Role Some Thing"
+ */
+const formatAuthorityName = (name: string): string => {
+  if (!name) return name;
+  
+  // Replace ROLE_ prefix with "Role " if present, otherwise keep as is
+  const processedName = name.startsWith('ROLE_') ? 'Role_' + name.substring(5) : name;
+  
+  // Split by underscore, capitalize first letter of each word, lowercase the rest
+  return processedName
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 function Authorities({ userEntity }: { userEntity: IBackOfficeUser }) {
   const dispatch = useAppDispatch();
   const apiRoles = useAppSelector(state => state.user.roles?.['groups']);
@@ -133,7 +149,7 @@ function Authorities({ userEntity }: { userEntity: IBackOfficeUser }) {
             <CardHeader className="pb-3 bg-muted/30">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  {role.groupName}
+                  {formatAuthorityName(role.groupName)}
                   <Badge variant={role.assigned ? "default" : "secondary"} className="text-xs">
                     {role.assigned ? "Active" : "Inactive"}
                   </Badge>
@@ -192,7 +208,7 @@ function Authorities({ userEntity }: { userEntity: IBackOfficeUser }) {
                       htmlFor={`auth-${role.groupName}-${authority.authorityName}`}
                       className="text-xs cursor-pointer flex-1 leading-relaxed"
                     >
-                      {authority.authorityName}
+                      {formatAuthorityName(authority.authorityName)}
                     </Label>
                   </div>
                 ))}
