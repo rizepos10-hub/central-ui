@@ -930,11 +930,7 @@ export const OrderDetail = () => {
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Method</div>
-                                        <div className="font-medium text-sm capitalize">
-                                          {typeof transaction.method === 'object' && transaction.method?.transactionMethod 
-                                            ? String(transaction.method.transactionMethod).toLowerCase()
-                                            : String(transaction.method || '').toLowerCase()}
-                                        </div>
+                                        <div className="font-medium text-sm capitalize">{transaction.method?.name || ''.toLowerCase()}</div>
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Type</div>
