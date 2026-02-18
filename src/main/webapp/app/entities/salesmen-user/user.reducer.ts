@@ -153,6 +153,37 @@ export const getCategoryAssignments = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const assignCustomer = createAsyncThunk(
+  'salesmen-user/assign_customer',
+  async ({ id, salesmanId, customerId }: { id?: string; salesmanId: string; customerId: string }, thunkAPI) => {
+    const result = await axios.post('/api/wholesale/assignments', {
+      id,
+      salesmanId,
+      customerId,
+    });
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unassignCustomer = createAsyncThunk(
+  'salesmen-user/unassign_customer',
+  async (assignmentId: string, thunkAPI) => {
+    const result = await axios.delete(`/api/wholesale/assignments/${assignmentId}`);
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getCustomerAssignments = createAsyncThunk(
+  'salesmen-user/get_customer_assignments',
+  async (salesmanId: string, thunkAPI) => {
+    const result = await axios.get(`/api/wholesale/assignments/by-salesman/${salesmanId}`);
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // slice
 
 export const UserSlice = createEntitySlice({

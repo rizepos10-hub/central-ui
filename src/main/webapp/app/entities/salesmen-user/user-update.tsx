@@ -4,6 +4,7 @@ import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
 import Select from 'app/shared/components/select/select';
 import {
   getEntity,
@@ -13,7 +14,10 @@ import {
   changeEntityField,
   assignCategory,
   unassignCategory,
-  getCategoryAssignments
+  getCategoryAssignments,
+  assignCustomer,
+  unassignCustomer,
+  getCustomerAssignments
 } from './user.reducer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +27,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { IUser } from 'app/shared/model/user.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { ITerm } from 'app/shared/model/term.model';
+import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { toast } from 'react-toastify';
 
 export const UserUpdate = () => {
@@ -38,7 +43,9 @@ export const UserUpdate = () => {
   const updateSuccess = useAppSelector(state => state.SalesmenUser.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
+  const customers: ICustomer[] = useAppSelector(state => state.customer.entities);
   const [assignedCategoryIds, setAssignedCategoryIds] = useState<Map<string, string>>(new Map()); // categoryId -> assignmentId
+  const [assignedCustomerIds, setAssignedCustomerIds] = useState<Map<string, string>>(new Map()); // customerId -> assignmentId
 
   const handleClose = () => {
     navigate('/salesmen-user');
@@ -88,14 +95,24 @@ export const UserUpdate = () => {
       })
     );
 
+    dispatch(
+      getCustomers({
+        page: 0,
+        size: 1000,
+        sort: `id,asc`,
+        query: '',
+      })
+    );
+
     if (isNew) {
       dispatch(reset());
       setAssignedCategoryIds(new Map());
+      setAssignedCustomerIds(new Map());
     } else {
       const userId = id;
       dispatch(getEntity(userId)).then(() => {
-        // Try to fetch existing category assignments
         if (userId) {
+          // Try to fetch existing category assignments
           dispatch(getCategoryAssignments(userId))
             .then((result) => {
               if (getCategoryAssignments.fulfilled.match(result)) {
@@ -107,6 +124,24 @@ export const UserUpdate = () => {
                   }
                 });
                 setAssignedCategoryIds(assignmentMap);
+              }
+            })
+            .catch(() => {
+              // If endpoint doesn't exist or fails, we'll track assignments locally
+            });
+
+          // Try to fetch existing customer assignments
+          dispatch(getCustomerAssignments(userId))
+            .then((result) => {
+              if (getCustomerAssignments.fulfilled.match(result)) {
+                const assignments = result.payload || [];
+                const assignmentMap = new Map<string, string>();
+                assignments.forEach((assignment: any) => {
+                  if (assignment.customerId && assignment.id) {
+                    assignmentMap.set(assignment.customerId, assignment.id as string);
+                  }
+                });
+                setAssignedCustomerIds(assignmentMap);
               }
             })
             .catch(() => {
@@ -131,17 +166,36 @@ export const UserUpdate = () => {
     }));
   }, [assignedCategoryIds, retailCategories]);
 
+  const customerOptions = useMemo(() => {
+    return customers.map(customer => {
+      const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+      return {
+        value: String(customer.id),
+        label: customer.businessDetails?.businessName || fullName || customer.email || customer.phone || 'Unnamed customer',
+      };
+    });
+  }, [customers]);
+
+  const selectedCustomers = useMemo(() => {
+    return Array.from(assignedCustomerIds.keys()).map(customerId => ({
+      value: customerId,
+      label:
+        customerOptions.find(customer => customer.value === customerId)?.label || 'Unknown',
+    }));
+  }, [assignedCustomerIds, customerOptions]);
+
   const handleCategoryChange = async (selectedOptions: any[]) => {
     if (!userEntity.id) {
       toast.error('Please save the user first before assigning categories');
       return;
     }
 
+    const normalizedSelectedOptions = selectedOptions || [];
     const currentCategoryIds = new Set(Array.from(assignedCategoryIds.keys()));
-    const newCategoryIds = new Set(selectedOptions.map(opt => opt.value));
+    const newCategoryIds = new Set(normalizedSelectedOptions.map(opt => opt.value));
 
     // Find categories to assign (in new but not in current)
-    const toAssign = selectedOptions.filter(opt => !currentCategoryIds.has(opt.value));
+    const toAssign = normalizedSelectedOptions.filter(opt => !currentCategoryIds.has(opt.value));
 
     // Find categories to unassign (in current but not in new)
     const toUnassign = Array.from(currentCategoryIds).filter(catId => !newCategoryIds.has(catId));
@@ -183,6 +237,63 @@ export const UserUpdate = () => {
         }
       } catch (error) {
         toast.error(`Failed to assign category: ${error}`);
+      }
+    }
+  };
+
+  const handleCustomerChange = async (selectedOptions: any[]) => {
+    if (!userEntity.id) {
+      toast.error('Please save the user first before assigning customers');
+      return;
+    }
+
+    const normalizedSelectedOptions = selectedOptions || [];
+    const currentCustomerIds = new Set(Array.from(assignedCustomerIds.keys()));
+    const newCustomerIds = new Set(normalizedSelectedOptions.map(opt => String(opt.value)));
+
+    // Find customers to assign (in new but not in current)
+    const toAssign = normalizedSelectedOptions.filter(opt => !currentCustomerIds.has(String(opt.value)));
+
+    // Find customers to unassign (in current but not in new)
+    const toUnassign = Array.from(currentCustomerIds).filter(customerId => !newCustomerIds.has(customerId));
+
+    // Unassign customers
+    for (const customerId of toUnassign) {
+      const assignmentId = assignedCustomerIds.get(customerId);
+      if (assignmentId) {
+        try {
+          await dispatch(unassignCustomer(assignmentId)).unwrap();
+          setAssignedCustomerIds(prev => {
+            const next = new Map(prev);
+            next.delete(customerId);
+            return next;
+          });
+        } catch (error) {
+          toast.error(`Failed to unassign customer: ${error}`);
+        }
+      }
+    }
+
+    // Assign new customers
+    for (const option of toAssign) {
+      try {
+        const result = await dispatch(
+          assignCustomer({
+            salesmanId: userEntity.id,
+            customerId: String(option.value),
+          })
+        ).unwrap();
+
+        // Store the assignment ID for future unassignment
+        if (result?.id) {
+          setAssignedCustomerIds(prev => {
+            const next = new Map(prev);
+            next.set(String(option.value), result.id);
+            return next;
+          });
+        }
+      } catch (error) {
+        toast.error(`Failed to assign customer: ${error}`);
       }
     }
   };
@@ -296,6 +407,22 @@ export const UserUpdate = () => {
                     options={categoryOptions}
                     className="text-xs"
                     placeholder="Select categories to assign"
+                  />
+                </div>
+              )}
+
+              {!isNew && (
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    Customers
+                  </Label>
+                  <Select
+                    value={selectedCustomers}
+                    isMulti
+                    onChange={handleCustomerChange}
+                    options={customerOptions}
+                    className="text-xs"
+                    placeholder="Select customers to assign"
                   />
                 </div>
               )}
