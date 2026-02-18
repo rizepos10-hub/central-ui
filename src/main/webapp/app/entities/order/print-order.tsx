@@ -274,7 +274,6 @@ const PrintOrder = () => {
 
   const invoiceNumber = orderEntity?.sequenceNumber ? `${orderEntity.sequenceNumber}`.padStart(7, '0') : '-';
   const poNumber = orderEntity?.id ? orderEntity.id.slice(-5).toUpperCase() : '-';
-  const hstNumber = ((uiSettings as any)?.hstNumber as string) || '-';
 
   return (
     <div>
@@ -326,10 +325,6 @@ const PrintOrder = () => {
               <div className={styles.metaRow}>
                 <span className={styles.metaLabel}>PO#:</span>
                 <span>{poNumber}</span>
-              </div>
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>HST#:</span>
-                <span>{hstNumber}</span>
               </div>
             </div>
           </div>
@@ -422,7 +417,7 @@ const PrintOrder = () => {
           </div>
         </div>
       </div>
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-2 justify-end mb-5">
         <Button onClick={() => navigate(`/order/${orderEntity?.id}`)}>Back</Button>
         <Button onClick={handlePrint}>Print</Button>
       </div>
