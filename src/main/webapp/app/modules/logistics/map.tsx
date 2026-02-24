@@ -1,12 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Map, Marker, useMap } from '@vis.gl/react-google-maps';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,78 +11,147 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import {
-  logisticsOrders,
-  logisticsRoutes,
-  LogisticsRoute,
-} from './logistics.mock';
+import Select from 'react-select';
+import { fetchRoutes } from './logistics.reducer';
+import { IWholesaleRoute, WholesaleRouteStatus } from './logistics.model';
+import { format } from 'date-fns';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { EyeIcon } from 'lucide-react';
 
-const MapRoutesOverlay = ({ onRouteClick }: { onRouteClick: (route: LogisticsRoute) => void }) => {
-  const map = useMap();
+type RouteWithPath = IWholesaleRoute & { path: google.maps.LatLngLiteral[] };
 
-  useEffect(() => {
-    if (!map) return;
+const parseLatLng = (value?: string) => {
+  if (!value) return null;
+  const [latStr, lngStr] = value.split(',');
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+  return { lat, lng };
+};
 
-    const overlays = logisticsRoutes.map(route => {
-      const polyline = new google.maps.Polyline({
-        path: route.path,
-        strokeColor: route.color,
-        strokeOpacity: 0.85,
-        strokeWeight: 5,
-        clickable: true,
-        map,
-        zIndex: 3,
-      });
+const buildPathFromNavigationUrl = (navigationUrl?: string) => {
+  if (!navigationUrl) return [];
+  try {
+    const url = new URL(navigationUrl);
+    const origin = parseLatLng(url.searchParams.get('origin') || undefined);
+    const destination = parseLatLng(url.searchParams.get('destination') || undefined);
+    const waypointsParam = url.searchParams.get('waypoints') || '';
+    const waypoints = waypointsParam
+      .split('|')
+      .map(point => parseLatLng(point))
+      .filter(Boolean) as google.maps.LatLngLiteral[];
 
-      const listener = polyline.addListener('click', () => onRouteClick(route));
+    const path = [];
+    if (origin) path.push(origin);
+    path.push(...waypoints);
+    if (destination) path.push(destination);
+    return path;
+  } catch (error) {
+    return [];
+  }
+};
 
-      return {
-        polyline,
-        listener,
-      };
-    });
-
-    return () => {
-      overlays.forEach(({ polyline, listener }) => {
-        google.maps.event.removeListener(listener);
-        polyline.setMap(null);
-      });
-    };
-  }, [map, onRouteClick]);
-
-  return null;
+// Convert navigation URL to embeddable iframe URL
+const convertToEmbedUrl = (navigationUrl?: string): string | null => {
+  if (!navigationUrl) return null;
+  try {
+    const url = new URL(navigationUrl);
+    const origin = url.searchParams.get('origin');
+    const destination = url.searchParams.get('destination');
+    const waypoints = url.searchParams.get('waypoints');
+    
+    if (!origin || !destination) return null;
+    
+    // Build embed URL - Google Maps Embed API format
+    const embedUrl = new URL('https://www.google.com/maps/embed/v1/directions');
+    embedUrl.searchParams.set('key', typeof GOOGLE_MAPS_API_KEY !== 'undefined' ? GOOGLE_MAPS_API_KEY : '');
+    embedUrl.searchParams.set('origin', origin);
+    embedUrl.searchParams.set('destination', destination);
+    if (waypoints) {
+      embedUrl.searchParams.set('waypoints', waypoints);
+    }
+    
+    return embedUrl.toString();
+  } catch (error) {
+    return null;
+  }
 };
 
 const LogisticsMap = () => {
-  const [selectedRoute, setSelectedRoute] = useState<LogisticsRoute | null>(null);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const routes = useAppSelector(state => state.logistics.entities);
+  const loading = useAppSelector(state => state.logistics.loading);
+  const branches = useAppSelector(state => state.branch.entities);
+  const [selectedRoute, setSelectedRoute] = useState<RouteWithPath | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const routeOrders = useMemo(
-    () => (selectedRoute ? logisticsOrders.filter(order => order.routeId === selectedRoute.id) : []),
-    [selectedRoute]
+  useEffect(() => {
+    dispatch(fetchRoutes({ page: 0, size: 1000, sort: 'routeDate,desc' }));
+    dispatch(getBranches({}));
+  }, [dispatch]);
+
+  const getBranchName = (branchId?: string) => {
+    return branches.find(branch => branch.id === branchId)?.name || '—';
+  };
+
+  const routesWithPath = useMemo(
+    () =>
+      routes
+        .map(route => ({
+          ...route,
+          path: buildPathFromNavigationUrl(route.navigationUrl),
+        }))
+        .filter(route => {
+          // Filter out completed and cancelled routes
+          if (route.status === WholesaleRouteStatus.COMPLETED || route.status === WholesaleRouteStatus.CANCELLED) {
+            return false;
+          }
+          // Only include routes with valid paths
+          return route.path.length > 1;
+        }),
+    [routes]
   );
 
-  const handleRouteSelect = useCallback((route: LogisticsRoute) => {
-    setSelectedRoute(route);
-    setDialogOpen(true);
+  // Set first route as selected by default
+  useEffect(() => {
+    if (routesWithPath.length > 0 && !selectedRoute) {
+      setSelectedRoute(routesWithPath[0]);
+    }
+  }, [routesWithPath, selectedRoute]);
+
+  // Create options for react-select
+  const routeOptions = useMemo(() => {
+    return routesWithPath.map(route => ({
+      value: route.id,
+      label: route.name || 'Unnamed Route',
+      route: route,
+    }));
+  }, [routesWithPath]);
+
+  const handleRouteSelect = useCallback((option: { value: string; label: string; route: RouteWithPath } | null) => {
+    if (option?.route) {
+      setSelectedRoute(option.route);
+    }
   }, []);
+
+  const handleNavigateToRoute = useCallback(() => {
+    if (selectedRoute?.id) {
+      navigate(`/logistics/routes/${selectedRoute.id}`);
+    }
+  }, [selectedRoute, navigate]);
 
   const handleDialogClose = () => {
     setDialogOpen(false);
     setSelectedRoute(null);
   };
 
-  const defaultCenter = useMemo(() => ({ lat: 42.315, lng: -83.036 }), []);
+  // Get embed URL for selected route
+  const selectedRouteEmbedUrl = useMemo(() => {
+    return selectedRoute ? convertToEmbedUrl(selectedRoute.navigationUrl) : null;
+  }, [selectedRoute]);
 
   return (
     <PageWrapper className="space-y-6">
@@ -94,25 +159,66 @@ const LogisticsMap = () => {
         <CardHeader>
           <CardTitle>Route Map</CardTitle>
         </CardHeader>
-        <CardContent className="h-[560px] p-0">
-          <Map
-            id="logistics-map"
-            defaultCenter={defaultCenter}
-            defaultZoom={11.2}
-            style={{ width: '100%', height: '100%' }}
-            mapTypeControl={false}
-            fullscreenControl={false}
-            streetViewControl={false}
-          >
-            <MapRoutesOverlay onRouteClick={handleRouteSelect} />
-            {logisticsRoutes.map(route => (
-              <Marker
-                key={route.id}
-                position={route.path[0]}
-                label={{ text: route.truck, fontWeight: '600' }}
+        <CardContent className="space-y-4">
+          {/* Route selection dropdown and details */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <div className="flex-1 min-w-[200px] max-w-[300px]">
+              <Select
+                options={routeOptions}
+                value={routeOptions.find(opt => opt.value === selectedRoute?.id) || null}
+                onChange={(option) => handleRouteSelect(option as { value: string; label: string; route: RouteWithPath } | null)}
+                placeholder="Select a route"
+                isClearable={false}
+                className="text-sm"
               />
-            ))}
-          </Map>
+            </div>
+            
+            {/* Route details */}
+            {selectedRoute && (
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <Badge variant="outline">
+                  {selectedRoute.status || 'PLANNED'}
+                </Badge>
+                {selectedRoute.routeDate && (
+                  <span className="text-muted-foreground">
+                    {format(new Date(selectedRoute.routeDate), 'MMM dd, yyyy')}
+                  </span>
+                )}
+                <span className="text-muted-foreground">
+                  {selectedRoute.stops?.length || 0} stops
+                </span>
+                {selectedRoute.id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNavigateToRoute}
+                  >
+                    <EyeIcon className="w-4 h-4" />
+                    View
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Single iframe map for selected route */}
+          {selectedRouteEmbedUrl ? (
+            <div className="h-[500px] rounded-lg overflow-hidden border">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                src={selectedRouteEmbedUrl}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[500px] text-muted-foreground border rounded-lg">
+              {selectedRoute ? 'No navigation URL available for this route' : 'Select a route above to view its map'}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -120,51 +226,31 @@ const LogisticsMap = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedRoute ? `${selectedRoute.name} — ${selectedRoute.truck}` : 'Route orders'}
+              {selectedRoute ? `${selectedRoute.name}` : 'Route'}
             </DialogTitle>
             <DialogDescription>
-              Clicked route orders are grouped here for quick review.
+              Clicked route details are shown here for quick review.
             </DialogDescription>
           </DialogHeader>
 
           {selectedRoute && (
             <>
               <div className="mb-4 flex items-center justify-between">
-                <Badge className="bg-slate-100 text-slate-800">{selectedRoute.status}</Badge>
-                <div className="text-sm text-slate-500">
-                  Estimated arrival {selectedRoute.estimatedTime}
-                </div>
+                <Badge className="bg-slate-100 text-slate-800">{selectedRoute.status || '—'}</Badge>
+                {selectedRoute.navigationUrl && (
+                  <a
+                    className="text-sm text-primary hover:underline"
+                    href={selectedRoute.navigationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open navigation
+                  </a>
+                )}
               </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>ETA</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {routeOrders.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No mock orders assigned yet.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {routeOrders.map(order => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.reference}</TableCell>
-                      <TableCell>{order.destination}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{order.status}</TableCell>
-                      <TableCell>{order.eta}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="text-sm text-muted-foreground">
+                Route has {selectedRoute.stops?.length || 0} stops.
+              </div>
             </>
           )}
 

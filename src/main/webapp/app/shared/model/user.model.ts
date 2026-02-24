@@ -53,16 +53,9 @@ export interface AvailableRoles {
 }
 
 export const defaultValue: Readonly<IUser> = {
-  userRole: {
-    groups: [],
-    authorities: []
-  },
   branches: [],
-  password: null as unknown as string,
-  authoritiesGroups: [],
-  pinCode: '',
   firstName: '',
   lastName: '',
-  userName: '',
+  username: '',
   email: '',
 };

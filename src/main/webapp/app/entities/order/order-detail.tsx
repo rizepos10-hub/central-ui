@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown } from 'lucide-react';
+import { changeDeliveryStatus, changeProcessingStatus, createBill, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
+import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,7 @@ import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
+import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
 import { changeEntityField as changeBillEntityField, reset } from '../bill/bill.reducer';
 import { DeliverStatus } from 'app/shared/model/ENUMS/delivery-status.model';
 import { useReactToPrint } from 'react-to-print';
@@ -102,6 +103,14 @@ export const OrderDetail = () => {
   // Refund dialog states
   const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [selectedBillForRefund, setSelectedBillForRefund] = useState<IBill | null>(null);
+
+  // Payment dialog states
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
+  const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
+  const [pendingBillCreation, setPendingBillCreation] = useState(false);
 
   useEffect(() => {
     if (orderEntity.orderDeliveryDetails) {
@@ -172,6 +181,73 @@ export const OrderDetail = () => {
     setShowPaymentConfirm(false);
   };
 
+  const handleCreateDraftBill = () => {
+    dispatch(createDraftBill({
+      orderId: filteredOrderEntity.id,
+      payee: null,
+      createdBy: null,
+      discount: null
+    }));
+  };
+
+  const openPaymentDialog = (bill: IBill) => {
+    setSelectedBillForPayment(bill);
+    // Calculate remaining balance
+    const totalPaid = bill.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
+    const remaining = (bill.total || 0) - totalPaid;
+    setPaymentAmount(Math.max(0, remaining));
+    setPaymentTipAmount(0);
+    setPaymentTransactionMethod(TransactionMethodEnum.cash);
+    setShowPaymentDialog(true);
+  };
+
+  const handleOpenPaymentDialogOrCreateBill = async () => {
+    // Check if order has any bills
+    const hasBills = filteredOrderEntity?.bills && filteredOrderEntity.bills.length > 0;
+    
+    if (!hasBills) {
+      // Create draft bill first, then open payment dialog
+      try {
+        setPendingBillCreation(true);
+        await dispatch(createDraftBill({
+          orderId: filteredOrderEntity.id,
+          payee: null,
+          createdBy: null,
+          discount: null
+        })).unwrap();
+        // The useEffect will handle opening the payment dialog when the bill is created
+      } catch (error) {
+        setPendingBillCreation(false);
+        toast.error('Failed to create draft bill');
+      }
+    } else {
+      // Find the first draft bill, or use the first bill
+      const draftBill = filteredOrderEntity.bills.find(bill => bill.status === 'DRAFT');
+      const billToUse = draftBill || filteredOrderEntity.bills[0];
+      if (billToUse) {
+        openPaymentDialog(billToUse);
+      }
+    }
+  };
+
+  const handleAddPayment = () => {
+    if (!selectedBillForPayment) return;
+    
+    dispatch(addPaymentToBill({
+      orderId: filteredOrderEntity.id,
+      billId: selectedBillForPayment.id,
+      amount: paymentAmount,
+      tipAmount: paymentTipAmount,
+      transactionMethod: paymentTransactionMethod
+    }));
+    
+    setShowPaymentDialog(false);
+    setSelectedBillForPayment(null);
+    setPaymentAmount(0);
+    setPaymentTipAmount(0);
+    setPaymentTransactionMethod(TransactionMethodEnum.cash);
+  };
+
   const changeProcessingStatusConfirm = (status: OrderStatus) => {
     setPendingProcessingStatus(status);
     setShowProcessingConfirm(true);
@@ -232,6 +308,18 @@ export const OrderDetail = () => {
     setDeliveryStatus(filteredOrderEntity.deliveryStatus);
   }, [filteredOrderEntity.deliveryStatus])
 
+  // Auto-open payment dialog when draft bill is created
+  useEffect(() => {
+    if (pendingBillCreation && filteredOrderEntity?.bills && filteredOrderEntity.bills.length > 0) {
+      const draftBill = filteredOrderEntity.bills.find(bill => bill.status === 'DRAFT');
+      const billToUse = draftBill || filteredOrderEntity.bills[0];
+      if (billToUse) {
+        setPendingBillCreation(false);
+        openPaymentDialog(billToUse);
+      }
+    }
+  }, [filteredOrderEntity?.bills, pendingBillCreation])
+
   const openRefundDialog = (bill: IBill) => {
     setSelectedBillForRefund(bill);
     dispatch(changeBillEntityField({ name: 'items', value: [] }));
@@ -255,6 +343,48 @@ export const OrderDetail = () => {
   const handleCancelBooking = () => {
     dispatch(cancelBooking(orderEntity));
     setShowCancelBookingConfirm(false);
+  };
+
+  const transformOrderForEdit = (order: IOrder): IOrder => {
+    const transformedItems = order.items?.map((item, index) => {
+      // Generate unique cartId for each item
+      const cartId = `${item.id || item.itemId || 'item'}-${Date.now()}-${index}`;
+      
+      return {
+        ...item,
+        cartId,
+        itemId: item.itemId || item.id,
+        variantId: item.variantId || '',
+        amount: item.amount || 1,
+        price: item.price || 0,
+        selectedRetailAttributes: item.selectedRetailAttributes || [],
+        discount: item.discount || {},
+        customDiscount: item.discount?.value || 0,
+      };
+    }) || [];
+
+    return {
+      ...order,
+      id: order.id,
+      items: transformedItems,
+      branchId: order.branchId,
+      customer: order.customer,
+      orderMethod: order.orderMethod,
+      scheduledAt: order.scheduledAt,
+      deliverTo: order.deliverTo,
+      orderCharges: order.orderCharges || [],
+      customDiscount: order.customDiscount,
+    };
+  };
+
+  const handleEditOrder = () => {
+    const transformedOrder = transformOrderForEdit(filteredOrderEntity);
+    navigate('/order/create', {
+      state: {
+        editOrder: transformedOrder,
+        orderId: filteredOrderEntity.id,
+      },
+    });
   };
 
   if (loading) {
@@ -315,6 +445,20 @@ export const OrderDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-sm font-medium">Items</span>
+                    {!editMode && !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEditOrder}
+                        className="h-8 text-xs"
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        Edit Order
+                      </Button>
+                    )}
+                  </div>
                   {dataTableValues && dataTableValues.length > 0 && (
                     <OrderedItems dataTableValues={dataTableValues} />
                   )}
@@ -373,26 +517,35 @@ export const OrderDetail = () => {
                         </Badge>
                       ) : (
                         editMode ? (
-                          <div className="flex gap-2 items-end">
-                            <div className="flex flex-col gap-1">
-                              <label className="font-semibold text-xs">Tip Amount</label>
-                              <Input
-                                type="number"
-                                value={processStatusTipAmount}
-                                onChange={(e) => setProcessStatusTipAmount(Number(e.target.value))}
-                                min={0}
-                                step={0.01}
-                                className="h-8 text-xs w-24"
-                              />
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2 items-end">
+                              <div className="flex flex-col gap-1">
+                                <label className="font-semibold text-xs">Tip Amount</label>
+                                <Input
+                                  type="number"
+                                  value={processStatusTipAmount}
+                                  onChange={(e) => setProcessStatusTipAmount(Number(e.target.value))}
+                                  min={0}
+                                  step={0.01}
+                                  className="h-8 text-xs w-24"
+                                />
+                              </div>
+                              <Button
+                                variant="destructive"
+                                onClick={() => {
+                                  changePaymentStatusConfirm();
+                                }}
+                                className="h-8 text-xs"
+                              >
+                                Pay Now
+                              </Button>
                             </div>
                             <Button
-                              variant="destructive"
-                              onClick={() => {
-                                changePaymentStatusConfirm();
-                              }}
+                              variant="outline"
+                              onClick={handleOpenPaymentDialogOrCreateBill}
                               className="h-8 text-xs"
                             >
-                              Pay Now
+                              Add Payment
                             </Button>
                           </div>
                         ) : (
@@ -706,7 +859,6 @@ export const OrderDetail = () => {
                                       },
                                     })
                                       .then((response) => {
-                                        console.log(response)
                                         if (!response.ok) {
                                           toast.error("An error occurred");
                                         } else {
@@ -735,6 +887,32 @@ export const OrderDetail = () => {
                           </AccordionTrigger>
                           <AccordionContent className="px-4 pb-4">
                             <div className="space-y-3">
+                              {billStatus === 'DRAFT' && (() => {
+                                const totalPaid = bill.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
+                                const remaining = (bill.total || 0) - totalPaid;
+                                return (
+                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className="text-xs font-semibold text-blue-900">Remaining Balance</span>
+                                      <span className="text-lg font-bold text-blue-900">${remaining.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs text-blue-700">
+                                      <span>Bill Total: ${(bill.total || 0).toFixed(2)}</span>
+                                      <span>Paid: ${totalPaid.toFixed(2)}</span>
+                                    </div>
+                                    <Button
+                                      className="mt-3 h-8 text-xs w-full"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openPaymentDialog(bill);
+                                      }}
+                                    >
+                                      Add Payment
+                                    </Button>
+                                  </div>
+                                );
+                              })()}
                               <div className="text-xs font-semibold text-muted-foreground mb-2">Payment Transactions</div>
                               {bill?.paymentTransactions?.length > 0 ? (
                                 bill.paymentTransactions.map((transaction, txnIdx) => (
@@ -752,7 +930,7 @@ export const OrderDetail = () => {
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Method</div>
-                                        <div className="font-medium text-sm capitalize">{String(transaction.method || '').toLowerCase()}</div>
+                                        <div className="font-medium text-sm capitalize">{transaction.method?.name || ''.toLowerCase()}</div>
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Type</div>
@@ -911,6 +1089,99 @@ export const OrderDetail = () => {
               className="h-8 text-xs"
             >
               Apply Refund
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Payment to Bill #{selectedBillForPayment?.sequenceNumber}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {selectedBillForPayment && (() => {
+              const totalPaid = selectedBillForPayment.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
+              const remaining = (selectedBillForPayment.total || 0) - totalPaid;
+              return (
+                <>
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-muted-foreground">Bill Total:</span>
+                      <span className="font-semibold">${(selectedBillForPayment.total || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-muted-foreground">Total Paid:</span>
+                      <span className="font-semibold">${totalPaid.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t">
+                      <span className="font-semibold">Remaining:</span>
+                      <span className="font-bold text-lg">${remaining.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Payment Amount</label>
+                      <Input
+                        type="number"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(Math.max(0, Number(e.target.value)))}
+                        min={0}
+                        step={0.01}
+                        max={remaining}
+                        className="h-9"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Tip Amount (Optional)</label>
+                      <Input
+                        type="number"
+                        value={paymentTipAmount}
+                        onChange={(e) => setPaymentTipAmount(Math.max(0, Number(e.target.value)))}
+                        min={0}
+                        step={0.01}
+                        className="h-9"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Payment Method</label>
+                      <Select
+                        options={Object.values(TransactionMethodEnum).map(method => ({
+                          label: method.charAt(0).toUpperCase() + method.slice(1).replace(/([A-Z])/g, ' $1'),
+                          value: method,
+                        }))}
+                        value={{ label: paymentTransactionMethod.charAt(0).toUpperCase() + paymentTransactionMethod.slice(1).replace(/([A-Z])/g, ' $1'), value: paymentTransactionMethod }}
+                        onChange={(option) => setPaymentTransactionMethod(option.value)}
+                        placeholder="Select payment method"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPaymentDialog(false);
+                setSelectedBillForPayment(null);
+                setPaymentAmount(0);
+                setPaymentTipAmount(0);
+                setPaymentTransactionMethod(TransactionMethodEnum.cash);
+              }}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddPayment}
+              disabled={!selectedBillForPayment || paymentAmount <= 0}
+              className="h-8 text-xs"
+            >
+              Add Payment
             </Button>
           </div>
         </DialogContent>

@@ -1,0 +1,10 @@
+{
+  "payment-method-setting": {
+    "title": "Payment Method Settings",
+    "settings": {
+      "type": "Type",
+      "applicableOn": "Applicable On",
+      "calculationType": "Calculation Type"
+    }
+  }
+}

@@ -38,16 +38,17 @@ interface LazyTableState {
 }
 
 type OrderProps = {
-  pageType?: 'history' | 'today' | 'scheduled';
+  pageType?: 'history' | 'today' | 'scheduled' | '';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
   externalFromDate?: string;
   externalToDate?: string;
   externalBranchId?: string | null;
   isEndOfDayMode?: boolean;
+  wholesale?: boolean;
 }
 
-export const Order = ({ pageType = 'history', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false }: OrderProps) => {
+export const Order = ({ pageType = '', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false, wholesale = false }: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -59,6 +60,16 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
   to.setHours(23, 59, 59, 999);
 
   const config = {
+    '': {
+      storageKey: 'order-columns',
+      title: 'Orders',
+      sortField: 'createdDate',
+      sortOrder: 'asc' as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
+    },
     history: {
       storageKey: 'order-history-columns',
       title: 'Order History',
@@ -172,6 +183,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
         total: lazyState.filters.total?.value,
         discount: lazyState.filters.discount?.value,
         refund: lazyState.filters.refund?.value,
+        createdBy: lazyState.filters.createdBy?.value || '',
         size: lazyState.rows,
         fromDate: isEndOfDayMode
           ? (externalFromDate || '')
@@ -212,8 +224,8 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
 
-    // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
-    const storedFields = storedData[LOCAL_STORAGE_KEY] || {
+    // Default column visibility settings
+    const defaultFields = {
       orderId: true,
       orderBranch: true,
       orderTotal: true,
@@ -223,11 +235,20 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
       orderTable: true,
       customerEmail: true,
       customerPhone: true,
+      createdBy: true,
       // orderDiscount: true,
       orderRefund: true,
     };
 
-    return storedFields;
+    // Get stored fields, or use defaults if none exist
+    const storedFields = storedData[LOCAL_STORAGE_KEY] || {};
+    
+    // Merge defaults with stored fields - defaults take precedence for new fields
+    // This ensures new fields like 'createdBy' are visible even if not in localStorage
+    return {
+      ...defaultFields,
+      ...storedFields,
+    };
   });
 
   const toCamelCaseWithSpace = (str) => {
@@ -300,10 +321,12 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
         lazyState.filters.status?.value ||
         lazyState.filters.discount?.value !== null ||
         lazyState.filters.refund?.value !== null ||
+        lazyState.filters.createdBy?.value ||
         (!isEndOfDayMode && (dateRange?.from || dateRange?.to)) ||
         (isEndOfDayMode && externalFromDate && externalToDate)
       ) {
         const queryParams = {
+          ...(wholesale && { wholesale: true }),
           id: lazyState.filters._id?.value || '',
           client: appSourceProp || lazyState.filters.orderSource?.value || '',
           orderProcessingStatus: lazyState.filters.status?.value || '',
@@ -318,6 +341,7 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
           total: lazyState.filters.total?.value,
           discount: lazyState.filters.discount?.value,
           refund: lazyState.filters.refund?.value,
+          createdBy: lazyState.filters.createdBy?.value || '',
           size: lazyState.rows,
           fromDate: isEndOfDayMode
             ? (externalFromDate || '')
@@ -783,6 +807,27 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     </div>
                   </TableHead>
                 )}
+                {visibleColumns.createdBy && (
+                  <TableHead>
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Created By</div>
+                      <Input
+                        className="h-7 text-xs"
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              createdBy: { value: e.target.value, matchMode: 'contains' },
+                            },
+                          }))
+                        }
+                        value={lazyState.filters.createdBy?.value || ''}
+                        placeholder="Filter by creator"
+                      />
+                    </div>
+                  </TableHead>
+                )}
                 {/* {visibleColumns.orderDiscount && (
                   <TableHead>
                     <div className="space-y-1">
@@ -881,6 +926,9 @@ export const Order = ({ pageType = 'history', customer = '', appSourceProp, exte
                     )}
                     {!customer && visibleColumns.customerPhone && (
                       <TableCell className={cellClass}>{order.customer?.phone}</TableCell>
+                    )}
+                    {visibleColumns.createdBy && (
+                      <TableCell className={cellClass}>{order.createdBy || '-'}</TableCell>
                     )}
                     {/* {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">

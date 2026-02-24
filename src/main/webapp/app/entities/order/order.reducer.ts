@@ -7,14 +7,44 @@ import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 import { IAuditLog } from "app/shared/model/audit-log.model";
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 
-const initialState: EntityState<IOrder> = {
+export interface ItemPriceTotals {
+  grandTotal: number;
+  itemTotal: number;
+  taxTotal: number;
+}
+
+export interface CalculateItemPricePayload {
+  itemId: string;
+  variantId?: string;
+  quantity: number;
+  branchId?: string;
+  orderMethod?: string;
+  customerId?: string;
+  priceOverride?: number;
+  discountOverride?: {
+    discountId?: string;
+    type?: "PERCENTAGE" | "FLAT";
+    value?: number;
+  };
+}
+
+export interface OrderState extends EntityState<IOrder> {
+  itemPriceCalculations: Record<string, ItemPriceTotals>;
+  itemPriceLoading: Record<string, boolean>;
+  itemPriceErrors: Record<string, string | null>;
+}
+
+const initialState: OrderState = {
   loading: false,
   errorMessage: null,
   entities: [],
   entity: defaultValue,
   updating: false,
   updateSuccess: false,
-  orderSources: []
+  orderSources: [],
+  itemPriceCalculations: {},
+  itemPriceLoading: {},
+  itemPriceErrors: {}
 };
 
 const apiUrl = 'api/orders';
@@ -50,6 +80,18 @@ export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list',
   return response.data
 });
 
+export const calculateItemPrice = createAsyncThunk(
+  'order/calculate_item_price',
+  async ({ cartId, payload }: { cartId: string; payload: CalculateItemPricePayload }) => {
+    const result = await axios.post<ItemPriceTotals>(`${apiUrl}/calculate-item-price`, cleanEntity(payload));
+    return {
+      cartId,
+      data: result.data,
+    };
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // export const filterOrders = createAsyncThunk(
 //   'order/filter_orders',
 //   async ({ lazyState }: { lazyState: any }) => {
@@ -79,6 +121,17 @@ export const filterOrders = createAsyncThunk(
   }
 );
 
+export const filterAssignedOrders = createAsyncThunk(
+  'order/filter_assigned_orders',
+  async (queryParams: any) => {
+    try {
+      const response = await axios.post<IOrder[]>(`api/wholesale/routes/assignable-orders?page=${queryParams.page}&size=${queryParams.size}&sort=${queryParams.sort}`, cleanEntity(queryParams));
+      return response;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
 
 export const getEntity = createAsyncThunk(
   'order/fetch_entity',
@@ -114,6 +167,26 @@ export const createBill = createAsyncThunk(
   async (entity: IOrder, thunkAPI) => {
     const result = await axios.post<IOrder>(`${apiUrl}/${entity.id}/create-bill`, cleanEntity(entity));
     thunkAPI.dispatch(getEntity(entity.id));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const createDraftBill = createAsyncThunk(
+  'order/create_draft_bill',
+  async ({ orderId, payee, createdBy, discount }: { orderId: string | number; payee?: string | null; createdBy?: string | null; discount?: any | null }, thunkAPI) => {
+    const result = await axios.post<IBill>(`${apiUrl}/${orderId}/create-draft-bill`, cleanEntity({ payee, createdBy, discount }));
+    thunkAPI.dispatch(getEntity(orderId));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const addPaymentToBill = createAsyncThunk(
+  'order/add_payment_to_bill',
+  async ({ orderId, billId, amount, tipAmount, transactionMethod }: { orderId: string | number; billId: string | number; amount: number; tipAmount?: number; transactionMethod: string }, thunkAPI) => {
+    const result = await axios.post<IBill>(`${apiUrl}/${orderId}/bills/${billId}/add-payment`, cleanEntity({ amount, tipAmount, transactionMethod }));
+    thunkAPI.dispatch(getEntity(orderId));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -184,7 +257,7 @@ export const deleteEntities = createAsyncThunk(
 // slice
 export const changeEntityField = createAction<ChangeFieldPayload<IOrder>>('online-ordering-settings/change-entity-field');
 
-export const OrderSlice = createEntitySlice({
+export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, never>>({
   name: 'order',
   initialState,
   extraReducers(builder) {
@@ -206,6 +279,21 @@ export const OrderSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
+      .addCase(calculateItemPrice.pending, (state, action) => {
+        const { cartId } = action.meta.arg;
+        state.itemPriceLoading[cartId] = true;
+        state.itemPriceErrors[cartId] = null;
+      })
+      .addCase(calculateItemPrice.fulfilled, (state, action) => {
+        const { cartId, data } = action.payload;
+        state.itemPriceLoading[cartId] = false;
+        state.itemPriceCalculations[cartId] = data;
+      })
+      .addCase(calculateItemPrice.rejected, (state, action) => {
+        const { cartId } = action.meta.arg;
+        state.itemPriceLoading[cartId] = false;
+        state.itemPriceErrors[cartId] = action.error?.message || 'Failed to calculate item price';
+      })
       .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
         const { data, headers } = action.payload;
         return {
@@ -215,7 +303,7 @@ export const OrderSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities, filterOrders), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterOrders, filterAssignedOrders), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -240,12 +328,12 @@ export const OrderSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterOrders), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterOrders, filterAssignedOrders), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, createBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
+      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, createDraftBill, addPaymentToBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

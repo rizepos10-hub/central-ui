@@ -4,6 +4,8 @@ import Joyride, { STATUS, CallBackProps, Step, Placement } from 'react-joyride';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from 'app/config/store';
 import { getSetupStatus, updateSetupStatus } from 'app/entities/settings/guided-tour/guided-tour.reducer';
+import { hasAnyAuthority } from 'app/shared/auth/private-route';
+import { AUTHORITIES } from 'app/config/constants';
 
 const TOUR_STEPS_KEY = 'tour_current_step';
 
@@ -25,6 +27,9 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
   const sessionHasBeenFetched = useAppSelector(state => state.authentication.sessionHasBeenFetched);
   const account = useAppSelector(state => state.authentication.account);
+  
+  // Check if user has ROLE_ADMINISTRATOR permission
+  const hasAdminPermission = hasAnyAuthority(account?.authorities || [], [AUTHORITIES.ADMIN]);
   
   // Redux state from guided tour reducer
   const setupCompleted = useAppSelector(state => state.guidedTour.setupCompleted);
@@ -178,7 +183,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
   useEffect(() => {
     const savedStep = localStorage.getItem(TOUR_STEPS_KEY);
     
-    if (!setupCompleted && isAuthenticated && isVisible && sessionHasBeenFetched && !guidedTourLoading) {
+    if (!setupCompleted && isAuthenticated && isVisible && sessionHasBeenFetched && !guidedTourLoading && hasAdminPermission) {
       setRunTour(true);
       if (savedStep) {
         setStepIndex(parseInt(savedStep, 10));
@@ -186,10 +191,10 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
     } else if (setupCompleted) {
       setRunTour(false);
     } else {
-      // Not ready to start yet (auth/session not ready)
+      // Not ready to start yet (auth/session not ready or no admin permission)
       setRunTour(false);
     }
-  }, [isAuthenticated, sessionHasBeenFetched, isVisible, setupCompleted, guidedTourLoading]);
+  }, [isAuthenticated, sessionHasBeenFetched, isVisible, setupCompleted, guidedTourLoading, hasAdminPermission]);
 
   useEffect(() => {
     // Always save the current step to localStorage, even when paused
@@ -431,8 +436,8 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
     willRender: !(setupCompleted || !isAuthenticated || !sessionHasBeenFetched)
   });
 
-  if (setupCompleted || !isAuthenticated || !sessionHasBeenFetched || guidedTourLoading) {
-    console.log('🚫 Tour not rendering:', { setupCompleted, isAuthenticated, sessionHasBeenFetched, guidedTourLoading });
+  if (setupCompleted || !isAuthenticated || !sessionHasBeenFetched || guidedTourLoading || !hasAdminPermission) {
+    console.log('🚫 Tour not rendering:', { setupCompleted, isAuthenticated, sessionHasBeenFetched, guidedTourLoading, hasAdminPermission });
     return null;
   }
 

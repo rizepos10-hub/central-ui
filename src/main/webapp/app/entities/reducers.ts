@@ -17,6 +17,8 @@ import order from 'app/entities/order/order.reducer';
 import delivery from 'app/entities/order/delivery.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
+import SalesmenUser from 'app/entities/salesmen-user/user.reducer';
+import BookkeeperUser from 'app/entities/bookkeeper-user/user.reducer';
 import posAuthorityGroup from 'app/entities/pos-authority-groups/pos-authority-group.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
 import profileGroup from 'app/entities/settings/profile-group/profile-group.reducer';
@@ -73,6 +75,7 @@ import allItems from 'app/entities/item/all-items.reducer';
 import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 import product from 'app/entities/item/retail/product/product.reducer';
 import zones from "app/entities/settings/zones/zones.reducer"
+import paymentMethodSetting from "app/entities/settings/payment-method-setting/payment-method-setting.reducer";
 import variant from "app/entities/variant/variant.reducer";
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
@@ -126,6 +129,8 @@ const entitiesReducers = {
   delivery,
   user,
   PosBranchUser,
+  SalesmenUser,
+  BookkeeperUser,
   posAuthorityGroup,
   tax,
   taxProfiles,
@@ -194,6 +199,7 @@ const entitiesReducers = {
   till,
   brand,
   zones,
+  paymentMethodSetting,
   variant,
   GiftCardItem,
   GiftCardCoupon,

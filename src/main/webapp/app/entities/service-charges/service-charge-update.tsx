@@ -12,8 +12,9 @@ import {
   ServiceChargeCalculationMethod,
   ServiceChargeWhenToApply,
   IServiceCharge,
-  TransactionMethodEnum,
 } from 'app/shared/model/service-charge.model';
+import { IPaymentMethodSetting } from 'app/shared/model/payment-method-setting.model';
+import { getAllEntities as getAllPaymentMethodSettings } from 'app/entities/settings/payment-method-setting/payment-method-setting.reducer';
 import Select from 'react-select'
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -38,12 +39,12 @@ export const ServiceChargeUpdate = () => {
   const updating = useAppSelector(state => state.serviceCharge.updating);
   const branchList = useAppSelector(state => state.branch.entities);
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+  const allPaymentMethodSettings = useAppSelector(state => state.paymentMethodSetting.entities);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   
   useEffect(() => {
-    console.log(isNew)
     if (!isNew) {
       dispatch(getEntity(id));
     } else {
@@ -58,6 +59,9 @@ export const ServiceChargeUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       })
     );
+
+    // Fetch payment method settings
+    dispatch(getAllPaymentMethodSettings());
   }, []);
 
   const handleClose = () => {
@@ -153,16 +157,17 @@ export const ServiceChargeUpdate = () => {
     }
   };
 
-  const formatTransactionMethod = (method) => {
-    return method?.replace(/([a-z])([A-Z])/g, '$1 $2')?.replace(/_/g, ' ')?.replace(/\b\w/g, char => char.toUpperCase()) || method;
-  };
-
   const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: formatServiceChargeKey(key), value: ServiceChargeKey[key] }));
   const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: formatServiceChargeWhenToApply(key), value: ServiceChargeWhenToApply[key] }));
   const typeOptions = Object.keys(ServiceChargeCalculationMethod).map(key => ({ label: formatServiceChargeSettingType(key), value: ServiceChargeCalculationMethod[key] }));
   const applicableOnOptions = Object.keys(ServiceChargeOrderMethod).map(key => ({ label: formatServiceChargeApplicableOn(key), value: ServiceChargeOrderMethod[key] }));
   const orderSourceOptions = Object.keys(SourceType).map(key => ({ label: formatServiceChargeOrderSource(SourceType[key]), value: SourceType[key] }));
-  const transactionMethodOptions = Object.keys(TransactionMethodEnum).map(key => ({ label: formatTransactionMethod(TransactionMethodEnum[key]), value: TransactionMethodEnum[key] }));
+  // Filter to only show settings where show === true
+  const visiblePaymentMethodSettings = allPaymentMethodSettings.filter(setting => setting.show === true);
+  const transactionMethodOptions = visiblePaymentMethodSettings.map(setting => ({ 
+    label: (setting.name || (setting.transactionMethod ? String(setting.transactionMethod) : '') || '') as string, 
+    value: setting 
+  }));
 
   const handleWhenToApplyChange = (option) => {
     const newValue = option?.value;
@@ -191,7 +196,8 @@ export const ServiceChargeUpdate = () => {
   }
 
   const handleTransactionMethodsChange = (selectedOptions) => {
-    const newValue = selectedOptions.map(option => option.value);
+    // selectedOptions is an array of { label, value } where value is IPaymentMethodSetting
+    const newValue = selectedOptions ? selectedOptions.map(option => option.value) : [];
     const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
     _.set(updatedEntity, 'setting.applicableOn.transactionMethods', newValue);
     dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
@@ -358,10 +364,15 @@ export const ServiceChargeUpdate = () => {
                     <Select
                       id="service-charge-transactionMethods"
                       options={transactionMethodOptions}
-                      value={transactionMethodOptions.filter(option => serviceChargeEntity.setting?.applicableOn?.transactionMethods?.includes(option.value)) || null}
+                      value={transactionMethodOptions.filter(option => {
+                        const selectedMethods = serviceChargeEntity.setting?.applicableOn?.transactionMethods || [];
+                        return selectedMethods.some(method => method?.id === option.value?.id);
+                      })}
                       onChange={handleTransactionMethodsChange}
                       isMulti
                       isClearable
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value?.id || ''}
                     />
                   </div>
                 </div>
