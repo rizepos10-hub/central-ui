@@ -59,7 +59,7 @@ export interface IOrderDeliveryDetails {
   createDate?: string;
   date?: string;
   deliveryDetailId?: string;
-  deliveryProvider?: "ICABBI";
+  deliveryProvider?: 'ICABBI' | 'TOOKAN';
   driverInformation?: IOrderDeliveryInformation;
   expectedArrivalAt?: string;
   integrationDetails?: IOrderIntegrationDetails;
@@ -79,8 +79,15 @@ export interface IOrderDeliveryInformation {
 }
 
 export interface IOrderIntegrationDetails {
-  provider?: "ICABBI";
+  provider?: 'ICABBI' | 'TOOKAN';
   tripId?: string;
+  jobId?: string;
+  jobToken?: string;
+  pickupDeliveryRelationship?: string;
+  pickupHash?: string;
+  deliveryHash?: string;
+  teamId?: string;
+  fleetId?: string;
 }
 
 export const defaultValue: Readonly<IOrder> = {

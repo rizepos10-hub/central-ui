@@ -66,6 +66,7 @@ const EndOfDay = React.lazy(() => import('./end-of-day'));
 const PayoutType = React.lazy(() => import('./payout-type'));
 const CashPayment = React.lazy(() => import('./cash-payment'));
 const PaymentMethodSetting = React.lazy(() => import('./settings/payment-method-setting/index'));
+const TookanSettings = React.lazy(() => import('./settings/tookan'));
 
 export default () => {
   return (
@@ -155,6 +156,7 @@ export default () => {
         <Route path="payout-type/*" element={<PayoutType />} />
         <Route path="cash-payment/*" element={<CashPayment />} />
         <Route path="payment-method-setting/*" element={<PaymentMethodSetting />} />
+        <Route path="tookan-settings/*" element={<TookanSettings />} />
       </ErrorBoundaryRoutes>
     </Suspense>
   );

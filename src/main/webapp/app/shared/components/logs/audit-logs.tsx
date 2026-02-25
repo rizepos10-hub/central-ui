@@ -150,6 +150,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
             </li>
           )})
         )}
+      </ol>
       {loading && (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />
