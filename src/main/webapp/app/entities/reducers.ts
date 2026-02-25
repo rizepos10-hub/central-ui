@@ -76,6 +76,7 @@ import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 import product from 'app/entities/item/retail/product/product.reducer';
 import zones from "app/entities/settings/zones/zones.reducer"
 import paymentMethodSetting from "app/entities/settings/payment-method-setting/payment-method-setting.reducer";
+import tookanSetting from "app/entities/settings/tookan/tookan.reducer";
 import variant from "app/entities/variant/variant.reducer";
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
@@ -200,6 +201,7 @@ const entitiesReducers = {
   brand,
   zones,
   paymentMethodSetting,
+  tookanSetting,
   variant,
   GiftCardItem,
   GiftCardCoupon,

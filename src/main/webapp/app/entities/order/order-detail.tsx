@@ -29,13 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
 import Select from 'app/shared/components/select/select';
 import OrderedItems from './ordered-items';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
@@ -48,7 +41,7 @@ import { DeliverStatus } from 'app/shared/model/ENUMS/delivery-status.model';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
-import { cancelBooking, createBooking, updateBooking } from './delivery.reducer';
+import { assignDriver, cancelBooking, createBooking, getActiveProviders, getTookanAgents, getTookanTeams, syncBooking, updateBooking } from './delivery.reducer';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -69,6 +62,9 @@ export const OrderDetail = () => {
   const loading = useAppSelector(state => state.order.loading);
   const billEntity: IBill = useAppSelector(state => state.bill.entity);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
+  const activeProviders: Array<'ICABBI' | 'TOOKAN'> = useAppSelector(state => state.delivery.activeProviders || []);
+  const tookanTeams = useAppSelector(state => state.delivery.teams || []);
+  const tookanAgents = useAppSelector(state => state.delivery.agents || []);
 
   const filteredOrderEntity = {
     ...orderEntity,
@@ -88,7 +84,10 @@ export const OrderDetail = () => {
   const [processStatusTipAmount, setProcessStatusTipAmount] = useState(0);
   const [rowClick, setRowClick] = useState(true);
   const [showPrintableBillDialog, setShowPrintableBillDialog] = useState(false);
-  const [bookingDate, setBookingDate] = useState<Date | undefined>(undefined);
+  const [deliveryDateTime, setDeliveryDateTime] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<'ICABBI' | 'TOOKAN' | undefined>(undefined);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined);
+  const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(undefined);
 
   const [activeIndexes, setActiveIndexes] = useState<string[]>([]);
 
@@ -112,11 +111,81 @@ export const OrderDetail = () => {
   const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
   const [pendingBillCreation, setPendingBillCreation] = useState(false);
 
+  const toDateTimeLocal = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+
+  const toServerDateTime = (value?: string) => {
+    if (!value) return null;
+    return toLocalISOString(new Date(value));
+  };
+
+  const getApiErrorMessage = (error: any, fallback: string) => {
+    const data = error?.response?.data;
+    return (
+      data?.message ||
+      data?.localizedMessage ||
+      data?.detail ||
+      data?.title ||
+      error?.message ||
+      fallback
+    );
+  };
+
   useEffect(() => {
-    if (orderEntity.orderDeliveryDetails) {
-      setBookingDate(new Date(orderEntity.orderDeliveryDetails.pickupDate))
+    const delivery = orderEntity.orderDeliveryDetails?.date || orderEntity.orderDeliveryDetails?.pickupDate;
+    setDeliveryDateTime(toDateTimeLocal(delivery));
+    if (orderEntity.orderDeliveryDetails?.deliveryProvider) {
+      setSelectedProvider(orderEntity.orderDeliveryDetails.deliveryProvider);
     }
-  }, [orderEntity])
+  }, [orderEntity.orderDeliveryDetails?.date, orderEntity.orderDeliveryDetails?.pickupDate, orderEntity.orderDeliveryDetails?.deliveryProvider]);
+
+  useEffect(() => {
+    if (orderEntity?.id && !orderEntity.orderDeliveryDetails) {
+      dispatch(getActiveProviders(orderEntity.id));
+    }
+  }, [dispatch, orderEntity?.id, orderEntity.orderDeliveryDetails]);
+
+  useEffect(() => {
+    if (!orderEntity.orderDeliveryDetails && activeProviders.length === 1) {
+      setSelectedProvider(activeProviders[0]);
+    }
+  }, [activeProviders, orderEntity.orderDeliveryDetails]);
+
+  const isTookanBooking = orderEntity.orderDeliveryDetails?.deliveryProvider === 'TOOKAN';
+
+  useEffect(() => {
+    if (!isTookanBooking) {
+      setSelectedTeamId(undefined);
+      setSelectedDriverId(undefined);
+      return;
+    }
+    setSelectedTeamId(orderEntity.orderDeliveryDetails?.integrationDetails?.teamId || undefined);
+    setSelectedDriverId(orderEntity.orderDeliveryDetails?.integrationDetails?.fleetId || undefined);
+  }, [
+    isTookanBooking,
+    orderEntity.orderDeliveryDetails?.integrationDetails?.teamId,
+    orderEntity.orderDeliveryDetails?.integrationDetails?.fleetId,
+  ]);
+
+  const selectedTeamAgents = selectedTeamId
+    ? tookanAgents.filter(agent => String(agent.team_id) === selectedTeamId)
+    : [];
+
+  useEffect(() => {
+    if (isTookanBooking && orderEntity.branchId) {
+      dispatch(getTookanTeams(orderEntity.branchId));
+    }
+  }, [dispatch, isTookanBooking, orderEntity.branchId]);
+
+  useEffect(() => {
+    if (isTookanBooking && orderEntity.branchId && selectedTeamId) {
+      dispatch(getTookanAgents({ branchId: orderEntity.branchId, teamId: Number(selectedTeamId) }));
+    }
+  }, [dispatch, isTookanBooking, orderEntity.branchId, selectedTeamId]);
 
   const openAllAccordions = () => {
     return new Promise(resolve => {
@@ -712,7 +781,10 @@ export const OrderDetail = () => {
                         Expected Arrival At: {formatDateForDisplay(orderEntity.orderDeliveryDetails?.expectedArrivalAt)}
                       </div>
                       <div>
-                        {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}
+                        {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}
+                        {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId ? `, Trip: ${orderEntity.orderDeliveryDetails.integrationDetails.tripId}` : ''}
+                        {orderEntity.orderDeliveryDetails?.integrationDetails?.jobId ? `, Job: ${orderEntity.orderDeliveryDetails.integrationDetails.jobId}` : ''}
+                        {orderEntity.orderDeliveryDetails?.integrationDetails?.jobToken ? `, Token: ${orderEntity.orderDeliveryDetails.integrationDetails.jobToken}` : ''}
                       </div>
                     </div>
                   </CardContent>
@@ -724,28 +796,34 @@ export const OrderDetail = () => {
                     <CardHeader>
                       <CardTitle>Create Booking</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="h-8 text-xs justify-start">
-                            {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={bookingDate}
-                            onSelect={setBookingDate}
+                    <CardContent className="flex flex-col gap-3 text-xs">
+                      {activeProviders.length > 1 && (
+                        <div className="flex flex-col gap-1">
+                          <label className="font-medium">Provider</label>
+                          <Select
+                            options={activeProviders.map(provider => ({
+                              label: provider,
+                              value: provider,
+                            }))}
+                            value={selectedProvider ? { label: selectedProvider, value: selectedProvider } : null}
+                            onChange={(option: any) => setSelectedProvider(option?.value)}
+                            placeholder="Select provider"
                           />
-                        </PopoverContent>
-                      </Popover>
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-medium">Delivery Time</label>
+                        <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="h-8 text-xs" />
+                      </div>
                       <Button
                         type="button"
                         className="h-8 text-xs"
+                        disabled={!deliveryDateTime || (activeProviders.length > 1 && !selectedProvider)}
                         onClick={() => {
                           dispatch(createBooking({
-                            date: bookingDate?.toISOString(),
-                            orderId: orderEntity.id
+                            orderId: orderEntity.id || '',
+                            date: toServerDateTime(deliveryDateTime),
+                            provider: selectedProvider,
                           }))
                         }}
                       >
@@ -758,22 +836,12 @@ export const OrderDetail = () => {
                   <CardHeader>
                     <CardTitle>Update Booking</CardTitle>
                   </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="h-8 text-xs justify-start">
-                          {bookingDate ? format(bookingDate, 'PPP') : 'Pick a date'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={bookingDate}
-                          onSelect={setBookingDate}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <div className="flex justify-between gap-2">
+                  <CardContent className="flex flex-col gap-3 text-xs">
+                    <div className="flex flex-col gap-1">
+                      <label className="font-medium">Delivery Time</label>
+                      <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -784,17 +852,80 @@ export const OrderDetail = () => {
                       </Button>
                       <Button
                         type="button"
+                        variant="outline"
                         className="h-8 text-xs"
+                        onClick={() => dispatch(syncBooking(orderEntity.id || ''))}
+                      >
+                        Sync
+                      </Button>
+                      <Button
+                        type="button"
+                        className="h-8 text-xs"
+                        disabled={!deliveryDateTime}
                         onClick={() => {
                           dispatch(updateBooking({
-                            date: toLocalISOString(bookingDate),
-                            orderId: orderEntity.id
+                            orderId: orderEntity.id || '',
+                            date: toServerDateTime(deliveryDateTime),
                           }))
                         }}
                       >
                         Update
                       </Button>
                     </div>
+                    {isTookanBooking && (
+                      <div className="border rounded-md p-2 flex flex-col gap-2">
+                        <label className="font-medium">Assign Tookan Driver</label>
+                        <Select
+                          options={tookanTeams.map(team => ({
+                            label: team.team_name || `Team ${team.team_id}`,
+                            value: String(team.team_id),
+                          }))}
+                          value={selectedTeamId ? {
+                            label: tookanTeams.find(team => String(team.team_id) === selectedTeamId)?.team_name || `Team ${selectedTeamId}`,
+                            value: selectedTeamId,
+                          } : null}
+                          onChange={(option: any) => {
+                            setSelectedTeamId(option?.value);
+                            setSelectedDriverId(undefined);
+                          }}
+                          placeholder="Select team"
+                        />
+                        <Select
+                          options={selectedTeamAgents.map(agent => ({
+                            label: agent.name || agent.username || `Fleet ${agent.fleet_id}`,
+                            value: String(agent.fleet_id),
+                          }))}
+                          value={selectedDriverId ? {
+                            label: selectedTeamAgents.find(agent => String(agent.fleet_id) === selectedDriverId)?.name || `Fleet ${selectedDriverId}`,
+                            value: selectedDriverId,
+                          } : null}
+                          onChange={(option: any) => setSelectedDriverId(option?.value)}
+                          placeholder={selectedTeamId ? 'Select driver' : 'Select team first'}
+                        />
+                        <Button
+                          type="button"
+                          className="h-8 text-xs"
+                          disabled={!selectedTeamId || !selectedDriverId}
+                          onClick={async () => {
+                            if (!selectedTeamId || !selectedDriverId) {
+                              return;
+                            }
+                            try {
+                              await dispatch(assignDriver({
+                                orderId: orderEntity.id || '',
+                                driverId: selectedDriverId,
+                                teamId: selectedTeamId,
+                              })).unwrap();
+                              toast.success('Driver assigned successfully.');
+                            } catch (error: any) {
+                              toast.error(getApiErrorMessage(error, 'Failed to assign driver.'));
+                            }
+                          }}
+                        >
+                          Assign Driver
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
                 )
