@@ -24,6 +24,7 @@ interface TotalByDateRange {
   returned: boolean | null;
   revenue: number | null;
   tax: number | null;
+  taxes?: string | null;
   value: null | number;
 }
 
@@ -33,6 +34,7 @@ interface Row {
   grossProfit: number;
   margin: number;
   tax: number;
+  taxes?: string | null;
   amount: number;
   returned: number;
   value: string | null;
