@@ -48,6 +48,7 @@ type totalByDateRange = {
   returned: boolean | null;
   revenue: number | null;
   tax: number | null;
+  taxes?: string | null;
   value: null | number;
 };
 
@@ -57,6 +58,7 @@ type Row = {
   grossProfit: number;
   margin: number;
   tax: number;
+  taxes?: string | null;
   amount: number;
   returned: number;
   value: string | null;
@@ -223,6 +225,7 @@ export const SalesReport = () => {
       entries.push(['Gross Profit', formatPrice(row.grossProfit, exchange)]);
       entries.push(['Margin', formatPrice(row.margin, exchange)]);
       selectedMeasure !== 'TAX' && entries.push(['Tax', formatPrice(row.tax, exchange)]);
+      entries.push(['Taxes', (row.taxes ?? '') as string]);
       selectedMeasure !== 'Returns' && entries.push(['Returns', formatPrice(row.returns, exchange)]);
 
       // Convert entries to an object
@@ -241,6 +244,7 @@ export const SalesReport = () => {
       'Gross Profit',
       'Margin',
       selectedMeasure !== 'TAX' ? 'Tax' : '',
+      'Taxes',
       selectedMeasure !== 'RETURNS' ? 'Returns' : '',
     ].filter(header => header !== '');
 
@@ -785,6 +789,15 @@ export const SalesReport = () => {
                         <TableCell colSpan={10} />
                       </TableRow>
                     )}
+                    <TableRow className="bg-muted/10">
+                      <TableCell className="text-xs font-bold">Taxes</TableCell>
+                      {totalsRowForFooter.map((totalsRecord: any, index) => (
+                        <TableCell key={index} className="text-xs font-medium">
+                          {(totalsRecord?.taxes ?? '') as string}
+                        </TableCell>
+                      ))}
+                      <TableCell colSpan={10} />
+                    </TableRow>
                       </TableFooter>
                     </Table>
                   </div>
