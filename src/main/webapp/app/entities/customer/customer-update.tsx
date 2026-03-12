@@ -79,6 +79,10 @@ export const CustomerUpdate = ({
   const [deleteAddressConfirm, setDeleteAddressConfirm] = useState<{ open: boolean; address: IAddress | null }>({ open: false, address: null });
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
+  const parseNumericField = (value: string) => {
+    const parsedValue = parseFloat(value);
+    return Number.isNaN(parsedValue) ? 0 : parsedValue;
+  };
 
   const handleBranchPricingPointChange = (branchId, pricingPoint) => {
     dispatch(
@@ -371,6 +375,36 @@ export const CustomerUpdate = ({
                     />
                   </div>
                 )}
+
+                <div className="space-y-3 rounded-md border p-3">
+                  <h4 className="text-sm font-semibold">On Account</h4>
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="customer-onAccountDebitLimit" className="text-xs">On Account Limit</Label>
+                    <Input
+                      id="customer-onAccountDebitLimit"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className="h-8 text-xs"
+                      value={customerEntity?.onAccountDebitLimit ?? 0}
+                      onChange={e => dispatch(changeEntityField({ name: 'onAccountDebitLimit', value: parseNumericField(e.target.value) }))}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="customer-onAccountDebitUsed" className="text-xs">On Account Used</Label>
+                    <Input
+                      id="customer-onAccountDebitUsed"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className="h-8 text-xs"
+                      value={customerEntity?.onAccountDebitUsed ?? 0}
+                      disabled
+                      readOnly
+                    />
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="addresses" className="space-y-3">

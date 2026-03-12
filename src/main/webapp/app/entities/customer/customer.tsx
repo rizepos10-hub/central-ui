@@ -36,13 +36,13 @@ export const Customer = () => {
     phone: '',
   });
 
+  const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
 
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
     name: `${customer.firstName} ${customer.lastName}`
   }));
 
-  console.log(customerList,'customerList')
   const getAllEntities = () => {
     if (search) {
       dispatch(
@@ -203,6 +203,8 @@ export const Customer = () => {
                   />
                 </div>
               </TableHead>
+              <TableHead>On Account Limit</TableHead>
+              <TableHead>On Account Used</TableHead>
               <TableHead className="w-[50px]">{translate('common.edit')}</TableHead>
               <TableHead className="w-[50px]">{translate('common.delete')}</TableHead>
             </TableRow>
@@ -220,6 +222,8 @@ export const Customer = () => {
                 </TableCell>
                 <TableCell className="text-xs">{customer.email}</TableCell>
                 <TableCell className="text-xs">{customer.phone}</TableCell>
+                <TableCell className="text-xs">{formatAmount(customer.onAccountDebitLimit)}</TableCell>
+                <TableCell className="text-xs">{formatAmount(customer.onAccountDebitUsed)}</TableCell>
                 <TableCell>
                   <Link to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
