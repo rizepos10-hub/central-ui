@@ -5,6 +5,8 @@ import { IPricingPoint } from "../PRICING-POINT/pricing-point";
 export interface ICustomer {
   id?: string;
   orderCount?: number | null;
+  onAccountDebitLimit?: number | null;
+  onAccountDebitUsed?: number | null;
   phone?: string;
   fax?: string;
   deliveryAddresses?: IAddress[];
