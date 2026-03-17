@@ -14,7 +14,8 @@ export interface INotification {
 
 export enum NotificationCategoryEnum {
     ORDER = "ORDER",
-    DOWNLOAD_FILE = "DOWNLOAD_FILE"
+    DOWNLOAD_FILE = "DOWNLOAD_FILE",
+    ON_ACCOUNT_DEBIT = "ON_ACCOUNT_DEBIT"
 } 
 
 export const defaultValue: Readonly<INotification> = {};
