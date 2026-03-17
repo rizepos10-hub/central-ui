@@ -5,8 +5,8 @@ import { IPricingPoint } from "../PRICING-POINT/pricing-point";
 export interface ICustomer {
   id?: string;
   orderCount?: number | null;
-  onAccountDebitLimit?: number | null;
-  onAccountDebitUsed?: number | null;
+  onAccountEnabled?: boolean | null;
+  branchOnAccountDebits?: IBranchOnAccountDebitMap;
   phone?: string;
   fax?: string;
   deliveryAddresses?: IAddress[];
@@ -25,6 +25,15 @@ export interface ICustomer {
 
 export interface IPricingPointsMap {
   [key: string]: IPricingPoint;
+}
+
+export interface IBranchOnAccountDebit {
+  debitLimit?: number | null;
+  debitUsed?: number | null;
+}
+
+export interface IBranchOnAccountDebitMap {
+  [key: string]: IBranchOnAccountDebit;
 }
 
 export interface IWholesalePriceLine {
