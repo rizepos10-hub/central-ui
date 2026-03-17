@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 
 
 
@@ -190,3 +191,25 @@ export const fetchFirstLastBillsSummary = async (branch: string, source: string 
     throw error;
   }
 }
+
+export const fetchStoreCreditReport = async ({
+  fromDate,
+  toDate,
+  page,
+  size,
+}: {
+  fromDate: string;
+  toDate: string;
+  page: number;
+  size: number;
+}) => {
+  try {
+    const response = await axios.get<IStoreCreditReportRow[]>(
+      `/api/report/store-credit?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching store credit report:', error);
+    throw error;
+  }
+};
