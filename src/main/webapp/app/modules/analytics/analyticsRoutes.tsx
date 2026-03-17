@@ -17,6 +17,7 @@ import RetialDashboard from './reports/retail-dashboard/retail-dashboard';
 import SalesReportPrint from './reports/sales-report/sales-report-print';
 import InventoryReport from './reports/inventory-report/inventory-report';
 import StoreCreditReport from './reports/store-credit-report/store-credit-report';
+import HouseChargesReport from './reports/house-charges-report/house-charges-report';
 
 
 
@@ -37,6 +38,7 @@ export default () => {
         <Route path="/sales-report/print" element={<SalesReportPrint />} />
         <Route path="/inventory-report" element={<InventoryReport />} />
         <Route path="/store-credit-report" element={<StoreCreditReport />} />
+        <Route path="/house-charges-report" element={<HouseChargesReport />} />
         <Route path="*" element={<PageNotFound />} />
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>

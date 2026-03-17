@@ -597,6 +597,12 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'House Charges Report',
+        to: '/analytics/house-charges-report',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
