@@ -329,6 +329,7 @@ export const CustomerUpdate = ({
                 <TabsTrigger value="personal" className="text-xs h-7">Personal Details</TabsTrigger>
                 <TabsTrigger value="addresses" className="text-xs h-7">Addresses</TabsTrigger>
                 <TabsTrigger value="additional" className="text-xs h-7">{translate('common.additionalInfo')}</TabsTrigger>
+                <TabsTrigger value="on-account" className="text-xs h-7">On Account</TabsTrigger>
                 <TabsTrigger value="pricing" className="text-xs h-7">Pricing Point</TabsTrigger>
                 <TabsTrigger value="orders" className="text-xs h-7">Customer Orders</TabsTrigger>
                 {!isNew && <TabsTrigger value="on-account-audits" className="text-xs h-7">On Account Audits</TabsTrigger>}
@@ -440,68 +441,6 @@ export const CustomerUpdate = ({
                   </div>
                 )}
 
-                <div className="space-y-3 rounded-md border p-3">
-                  <h4 className="text-sm font-semibold">On Account</h4>
-                  <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
-                    <Checkbox
-                      id="customer-onAccountEnabled"
-                      checked={customerEntity?.onAccountEnabled === true}
-                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'onAccountEnabled', value: checked === true }))}
-                    />
-                    <Label htmlFor="customer-onAccountEnabled" className="text-xs cursor-pointer">On Account Enabled</Label>
-                  </div>
-
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Branch</TableHead>
-                        <TableHead className="text-xs">Debit Limit</TableHead>
-                        <TableHead className="text-xs">Debit Used</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {branchList.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-xs text-center text-muted-foreground py-4">
-                            No branches available
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        branchList.map(branch => {
-                          const branchDebit = getBranchOnAccountDebit(branch.id);
-
-                          return (
-                            <TableRow key={branch.id}>
-                              <TableCell className="text-xs">{branch.name}</TableCell>
-                              <TableCell className="text-xs">
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  step="0.01"
-                                  className="h-8 text-xs"
-                                  value={branchDebit.debitLimit ?? 0}
-                                  disabled={customerEntity?.onAccountEnabled !== true}
-                                  onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
-                                />
-                              </TableCell>
-                              <TableCell className="text-xs">
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  step="0.01"
-                                  className="h-8 text-xs"
-                                  value={branchDebit.debitUsed ?? 0}
-                                  disabled
-                                  readOnly
-                                />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
               </TabsContent>
 
               <TabsContent value="addresses" className="space-y-3">
@@ -603,6 +542,71 @@ export const CustomerUpdate = ({
                     }
                     required={!customerEntity?.firstName}
                   />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="on-account" className="space-y-3">
+                <div className="space-y-3 rounded-md border p-3">
+                  <h4 className="text-sm font-semibold">On Account</h4>
+                  <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                    <Checkbox
+                      id="customer-onAccountEnabled"
+                      checked={customerEntity?.onAccountEnabled === true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'onAccountEnabled', value: checked === true }))}
+                    />
+                    <Label htmlFor="customer-onAccountEnabled" className="text-xs cursor-pointer">On Account Enabled</Label>
+                  </div>
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Branch</TableHead>
+                        <TableHead className="text-xs">Debit Limit</TableHead>
+                        <TableHead className="text-xs">Debit Used</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {branchList.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-xs text-center text-muted-foreground py-4">
+                            No branches available
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        branchList.map(branch => {
+                          const branchDebit = getBranchOnAccountDebit(branch.id);
+
+                          return (
+                            <TableRow key={branch.id}>
+                              <TableCell className="text-xs">{branch.name}</TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  className="h-8 text-xs"
+                                  value={branchDebit.debitLimit ?? 0}
+                                  disabled={customerEntity?.onAccountEnabled !== true}
+                                  onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
+                                />
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  className="h-8 text-xs"
+                                  value={branchDebit.debitUsed ?? 0}
+                                  disabled
+                                  readOnly
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               </TabsContent>
 

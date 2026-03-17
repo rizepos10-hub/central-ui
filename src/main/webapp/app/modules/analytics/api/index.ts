@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
+import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
 
 
 
@@ -210,6 +211,26 @@ export const fetchStoreCreditReport = async ({
     return response.data;
   } catch (error) {
     console.error('Error fetching store credit report:', error);
+    throw error;
+  }
+};
+
+export const fetchHouseChargesReport = async ({
+  fromDate,
+  toDate,
+  branch,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+}) => {
+  try {
+    const response = await axios.get<IHouseChargesReportRow[]>(
+      `/api/report/house-charges?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch ?? '')}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching house charges report:', error);
     throw error;
   }
 };
