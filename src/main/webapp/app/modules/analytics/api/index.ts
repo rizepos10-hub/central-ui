@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
+import { ISalesActivitySummaryReport } from 'app/shared/model/sales-activity-summary-report.model';
 
 
 
@@ -206,7 +207,7 @@ export const fetchStoreCreditReport = async ({
 }) => {
   try {
     const response = await axios.get<IStoreCreditReportRow[]>(
-      `/api/report/store-credit?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&page=${page}&size=${size}`
+      `/api/report/on-account?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
@@ -231,6 +232,26 @@ export const fetchHouseChargesReport = async ({
     return response.data;
   } catch (error) {
     console.error('Error fetching house charges report:', error);
+    throw error;
+  }
+};
+
+export const fetchSalesActivitySummaryReport = async ({
+  fromDate,
+  toDate,
+  branch,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string;
+}) => {
+  try {
+    const response = await axios.post<ISalesActivitySummaryReport>(
+      `/api/report/sales-activity-summary?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch)}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sales activity summary report:', error);
     throw error;
   }
 };
