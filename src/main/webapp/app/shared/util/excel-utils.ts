@@ -149,8 +149,8 @@ export const exportExcelSummaryReport = async (
 
 export const exportExcelEodSummaryReport = async (
   excelDataArr: any[],
-  fromDate?: string,
-  toDate?: string,
+  fromDate?: Date | string | null,
+  toDate?: Date | string | null,
   title?: string
 ) => {
   const xlsx = await import('xlsx-js-style');
