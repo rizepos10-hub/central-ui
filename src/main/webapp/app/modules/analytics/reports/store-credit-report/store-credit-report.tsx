@@ -70,7 +70,7 @@ const StoreCreditReport = () => {
       setPage(nextPage);
     } catch (err) {
       setRows([]);
-      setError('Unable to load store credit report.');
+      setError('Unable to load customer balance report.');
     } finally {
       setLoading(false);
     }
@@ -107,12 +107,12 @@ const StoreCreditReport = () => {
     <PageWrapper>
       <div className="max-w-6xl mx-auto space-y-3">
         <div className="text-center">
-          <h1 className="text-sm font-semibold">Store Credit Report</h1>
+          <h1 className="text-sm font-semibold">Customer Balance Report</h1>
         </div>
 
         <Card className="p-3">
           <CardContent className="space-y-3">
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <Label className="text-xs font-semibold">Date Range</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -128,7 +128,7 @@ const StoreCreditReport = () => {
                   <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} />
                 </PopoverContent>
               </Popover>
-            </div>
+            </div> */}
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="text-xs text-muted-foreground">
@@ -166,7 +166,7 @@ const StoreCreditReport = () => {
               <TableRow>
                 <TableHead className="text-xs">Customer Name</TableHead>
                 <TableHead className="text-xs">Customer ID</TableHead>
-                <TableHead className="text-xs text-right">Credit Limit</TableHead>
+                <TableHead className="text-xs text-right">Limit</TableHead>
                 <TableHead className="text-xs text-right">Balance</TableHead>
               </TableRow>
             </TableHeader>
@@ -180,7 +180,7 @@ const StoreCreditReport = () => {
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-10 text-center text-xs text-muted-foreground">
-                    {appliedRange ? 'No store credit records found.' : 'Run the report to view results.'}
+                    {appliedRange ? 'No customer balance records found.' : 'Run the report to view results.'}
                   </TableCell>
                 </TableRow>
               ) : (
