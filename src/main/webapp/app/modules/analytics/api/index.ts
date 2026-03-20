@@ -2,6 +2,7 @@ import axios from 'axios';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
 import { ISalesActivitySummaryReport } from 'app/shared/model/sales-activity-summary-report.model';
+import { IOptimizedProductSalesReport } from 'app/shared/model/optimized-product-sales-report.model';
 
 
 
@@ -252,6 +253,38 @@ export const fetchSalesActivitySummaryReport = async ({
     return response.data;
   } catch (error) {
     console.error('Error fetching sales activity summary report:', error);
+    throw error;
+  }
+};
+
+export const fetchOptimizedProductSalesReport = async ({
+  fromDate,
+  toDate,
+  branch,
+  source,
+  registryId,
+  tillId,
+  username,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string;
+  source: string | null;
+  registryId: string | null;
+  tillId: string | null;
+  username: string | null;
+}) => {
+  try {
+    const response = await axios.post<IOptimizedProductSalesReport>(
+      `/api/report/items/optimized-sales?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch)}&source=${encodeURIComponent(
+        source ?? 'null'
+      )}&registryId=${encodeURIComponent(registryId ?? 'null')}&tillId=${encodeURIComponent(tillId ?? 'null')}&username=${encodeURIComponent(
+        username ?? 'null'
+      )}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching optimized product sales report:', error);
     throw error;
   }
 };
