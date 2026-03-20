@@ -623,8 +623,7 @@ export const CustomerUpdate = ({
               </TabsContent>
 
               <TabsContent value="on-account" className="space-y-3">
-                <div className="space-y-3 rounded-md border p-3">
-                  <h4 className="text-sm font-semibold">On Account</h4>
+                <div className="space-y-3 rounded-md p-3">
                   <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
                     <Checkbox
                       id="customer-onAccountEnabled"
