@@ -5,7 +5,10 @@ import { IPricingPoint } from "../PRICING-POINT/pricing-point";
 export interface ICustomer {
   id?: string;
   orderCount?: number | null;
+  onAccountDebitLimit?: number | null;
+  onAccountDebitUsed?: number | null;
   onAccountEnabled?: boolean | null;
+  onAccountBalanceType?: OnAccountBalanceType | null;
   branchOnAccountDebits?: IBranchOnAccountDebitMap;
   phone?: string;
   fax?: string;
@@ -34,6 +37,11 @@ export interface IBranchOnAccountDebit {
 
 export interface IBranchOnAccountDebitMap {
   [key: string]: IBranchOnAccountDebit;
+}
+
+export enum OnAccountBalanceType {
+  BY_BUSINESS = 'BY_BUSINESS',
+  BY_BRANCH = 'BY_BRANCH',
 }
 
 export interface IWholesalePriceLine {
