@@ -1,6 +1,10 @@
 import { ILoyaltyCard } from "../loyalty-card.model";
 import { IAddress } from "../address.model";
 import { IPricingPoint } from "../PRICING-POINT/pricing-point";
+import { IBranchOnAccountDebitMap, OnAccountBalanceType } from '../on-account-settings.model';
+
+export type { IBranchOnAccountDebit, IBranchOnAccountDebitMap } from '../on-account-settings.model';
+export { OnAccountBalanceType } from '../on-account-settings.model';
 
 export interface ICustomer {
   id?: string;
@@ -28,20 +32,6 @@ export interface ICustomer {
 
 export interface IPricingPointsMap {
   [key: string]: IPricingPoint;
-}
-
-export interface IBranchOnAccountDebit {
-  debitLimit?: number | null;
-  debitUsed?: number | null;
-}
-
-export interface IBranchOnAccountDebitMap {
-  [key: string]: IBranchOnAccountDebit;
-}
-
-export enum OnAccountBalanceType {
-  BY_BUSINESS = 'BY_BUSINESS',
-  BY_BRANCH = 'BY_BRANCH',
 }
 
 export interface IWholesalePriceLine {

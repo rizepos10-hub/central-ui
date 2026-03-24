@@ -45,6 +45,7 @@ import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 import businessTimeZone from 'app/entities/settings/business-details/business-timezone.reducer';
 import businessType from 'app/entities/settings/business-type/business-type.reducer';
+import onAccountSettings from 'app/entities/settings/on-account/on-account-settings.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
@@ -139,6 +140,7 @@ const entitiesReducers = {
   businessDetail,
   businessTimeZone,
   businessType,
+  onAccountSettings,
   voidReason,
   printer,
   printingProfiles,
