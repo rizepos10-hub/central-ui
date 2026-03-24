@@ -201,15 +201,26 @@ export const fetchStoreCreditReport = async ({
   page,
   size,
 }: {
-  fromDate: string;
-  toDate: string;
+  fromDate?: string | null;
+  toDate?: string | null;
   page: number;
   size: number;
 }) => {
   try {
-    const response = await axios.get<IStoreCreditReportRow[]>(
-      `/api/report/on-account?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&page=${page}&size=${size}`
-    );
+    const params = new URLSearchParams({
+      page: `${page}`,
+      size: `${size}`,
+    });
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    }
+
+    const response = await axios.get<IStoreCreditReportRow[]>(`/api/report/on-account?${params.toString()}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching store credit report:', error);
@@ -244,11 +255,11 @@ export const fetchSalesActivitySummaryReport = async ({
 }: {
   fromDate: string;
   toDate: string;
-  branch: string;
+  branch: string | null;
 }) => {
   try {
     const response = await axios.post<ISalesActivitySummaryReport>(
-      `/api/report/sales-activity-summary?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch)}`
+      `/api/report/sales-activity-summary?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch ?? '')}`
     );
     return response.data;
   } catch (error) {
@@ -268,7 +279,7 @@ export const fetchOptimizedProductSalesReport = async ({
 }: {
   fromDate: string;
   toDate: string;
-  branch: string;
+  branch: string | null;
   source: string | null;
   registryId: string | null;
   tillId: string | null;

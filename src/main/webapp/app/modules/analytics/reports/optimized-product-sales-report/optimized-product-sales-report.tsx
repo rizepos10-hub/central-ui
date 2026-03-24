@@ -45,7 +45,7 @@ const OptimizedProductSalesReport = () => {
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedBranch, setSelectedBranch] = useState<string | undefined>(undefined);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedRegistryId, setSelectedRegistryId] = useState<string | null>(null);
   const [selectedTillId, setSelectedTillId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ const OptimizedProductSalesReport = () => {
   const [appliedFilters, setAppliedFilters] = useState<{
     fromDate: string;
     toDate: string;
-    branch: string;
+    branch: string | null;
     source: string | null;
     registryId: string | null;
     tillId: string | null;
@@ -131,7 +131,7 @@ const OptimizedProductSalesReport = () => {
     filtersOverride?: {
       fromDate: string;
       toDate: string;
-      branch: string;
+      branch: string | null;
       source: string | null;
       registryId: string | null;
       tillId: string | null;
@@ -162,11 +162,6 @@ const OptimizedProductSalesReport = () => {
   const handleGetReport = async () => {
     if (!dateRange?.from || !dateRange?.to) {
       setError('Please select both from and to dates.');
-      return;
-    }
-
-    if (!selectedBranch) {
-      setError('Please select a branch.');
       return;
     }
 
@@ -228,11 +223,14 @@ const OptimizedProductSalesReport = () => {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">Branch</Label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <Select value={selectedBranch ?? 'null'} onValueChange={value => setSelectedBranch(value === 'null' ? null : value)}>
                   <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Select branch" />
+                    <SelectValue placeholder="All branches" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="null" className="text-xs">
+                      All
+                    </SelectItem>
                     {branchList.map(branch => (
                       <SelectItem key={branch.id} value={branch.id} className="text-xs">
                         {branch.name}
