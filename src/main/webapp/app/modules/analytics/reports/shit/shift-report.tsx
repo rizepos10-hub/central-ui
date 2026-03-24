@@ -255,7 +255,7 @@ const ShiftReport = () => {
             </div>
           </div>
 
-          <div className="mt-2">
+          <div className="mt-2 space-y-3">
             <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />
 
             <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["DineIn"]} title={"Dine In Sales"} />

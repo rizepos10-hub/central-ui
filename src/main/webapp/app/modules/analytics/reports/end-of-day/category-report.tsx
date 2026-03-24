@@ -1,5 +1,13 @@
 import { ICategorySalesSummary } from 'app/shared/model/report-summary.model';
 import React from 'react';
+import ReportSection, {
+    reportCellClassName,
+    reportHeadClassName,
+    reportHeaderRowClassName,
+    reportNumericCellClassName,
+    reportTableBodyClassName,
+    reportTableClassName,
+} from 'app/shared/components/report/report-ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatNumber } from 'app/shared/util/price-utils';
 
@@ -9,27 +17,24 @@ const CategoryReport = ({
     categorySaleSummary: ICategorySalesSummary
 }) => {
     return (
-        <div className="p-0">
-            <h3 className="text-base font-semibold mb-2">Category Sales Summary</h3>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="text-xs">Name</TableHead>
-                            <TableHead className="text-xs text-right">Amount</TableHead>
+        <ReportSection title="Category Sales Summary" contentClassName="p-0">
+            <Table className={reportTableClassName}>
+                <TableHeader>
+                    <TableRow className={reportHeaderRowClassName}>
+                        <TableHead className={reportHeadClassName}>Name</TableHead>
+                        <TableHead className={`${reportHeadClassName} text-right`}>Amount</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody className={reportTableBodyClassName}>
+                    {categorySaleSummary?.categories?.map((c, idx) => (
+                        <TableRow key={idx}>
+                            <TableCell className={reportCellClassName}>{c.name}</TableCell>
+                            <TableCell className={reportNumericCellClassName}>{formatNumber(c.amount)}</TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {categorySaleSummary?.categories?.map((c, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell className="text-xs">{c.name}</TableCell>
-                                <TableCell className="text-xs text-right">{formatNumber(c.amount)}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
+                    ))}
+                </TableBody>
+            </Table>
+        </ReportSection>
     );
 };
 

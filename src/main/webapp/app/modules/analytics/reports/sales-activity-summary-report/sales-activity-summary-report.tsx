@@ -25,6 +25,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import ReportSection, {
+  reportCellClassName,
+  reportHeadClassName,
+  reportHeaderRowClassName,
+  reportNumericCellClassName,
+  reportTableBodyClassName,
+  reportTableClassName,
+} from 'app/shared/components/report/report-ui';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 type Column<T> = {
@@ -55,6 +63,18 @@ const formatQuantity = (value?: number | null) => {
   return Number.isInteger(value) ? String(value) : value.toString();
 };
 
+const getColumnWidthClass = (columnCount: number, index: number) => {
+  if (columnCount === 1) {
+    return 'w-full';
+  }
+
+  if (columnCount === 2) {
+    return index === 0 ? 'w-[70%]' : 'w-[30%]';
+  }
+
+  return index === 0 ? 'w-[46%]' : 'w-[27%]';
+};
+
 const AmountQuantitySection = <T,>({
   title,
   rows,
@@ -66,22 +86,26 @@ const AmountQuantitySection = <T,>({
   columns: Column<T>[];
   totals: TotalsItem[];
 }) => (
-  <Card>
-    <CardContent className="p-0">
-      <div className="border-b px-4 py-3">
-        <h3 className="text-sm font-semibold">{title}</h3>
-      </div>
-      <Table>
+  <ReportSection title={title} contentClassName="p-0">
+      <Table className={reportTableClassName}>
+        <colgroup>
+          {columns.map((column, index) => (
+            <col key={column.key} className={getColumnWidthClass(columns.length, index)} />
+          ))}
+        </colgroup>
         <TableHeader>
-          <TableRow>
+          <TableRow className={reportHeaderRowClassName}>
             {columns.map(column => (
-              <TableHead key={column.key} className={`text-xs ${column.align === 'right' ? 'text-right' : ''}`}>
+              <TableHead
+                key={column.key}
+                className={`${reportHeadClassName} ${column.align === 'right' ? 'text-right' : ''}`}
+              >
                 {column.label}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className={reportTableBodyClassName}>
           {!rows?.length ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="py-6 text-center text-xs text-muted-foreground">
@@ -92,7 +116,10 @@ const AmountQuantitySection = <T,>({
             rows.map((row, index) => (
               <TableRow key={index}>
                 {columns.map(column => (
-                  <TableCell key={column.key} className={`text-xs ${column.align === 'right' ? 'text-right' : ''}`}>
+                  <TableCell
+                    key={column.key}
+                    className={column.align === 'right' ? reportNumericCellClassName : reportCellClassName}
+                  >
                     {column.render(row)}
                   </TableCell>
                 ))}
@@ -105,12 +132,11 @@ const AmountQuantitySection = <T,>({
         {totals.map(total => (
           <div key={total.label} className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{total.label}</span>
-            <span className="font-medium">{total.value}</span>
+            <span className="font-medium tabular-nums">{total.value}</span>
           </div>
         ))}
       </div>
-    </CardContent>
-  </Card>
+  </ReportSection>
 );
 
 const SummarySection = ({
@@ -120,19 +146,16 @@ const SummarySection = ({
   title: string;
   items: TotalsItem[];
 }) => (
-  <Card>
-    <CardContent className="space-y-3 p-4">
-      <h3 className="text-sm font-semibold">{title}</h3>
+  <ReportSection title={title} contentClassName="space-y-3 p-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map(item => (
           <div key={item.label} className="rounded-md border p-3">
             <div className="text-xs text-muted-foreground">{item.label}</div>
-            <div className="mt-1 text-sm font-semibold">{item.value}</div>
+            <div className="mt-1 text-right text-sm font-semibold tabular-nums">{item.value}</div>
           </div>
         ))}
       </div>
-    </CardContent>
-  </Card>
+  </ReportSection>
 );
 
 const SalesActivitySummaryReport = () => {

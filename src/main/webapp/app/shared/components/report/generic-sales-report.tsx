@@ -1,157 +1,119 @@
-import React, { useState } from "react";
-import { ISummaryReport } from "app/shared/model/report-summary.model";
+import React, { useState } from 'react';
+
+import { ISummaryReport } from 'app/shared/model/report-summary.model';
+import ReportSection, {
+  reportLabelCellClassName,
+  reportNumericCellClassName,
+  reportSubLabelCellClassName,
+  reportTableBodyClassName,
+  reportTableClassName,
+} from 'app/shared/components/report/report-ui';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { formatNumber } from "app/shared/util/price-utils";
+import { formatNumber } from 'app/shared/util/price-utils';
 
-const formatPaymentMethodLabel = (method: string): string => {
-  // Special case for master
-  if (method === 'master') {
-    return 'Master Card';
-  }
-
-  // Convert camelCase to Title Case with spaces
-  return method
-    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-    .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
-    .trim();
-};
-
-const GenericSalesReport = ({ title, report, payments }: { title: string; report: ISummaryReport["totalSales"], payments?: ISummaryReport["totalReceived"] }) => {
+const GenericSalesReport = ({ title, report }: { title: string; report: ISummaryReport['totalSales'] }) => {
   if (!report) return null;
 
   const { orders, subTotal, discount, appliedCoupon, deliveryCharge, deliveryTAX,
     refunds, netSales, totalTAX, grossSales, walletCredits, totalTip, taxes } = report;
 
   const [show, setShow] = useState(true);
-  const [showPayments, setShowPayments] = useState(true);
 
   const handleClick = () => {
     setShow(prevState => !prevState);
   };
 
-  const handlePaymentsClick = () => {
-    setShowPayments(prevState => !prevState);
-  };
-
-  // Group payments by method
-  const paymentsByMethod = payments?.reduce((acc, payment) => {
-    const method = payment.paymentType || 'unknown';
-    if (!acc[method]) {
-      acc[method] = 0;
-    }
-    acc[method] += payment.received || 0;
-    return acc;
-  }, {} as Record<string, number>);
+  const taxEntries = Object.entries(taxes || {});
 
   return (
-    <div className="p-0">
-      <h4 className="text-sm font-semibold mb-2">{title}</h4>
-      <div className="border rounded-md overflow-hidden">
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={2} className="text-xs font-semibold">New sales (orders)</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                {orders}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={2} className="text-xs font-semibold">Gross Sales</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                {formatNumber(grossSales + refunds)}
-              </TableCell>
-              <TableCell colSpan={2} className="text-xs text-right text-muted-foreground">
-                Sales include refunds
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={2} className="text-xs font-semibold">Refunds</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right text-destructive font-semibold">
-                {formatNumber(refunds || 0)}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={2} className="text-xs font-semibold">Gross Sales</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                {formatNumber(grossSales)}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={2} className="text-xs">
-                <span
-                  onClick={handleClick}
-                  className="text-primary cursor-pointer inline-flex items-center gap-1 hover:underline"
-                  title={`Tax breakdown (${Object.keys(taxes || {})?.length} types)`}
-                >
-                  Tax ({Object.keys(taxes || {})?.length})
-                  {show ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                </span>
-              </TableCell>
-              <TableCell colSpan={2} className="text-xs text-right text-destructive font-semibold">
-                {formatNumber(totalTAX)}
-              </TableCell>
-            </TableRow>
-            {Object?.entries(taxes || {})?.map(([taxType, amount]) => (
-              <TableRow key={taxType} className={`${!show && 'hidden'}`}>
-                <TableCell colSpan={3} className="text-xs pl-6">{taxType}</TableCell>
-                <TableCell className="text-xs text-right">{formatNumber(amount)}</TableCell>
+    <ReportSection title={title} contentClassName="p-0">
+      <Table className={reportTableClassName}>
+        <colgroup>
+          <col className="w-[68%]" />
+          <col className="w-[32%]" />
+        </colgroup>
+        <TableBody className={reportTableBodyClassName}>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>New Sales (Orders)</TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold`}>{orders}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>
+              <div className="flex flex-col gap-0.5">
+                <span>Gross Sales</span>
+                <span className="text-[11px] font-normal text-muted-foreground">Sales include refunds</span>
+              </div>
+            </TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold`}>{formatNumber(grossSales + refunds)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Refunds</TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold text-destructive`}>{formatNumber(refunds || 0)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Gross Sales</TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold`}>{formatNumber(grossSales)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>
+              <button
+                type="button"
+                onClick={handleClick}
+                className="inline-flex items-center gap-1 text-left text-primary hover:underline"
+                title={`Tax breakdown (${taxEntries.length} types)`}
+              >
+                Tax ({taxEntries.length})
+                {show ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+            </TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold text-destructive`}>{formatNumber(totalTAX)}</TableCell>
+          </TableRow>
+          {show &&
+            taxEntries.map(([taxType, amount]) => (
+              <TableRow key={taxType}>
+                <TableCell className={reportSubLabelCellClassName}>{taxType}</TableCell>
+                <TableCell className={reportNumericCellClassName}>{formatNumber(amount)}</TableCell>
               </TableRow>
             ))}
+          <TableRow className="border-t bg-muted/10 hover:bg-muted/10">
+            <TableCell className={reportLabelCellClassName}>Net Sales</TableCell>
+            <TableCell className={`${reportNumericCellClassName} font-semibold`}>{formatNumber(netSales)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Discounts</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(discount)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Applied Coupon</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(appliedCoupon)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Sub Total</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(subTotal)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Delivery Charge</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(deliveryCharge)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Delivery Tax</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(deliveryTAX)}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className={reportLabelCellClassName}>Tip</TableCell>
+            <TableCell className={reportNumericCellClassName}>{formatNumber(totalTip)}</TableCell>
+          </TableRow>
+          {walletCredits !== undefined && walletCredits !== null ? (
             <TableRow>
-              <TableCell colSpan={4} className="h-4">&nbsp;</TableCell>
+              <TableCell className={reportLabelCellClassName}>Wallet Credits</TableCell>
+              <TableCell className={reportNumericCellClassName}>{formatNumber(walletCredits)}</TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell className="text-xs font-semibold">Net Sales</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                <span>{formatNumber(netSales)}</span>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="text-xs font-semibold">Discounts</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                <span>{formatNumber(discount)}</span>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="text-xs font-semibold">Tip</TableCell>
-              <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                {formatNumber(totalTip)}
-              </TableCell>
-            </TableRow>
-            {/* {payments && (
-              <>
-                <TableRow>
-                  <TableCell colSpan={4} className="h-4">&nbsp;</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell colSpan={2} className="text-xs">
-                    <span
-                      onClick={handlePaymentsClick}
-                      className="text-primary cursor-pointer inline-flex items-center gap-1 hover:underline"
-                      title={`Payment methods breakdown (${Object.keys(paymentsByMethod || {})?.length} types)`}
-                    >
-                      Collected ({Object.keys(paymentsByMethod || {})?.length})
-                      {showPayments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                    </span>
-                  </TableCell>
-                  <TableCell colSpan={2} className="text-xs text-right font-semibold">
-                    {payments.reduce((sum, payment) => sum + (payment.received || 0), 0).toFixed(2)}
-                  </TableCell>
-                </TableRow>
-                {Object?.entries(paymentsByMethod || {})?.map(([method, amount]) => (
-                  <TableRow key={method} className={`${!showPayments && 'hidden'}`}>
-                    <TableCell colSpan={3} className="text-xs pl-6">{formatPaymentMethodLabel(method)}</TableCell>
-                    <TableCell className="text-xs text-right">{amount.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </>
-            )} */}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+          ) : null}
+        </TableBody>
+      </Table>
+    </ReportSection>
   );
-}
+};
 
 export default GenericSalesReport;
