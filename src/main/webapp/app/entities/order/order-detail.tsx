@@ -717,7 +717,7 @@ export const OrderDetail = () => {
                         <Button
                           variant="ghost"
                           className="h-auto p-0 text-xs font-normal text-left justify-start"
-                          onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}/edit?page=1&sort=id,asc`)}
+                          onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}?page=1&sort=id,asc`)}
                         >
                           Name: {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
                         </Button>

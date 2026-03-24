@@ -294,7 +294,7 @@ const CustomersSearch = ({
                 customerList.map((customer) => (
                     <ClickableLink
                         key={customer.id}
-                        to={`customer/${customer.id}/edit`}
+                        to={`customer/${customer.id}`}
                         setDropdownOpen={setDropdownOpen}
                         icon={<Users className="h-4 w-4" />}
                     >

@@ -210,7 +210,7 @@ export const Customer = () => {
               <TableRow key={customer.id}>
                 <TableCell className="text-xs">
                   <Link
-                    to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    to={`/customer/${customer.id}?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
                     className="hover:underline"
                   >
                     {customer.name}
