@@ -141,12 +141,12 @@ const SalesActivitySummaryReport = () => {
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedBranch, setSelectedBranch] = useState<string | undefined>(undefined);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<ISalesActivitySummaryReport | null>(null);
   const [hasLoadedReport, setHasLoadedReport] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<{ fromDate: string; toDate: string; branch: string } | null>(null);
+  const [appliedFilters, setAppliedFilters] = useState<{ fromDate: string; toDate: string; branch: string | null } | null>(null);
 
   useEffect(() => {
     dispatch(
@@ -177,7 +177,7 @@ const SalesActivitySummaryReport = () => {
     return fromZonedTime(`${year}-${month}-${day} ${time}`, timeZone).toISOString();
   };
 
-  const loadReport = async (filtersOverride?: { fromDate: string; toDate: string; branch: string }) => {
+  const loadReport = async (filtersOverride?: { fromDate: string; toDate: string; branch: string | null }) => {
     const targetFilters = filtersOverride || appliedFilters;
     if (!targetFilters) {
       return;
@@ -202,11 +202,6 @@ const SalesActivitySummaryReport = () => {
   const handleGetReport = async () => {
     if (!dateRange?.from || !dateRange?.to) {
       setError('Please select both from and to dates.');
-      return;
-    }
-
-    if (!selectedBranch) {
-      setError('Please select a branch.');
       return;
     }
 
@@ -302,11 +297,14 @@ const SalesActivitySummaryReport = () => {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">Branch</Label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <Select value={selectedBranch ?? 'null'} onValueChange={value => setSelectedBranch(value === 'null' ? null : value)}>
                   <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Select branch" />
+                    <SelectValue placeholder="All branches" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="null" className="text-xs">
+                      All
+                    </SelectItem>
                     {branchList.map(branch => (
                       <SelectItem key={branch.id} value={branch.id} className="text-xs">
                         {branch.name}
@@ -319,7 +317,7 @@ const SalesActivitySummaryReport = () => {
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="text-xs text-muted-foreground">
-                {appliedFilters ? 'Filters applied' : 'Select a branch and date range to load the report'}
+                {appliedFilters ? 'Filters applied' : 'Select a date range to load the report'}
               </div>
               <div className="flex gap-2">
                 <Button
