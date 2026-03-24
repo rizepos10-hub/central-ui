@@ -3,6 +3,7 @@ import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.mode
 import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
 import { ISalesActivitySummaryReport } from 'app/shared/model/sales-activity-summary-report.model';
 import { IOptimizedProductSalesReport } from 'app/shared/model/optimized-product-sales-report.model';
+import { ICashierByTerminalReport } from 'app/shared/model/cashier-by-terminal-report.model';
 
 
 
@@ -296,6 +297,34 @@ export const fetchOptimizedProductSalesReport = async ({
     return response.data;
   } catch (error) {
     console.error('Error fetching optimized product sales report:', error);
+    throw error;
+  }
+};
+
+export const fetchCashierByTerminalReport = async ({
+  fromDate,
+  toDate,
+  branch,
+  source,
+  tillId,
+  username,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+  source: string | null;
+  tillId: string | null;
+  username: string | null;
+}) => {
+  try {
+    const response = await axios.post<ICashierByTerminalReport>(
+      `/api/report/cashier-by-terminal?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(
+        branch ?? ''
+      )}&source=${encodeURIComponent(source ?? '')}&tillId=${encodeURIComponent(tillId ?? '')}&username=${encodeURIComponent(username ?? '')}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching cashier by terminal report:', error);
     throw error;
   }
 };
