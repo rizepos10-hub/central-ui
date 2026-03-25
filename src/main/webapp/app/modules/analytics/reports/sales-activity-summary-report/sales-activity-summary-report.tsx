@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ReportSection, {
   reportCellClassName,
   reportHeadClassName,
@@ -32,6 +32,7 @@ import ReportSection, {
   reportNumericCellClassName,
   reportTableBodyClassName,
   reportTableClassName,
+  reportTotalRowClassName,
 } from 'app/shared/components/report/report-ui';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
@@ -44,6 +45,11 @@ type Column<T> = {
 
 type TotalsItem = {
   label: string;
+  value: React.ReactNode;
+};
+
+type FooterItem = {
+  columnKey: string;
   value: React.ReactNode;
 };
 
@@ -84,7 +90,7 @@ const AmountQuantitySection = <T,>({
   title: string;
   rows?: T[];
   columns: Column<T>[];
-  totals: TotalsItem[];
+  totals: FooterItem[];
 }) => (
   <ReportSection title={title} contentClassName="p-0">
       <Table className={reportTableClassName}>
@@ -127,15 +133,25 @@ const AmountQuantitySection = <T,>({
             ))
           )}
         </TableBody>
+        <TableFooter>
+          <TableRow className={reportTotalRowClassName}>
+            {columns.map((column, index) => {
+              const footerItem = totals.find(total => total.columnKey === column.key);
+              const content = footerItem ? footerItem.value : index === 0 ? 'Totals' : '';
+              const className =
+                footerItem || column.align === 'right'
+                  ? `${reportNumericCellClassName} font-semibold`
+                  : `${reportCellClassName} font-semibold`;
+
+              return (
+                <TableCell key={column.key} className={className}>
+                  {content}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        </TableFooter>
       </Table>
-      <div className="grid grid-cols-1 gap-2 border-t px-4 py-3 md:grid-cols-3">
-        {totals.map(total => (
-          <div key={total.label} className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">{total.label}</span>
-            <span className="font-medium tabular-nums">{total.value}</span>
-          </div>
-        ))}
-      </div>
   </ReportSection>
 );
 
@@ -395,8 +411,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.cashierNegative?.rows}
               columns={cashierNegativeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.cashierNegative?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.cashierNegative?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.cashierNegative?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.cashierNegative?.totalQuantity) },
               ]}
             />
 
@@ -405,8 +421,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.lineItemDiscount?.rows}
               columns={discountColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.lineItemDiscount?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.lineItemDiscount?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.lineItemDiscount?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.lineItemDiscount?.totalQuantity) },
               ]}
             />
 
@@ -415,8 +431,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.subtotalDiscount?.rows}
               columns={discountColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.subtotalDiscount?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.subtotalDiscount?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.subtotalDiscount?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.subtotalDiscount?.totalQuantity) },
               ]}
             />
 
@@ -424,14 +440,14 @@ const SalesActivitySummaryReport = () => {
               title="Collected Sales Tax"
               rows={reportData?.collectedSalesTax?.rows}
               columns={salesTaxColumns}
-              totals={[{ label: 'Total Amount', value: formatAmount(reportData?.collectedSalesTax?.totalAmount) }]}
+              totals={[{ columnKey: 'amount', value: formatAmount(reportData?.collectedSalesTax?.totalAmount) }]}
             />
 
             <AmountQuantitySection
               title="Exempted Sales Tax"
               rows={reportData?.exemptedSalesTax?.rows}
-              columns={[{ key: 'empty', label: 'Tax Exempt Sales', render: () => '-' }]}
-              totals={[{ label: 'Total Tax Exempt Sales', value: formatAmount(reportData?.exemptedSalesTax?.totalTaxExemptSales) }]}
+              columns={[{ key: 'empty', label: 'Tax Exempt Sales', align: 'right', render: () => '-' }]}
+              totals={[{ columnKey: 'empty', value: formatAmount(reportData?.exemptedSalesTax?.totalTaxExemptSales) }]}
             />
 
             <AmountQuantitySection
@@ -439,8 +455,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.creditCardBreakdown?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.creditCardBreakdown?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.creditCardBreakdown?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.creditCardBreakdown?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.creditCardBreakdown?.totalQuantity) },
               ]}
             />
 
@@ -449,8 +465,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.houseCharge?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.houseCharge?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.houseCharge?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.houseCharge?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.houseCharge?.totalQuantity) },
               ]}
             />
 
@@ -459,8 +475,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.departmentNetSales?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.departmentNetSales?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.departmentNetSales?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.departmentNetSales?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.departmentNetSales?.totalQuantity) },
               ]}
             />
 
@@ -469,8 +485,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.paidOut?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.paidOut?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.paidOut?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.paidOut?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.paidOut?.totalQuantity) },
               ]}
             />
 
@@ -479,8 +495,8 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.paidIn?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.paidIn?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.paidIn?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.paidIn?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.paidIn?.totalQuantity) },
               ]}
             />
 
@@ -489,12 +505,12 @@ const SalesActivitySummaryReport = () => {
               rows={reportData?.giftCard?.rows}
               columns={typeColumns}
               totals={[
-                { label: 'Total Amount', value: formatAmount(reportData?.giftCard?.totalAmount) },
-                { label: 'Total Quantity', value: formatQuantity(reportData?.giftCard?.totalQuantity) },
+                { columnKey: 'amount', value: formatAmount(reportData?.giftCard?.totalAmount) },
+                { columnKey: 'quantity', value: formatQuantity(reportData?.giftCard?.totalQuantity) },
               ]}
             />
 
-            <SummarySection title="Total Sales Section" items={totalSalesItems} />
+            {/* <SummarySection title="Total Sales Section" items={totalSalesItems} /> */}
           </div>
         )}
       </div>
