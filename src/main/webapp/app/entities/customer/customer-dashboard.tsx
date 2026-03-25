@@ -11,6 +11,7 @@ import { getEntity } from './customer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { ICustomerOnAccountAudit } from 'app/shared/model/customer-on-account-audit.model';
+import { ICustomerOrderPayment } from 'app/shared/model/customer-order-payment.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,9 @@ export const CustomerDashboard = () => {
   const [onAccountAuditsError, setOnAccountAuditsError] = useState<string | null>(null);
   const [onAccountAuditsDateRange, setOnAccountAuditsDateRange] = useState<DateRange | undefined>(undefined);
   const [appliedOnAccountAuditsDateRange, setAppliedOnAccountAuditsDateRange] = useState<{ fromDate: string; toDate: string } | null>(null);
+  const [previousSales, setPreviousSales] = useState<ICustomerOrderPayment[]>([]);
+  const [previousSalesLoading, setPreviousSalesLoading] = useState(false);
+  const [previousSalesError, setPreviousSalesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -68,6 +72,14 @@ export const CustomerDashboard = () => {
 
   const formatAuditAmount = (value?: number | null) => {
     return typeof value === 'number' ? value.toFixed(2) : '0.00';
+  };
+
+  const formatPaymentType = (value?: string | null) => {
+    if (!value?.trim()) {
+      return '-';
+    }
+
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
   };
 
   const formatBoundaryDate = (date: Date, boundary: 'start' | 'end') => {
@@ -125,6 +137,28 @@ export const CustomerDashboard = () => {
       });
   };
 
+  const loadPreviousSales = () => {
+    if (!id) {
+      return Promise.resolve();
+    }
+
+    setPreviousSalesLoading(true);
+    setPreviousSalesError(null);
+
+    return axios
+      .get<ICustomerOrderPayment[]>(`api/customers/${id}/order-payments`)
+      .then(response => {
+        setPreviousSales(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setPreviousSales([]);
+        setPreviousSalesError('Unable to load previous sales.');
+      })
+      .finally(() => {
+        setPreviousSalesLoading(false);
+      });
+  };
+
   useEffect(() => {
     if (!id) {
       setOnAccountAudits([]);
@@ -135,6 +169,17 @@ export const CustomerDashboard = () => {
     }
 
     loadOnAccountAudits();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      setPreviousSales([]);
+      setPreviousSalesError(null);
+      setPreviousSalesLoading(false);
+      return;
+    }
+
+    loadPreviousSales();
   }, [id]);
 
   const handleApplyOnAccountAuditsFilter = async () => {
@@ -397,7 +442,66 @@ export const CustomerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="previous-sales" className="space-y-3">
-              <EmptyTabState title="Previous sales" />
+              {previousSalesLoading ? (
+                <div className="text-xs text-muted-foreground">Loading previous sales...</div>
+              ) : previousSalesError ? (
+                <div className="text-xs text-destructive">{previousSalesError}</div>
+              ) : previousSales.length === 0 ? (
+                <div className="text-xs text-muted-foreground">No previous sales found.</div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Date</TableHead>
+                        <TableHead className="text-xs">Order #</TableHead>
+                        <TableHead className="text-xs">Branch</TableHead>
+                        <TableHead className="text-xs">Payment Method</TableHead>
+                        <TableHead className="text-xs">Type</TableHead>
+                        <TableHead className="text-xs">Amount</TableHead>
+                        <TableHead className="text-xs">Received</TableHead>
+                        <TableHead className="text-xs">Tip</TableHead>
+                        <TableHead className="text-xs">Status</TableHead>
+                        <TableHead className="text-xs">Created By</TableHead>
+                        <TableHead className="text-xs">Bill ID</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {previousSales.map(paymentRow => {
+                        const payment = paymentRow.payment;
+                        const paymentDate = payment?.dateTime || payment?.createdDate;
+                        const paymentMethod = payment?.method?.name || payment?.method?.transactionMethod || '-';
+
+                        return (
+                          <TableRow key={`${paymentRow.orderId}-${paymentRow.billId}-${payment?.dateTime || payment?.createdDate || payment?.amount}`}>
+                            <TableCell className="text-xs align-top whitespace-nowrap">
+                              {paymentDate ? formatDateForDisplay(paymentDate) : '-'}
+                            </TableCell>
+                            <TableCell className="text-xs align-top whitespace-nowrap">
+                              {paymentRow.orderId && paymentRow.orderSequenceNumber ? (
+                                <Link to={`/order/${paymentRow.orderId}`} className="text-blue-600 hover:underline">
+                                  {paymentRow.orderSequenceNumber}
+                                </Link>
+                              ) : (
+                                paymentRow.orderSequenceNumber || '-'
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs align-top">{getBranchName(paymentRow.branchId)}</TableCell>
+                            <TableCell className="text-xs align-top">{paymentMethod}</TableCell>
+                            <TableCell className="text-xs align-top">{formatPaymentType(payment?.type)}</TableCell>
+                            <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(payment?.amount)}</TableCell>
+                            <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(payment?.receivedAmount)}</TableCell>
+                            <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(payment?.tipAmount)}</TableCell>
+                            <TableCell className="text-xs align-top">{payment?.status || '-'}</TableCell>
+                            <TableCell className="text-xs align-top">{payment?.createdBy || '-'}</TableCell>
+                            <TableCell className="text-xs align-top">{paymentRow.billId || '-'}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
