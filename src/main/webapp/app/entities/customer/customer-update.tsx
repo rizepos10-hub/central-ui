@@ -470,6 +470,16 @@ export const CustomerUpdate = ({
                   />
                 </div>
 
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-accountNumber" className="text-xs">Account Number</Label>
+                  <Input
+                    id="customer-accountNumber"
+                    className="h-8 text-xs"
+                    value={customerEntity?.accountNumber || ''}
+                    onChange={e => dispatch(changeEntityField({ name: 'accountNumber', value: e.target.value }))}
+                  />
+                </div>
+
                 {!isNew && (
                   <div className="flex flex-col gap-1">
                     <Label htmlFor="customer-card" className="text-xs">{translate('tempApp.assignCard')}</Label>
