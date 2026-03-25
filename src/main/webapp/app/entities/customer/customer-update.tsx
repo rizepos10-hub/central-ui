@@ -10,7 +10,7 @@ import type { DateRange } from 'react-day-picker';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ICustomer, IWholesalePriceLine } from 'app/shared/model/CUSTOMER/customer.model';
-import { IBranchOnAccountDebit, OnAccountBalanceType } from 'app/shared/model/on-account-settings.model';
+import { IBranchOnAccountDebit } from 'app/shared/model/on-account-settings.model';
 import {
   getEntity,
   updateEntity,
@@ -21,7 +21,6 @@ import {
   getPricesForCustomer,
   assignCard,
 } from './customer.reducer';
-import { getOnAccountSettings } from 'app/entities/settings/on-account/on-account-settings.reducer';
 import { filterOrders } from 'app/entities/order/order.reducer';
 import Order from 'app/entities/order/order';
 import { getEntities } from 'app/entities/loyalty/loyalty-records.reducer';
@@ -51,7 +50,6 @@ import { ICustomerOnAccountAudit } from 'app/shared/model/customer-on-account-au
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/src/main/webapp/app/lib/utils';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { omitGlobalOnAccountFields } from './customer-on-account.utils';
 
 export const CustomerUpdate = ({
@@ -77,7 +75,6 @@ export const CustomerUpdate = ({
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
-  const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
   const loyaltyCardsList = useAppSelector(state => state.loyaltycard.entities);
   const loading = useAppSelector(state => state.customer.loading);
   const updating = useAppSelector(state => state.customer.updating);
@@ -99,9 +96,11 @@ export const CustomerUpdate = ({
   const [onAccountAuditsDateRange, setOnAccountAuditsDateRange] = useState<DateRange | undefined>(undefined);
   const [appliedOnAccountAuditsDateRange, setAppliedOnAccountAuditsDateRange] = useState<{ fromDate: string; toDate: string } | null>(null);
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
-  const effectiveOnAccountBalanceType = onAccountSettings?.onAccountBalanceType || OnAccountBalanceType.BY_BRANCH;
-  const isBusinessBalanceType = effectiveOnAccountBalanceType === OnAccountBalanceType.BY_BUSINESS;
-  const isBranchBalanceType = effectiveOnAccountBalanceType === OnAccountBalanceType.BY_BRANCH;
+
+  const parseNumericField = (value: string) => {
+    const parsedValue = parseFloat(value);
+    return Number.isNaN(parsedValue) ? 0 : parsedValue;
+  };
 
   const handleBranchPricingPointChange = (branchId, pricingPoint) => {
     dispatch(
@@ -116,7 +115,22 @@ export const CustomerUpdate = ({
   };
 
   const getBranchOnAccountDebit = (branchId: string): IBranchOnAccountDebit => {
-    return onAccountSettings?.branchOnAccountDebits?.[branchId] || { debitLimit: 0, debitUsed: 0 };
+    return customerEntity?.branchOnAccountDebits?.[branchId] || { debitLimit: 0, debitUsed: 0 };
+  };
+
+  const handleBranchOnAccountDebitChange = (branchId: string, field: keyof IBranchOnAccountDebit, value: number) => {
+    dispatch(
+      changeEntityField({
+        name: 'branchOnAccountDebits',
+        value: {
+          ...customerEntity?.branchOnAccountDebits,
+          [branchId]: {
+            ...getBranchOnAccountDebit(branchId),
+            [field]: value,
+          },
+        },
+      })
+    );
   };
 
   const formatAuditAmount = (value?: number | null) => {
@@ -215,8 +229,6 @@ export const CustomerUpdate = ({
         sort: 'asc',
       })
     );
-
-    dispatch(getOnAccountSettings());
   }, []);
 
   useEffect(() => {
@@ -607,7 +619,7 @@ export const CustomerUpdate = ({
               </TabsContent>
 
               <TabsContent value="on-account" className="space-y-3">
-                <div className="space-y-3 rounded-md p-3">
+                <div className="space-y-3 rounded-md">
                   <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
                     <Checkbox
                       id="customer-onAccountEnabled"
@@ -615,25 +627,6 @@ export const CustomerUpdate = ({
                       onCheckedChange={checked => dispatch(changeEntityField({ name: 'onAccountEnabled', value: checked === true }))}
                     />
                     <Label htmlFor="customer-onAccountEnabled" className="text-xs cursor-pointer">On Account Enabled</Label>
-                  </div>
-
-                  <div className="space-y-2 rounded-md border p-3">
-                    <Label className="text-xs font-semibold">Balance Type</Label>
-                    <RadioGroup
-                      value={effectiveOnAccountBalanceType}
-                      className="flex flex-col gap-2 md:flex-row md:gap-6"
-                      disabled
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value={OnAccountBalanceType.BY_BUSINESS} id="customer-on-account-by-business" />
-                        <Label htmlFor="customer-on-account-by-business" className="text-xs cursor-pointer">By Business</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value={OnAccountBalanceType.BY_BRANCH} id="customer-on-account-by-branch" />
-                        <Label htmlFor="customer-on-account-by-branch" className="text-xs cursor-pointer">By Branch</Label>
-                      </div>
-                    </RadioGroup>
-                    <p className="text-[11px] text-muted-foreground">Managed in On Account Settings.</p>
                   </div>
 
                   <div className="space-y-3 rounded-md border p-3">
@@ -647,9 +640,9 @@ export const CustomerUpdate = ({
                           min={0}
                           step="0.01"
                           className="h-8 text-xs"
-                          value={onAccountSettings?.onAccountDebitLimit ?? 0}
-                          disabled={customerEntity?.onAccountEnabled !== true || !isBusinessBalanceType}
-                          readOnly
+                          value={customerEntity?.onAccountDebitLimit ?? 0}
+                          disabled={customerEntity?.onAccountEnabled !== true}
+                          onChange={e => dispatch(changeEntityField({ name: 'onAccountDebitLimit', value: parseNumericField(e.target.value) }))}
                         />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -697,8 +690,8 @@ export const CustomerUpdate = ({
                                   step="0.01"
                                   className="h-8 text-xs"
                                   value={branchDebit.debitLimit ?? 0}
-                                  disabled={customerEntity?.onAccountEnabled !== true || !isBranchBalanceType}
-                                  readOnly
+                                  disabled={customerEntity?.onAccountEnabled !== true}
+                                  onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
                                 />
                               </TableCell>
                               <TableCell className="text-xs">

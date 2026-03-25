@@ -32,6 +32,14 @@ const normalizeOnAccountSettings = (settings?: IOnAccountSettings): IOnAccountSe
   criticalThreshold: settings?.criticalThreshold ?? 0,
 });
 
+const buildOnAccountSettingsPayload = (settings: IOnAccountSettings) => {
+  return {
+    onAccountBalanceType: settings?.onAccountBalanceType ?? OnAccountBalanceType.BY_BRANCH,
+    warningThreshold: settings?.warningThreshold ?? 0,
+    criticalThreshold: settings?.criticalThreshold ?? 0,
+  };
+};
+
 export const getOnAccountSettings = createAsyncThunk(
   'on-account-settings/fetch_entity',
   async () => axios.get<IOnAccountSettings>(`${apiUrl}/by-key?key=${SettingKey.ON_ACCOUNT_DEBIT}`),
@@ -41,7 +49,7 @@ export const getOnAccountSettings = createAsyncThunk(
 export const updateOnAccountSettings = createAsyncThunk(
   'on-account-settings/update_entity',
   async (entity: IOnAccountSettings) => {
-    return axios.put<IOnAccountSettings>(`${apiUrl}/by-key?key=${SettingKey.ON_ACCOUNT_DEBIT}`, cleanEntity(entity));
+    return axios.put<IOnAccountSettings>(`${apiUrl}/by-key?key=${SettingKey.ON_ACCOUNT_DEBIT}`, cleanEntity(buildOnAccountSettingsPayload(entity)));
   },
   { serializeError: serializeAxiosError }
 );
