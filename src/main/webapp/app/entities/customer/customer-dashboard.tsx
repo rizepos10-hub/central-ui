@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/src/main/webapp/app/lib/utils';
@@ -172,6 +173,9 @@ export const CustomerDashboard = () => {
 
   const customerTitle = [customerEntity?.firstName, customerEntity?.lastName].filter(Boolean).join(' ').trim();
   const headerTitle = customerTitle || customerEntity?.businessDetails?.businessName || 'Customer';
+  const onAccountDebitLimit = customerEntity?.onAccountDebitLimit ?? 0;
+  const onAccountDebitUsed = customerEntity?.onAccountDebitUsed ?? 0;
+  const onAccountRemaining = onAccountDebitLimit - onAccountDebitUsed;
 
   return (
     <PageWrapper>
@@ -229,6 +233,27 @@ export const CustomerDashboard = () => {
 
             <TabsContent value="account" className="space-y-3">
               <div className="space-y-3">
+                {customerLoading ? (
+                  <div className="text-xs text-muted-foreground">Loading account summary...</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="rounded-md border p-3">
+                      <div className="text-xs font-medium text-muted-foreground">Account Limit</div>
+                      <div className="mt-1 text-sm whitespace-nowrap">{formatAuditAmount(onAccountDebitLimit)}</div>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <div className="text-xs font-medium text-muted-foreground">Account Balance</div>
+                      <div className="mt-1 text-sm whitespace-nowrap">{formatAuditAmount(onAccountDebitUsed)}</div>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <div className="text-xs font-medium text-muted-foreground">Account Remaining</div>
+                      <div className="mt-1 text-sm whitespace-nowrap">{formatAuditAmount(onAccountRemaining)}</div>
+                    </div>
+                  </div>
+                )}
+
+                <Separator className="my-1" />
+
                 <div className="rounded-md border p-3 space-y-3">
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Date Range</Label>
