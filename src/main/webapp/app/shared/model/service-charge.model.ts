@@ -64,6 +64,7 @@ export enum TransactionMethodEnum {
   electronicBenefitTransferFoodStamp = "electronicBenefitTransferFoodStamp",
   custom = "custom",
   convergeLightbox = "convergeLightbox",
+  onAccount = "onAccount",
 }
 
 export enum ServiceChargeCalculationMethod {
