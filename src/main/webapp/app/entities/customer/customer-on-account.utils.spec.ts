@@ -21,7 +21,9 @@ describe('customer on-account utils', () => {
       onAccountDebitUsed: 5,
     });
     expect(result.onAccountBalanceType).toBeUndefined();
-    expect(result.onAccountDebitLimit).toBeUndefined();
-    expect(result.branchOnAccountDebits).toBeUndefined();
+    expect(result.onAccountDebitLimit).toBe(100);
+    expect(result.branchOnAccountDebits).toEqual({
+      'branch-1': { debitLimit: 50, debitUsed: 15 },
+    });
   });
 });
