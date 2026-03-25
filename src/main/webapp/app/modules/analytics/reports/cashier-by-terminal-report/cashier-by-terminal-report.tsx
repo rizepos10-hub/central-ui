@@ -29,7 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import ReportSection, {
   reportCellClassName,
@@ -38,6 +38,7 @@ import ReportSection, {
   reportNumericCellClassName,
   reportTableBodyClassName,
   reportTableClassName,
+  reportTotalRowClassName,
 } from 'app/shared/components/report/report-ui';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
@@ -113,17 +114,14 @@ const TerminalSection = <T extends SectionRow>({
           ))
         )}
       </TableBody>
+      <TableFooter>
+        <TableRow className={reportTotalRowClassName}>
+          <TableCell className={`${reportCellClassName} font-semibold`}>Totals</TableCell>
+          <TableCell className={`${reportNumericCellClassName} font-semibold`}>{formatAmount(totalAmount)}</TableCell>
+          <TableCell className={`${reportNumericCellClassName} font-semibold`}>{formatQuantity(totalQuantity)}</TableCell>
+        </TableRow>
+      </TableFooter>
     </Table>
-    <div className="grid grid-cols-1 gap-2 border-t px-4 py-3 md:grid-cols-2">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Total Amount</span>
-        <span className="font-medium tabular-nums">{formatAmount(totalAmount)}</span>
-      </div>
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Total Quantity</span>
-        <span className="font-medium tabular-nums">{formatQuantity(totalQuantity)}</span>
-      </div>
-    </div>
   </ReportSection>
 );
 

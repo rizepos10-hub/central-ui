@@ -71,11 +71,34 @@ describe('On-account settings reducer tests', () => {
           onAccountBalanceType: OnAccountBalanceType.BY_BRANCH,
           warningThreshold: 10,
           criticalThreshold: 20,
+          onAccountDebitLimit: 999,
         })
       );
 
       expect((axios.get as any).calledWith('api/settings/by-key?key=ON_ACCOUNT_DEBIT')).toBe(true);
       expect((axios.put as any).calledWith('api/settings/by-key?key=ON_ACCOUNT_DEBIT')).toBe(true);
+      expect((axios.put as any).firstCall.args[1]).toEqual({
+        onAccountBalanceType: OnAccountBalanceType.BY_BRANCH,
+        warningThreshold: 10,
+        criticalThreshold: 20,
+      });
+    });
+
+    it('always sends only the three global fields', async () => {
+      await store.dispatch(
+        updateOnAccountSettings({
+          onAccountBalanceType: OnAccountBalanceType.BY_BUSINESS,
+          warningThreshold: 10,
+          criticalThreshold: 20,
+          onAccountDebitLimit: 150,
+        })
+      );
+
+      expect((axios.put as any).firstCall.args[1]).toEqual({
+        onAccountBalanceType: OnAccountBalanceType.BY_BUSINESS,
+        warningThreshold: 10,
+        criticalThreshold: 20,
+      });
     });
   });
 });

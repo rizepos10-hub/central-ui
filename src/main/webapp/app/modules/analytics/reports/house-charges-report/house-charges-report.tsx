@@ -17,6 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
@@ -222,7 +223,7 @@ const HouseChargesReport = () => {
                     <TableHead className="text-xs text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className={reportTableBodyClassName}>
                   {rows.map(row => (
                     <TableRow key={`${row.terminal}-${row.receipt}-${row.timestamp}`}>
                       <TableCell className="text-xs">{row.terminal || '-'}</TableCell>

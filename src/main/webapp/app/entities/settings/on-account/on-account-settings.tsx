@@ -4,21 +4,17 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import { IBranch } from 'app/shared/model/branch.model';
-import { IBranchOnAccountDebit, OnAccountBalanceType } from 'app/shared/model/on-account-settings.model';
+import { OnAccountBalanceType } from 'app/shared/model/on-account-settings.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { changeEntityField, getOnAccountSettings, updateOnAccountSettings } from './on-account-settings.reducer';
 
 const OnAccountSettingsPage = () => {
   const dispatch = useAppDispatch();
-  const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
   const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
   const loading = useAppSelector(state => state.onAccountSettings.loading);
   const updating = useAppSelector(state => state.onAccountSettings.updating);
@@ -26,13 +22,6 @@ const OnAccountSettingsPage = () => {
 
   useEffect(() => {
     dispatch(getOnAccountSettings());
-    dispatch(
-      getBranches({
-        page: 0,
-        size: 500,
-        sort: 'asc',
-      })
-    );
   }, [dispatch]);
 
   useEffect(() => {
@@ -46,27 +35,8 @@ const OnAccountSettingsPage = () => {
     return Number.isNaN(parsedValue) ? 0 : parsedValue;
   };
 
-  const handleFieldChange = (name: 'onAccountBalanceType' | 'onAccountDebitLimit' | 'warningThreshold' | 'criticalThreshold', value: any) => {
+  const handleFieldChange = (name: 'onAccountBalanceType' | 'warningThreshold' | 'criticalThreshold', value: any) => {
     dispatch(changeEntityField({ name, value }));
-  };
-
-  const getBranchOnAccountDebit = (branchId: string): IBranchOnAccountDebit => {
-    return onAccountSettings?.branchOnAccountDebits?.[branchId] || { debitLimit: 0, debitUsed: 0 };
-  };
-
-  const handleBranchOnAccountDebitChange = (branchId: string, field: keyof IBranchOnAccountDebit, value: number) => {
-    dispatch(
-      changeEntityField({
-        name: 'branchOnAccountDebits',
-        value: {
-          ...(onAccountSettings?.branchOnAccountDebits || {}),
-          [branchId]: {
-            ...getBranchOnAccountDebit(branchId),
-            [field]: value,
-          },
-        },
-      })
-    );
   };
 
   const onSave = async () => {
@@ -119,19 +89,7 @@ const OnAccountSettingsPage = () => {
             </RadioGroup>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="on-account-debit-limit" className="text-xs font-semibold">Business Debit Limit</Label>
-              <Input
-                id="on-account-debit-limit"
-                type="number"
-                min={0}
-                step="0.01"
-                value={onAccountSettings?.onAccountDebitLimit ?? 0}
-                onChange={e => handleFieldChange('onAccountDebitLimit', parseNumericField(e.target.value))}
-                className="h-8 text-xs"
-              />
-            </div>
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="warning-threshold" className="text-xs font-semibold">Warning Threshold</Label>
               <Input
@@ -155,46 +113,6 @@ const OnAccountSettingsPage = () => {
                 onChange={e => handleFieldChange('criticalThreshold', parseNumericField(e.target.value))}
                 className="h-8 text-xs"
               />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold">Branch Debit Limits</Label>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs">Branch</TableHead>
-                    <TableHead className="text-xs">Debit Limit</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {branchList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-xs text-center text-muted-foreground py-4">
-                        No branches available
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    branchList.map(branch => (
-                      <TableRow key={branch.id}>
-                        <TableCell className="text-xs">{branch.name}</TableCell>
-                        <TableCell className="text-xs">
-                          <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            className="h-8 text-xs"
-                            value={getBranchOnAccountDebit(branch.id).debitLimit ?? 0}
-                            disabled={(onAccountSettings?.onAccountBalanceType || OnAccountBalanceType.BY_BRANCH) !== OnAccountBalanceType.BY_BRANCH}
-                            onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
             </div>
           </div>
 
