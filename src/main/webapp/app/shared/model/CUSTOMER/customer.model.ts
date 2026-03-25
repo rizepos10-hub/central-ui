@@ -19,6 +19,7 @@ export interface ICustomer {
   deliveryAddresses?: IAddress[];
   mobileNumber?: string;
   status?: string | null;
+  accountNumber?: string;
   firstName?: string;
   lastName?: string;
   loyaltyCard?: ILoyaltyCard | null;
