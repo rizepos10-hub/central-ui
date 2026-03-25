@@ -23,6 +23,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
@@ -371,7 +372,7 @@ const OptimizedProductSalesReport = () => {
                     <TableHead className="text-xs text-right">Margin %</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className={reportTableBodyClassName}>
                   {reportData?.items?.map(item => (
                     <TableRow key={item.itemId || item.receiptAlias}>
                       <TableCell className="text-xs">{item.receiptAlias || '-'}</TableCell>

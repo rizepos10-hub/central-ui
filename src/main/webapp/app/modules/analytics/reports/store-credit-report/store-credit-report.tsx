@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Loader2, RefreshCw } from 'lucide-react';
 import { fetchStoreCreditReport } from 'app/modules/analytics/api';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
+import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 
 const PAGE_SIZE = 10;
 
@@ -68,7 +69,7 @@ const StoreCreditReport = () => {
                 <TableHead className="text-xs text-right">Balance</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className={reportTableBodyClassName}>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-10 text-center">
