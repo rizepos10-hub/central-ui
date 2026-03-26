@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
 import { fetchStoreCreditReport } from 'app/modules/analytics/api';
@@ -24,6 +27,11 @@ const REPORT_TITLE = 'Customer Balance Report';
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
 
+type StoreCreditFilters = {
+  onAccountEnabledOnly: boolean;
+  accountNumber: string;
+};
+
 const StoreCreditReport = () => {
   const [rows, setRows] = useState<IStoreCreditReportRow[]>([]);
   const [exportRows, setExportRows] = useState<IStoreCreditReportRow[]>([]);
@@ -32,24 +40,34 @@ const StoreCreditReport = () => {
   const [page, setPage] = useState(0);
   const [hasLoadedReport, setHasLoadedReport] = useState(false);
   const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const [filters, setFilters] = useState<StoreCreditFilters>({ onAccountEnabledOnly: false, accountNumber: '' });
+  const [appliedFilters, setAppliedFilters] = useState<StoreCreditFilters>({ onAccountEnabledOnly: false, accountNumber: '' });
   const exportContentRef = useRef<HTMLDivElement>(null);
 
   const canGoNext = rows.length === PAGE_SIZE;
   const canGoPrevious = page > 0 && !loading;
   const hasExportData = hasLoadedReport && rows.length > 0;
-  const fileName = createReportFileName(REPORT_TITLE);
+  const fileName = createReportFileName(REPORT_TITLE, [
+    appliedFilters.onAccountEnabledOnly ? 'on-account-enabled' : null,
+    appliedFilters.accountNumber || null,
+  ]);
 
-  const loadReport = async (nextPage: number) => {
+  const loadReport = async (nextPage: number, filtersOverride?: StoreCreditFilters) => {
+    const targetFilters = filtersOverride || appliedFilters;
+
     try {
       setLoading(true);
       setError(null);
       const data = await fetchStoreCreditReport({
+        onAccountEnabled: targetFilters.onAccountEnabledOnly ? true : null,
+        accountNumber: targetFilters.accountNumber.trim() || null,
         page: nextPage,
         size: PAGE_SIZE,
       });
       setRows(data);
       setPage(nextPage);
       setHasLoadedReport(true);
+      setAppliedFilters(targetFilters);
     } catch (err) {
       setRows([]);
       setHasLoadedReport(true);
@@ -60,11 +78,15 @@ const StoreCreditReport = () => {
   };
 
   useEffect(() => {
-    void loadReport(0);
+    void loadReport(0, appliedFilters);
   }, []);
 
   const ensureExportRows = async () => {
-    const allRows = await fetchAllStoreCreditRows(fetchStoreCreditReport, { size: EXPORT_PAGE_SIZE });
+    const allRows = await fetchAllStoreCreditRows(fetchStoreCreditReport, {
+      onAccountEnabled: appliedFilters.onAccountEnabledOnly ? true : null,
+      accountNumber: appliedFilters.accountNumber.trim() || null,
+      size: EXPORT_PAGE_SIZE,
+    });
     setExportRows(allRows);
     await new Promise(resolve => setTimeout(resolve, 0));
     return allRows;
@@ -74,7 +96,16 @@ const StoreCreditReport = () => {
     try {
       setBusyAction('excel');
       const allRows = await ensureExportRows();
-      await saveWorkbookAsExcel(buildStoreCreditWorkbook(allRows, { title: REPORT_TITLE }), fileName);
+      await saveWorkbookAsExcel(
+        buildStoreCreditWorkbook(allRows, {
+          title: REPORT_TITLE,
+          filters: [
+            { label: 'On Account Enabled', value: appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All' },
+            { label: 'Account Number', value: appliedFilters.accountNumber || 'All' },
+          ],
+        }),
+        fileName
+      );
     } finally {
       setBusyAction(null);
     }
@@ -113,12 +144,85 @@ const StoreCreditReport = () => {
     },
   });
 
+  const handleApplyFilters = async () => {
+    setExportRows([]);
+    await loadReport(0, {
+      onAccountEnabledOnly: filters.onAccountEnabledOnly,
+      accountNumber: filters.accountNumber.trim(),
+    });
+  };
+
+  const handleResetFilters = async () => {
+    const defaultFilters = { onAccountEnabledOnly: false, accountNumber: '' };
+    setFilters(defaultFilters);
+    setExportRows([]);
+    await loadReport(0, defaultFilters);
+  };
+
   return (
     <PageWrapper>
       <div className="max-w-6xl mx-auto space-y-3">
         <div className="text-center">
           <h1 className="text-sm font-semibold">{REPORT_TITLE}</h1>
         </div>
+
+        <Card className="report-filters-card p-3">
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="store-credit-account-number" className="text-xs font-semibold">
+                  Account Number
+                </Label>
+                <Input
+                  id="store-credit-account-number"
+                  className="h-7 text-xs"
+                  value={filters.accountNumber}
+                  onChange={event => setFilters(current => ({ ...current, accountNumber: event.target.value }))}
+                  placeholder="Enter account number"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Status</Label>
+                <div className="flex h-7 items-center gap-2 rounded-md border px-3">
+                  <Checkbox
+                    id="store-credit-on-account-enabled"
+                    checked={filters.onAccountEnabledOnly}
+                    onCheckedChange={checked =>
+                      setFilters(current => ({ ...current, onAccountEnabledOnly: checked === true }))
+                    }
+                  />
+                  <Label htmlFor="store-credit-on-account-enabled" className="cursor-pointer text-xs font-normal">
+                    On Account Enabled Only
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-xs text-muted-foreground">
+                {appliedFilters.onAccountEnabledOnly || appliedFilters.accountNumber
+                  ? 'Filters applied'
+                  : 'Showing all customer balances'}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={handleResetFilters}
+                  disabled={loading}
+                >
+                  Reset
+                </Button>
+                <Button type="button" size="sm" className="h-7 text-xs" onClick={handleApplyFilters} disabled={loading}>
+                  Apply Filters
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {error && (
           <Card>
@@ -206,6 +310,12 @@ const StoreCreditReport = () => {
             <div className="rounded-md border bg-white p-4">
               <h2 className="text-lg font-semibold">{REPORT_TITLE}</h2>
               <p className="mt-1 text-xs text-muted-foreground">Full export dataset</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                On Account Enabled: {appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All'}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Account Number: {appliedFilters.accountNumber || 'All'}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">Total records: {exportRows.length}</p>
             </div>
 

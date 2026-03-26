@@ -81,6 +81,13 @@ describe('StoreCreditReport', () => {
       fileName: 'customer-balance-report',
       orientation: 'portrait',
     });
-    expect(mockedFetchStoreCreditReport).toHaveBeenLastCalledWith({ fromDate: null, toDate: null, page: 0, size: 250 });
+    expect(mockedFetchStoreCreditReport).toHaveBeenLastCalledWith({
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 0,
+      size: 250,
+    });
   });
 });
