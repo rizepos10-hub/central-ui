@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/src/main/webapp/app/lib/utils';
+import { TransactionType } from 'app/shared/model/ENUMS/transaction-type.model';
 
 const EmptyTabState = ({ title }: { title: string }) => (
   <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
@@ -74,12 +75,13 @@ export const CustomerDashboard = () => {
     return typeof value === 'number' ? value.toFixed(2) : '0.00';
   };
 
-  const formatPaymentType = (value?: string | null) => {
-    if (!value?.trim()) {
+  const formatPaymentType = (value?: string | TransactionType) => {
+    const stringValue = value as string;
+    if (!stringValue?.trim()) {
       return '-';
     }
 
-    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    return stringValue.charAt(0).toUpperCase() + stringValue.slice(1).toLowerCase();
   };
 
   const formatBoundaryDate = (date: Date, boundary: 'start' | 'end') => {
