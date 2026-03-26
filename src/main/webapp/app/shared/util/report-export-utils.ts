@@ -49,6 +49,8 @@ type ExportWorkbookOptions = {
 type StoreCreditPageFetcher = (args: {
   fromDate?: string | null;
   toDate?: string | null;
+  onAccountEnabled?: boolean | null;
+  accountNumber?: string | null;
   page: number;
   size: number;
 }) => Promise<IStoreCreditReportRow[]>;
@@ -237,10 +239,14 @@ export const fetchAllStoreCreditRows = async (
   {
     fromDate = null,
     toDate = null,
+    onAccountEnabled = null,
+    accountNumber = null,
     size = DEFAULT_PAGE_SIZE,
   }: {
     fromDate?: string | null;
     toDate?: string | null;
+    onAccountEnabled?: boolean | null;
+    accountNumber?: string | null;
     size?: number;
   } = {}
 ) => {
@@ -252,6 +258,8 @@ export const fetchAllStoreCreditRows = async (
     const nextPage = await fetchPage({
       fromDate,
       toDate,
+      onAccountEnabled,
+      accountNumber,
       page,
       size,
     });

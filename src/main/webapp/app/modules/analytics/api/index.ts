@@ -257,11 +257,15 @@ export const fetchFirstLastBillsSummary = async (branch: string | null = null, s
 export const fetchStoreCreditReport = async ({
   fromDate,
   toDate,
+  onAccountEnabled,
+  accountNumber,
   page,
   size,
 }: {
   fromDate?: string | null;
   toDate?: string | null;
+  onAccountEnabled?: boolean | null;
+  accountNumber?: string | null;
   page: number;
   size: number;
 }) => {
@@ -277,6 +281,14 @@ export const fetchStoreCreditReport = async ({
 
     if (toDate) {
       params.set('toDate', toDate);
+    }
+
+    if (onAccountEnabled === true) {
+      params.set('onAccountEnabled', 'true');
+    }
+
+    if (accountNumber) {
+      params.set('accountNumber', accountNumber);
     }
 
     const response = await axios.get<IStoreCreditReportRow[]>(`/api/report/on-account?${params.toString()}`);
