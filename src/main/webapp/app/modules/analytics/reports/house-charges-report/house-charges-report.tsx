@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
+import ReportActionBar from 'app/shared/components/report/report-action-bar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -18,9 +19,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
+import { useReactToPrint } from 'react-to-print';
+import {
+  analyticsReportPrintStyles,
+  buildHouseChargesWorkbook,
+  createReportFileName,
+  downloadElementAsPdf,
+  saveWorkbookAsExcel,
+} from 'app/shared/util/report-export-utils';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
+const REPORT_TITLE = 'House Charges Report';
 
 const HouseChargesReport = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +43,8 @@ const HouseChargesReport = () => {
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<IHouseChargesReportRow[]>([]);
   const [appliedFilters, setAppliedFilters] = useState<{ fromDate: string; toDate: string; branch: string | null } | null>(null);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(
@@ -114,14 +126,64 @@ const HouseChargesReport = () => {
     return `${format(dateRange.from, 'PP')} - ${format(dateRange.to, 'PP')}`;
   }, [dateRange]);
 
+  const appliedBranchName = useMemo(
+    () => branchList.find(branch => branch.id === appliedFilters?.branch)?.name || 'All branches',
+    [appliedFilters?.branch, branchList]
+  );
+
+  const intervalLabel =
+    appliedFilters?.fromDate && appliedFilters?.toDate
+      ? `${formatDateForDisplay(appliedFilters.fromDate, 'PP')} - ${formatDateForDisplay(appliedFilters.toDate, 'PP')}`
+      : 'Not selected';
+
+  const fileName = createReportFileName(REPORT_TITLE, [appliedBranchName, intervalLabel]);
+  const exportDisabled = loading || busyAction !== null || rows.length === 0 || !appliedFilters;
+
+  const handleExcelExport = async () => {
+    try {
+      setBusyAction('excel');
+      await saveWorkbookAsExcel(
+        buildHouseChargesWorkbook(rows, {
+          title: REPORT_TITLE,
+          filters: [
+            { label: 'Branch', value: appliedBranchName },
+            { label: 'Date Range', value: intervalLabel },
+          ],
+        }),
+        fileName
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePdfExport = async () => {
+    if (!reportContentRef.current) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'portrait' });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => reportContentRef.current,
+    documentTitle: fileName,
+    pageStyle: analyticsReportPrintStyles('portrait'),
+  });
+
   return (
     <PageWrapper>
       <div className="max-w-6xl mx-auto space-y-3">
         <div className="text-center">
-          <h1 className="text-sm font-semibold">House Charges Report</h1>
+          <h1 className="text-sm font-semibold">{REPORT_TITLE}</h1>
         </div>
 
-        <Card className="p-3">
+        <Card className="report-filters-card p-3">
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
@@ -201,46 +263,73 @@ const HouseChargesReport = () => {
           </Card>
         )}
 
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="py-10 text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              </div>
-            ) : !appliedFilters ? (
-              <div className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</div>
-            ) : rows.length === 0 ? (
-              <div className="py-10 text-center text-xs text-muted-foreground">No house charges records found.</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs">Terminal</TableHead>
-                    <TableHead className="text-xs">Receipt</TableHead>
-                    <TableHead className="text-xs">Timestamp</TableHead>
-                    <TableHead className="text-xs">Account Number</TableHead>
-                    <TableHead className="text-xs">Customer Name</TableHead>
-                    <TableHead className="text-xs text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className={reportTableBodyClassName}>
-                  {rows.map(row => (
-                    <TableRow key={`${row.terminal}-${row.receipt}-${row.timestamp}`}>
-                      <TableCell className="text-xs">{row.terminal || '-'}</TableCell>
-                      <TableCell className="text-xs">{row.receipt || '-'}</TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">
-                        {row.timestamp ? formatDateForDisplay(row.timestamp) : '-'}
-                      </TableCell>
-                      <TableCell className="text-xs">{row.accountNumber || '-'}</TableCell>
-                      <TableCell className="text-xs">{row.customerName || '-'}</TableCell>
-                      <TableCell className="text-xs text-right">{formatAmount(row.amount)}</TableCell>
+        <div className="flex justify-end">
+          <ReportActionBar
+            onExcel={handleExcelExport}
+            onPdf={handlePdfExport}
+            onPrint={handlePrint}
+            disabled={exportDisabled}
+            busyAction={busyAction}
+          />
+        </div>
+
+        <div ref={reportContentRef} className="report-export-root space-y-3">
+          {appliedFilters && (
+            <Card className="report-export-header">
+              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Branch</div>
+                  <div className="mt-1 text-sm font-semibold">{appliedBranchName}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Date Range</div>
+                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="py-10 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                </div>
+              ) : !appliedFilters ? (
+                <div className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</div>
+              ) : rows.length === 0 ? (
+                <div className="py-10 text-center text-xs text-muted-foreground">No house charges records found.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Terminal</TableHead>
+                      <TableHead className="text-xs">Receipt</TableHead>
+                      <TableHead className="text-xs">Timestamp</TableHead>
+                      <TableHead className="text-xs">Account Number</TableHead>
+                      <TableHead className="text-xs">Customer Name</TableHead>
+                      <TableHead className="text-xs text-right">Amount</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody className={reportTableBodyClassName}>
+                    {rows.map(row => (
+                      <TableRow key={`${row.terminal}-${row.receipt}-${row.timestamp}`}>
+                        <TableCell className="text-xs">{row.terminal || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.receipt || '-'}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {row.timestamp ? formatDateForDisplay(row.timestamp) : '-'}
+                        </TableCell>
+                        <TableCell className="text-xs">{row.accountNumber || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.customerName || '-'}</TableCell>
+                        <TableCell className="text-xs text-right">{formatAmount(row.amount)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </PageWrapper>
   );

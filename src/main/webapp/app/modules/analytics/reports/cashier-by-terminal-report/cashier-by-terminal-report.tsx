@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
@@ -23,6 +23,7 @@ import {
 } from 'app/shared/model/cashier-by-terminal-report.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import ReportActionBar from 'app/shared/components/report/report-action-bar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -40,6 +41,14 @@ import ReportSection, {
   reportTableClassName,
   reportTotalRowClassName,
 } from 'app/shared/components/report/report-ui';
+import { useReactToPrint } from 'react-to-print';
+import {
+  analyticsReportPrintStyles,
+  buildCashierByTerminalWorkbook,
+  createReportFileName,
+  downloadElementAsPdf,
+  saveWorkbookAsExcel,
+} from 'app/shared/util/report-export-utils';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 type AppliedFilters = {
@@ -181,6 +190,8 @@ const terminalSections: Array<{
   },
 ];
 
+const REPORT_TITLE = 'Cashier By Terminal Report';
+
 const CashierByTerminalReport = () => {
   const dispatch = useAppDispatch();
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
@@ -199,6 +210,8 @@ const CashierByTerminalReport = () => {
   const [reportData, setReportData] = useState<ICashierByTerminalReport | null>(null);
   const [hasLoadedReport, setHasLoadedReport] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters | null>(null);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(
@@ -354,15 +367,64 @@ const CashierByTerminalReport = () => {
         ? `${formatDateForDisplay(appliedFilters.fromDate, 'PP')} - ${formatDateForDisplay(appliedFilters.toDate, 'PP')}`
         : '-';
   const isEmpty = reportData !== null && (!reportData.terminals || reportData.terminals.length === 0);
+  const selectedRegistryName = branchRegistries.find(registry => registry.id === appliedFilters?.registryId)?.name || 'All registries';
+  const selectedTillName = tills.find(till => till.id === appliedFilters?.tillId)?.name || 'All tills';
+  const fileName = createReportFileName(REPORT_TITLE, [branchLabel, appliedFilters?.source || 'all-sources', intervalLabel]);
+  const exportDisabled = loading || busyAction !== null || isEmpty || !hasLoadedReport || !reportData;
+
+  const handleExcelExport = async () => {
+    if (!reportData) {
+      return;
+    }
+
+    try {
+      setBusyAction('excel');
+      await saveWorkbookAsExcel(
+        buildCashierByTerminalWorkbook(reportData, {
+          title: REPORT_TITLE,
+          filters: [
+            { label: 'Branch', value: branchLabel },
+            { label: 'Source', value: appliedFilters?.source || 'All sources' },
+            { label: 'Registry', value: selectedRegistryName },
+            { label: 'Till', value: selectedTillName },
+            { label: 'Username', value: appliedFilters?.username || 'All users' },
+            { label: 'Date Range', value: intervalLabel },
+          ],
+        }),
+        fileName
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePdfExport = async () => {
+    if (!reportContentRef.current) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'portrait' });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => reportContentRef.current,
+    documentTitle: fileName,
+    pageStyle: analyticsReportPrintStyles('portrait'),
+  });
 
   return (
     <PageWrapper>
       <div className="max-w-7xl mx-auto space-y-3">
         <div className="text-center">
-          <h1 className="text-sm font-semibold">Cashier By Terminal Report</h1>
+          <h1 className="text-sm font-semibold">{REPORT_TITLE}</h1>
         </div>
 
-        <Card className="p-3">
+        <Card className="report-filters-card p-3">
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               <div className="space-y-1">
@@ -516,73 +578,116 @@ const CashierByTerminalReport = () => {
           </Card>
         )}
 
-        {loading ? (
-          <Card>
-            <CardContent className="py-10 text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            </CardContent>
-          </Card>
-        ) : !hasLoadedReport ? (
-          <Card>
-            <CardContent className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</CardContent>
-          </Card>
-        ) : isEmpty ? (
-          <Card>
-            <CardContent className="py-10 text-center text-xs text-muted-foreground">No cashier by terminal data found.</CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            <ReportSection title="Report Summary" contentClassName="p-4">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div className="rounded-md border p-3">
+        <div className="flex justify-end">
+          <ReportActionBar
+            onExcel={handleExcelExport}
+            onPdf={handlePdfExport}
+            onPrint={handlePrint}
+            disabled={exportDisabled}
+            busyAction={busyAction}
+          />
+        </div>
+
+        <div ref={reportContentRef} className="report-export-root space-y-3">
+          {appliedFilters && (
+            <Card className="report-export-header">
+              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+                <div>
                   <div className="text-xs text-muted-foreground">Branch</div>
                   <div className="mt-1 text-sm font-semibold">{branchLabel}</div>
                 </div>
-                <div className="rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">Date Interval</div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Source</div>
+                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.source || 'All sources'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Registry</div>
+                  <div className="mt-1 text-sm font-semibold">{selectedRegistryName}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Till</div>
+                  <div className="mt-1 text-sm font-semibold">{selectedTillName}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Username</div>
+                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.username || 'All users'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Date Range</div>
                   <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
                 </div>
-                <div className="rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">Terminals</div>
-                  <div className="mt-1 text-sm font-semibold">{reportData?.terminals?.length ?? 0}</div>
-                </div>
-              </div>
-            </ReportSection>
+              </CardContent>
+            </Card>
+          )}
 
-            {reportData?.terminals?.map(terminal => (
-              <ReportSection
-                key={terminal.registryId || terminal.registryName}
-                title={terminal.registryName || 'Unnamed Terminal'}
-                className="overflow-hidden"
-                contentClassName="space-y-3 p-3"
-              >
-                <div className="text-xs text-muted-foreground">
-                  Registry ID: <span className="font-medium text-foreground">{terminal.registryId || '-'}</span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-                  {terminalSections.map(section => {
-                    const sectionData = terminal[section.key] as ICashierByTerminalSection<
-                      ICashierByTerminalTypeRow | ICashierByTerminalFieldRow | ICashierByTerminalDiscountTypeRow
-                    > | undefined;
-
-                    return (
-                      <TerminalSection
-                        key={section.key}
-                        title={section.title}
-                        rows={sectionData?.rows}
-                        totalAmount={sectionData?.totalAmount}
-                        totalQuantity={sectionData?.totalQuantity}
-                        firstColumnLabel={section.firstColumnLabel}
-                        getRowLabel={section.getRowLabel}
-                      />
-                    );
-                  })}
+          {loading ? (
+            <Card>
+              <CardContent className="py-10 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+              </CardContent>
+            </Card>
+          ) : !hasLoadedReport ? (
+            <Card>
+              <CardContent className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</CardContent>
+            </Card>
+          ) : isEmpty ? (
+            <Card>
+              <CardContent className="py-10 text-center text-xs text-muted-foreground">No cashier by terminal data found.</CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              <ReportSection title="Report Summary" contentClassName="p-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Branch</div>
+                    <div className="mt-1 text-sm font-semibold">{branchLabel}</div>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Date Interval</div>
+                    <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Terminals</div>
+                    <div className="mt-1 text-sm font-semibold">{reportData?.terminals?.length ?? 0}</div>
+                  </div>
                 </div>
               </ReportSection>
-            ))}
-          </div>
-        )}
+
+              {reportData?.terminals?.map(terminal => (
+                <ReportSection
+                  key={terminal.registryId || terminal.registryName}
+                  title={terminal.registryName || 'Unnamed Terminal'}
+                  className="report-section-card overflow-hidden"
+                  contentClassName="space-y-3 p-3"
+                >
+                  <div className="text-xs text-muted-foreground">
+                    Registry ID: <span className="font-medium text-foreground">{terminal.registryId || '-'}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                    {terminalSections.map(section => {
+                      const sectionData = terminal[section.key] as ICashierByTerminalSection<
+                        ICashierByTerminalTypeRow | ICashierByTerminalFieldRow | ICashierByTerminalDiscountTypeRow
+                      > | undefined;
+
+                      return (
+                        <TerminalSection
+                          key={section.key}
+                          title={section.title}
+                          rows={sectionData?.rows}
+                          totalAmount={sectionData?.totalAmount}
+                          totalQuantity={sectionData?.totalQuantity}
+                          firstColumnLabel={section.firstColumnLabel}
+                          getRowLabel={section.getRowLabel}
+                        />
+                      );
+                    })}
+                  </div>
+                </ReportSection>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </PageWrapper>
   );

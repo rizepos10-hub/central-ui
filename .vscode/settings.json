@@ -1,0 +1,68 @@
+{
+  "easyResponseStructure.activeProfile": "rize-dev",
+  "easyResponseStructure.autoOpenResponse": true,
+  "easyResponseStructure.profiles": {
+    "rize-dev": {
+      "baseUrl": "https://pos-central.rize-pos.com",
+      "pathPrefixes": [
+        "/api",
+        "api",
+        "management"
+      ],
+      "defaultHeaders": {
+        "Accept": "application/json"
+      },
+      "auth": {
+        "enabled": true,
+        "request": {
+          "url": "https://pos-admin.rize-pos.com/api/login/business_1010/central-app",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "bodyTemplate": {
+            "username": "admin",
+            "password": "c0iQNzwT6b9rsDibhiN8",
+            "rememberMe": false
+          }
+        },
+        "response": {
+          "tokenJsonPath": "access_token"
+        },
+        "applyAs": "Bearer"
+      }
+    },
+    "rize-prod": {
+      "baseUrl": "https://rize-pos.com/central-app",
+      "pathPrefixes": [
+        "/api",
+        "api",
+        "management"
+      ],
+      "defaultHeaders": {
+        "Accept": "application/json"
+      },
+      "auth": {
+        "enabled": true,
+        "request": {
+          "url": "https://rize-pos.com/admin-app/api/login/business_1010/central-app",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "bodyTemplate": {
+            "username": "admin",
+            "password": "c0iQNzwT6b9rsDibhiN8",
+            "rememberMe": false
+          }
+        },
+        "response": {
+          "tokenJsonPath": "access_token"
+        },
+        "applyAs": "Bearer"
+      }
+    }
+  }
+}
