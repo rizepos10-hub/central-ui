@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
@@ -9,8 +9,6 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { fetchSalesActivitySummaryReport } from 'app/modules/analytics/api';
 import { IBranch } from 'app/shared/model/branch.model';
 import {
-  IAmountOnlySection,
-  IAmountQuantitySection,
   ICashierNegativeRow,
   ICollectedSalesTaxRow,
   IDiscountTypeRow,
@@ -18,6 +16,7 @@ import {
   ITypeAmountQuantityRow,
 } from 'app/shared/model/sales-activity-summary-report.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -25,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import ReportActionBar from 'app/shared/components/report/report-action-bar';
 import ReportSection, {
   reportCellClassName,
   reportHeadClassName,
@@ -34,6 +34,14 @@ import ReportSection, {
   reportTableClassName,
   reportTotalRowClassName,
 } from 'app/shared/components/report/report-ui';
+import { useReactToPrint } from 'react-to-print';
+import {
+  analyticsReportPrintStyles,
+  buildSalesActivitySummaryWorkbook,
+  createReportFileName,
+  downloadElementAsPdf,
+  saveWorkbookAsExcel,
+} from 'app/shared/util/report-export-utils';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 type Column<T> = {
@@ -41,11 +49,6 @@ type Column<T> = {
   label: string;
   align?: 'left' | 'right';
   render: (row: T) => React.ReactNode;
-};
-
-type TotalsItem = {
-  label: string;
-  value: React.ReactNode;
 };
 
 type FooterItem = {
@@ -155,24 +158,7 @@ const AmountQuantitySection = <T,>({
   </ReportSection>
 );
 
-const SummarySection = ({
-  title,
-  items,
-}: {
-  title: string;
-  items: TotalsItem[];
-}) => (
-  <ReportSection title={title} contentClassName="space-y-3 p-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {items.map(item => (
-          <div key={item.label} className="rounded-md border p-3">
-            <div className="text-xs text-muted-foreground">{item.label}</div>
-            <div className="mt-1 text-right text-sm font-semibold tabular-nums">{item.value}</div>
-          </div>
-        ))}
-      </div>
-  </ReportSection>
-);
+const REPORT_TITLE = 'Sales Activity Summary Report';
 
 const SalesActivitySummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -186,6 +172,8 @@ const SalesActivitySummaryReport = () => {
   const [reportData, setReportData] = useState<ISalesActivitySummaryReport | null>(null);
   const [hasLoadedReport, setHasLoadedReport] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<{ fromDate: string; toDate: string; branch: string | null } | null>(null);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(
@@ -290,30 +278,64 @@ const SalesActivitySummaryReport = () => {
     { key: 'quantity', label: 'Quantity', align: 'right', render: row => formatQuantity(row.quantity) },
   ];
 
-  const totalSalesItems: TotalsItem[] = [
-    { label: 'Gross Sales With Tax', value: formatAmount(reportData?.totalSalesSection?.grossSalesWithTax) },
-    { label: 'Gross Sales With Tax Quantity', value: formatQuantity(reportData?.totalSalesSection?.grossSalesWithTaxQuantity) },
-    { label: 'Negative Total', value: formatAmount(reportData?.totalSalesSection?.negativeTotal) },
-    { label: 'Item Discount Total', value: formatAmount(reportData?.totalSalesSection?.itemDiscountTotal) },
-    { label: 'Item Discount Total Quantity', value: formatQuantity(reportData?.totalSalesSection?.itemDiscountTotalQuantity) },
-    { label: 'Subtotal Discount Total', value: formatAmount(reportData?.totalSalesSection?.subtotalDiscountTotal) },
-    { label: 'Subtotal Discount Total Quantity', value: formatQuantity(reportData?.totalSalesSection?.subtotalDiscountTotalQuantity) },
-    { label: 'Net Sales With Tax', value: formatAmount(reportData?.totalSalesSection?.netSalesWithTax) },
-    { label: 'Total Tax Collected', value: formatAmount(reportData?.totalSalesSection?.totalTaxCollected) },
-    { label: 'Net Sales No Tax', value: formatAmount(reportData?.totalSalesSection?.netSalesNoTax) },
-    { label: 'Average Sale', value: formatAmount(reportData?.totalSalesSection?.averageSale) },
-  ];
-
   const isReportResponseEmpty = reportData !== null && Object.keys(reportData).length === 0;
+  const appliedBranchName = branchList.find(branch => branch.id === appliedFilters?.branch)?.name || 'All branches';
+  const intervalLabel =
+    appliedFilters?.fromDate && appliedFilters?.toDate
+      ? `${formatDateForDisplay(appliedFilters.fromDate, 'PP')} - ${formatDateForDisplay(appliedFilters.toDate, 'PP')}`
+      : 'Not selected';
+  const fileName = createReportFileName(REPORT_TITLE, [appliedBranchName, intervalLabel]);
+  const exportDisabled = loading || busyAction !== null || isReportResponseEmpty || !hasLoadedReport || !reportData;
+
+  const handleExcelExport = async () => {
+    if (!reportData) {
+      return;
+    }
+
+    try {
+      setBusyAction('excel');
+      await saveWorkbookAsExcel(
+        buildSalesActivitySummaryWorkbook(reportData, {
+          title: REPORT_TITLE,
+          filters: [
+            { label: 'Branch', value: appliedBranchName },
+            { label: 'Date Range', value: intervalLabel },
+          ],
+        }),
+        fileName
+      );
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePdfExport = async () => {
+    if (!reportContentRef.current) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'portrait' });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => reportContentRef.current,
+    documentTitle: fileName,
+    pageStyle: analyticsReportPrintStyles('portrait'),
+  });
 
   return (
     <PageWrapper>
       <div className="max-w-7xl mx-auto space-y-3">
         <div className="text-center">
-          <h1 className="text-sm font-semibold">Sales Activity Summary Report</h1>
+          <h1 className="text-sm font-semibold">{REPORT_TITLE}</h1>
         </div>
 
-        <Card className="p-3">
+        <Card className="report-filters-card p-3">
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
@@ -390,129 +412,154 @@ const SalesActivitySummaryReport = () => {
           </Card>
         )}
 
-        {loading ? (
-          <Card>
-            <CardContent className="py-10 text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            </CardContent>
-          </Card>
-        ) : !hasLoadedReport ? (
-          <Card>
-            <CardContent className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</CardContent>
-          </Card>
-        ) : isReportResponseEmpty ? (
-          <Card>
-            <CardContent className="py-10 text-center text-xs text-muted-foreground">No sales activity summary data found.</CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            <AmountQuantitySection
-              title="Cashier Negative"
-              rows={reportData?.cashierNegative?.rows}
-              columns={cashierNegativeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.cashierNegative?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.cashierNegative?.totalQuantity) },
-              ]}
-            />
+        <div className="flex justify-end">
+          <ReportActionBar
+            onExcel={handleExcelExport}
+            onPdf={handlePdfExport}
+            onPrint={handlePrint}
+            disabled={exportDisabled}
+            busyAction={busyAction}
+          />
+        </div>
 
-            <AmountQuantitySection
-              title="Line Item Discount"
-              rows={reportData?.lineItemDiscount?.rows}
-              columns={discountColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.lineItemDiscount?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.lineItemDiscount?.totalQuantity) },
-              ]}
-            />
+        <div ref={reportContentRef} className="report-export-root space-y-3">
+          {appliedFilters && (
+            <Card className="report-export-header">
+              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Branch</div>
+                  <div className="mt-1 text-sm font-semibold">{appliedBranchName}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Date Range</div>
+                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            <AmountQuantitySection
-              title="Subtotal Discount"
-              rows={reportData?.subtotalDiscount?.rows}
-              columns={discountColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.subtotalDiscount?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.subtotalDiscount?.totalQuantity) },
-              ]}
-            />
+          {loading ? (
+            <Card>
+              <CardContent className="py-10 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+              </CardContent>
+            </Card>
+          ) : !hasLoadedReport ? (
+            <Card>
+              <CardContent className="py-10 text-center text-xs text-muted-foreground">Run the report to view results.</CardContent>
+            </Card>
+          ) : isReportResponseEmpty ? (
+            <Card>
+              <CardContent className="py-10 text-center text-xs text-muted-foreground">No sales activity summary data found.</CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              <AmountQuantitySection
+                title="Cashier Negative"
+                rows={reportData?.cashierNegative?.rows}
+                columns={cashierNegativeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.cashierNegative?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.cashierNegative?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Collected Sales Tax"
-              rows={reportData?.collectedSalesTax?.rows}
-              columns={salesTaxColumns}
-              totals={[{ columnKey: 'amount', value: formatAmount(reportData?.collectedSalesTax?.totalAmount) }]}
-            />
+              <AmountQuantitySection
+                title="Line Item Discount"
+                rows={reportData?.lineItemDiscount?.rows}
+                columns={discountColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.lineItemDiscount?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.lineItemDiscount?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Exempted Sales Tax"
-              rows={reportData?.exemptedSalesTax?.rows}
-              columns={[{ key: 'empty', label: 'Tax Exempt Sales', align: 'right', render: () => '-' }]}
-              totals={[{ columnKey: 'empty', value: formatAmount(reportData?.exemptedSalesTax?.totalTaxExemptSales) }]}
-            />
+              <AmountQuantitySection
+                title="Subtotal Discount"
+                rows={reportData?.subtotalDiscount?.rows}
+                columns={discountColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.subtotalDiscount?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.subtotalDiscount?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Credit Card Breakdown"
-              rows={reportData?.creditCardBreakdown?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.creditCardBreakdown?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.creditCardBreakdown?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="Collected Sales Tax"
+                rows={reportData?.collectedSalesTax?.rows}
+                columns={salesTaxColumns}
+                totals={[{ columnKey: 'amount', value: formatAmount(reportData?.collectedSalesTax?.totalAmount) }]}
+              />
 
-            <AmountQuantitySection
-              title="House Charge"
-              rows={reportData?.houseCharge?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.houseCharge?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.houseCharge?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="Exempted Sales Tax"
+                rows={reportData?.exemptedSalesTax?.rows}
+                columns={[{ key: 'empty', label: 'Tax Exempt Sales', align: 'right', render: () => '-' }]}
+                totals={[{ columnKey: 'empty', value: formatAmount(reportData?.exemptedSalesTax?.totalTaxExemptSales) }]}
+              />
 
-            <AmountQuantitySection
-              title="Department Net Sales"
-              rows={reportData?.departmentNetSales?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.departmentNetSales?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.departmentNetSales?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="Credit Card Breakdown"
+                rows={reportData?.creditCardBreakdown?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.creditCardBreakdown?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.creditCardBreakdown?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Paid Out"
-              rows={reportData?.paidOut?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.paidOut?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.paidOut?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="House Charge"
+                rows={reportData?.houseCharge?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.houseCharge?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.houseCharge?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Paid In"
-              rows={reportData?.paidIn?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.paidIn?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.paidIn?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="Department Net Sales"
+                rows={reportData?.departmentNetSales?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.departmentNetSales?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.departmentNetSales?.totalQuantity) },
+                ]}
+              />
 
-            <AmountQuantitySection
-              title="Gift Card"
-              rows={reportData?.giftCard?.rows}
-              columns={typeColumns}
-              totals={[
-                { columnKey: 'amount', value: formatAmount(reportData?.giftCard?.totalAmount) },
-                { columnKey: 'quantity', value: formatQuantity(reportData?.giftCard?.totalQuantity) },
-              ]}
-            />
+              <AmountQuantitySection
+                title="Paid Out"
+                rows={reportData?.paidOut?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.paidOut?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.paidOut?.totalQuantity) },
+                ]}
+              />
 
-            {/* <SummarySection title="Total Sales Section" items={totalSalesItems} /> */}
-          </div>
-        )}
+              <AmountQuantitySection
+                title="Paid In"
+                rows={reportData?.paidIn?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.paidIn?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.paidIn?.totalQuantity) },
+                ]}
+              />
+
+              <AmountQuantitySection
+                title="Gift Card"
+                rows={reportData?.giftCard?.rows}
+                columns={typeColumns}
+                totals={[
+                  { columnKey: 'amount', value: formatAmount(reportData?.giftCard?.totalAmount) },
+                  { columnKey: 'quantity', value: formatQuantity(reportData?.giftCard?.totalQuantity) },
+                ]}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </PageWrapper>
   );
