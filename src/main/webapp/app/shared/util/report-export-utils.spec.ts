@@ -19,8 +19,22 @@ describe('report export utils', () => {
     const rows = await fetchAllStoreCreditRows(fetchPage, { size: 2 });
 
     expect(fetchPage).toHaveBeenCalledTimes(2);
-    expect(fetchPage).toHaveBeenNthCalledWith(1, { fromDate: null, toDate: null, page: 0, size: 2 });
-    expect(fetchPage).toHaveBeenNthCalledWith(2, { fromDate: null, toDate: null, page: 1, size: 2 });
+    expect(fetchPage).toHaveBeenNthCalledWith(1, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 0,
+      size: 2,
+    });
+    expect(fetchPage).toHaveBeenNthCalledWith(2, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 1,
+      size: 2,
+    });
     expect(rows).toHaveLength(3);
   });
 
