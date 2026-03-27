@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeDeliveryStatus, changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown, Pencil } from 'lucide-react';
+import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
+import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,9 +36,7 @@ import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
-import { changeEntityField as changeBillEntityField, reset } from '../bill/bill.reducer';
-import { DeliverStatus } from 'app/shared/model/ENUMS/delivery-status.model';
-import { useReactToPrint } from 'react-to-print';
+import { changeEntityField as changeBillEntityField } from '../bill/bill.reducer';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
 import { assignDriver, cancelBooking, createBooking, getActiveProviders, getTookanAgents, getTookanTeams, syncBooking, updateBooking } from './delivery.reducer';
@@ -51,14 +49,16 @@ import { getEntity as getCustomerEntity } from 'app/entities/customer/customer.r
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { getOnAccountSettings } from 'app/entities/settings/on-account/on-account-settings.reducer';
 import { getOnAccountPaymentValidation } from './order-on-account.utils';
+import { cn } from 'app/lib/utils';
+import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const autoOpenPaymentHandledRef = useRef(false);
 
-  const billPrintRef = useRef(null);
   const pagePrintRef = useRef(null);
 
   const { id } = useParams<'id'>();
@@ -79,17 +79,11 @@ export const OrderDetail = () => {
   };
 
   const [dataTableValues, setDataTableValues] = useState([]);
-  const [editMode, setEditMode] = useState(false);
-  const [refundMode, setRefundMode] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState(filteredOrderEntity.processingStatus);
   
   const getCurrentAuthToken = () => {
     const tokenKey = buildAuthTokenKey();
     return Storage.local.get(tokenKey) || Storage.session.get(tokenKey);
   };
-  const [deliveryStatus, setDeliveryStatus] = useState(filteredOrderEntity.deliveryStatus);
-  const [rowClick, setRowClick] = useState(true);
-  const [showPrintableBillDialog, setShowPrintableBillDialog] = useState(false);
   const [deliveryDateTime, setDeliveryDateTime] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<'ICABBI' | 'TOOKAN' | undefined>(undefined);
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined);
@@ -99,10 +93,8 @@ export const OrderDetail = () => {
 
   // AlertDialog states
   const [showProcessingConfirm, setShowProcessingConfirm] = useState(false);
-  const [showDeliveryConfirm, setShowDeliveryConfirm] = useState(false);
   const [showCancelBookingConfirm, setShowCancelBookingConfirm] = useState(false);
   const [pendingProcessingStatus, setPendingProcessingStatus] = useState<OrderStatus | null>(null);
-  const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState<DeliverStatus | null>(null);
 
   // Refund dialog states
   const [showRefundDialog, setShowRefundDialog] = useState(false);
@@ -115,13 +107,12 @@ export const OrderDetail = () => {
   const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
   const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
   const [pendingBillCreation, setPendingBillCreation] = useState(false);
-  const orderTotalPaid = filteredOrderEntity?.bills?.reduce(
-    (billSum, bill) => billSum + (bill.paymentTransactions?.reduce((txnSum, txn) => txnSum + (txn.amount || 0), 0) || 0),
-    0
-  ) || 0;
-  const orderRemainingBalance = Math.max(0, (filteredOrderEntity.total || 0) - orderTotalPaid);
   const paymentCustomer = customerEntity?.id && customerEntity.id === orderEntity.customer?.id ? customerEntity : null;
   const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
+  const paymentMethodOptions = Object.values(TransactionMethodEnum).map(method => ({
+    label: formatTransactionMethodLabel(method),
+    value: method,
+  }));
   const onAccountValidation = getOnAccountPaymentValidation({
     customer: paymentCustomer,
     orderBranchId: orderEntity.branchId,
@@ -209,20 +200,6 @@ export const OrderDetail = () => {
     }
   }, [dispatch, isTookanBooking, orderEntity.branchId, selectedTeamId]);
 
-  const openAllAccordions = () => {
-    return new Promise(resolve => {
-      setActiveIndexes(filteredOrderEntity?.bills?.map((_, index) => index.toString()) || []);
-      setTimeout(resolve, 0); // Resolve immediately after the current call stack clears
-    });
-  };
-
-  const openOneAccordion = (index: number) => {
-    return new Promise(resolve => {
-      setActiveIndexes([index.toString()]);
-      setTimeout(resolve, 0); // Resolve immediately after the current call stack clears
-    });
-  }
-
   useEffect(() => {
     dispatch(getEntity(id));
     dispatch(getUiSettings());
@@ -267,6 +244,10 @@ export const OrderDetail = () => {
     setDataTableValues(newDataTableValues);
   }, [orderEntity])
 
+  useEffect(() => {
+    autoOpenPaymentHandledRef.current = false;
+  }, [id]);
+
   const openPaymentDialog = (bill: IBill) => {
     setSelectedBillForPayment(bill);
     // Calculate remaining balance
@@ -307,6 +288,36 @@ export const OrderDetail = () => {
     }
   };
 
+  useEffect(() => {
+    const shouldAutoOpenPayment = new URLSearchParams(location.search).get('openPayment') === '1';
+    const currentOrderLoaded = String(orderEntity?.id || '') === String(id || '');
+
+    if (!shouldAutoOpenPayment || autoOpenPaymentHandledRef.current || loading || !currentOrderLoaded) {
+      return;
+    }
+
+    autoOpenPaymentHandledRef.current = true;
+    handleOpenPaymentDialogOrCreateBill();
+
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.delete('openPayment');
+    navigate(
+      {
+        pathname: location.pathname,
+        search: searchParams.toString() ? `?${searchParams.toString()}` : '',
+      },
+      { replace: true }
+    );
+  }, [handleOpenPaymentDialogOrCreateBill, id, loading, location.pathname, location.search, navigate, orderEntity?.id]);
+
+  const resetPaymentDialog = () => {
+    setShowPaymentDialog(false);
+    setSelectedBillForPayment(null);
+    setPaymentAmount(0);
+    setPaymentTipAmount(0);
+    setPaymentTransactionMethod(TransactionMethodEnum.cash);
+  };
+
   const handleAddPayment = () => {
     if (!selectedBillForPayment) return;
 
@@ -329,12 +340,8 @@ export const OrderDetail = () => {
       tipAmount: paymentTipAmount,
       transactionMethod: paymentTransactionMethod
     }));
-    
-    setShowPaymentDialog(false);
-    setSelectedBillForPayment(null);
-    setPaymentAmount(0);
-    setPaymentTipAmount(0);
-    setPaymentTransactionMethod(TransactionMethodEnum.cash);
+
+    resetPaymentDialog();
   };
 
   const changeProcessingStatusConfirm = (status: OrderStatus) => {
@@ -343,59 +350,22 @@ export const OrderDetail = () => {
   };
 
   const rejectProcessingStatusConfirm = () => {
-    setProcessingStatus(filteredOrderEntity.processingStatus);
     setShowProcessingConfirm(false);
     setPendingProcessingStatus(null);
   };
 
   const acceptProcessingStatusConfirm = () => {
-    const status = pendingProcessingStatus || processingStatus;
+    if (!pendingProcessingStatus) {
+      return;
+    }
+
     dispatch(changeProcessingStatus({
       id: filteredOrderEntity.id,
-      orderProcessingStatus: status,
-    })).then(res => {
-      // @ts-expect-error -- unknown type
-      if (res?.error?.status as unknown !== 200) {
-        setProcessingStatus(filteredOrderEntity.processingStatus)
-      }
-    });
+      orderProcessingStatus: pendingProcessingStatus,
+    }));
     setShowProcessingConfirm(false);
     setPendingProcessingStatus(null);
   };
-
-  const changeDeliveryStatusConfirm = (status: DeliverStatus) => {
-    setPendingDeliveryStatus(status);
-    setShowDeliveryConfirm(true);
-  };
-
-  const rejectDeliveryStatusConfirm = () => {
-    setDeliveryStatus(filteredOrderEntity.deliveryStatus);
-    setShowDeliveryConfirm(false);
-    setPendingDeliveryStatus(null);
-  };
-
-  const acceptDeliveryStatusConfirm = () => {
-    const status = pendingDeliveryStatus || deliveryStatus;
-    dispatch(changeDeliveryStatus({
-      id: filteredOrderEntity.id,
-      deliveryStatus: status,
-    })).then(res => {
-      // @ts-expect-error -- unknown type
-      if (res?.error?.status as unknown !== 200) {
-        setDeliveryStatus(filteredOrderEntity.deliveryStatus)
-      }
-    });
-    setShowDeliveryConfirm(false);
-    setPendingDeliveryStatus(null);
-  };
-
-  useEffect(() => {
-    setProcessingStatus(filteredOrderEntity.processingStatus);
-  }, [filteredOrderEntity.processingStatus])
-
-  useEffect(() => {
-    setDeliveryStatus(filteredOrderEntity.deliveryStatus);
-  }, [filteredOrderEntity.deliveryStatus])
 
   // Auto-open payment dialog when draft bill is created
   useEffect(() => {
@@ -519,7 +489,7 @@ export const OrderDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Order Details */}
             <div className="lg:col-span-8">
-              <Card className={editMode ? 'opacity-50' : ''}>
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     <span className="flex items-center gap-2">
@@ -536,7 +506,7 @@ export const OrderDetail = () => {
                 <CardContent>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-sm font-medium">Items</span>
-                    {!editMode && !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
+                    {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -605,99 +575,33 @@ export const OrderDetail = () => {
                           {filteredOrderEntity.paymentStatus}
                         </Badge>
                       ) : (
-                        editMode ? (
-                          <div className="flex flex-col gap-2">
-                            <div className="rounded-md border bg-muted/30 p-3">
-                              <div className="flex justify-between gap-3 mb-1">
-                                <span className="text-muted-foreground">Paid</span>
-                                <span className="font-semibold">{formatCurrencyAmount(orderTotalPaid)}</span>
-                              </div>
-                              <div className="flex justify-between gap-3">
-                                <span className="text-muted-foreground">Remaining</span>
-                                <span className="font-semibold">{formatCurrencyAmount(orderRemainingBalance)}</span>
-                              </div>
-                            </div>
-                            <Button
-                              variant="outline"
-                              onClick={handleOpenPaymentDialogOrCreateBill}
-                              className="h-8 text-xs"
-                            >
-                              Add Payment
-                            </Button>
-                          </div>
-                        ) : (
-                          <Badge
-                            variant="destructive"
-                            className={editMode ? 'cursor-pointer' : ''}
-                          >
-                            {filteredOrderEntity.paymentStatus}
-                          </Badge>
-                        )
+                        <Badge variant="destructive">
+                          {filteredOrderEntity.paymentStatus}
+                        </Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <label className="font-medium">Processing Status:</label>
-                      {editMode && processingStatus ? (
-                        <Select
-                          options={Object.values(OrderStatus).map(status => ({
-                            label: status,
-                            value: status,
-                          }))}
-                          value={{ label: processingStatus, value: processingStatus }}
-                          onChange={(option) => {
-                            setProcessingStatus(option.value);
-                            changeProcessingStatusConfirm(option.value);
-                          }}
-                          placeholder="Select a status"
-                          className="w-40"
-                        />
-                      ) : (
-                        <span>{filteredOrderEntity.processingStatus}</span>
-                      )}
+                      <span>{filteredOrderEntity.processingStatus}</span>
                     </div>
                     {orderEntity?.deliveryStatus != null && (
                       <div className="flex items-center gap-2">
                         <label className="font-medium">Delivery Status:</label>
-                        {editMode && deliveryStatus ? (
-                          <Select
-                            options={Object.values(DeliverStatus).map(status => ({
-                              label: status,
-                              value: status,
-                            }))}
-                            value={{ label: deliveryStatus, value: deliveryStatus }}
-                            onChange={(option) => {
-                              setDeliveryStatus(option.value);
-                              changeDeliveryStatusConfirm(option.value);
-                            }}
-                            placeholder="Select a status"
-                            className="w-40"
-                          />
-                        ) : (
-                          <span>{filteredOrderEntity.deliveryStatus}</span>
-                        )}
+                        <span>{filteredOrderEntity.deliveryStatus}</span>
                       </div>
                     )}
-                    <div className="flex gap-2">
+                    <div>
                       <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
                         <Button variant="link" className="h-8 text-xs p-0">
                           Print
                         </Button>
                       </Link>
-                      {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
-                        <Button
-                          variant="secondary"
-                          onClick={() => setEditMode(prev => !prev)}
-                          className="h-8 text-xs"
-                        >
-                          {editMode ? 'View' : 'Edit'}
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
               {(UiSettingsEntity.orderConfirmation && orderEntity.processingStatus === OrderStatus.DRAFT) && (
-                <Card className={editMode ? 'opacity-50' : ''}>
+                <Card>
                   <CardHeader>
                     <CardTitle>Confirm Order</CardTitle>
                   </CardHeader>
@@ -714,7 +618,7 @@ export const OrderDetail = () => {
                 </Card>
               )}
 
-              <Card id="customer" className={editMode ? 'opacity-50' : ''}>
+              <Card id="customer">
                 <CardHeader>
                   <CardTitle>Customer</CardTitle>
                 </CardHeader>
@@ -743,7 +647,7 @@ export const OrderDetail = () => {
                 </CardContent>
               </Card>
               {filteredOrderEntity?.deliverTo && (
-                <Card className={editMode ? 'opacity-50' : ''}>
+                <Card>
                   <CardHeader>
                     <CardTitle>Deliver To</CardTitle>
                   </CardHeader>
@@ -766,7 +670,7 @@ export const OrderDetail = () => {
                 </Card>
               )}
               {orderEntity.orderDeliveryDetails && (
-                <Card id="deliveryDetails" className={editMode ? 'opacity-50' : ''}>
+                <Card id="deliveryDetails">
                   <CardHeader>
                     <CardTitle>Delivery Details</CardTitle>
                   </CardHeader>
@@ -800,7 +704,7 @@ export const OrderDetail = () => {
               )}
               {!orderEntity?.refund && (
                 !orderEntity.orderDeliveryDetails ? (
-                  <Card id="booking" className={editMode ? 'opacity-50' : ''}>
+                  <Card id="booking">
                     <CardHeader>
                       <CardTitle>Create Booking</CardTitle>
                     </CardHeader>
@@ -840,7 +744,7 @@ export const OrderDetail = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                <Card id="booking" className={editMode ? 'opacity-50' : ''}>
+                <Card id="booking">
                   <CardHeader>
                     <CardTitle>Update Booking</CardTitle>
                   </CardHeader>
@@ -940,15 +844,20 @@ export const OrderDetail = () => {
               )}
             </div>
           </div>
-          {orderEntity?.bills?.length > 0 && (
-            <div className="w-full">
-              <Card className={editMode ? 'opacity-50' : ''}>
-                <CardHeader>
-                  <CardTitle>Bills</CardTitle>
-                </CardHeader>
-                <CardContent>
+          <div className="w-full">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle>Bills</CardTitle>
+                {!orderEntity?.refund && (
+                  <Button onClick={handleOpenPaymentDialogOrCreateBill} className="h-8 text-xs">
+                    <Plus className="mr-1 h-3 w-3" />
+                    Add Payment
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {filteredOrderEntity?.bills?.length > 0 ? (
                   <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="w-full">
-
                     {filteredOrderEntity?.bills?.map((bill, idx) => {
                       const billStatus = String(bill.status);
                       const getBillStatusColor = (status: string) => {
@@ -1041,6 +950,7 @@ export const OrderDetail = () => {
                                     </div>
                                     <Button
                                       className="mt-3 h-8 text-xs w-full"
+                                      disabled={orderEntity?.refund}
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -1069,7 +979,7 @@ export const OrderDetail = () => {
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Method</div>
-                                        <div className="font-medium text-sm capitalize">{transaction.method?.name || ''.toLowerCase()}</div>
+                                        <div className="font-medium text-sm">{formatTransactionMethodLabel(transaction.method?.name)}</div>
                                       </div>
                                       <div>
                                         <div className="text-xs text-muted-foreground mb-1">Type</div>
@@ -1089,10 +999,14 @@ export const OrderDetail = () => {
                       )
                     })}
                   </Accordion>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                ) : (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    No bills available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -1108,22 +1022,6 @@ export const OrderDetail = () => {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={rejectProcessingStatusConfirm}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={acceptProcessingStatusConfirm}>Confirm</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* AlertDialog for Delivery Status Change */}
-      <AlertDialog open={showDeliveryConfirm} onOpenChange={setShowDeliveryConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to change the status to {pendingDeliveryStatus}?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={rejectDeliveryStatusConfirm}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={acceptDeliveryStatusConfirm}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1218,46 +1116,58 @@ export const OrderDetail = () => {
       </Dialog>
 
       {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-md">
+      <Dialog
+        open={showPaymentDialog}
+        onOpenChange={open => {
+          if (!open) {
+            resetPaymentDialog();
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Add Payment to Bill #{selectedBillForPayment?.sequenceNumber}</DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-4">
+          <div className="py-4">
             {selectedBillForPayment && (() => {
               const totalPaid = selectedBillForPayment.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
               const remaining = (selectedBillForPayment.total || 0) - totalPaid;
               return (
-                <>
-                  <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-muted-foreground">Bill Total:</span>
-                      <span className="font-semibold">${(selectedBillForPayment.total || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-muted-foreground">Total Paid:</span>
-                      <span className="font-semibold">${totalPaid.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="font-semibold">Remaining:</span>
-                      <span className="font-bold text-lg">${remaining.toFixed(2)}</span>
+                <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Payment Method</div>
+                    <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-lg border bg-muted/20 p-2">
+                      {paymentMethodOptions.map(method => (
+                        <button
+                          key={method.value}
+                          type="button"
+                          className={cn(
+                            'w-full rounded-md border px-3 py-3 text-left text-sm transition-colors',
+                            paymentTransactionMethod === method.value
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-background hover:bg-muted'
+                          )}
+                          onClick={() => setPaymentTransactionMethod(method.value)}
+                        >
+                          {method.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-3">
-                     <div>
-                      <label className="text-sm font-medium mb-1 block">Payment Method</label>
-                      <Select
-                        options={Object.values(TransactionMethodEnum).map(method => ({
-                          label: method.charAt(0).toUpperCase() + method.slice(1).replace(/([A-Z])/g, ' $1'),
-                          value: method,
-                        }))}
-                        value={{ label: paymentTransactionMethod.charAt(0).toUpperCase() + paymentTransactionMethod.slice(1).replace(/([A-Z])/g, ' $1'), value: paymentTransactionMethod }}
-                        onChange={(option) => setPaymentTransactionMethod(option.value)}
-                        placeholder="Select payment method"
-                        className="w-full"
-                        menuPortalTarget={null}
-                        menuPosition="absolute"
-                      />
+                  <div className="space-y-4">
+                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-muted-foreground">Bill Total:</span>
+                        <span className="font-semibold">${(selectedBillForPayment.total || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-muted-foreground">Total Paid:</span>
+                        <span className="font-semibold">${totalPaid.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t">
+                        <span className="font-semibold">Remaining:</span>
+                        <span className="font-bold text-lg">${remaining.toFixed(2)}</span>
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-1 block">Payment Amount</label>
@@ -1323,20 +1233,14 @@ export const OrderDetail = () => {
                       </div>
                     )}
                   </div>
-                </>
+                </div>
               );
             })()}
           </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
-              onClick={() => {
-                setShowPaymentDialog(false);
-                setSelectedBillForPayment(null);
-                setPaymentAmount(0);
-                setPaymentTipAmount(0);
-                setPaymentTransactionMethod(TransactionMethodEnum.cash);
-              }}
+              onClick={resetPaymentDialog}
               className="h-8 text-xs"
             >
               Cancel
