@@ -227,7 +227,7 @@ export const OrderDetail = () => {
         isAddon: false,
         total: item.total?.toFixed(2),
       });
-      item.addons.forEach((addon) => {
+      item.addons?.forEach((addon) => {
         newDataTableValues.push({
           id: addon.id,
           itemName: addon.name,
