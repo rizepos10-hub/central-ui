@@ -48,6 +48,27 @@ describe('On-account settings reducer tests', () => {
     expect(state.entity.branchOnAccountDebits).toEqual({});
   });
 
+  it('should normalize fetched wrapped settings from the by-key response', () => {
+    const payload = {
+      data: [
+        {
+          id: 'setting-1',
+          key: 'ON_ACCOUNT_DEBIT',
+          value: {
+            onAccountBalanceType: OnAccountBalanceType.BY_BUSINESS,
+            warningThreshold: 15,
+            criticalThreshold: 25,
+          },
+        },
+      ],
+    };
+
+    const state = reducer(undefined, { type: getOnAccountSettings.fulfilled.type, payload });
+    expect(state.entity.onAccountBalanceType).toBe(OnAccountBalanceType.BY_BUSINESS);
+    expect(state.entity.warningThreshold).toBe(15);
+    expect(state.entity.criticalThreshold).toBe(25);
+  });
+
   it('should reset state', () => {
     const state = reducer({ ...initialState, loading: true, updating: true }, reset());
     expect(state).toMatchObject(initialState);
@@ -55,7 +76,15 @@ describe('On-account settings reducer tests', () => {
 
   describe('Actions', () => {
     let store;
-    const resolvedObject = { data: { onAccountBalanceType: OnAccountBalanceType.BY_BRANCH } };
+    const resolvedObject = {
+      data: [
+        {
+          id: 'setting-1',
+          key: 'ON_ACCOUNT_DEBIT',
+          value: { onAccountBalanceType: OnAccountBalanceType.BY_BRANCH },
+        },
+      ],
+    };
 
     beforeEach(() => {
       const mockStore = configureStore([thunk]);

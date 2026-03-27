@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeDeliveryStatus, changeProcessingStatus, createBill, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
+import { changeDeliveryStatus, changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
 import { ArrowLeft, Loader2, RefreshCcw, BanknoteArrowDown, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +47,10 @@ import { getEntity as getUiSettings } from 'app/entities/online-ordering/setting
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
+import { getEntity as getCustomerEntity } from 'app/entities/customer/customer.reducer';
+import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import { getOnAccountSettings } from 'app/entities/settings/on-account/on-account-settings.reducer';
+import { getOnAccountPaymentValidation } from './order-on-account.utils';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -62,6 +66,9 @@ export const OrderDetail = () => {
   const loading = useAppSelector(state => state.order.loading);
   const billEntity: IBill = useAppSelector(state => state.bill.entity);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
+  const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
+  const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
+  const onAccountSettingsLoading = useAppSelector(state => state.onAccountSettings.loading);
   const activeProviders: Array<'ICABBI' | 'TOOKAN'> = useAppSelector(state => state.delivery.activeProviders || []);
   const tookanTeams = useAppSelector(state => state.delivery.teams || []);
   const tookanAgents = useAppSelector(state => state.delivery.agents || []);
@@ -81,7 +88,6 @@ export const OrderDetail = () => {
     return Storage.local.get(tokenKey) || Storage.session.get(tokenKey);
   };
   const [deliveryStatus, setDeliveryStatus] = useState(filteredOrderEntity.deliveryStatus);
-  const [processStatusTipAmount, setProcessStatusTipAmount] = useState(0);
   const [rowClick, setRowClick] = useState(true);
   const [showPrintableBillDialog, setShowPrintableBillDialog] = useState(false);
   const [deliveryDateTime, setDeliveryDateTime] = useState('');
@@ -92,7 +98,6 @@ export const OrderDetail = () => {
   const [activeIndexes, setActiveIndexes] = useState<string[]>([]);
 
   // AlertDialog states
-  const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
   const [showProcessingConfirm, setShowProcessingConfirm] = useState(false);
   const [showDeliveryConfirm, setShowDeliveryConfirm] = useState(false);
   const [showCancelBookingConfirm, setShowCancelBookingConfirm] = useState(false);
@@ -110,6 +115,23 @@ export const OrderDetail = () => {
   const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
   const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
   const [pendingBillCreation, setPendingBillCreation] = useState(false);
+  const orderTotalPaid = filteredOrderEntity?.bills?.reduce(
+    (billSum, bill) => billSum + (bill.paymentTransactions?.reduce((txnSum, txn) => txnSum + (txn.amount || 0), 0) || 0),
+    0
+  ) || 0;
+  const orderRemainingBalance = Math.max(0, (filteredOrderEntity.total || 0) - orderTotalPaid);
+  const paymentCustomer = customerEntity?.id && customerEntity.id === orderEntity.customer?.id ? customerEntity : null;
+  const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
+  const onAccountValidation = getOnAccountPaymentValidation({
+    customer: paymentCustomer,
+    orderBranchId: orderEntity.branchId,
+    paymentAmount,
+    onAccountBalanceType: onAccountSettings?.onAccountBalanceType,
+  });
+  const onAccountDataLoading = isOnAccountPayment && (onAccountSettingsLoading || (Boolean(orderEntity.customer?.id) && !paymentCustomer));
+  const onAccountValidationMessage = onAccountDataLoading ? 'Loading account details...' : onAccountValidation.validationMessage;
+  const canProceedWithOnAccountPayment = !isOnAccountPayment || (!onAccountDataLoading && onAccountValidation.canProceed);
+  const formatCurrencyAmount = (value?: number | null) => `$${(value ?? 0).toFixed(2)}`;
 
   const toDateTimeLocal = (value?: string) => {
     if (!value) return '';
@@ -203,8 +225,15 @@ export const OrderDetail = () => {
 
   useEffect(() => {
     dispatch(getEntity(id));
-    dispatch(getUiSettings())
-  }, []);
+    dispatch(getUiSettings());
+    dispatch(getOnAccountSettings());
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (orderEntity.customer?.id) {
+      dispatch(getCustomerEntity(orderEntity.customer.id));
+    }
+  }, [dispatch, orderEntity.customer?.id]);
 
 
   useEffect(() => {
@@ -237,27 +266,6 @@ export const OrderDetail = () => {
     });
     setDataTableValues(newDataTableValues);
   }, [orderEntity])
-
-  const changePaymentStatusConfirm = () => {
-    setShowPaymentConfirm(true);
-  };
-
-  const acceptPaymentStatusConfirm = () => {
-    dispatch(createBill({
-      id: filteredOrderEntity.id,
-      tipAmount: processStatusTipAmount
-    }));
-    setShowPaymentConfirm(false);
-  };
-
-  const handleCreateDraftBill = () => {
-    dispatch(createDraftBill({
-      orderId: filteredOrderEntity.id,
-      payee: null,
-      createdBy: null,
-      discount: null
-    }));
-  };
 
   const openPaymentDialog = (bill: IBill) => {
     setSelectedBillForPayment(bill);
@@ -301,6 +309,18 @@ export const OrderDetail = () => {
 
   const handleAddPayment = () => {
     if (!selectedBillForPayment) return;
+
+    if (isOnAccountPayment) {
+      if (onAccountDataLoading) {
+        toast.error('Loading account details...');
+        return;
+      }
+
+      if (!onAccountValidation.canProceed) {
+        toast.error(onAccountValidation.validationMessage || 'Unable to continue with on account payment.');
+        return;
+      }
+    }
     
     dispatch(addPaymentToBill({
       orderId: filteredOrderEntity.id,
@@ -587,27 +607,15 @@ export const OrderDetail = () => {
                       ) : (
                         editMode ? (
                           <div className="flex flex-col gap-2">
-                            <div className="flex gap-2 items-end">
-                              <div className="flex flex-col gap-1">
-                                <label className="font-semibold text-xs">Tip Amount</label>
-                                <Input
-                                  type="number"
-                                  value={processStatusTipAmount}
-                                  onChange={(e) => setProcessStatusTipAmount(Number(e.target.value))}
-                                  min={0}
-                                  step={0.01}
-                                  className="h-8 text-xs w-24"
-                                />
+                            <div className="rounded-md border bg-muted/30 p-3">
+                              <div className="flex justify-between gap-3 mb-1">
+                                <span className="text-muted-foreground">Paid</span>
+                                <span className="font-semibold">{formatCurrencyAmount(orderTotalPaid)}</span>
                               </div>
-                              <Button
-                                variant="destructive"
-                                onClick={() => {
-                                  changePaymentStatusConfirm();
-                                }}
-                                className="h-8 text-xs"
-                              >
-                                Pay Now
-                              </Button>
+                              <div className="flex justify-between gap-3">
+                                <span className="text-muted-foreground">Remaining</span>
+                                <span className="font-semibold">{formatCurrencyAmount(orderRemainingBalance)}</span>
+                              </div>
                             </div>
                             <Button
                               variant="outline"
@@ -1088,22 +1096,6 @@ export const OrderDetail = () => {
         </div>
       </div>
 
-      {/* AlertDialog for Payment Confirmation */}
-      <AlertDialog open={showPaymentConfirm} onOpenChange={setShowPaymentConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to proceed?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={acceptPaymentStatusConfirm}>Confirm</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* AlertDialog for Processing Status Change */}
       <AlertDialog open={showProcessingConfirm} onOpenChange={setShowProcessingConfirm}>
         <AlertDialogContent>
@@ -1252,6 +1244,21 @@ export const OrderDetail = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
+                     <div>
+                      <label className="text-sm font-medium mb-1 block">Payment Method</label>
+                      <Select
+                        options={Object.values(TransactionMethodEnum).map(method => ({
+                          label: method.charAt(0).toUpperCase() + method.slice(1).replace(/([A-Z])/g, ' $1'),
+                          value: method,
+                        }))}
+                        value={{ label: paymentTransactionMethod.charAt(0).toUpperCase() + paymentTransactionMethod.slice(1).replace(/([A-Z])/g, ' $1'), value: paymentTransactionMethod }}
+                        onChange={(option) => setPaymentTransactionMethod(option.value)}
+                        placeholder="Select payment method"
+                        className="w-full"
+                        menuPortalTarget={null}
+                        menuPosition="absolute"
+                      />
+                    </div>
                     <div>
                       <label className="text-sm font-medium mb-1 block">Payment Amount</label>
                       <Input
@@ -1275,19 +1282,46 @@ export const OrderDetail = () => {
                         className="h-9"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Payment Method</label>
-                      <Select
-                        options={Object.values(TransactionMethodEnum).map(method => ({
-                          label: method.charAt(0).toUpperCase() + method.slice(1).replace(/([A-Z])/g, ' $1'),
-                          value: method,
-                        }))}
-                        value={{ label: paymentTransactionMethod.charAt(0).toUpperCase() + paymentTransactionMethod.slice(1).replace(/([A-Z])/g, ' $1'), value: paymentTransactionMethod }}
-                        onChange={(option) => setPaymentTransactionMethod(option.value)}
-                        placeholder="Select payment method"
-                        className="w-full"
-                      />
-                    </div>
+                    {isOnAccountPayment && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-sm space-y-2">
+                        <div className="font-medium text-amber-950">On Account Validation</div>
+                        {onAccountDataLoading ? (
+                          <div className="text-xs text-amber-800">Loading account details...</div>
+                        ) : (
+                          <>
+                            <div className="flex justify-between gap-3">
+                              <span className="text-muted-foreground">Account Balance</span>
+                              <span className="font-semibold">{formatCurrencyAmount(onAccountValidation.accountBalance)}</span>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                              <span className="text-muted-foreground">Account Limit</span>
+                              <span className="font-semibold">{formatCurrencyAmount(onAccountValidation.accountLimit)}</span>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                              <span className="text-muted-foreground">Account Remaining</span>
+                              <span className={`font-semibold ${onAccountValidation.accountRemaining >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>
+                                {formatCurrencyAmount(onAccountValidation.accountRemaining)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between gap-3 border-t border-amber-200 pt-2">
+                              <span className="font-medium">Balance After Payment</span>
+                              <span className={`font-semibold ${onAccountValidation.canProceed ? 'text-emerald-700' : 'text-destructive'}`}>
+                                {formatCurrencyAmount(onAccountValidation.accountBalanceAfterPayment)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                              <span className="font-medium">Remaining After Payment</span>
+                              <span className={`font-semibold ${onAccountValidation.accountRemainingAfterPayment >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>
+                                {formatCurrencyAmount(onAccountValidation.accountRemainingAfterPayment)}
+                              </span>
+                            </div>
+                            {onAccountValidationMessage && (
+                              <div className="text-xs font-medium text-destructive">{onAccountValidationMessage}</div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </>
               );
@@ -1309,7 +1343,7 @@ export const OrderDetail = () => {
             </Button>
             <Button
               onClick={handleAddPayment}
-              disabled={!selectedBillForPayment || paymentAmount <= 0}
+              disabled={!selectedBillForPayment || paymentAmount <= 0 || !canProceedWithOnAccountPayment}
               className="h-8 text-xs"
             >
               Add Payment
