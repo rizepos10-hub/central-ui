@@ -22,6 +22,22 @@ const initialState: EntityState<IOnAccountSettings> = {
 
 const apiUrl = 'api/settings';
 
+const extractOnAccountSettings = (payload?: any): IOnAccountSettings | undefined => {
+  if (!payload) {
+    return undefined;
+  }
+
+  if (Array.isArray(payload)) {
+    return extractOnAccountSettings(payload[0]);
+  }
+
+  if (payload.value && typeof payload.value === 'object') {
+    return payload.value as IOnAccountSettings;
+  }
+
+  return payload as IOnAccountSettings;
+};
+
 const normalizeOnAccountSettings = (settings?: IOnAccountSettings): IOnAccountSettings => ({
   ...defaultValue,
   ...(settings || {}),
@@ -71,12 +87,12 @@ export const OnAccountSettingsSlice = createEntitySlice({
       })
       .addCase(getOnAccountSettings.fulfilled, (state, action) => {
         state.loading = false;
-        state.entity = normalizeOnAccountSettings(action.payload.data);
+        state.entity = normalizeOnAccountSettings(extractOnAccountSettings(action.payload.data));
       })
       .addMatcher(isFulfilled(updateOnAccountSettings), (state, action) => {
         state.updating = false;
         state.updateSuccess = true;
-        state.entity = normalizeOnAccountSettings(action.payload.data);
+        state.entity = normalizeOnAccountSettings(extractOnAccountSettings(action.payload.data));
       })
       .addMatcher(isPending(getOnAccountSettings), state => {
         state.errorMessage = null;
