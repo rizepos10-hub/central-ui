@@ -982,16 +982,15 @@ const OrderCreate = () => {
                     // Navigate back to order detail page
                     navigate(`/order/${orderEntity.id}`);
                 } else {
-                const branchId = orderEntity.branchId;
-                console.log('fixing branch... reset() called after order creation, preserving branchId:', branchId);
+                const createdOrderId = (actionResult.payload as { data?: IOrder } | undefined)?.data?.id || orderEntity.id;
+                localStorage.removeItem(cartStorageKey);
                 dispatch(reset());
-                if (branchId) {
-                    dispatch(changeEntityField({
-                        name: 'branchId',
-                        value: branchId,
-                    }));
-                }
                 toast.success('Order Created Successfully!');
+                if (createdOrderId) {
+                    navigate(`/order/${createdOrderId}?openPayment=1`);
+                } else {
+                    navigate('/order');
+                }
                 }
             } else {
                 toast.error(actionResult.error?.message || `Failed to ${isEditMode ? 'update' : 'create'} order`);
