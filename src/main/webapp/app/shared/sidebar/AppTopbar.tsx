@@ -23,7 +23,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Search, Bell, User, Package, ShoppingCart, Users, Loader2, ArrowRight, Globe } from 'lucide-react';
 import AppProfileSidebar from './AppProfileSidebar';
-import "../components/notifications-center/notifications-center.scss";
 import './AppTopbar.scss';
 import allTimeZones from '../../../content/samples/all_time_zones.json';
 import { getBusinessTimeZone, updateBusinessTimeZone } from 'app/entities/settings/business-details/business-timezone.reducer';
@@ -360,7 +359,10 @@ const NotificationsButton = ({ notificationsCount }: { notificationsCount: numbe
                     <span className="sr-only">Notifications</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetContent
+                side="right"
+                className="flex h-full w-full max-w-full flex-col gap-0 border-l border-border/60 bg-card p-0 shadow-2xl sm:max-w-[420px]"
+            >
                 <SheetHeader className="sr-only">
                     <SheetTitle>Notifications</SheetTitle>
                 </SheetHeader>

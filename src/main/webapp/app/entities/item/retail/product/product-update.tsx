@@ -52,7 +52,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
@@ -92,6 +94,18 @@ const itemTypes = [
     value: ItemVariantType.RETAIL_VARIABLE,
   },
 ];
+
+type RetailFormSectionProps = { title: string; description?: string; children: React.ReactNode };
+
+const RetailFormSection = ({ title, description, children }: RetailFormSectionProps) => (
+  <Card className="border-border/80 shadow-sm">
+    <CardHeader className="pb-2 space-y-1">
+      <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+      {description ? <CardDescription className="text-xs">{description}</CardDescription> : null}
+    </CardHeader>
+    <CardContent className="space-y-4 pt-0">{children}</CardContent>
+  </Card>
+);
 
 const customSelectStyles = {
   control: (base) => ({
@@ -1111,110 +1125,138 @@ export const ProductUpdate = () => {
                     </TabsList>
 
                     <TabsContent value="details">
-                      <div className="w-full">
-                        <div className="text-lg font-semibold mb-4">
-                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {product.name}</span>}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex flex-col p-1 bg-white w-full space-y-4">
-                          {isSingleItem && (
-                            <div className="space-y-1">
-                              <label className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                              </label>
-                              <div className="relative flex gap-2">
-                                <Input
-                                  name="sku"
-                                  id="sku"
-                                  required={true}
-                                  placeholder={translate('items.update.placeholders.itemSku')}
-                                  value={product?.variants?.[0]?.sku || ''}
-                                  onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                  className="h-8 text-xs pr-10"
-                                />
-                                <Button
-                                  onClick={async () => {
-                                    const generatedSku = await generateSku()
-                                    handleVariantFieldChange(0, 'sku', generatedSku)
-                                  }}
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 h-8 w-8 p-0"
-                                >
-                                  <ImMagicWand size={14} />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                          <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-semibold">
-                              <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                            </label>
-                            <Select
-                              value={product?.baseMeasure || null}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
-                              styles={customSelectStyles}
-                            />
+                      <div className="space-y-6">
+                        <div className="space-y-2 border-b border-border/70 pb-4">
+                          <div className="flex flex-wrap items-center gap-2 gap-y-1">
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                              {isNew ? translate('items.update.tabs.details.titles.create.variable') : product.name || translate('items.update.tabs.details.titles.create.variable')}
+                            </h1>
+                            {product.askForPrice ? (
+                              <Badge variant="secondary" className="text-xs font-normal">
+                                Ask for price
+                              </Badge>
+                            ) : null}
                           </div>
+                          <p className="text-sm text-muted-foreground">
+                            Retail product · {isNew ? 'Create new' : 'Edit details'}
+                          </p>
+                        </div>
 
-                          {!product.askForPrice && (
-                            <div className="space-y-1">
-                              <label className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
-                              </label>
-                              <div className="flex gap-1">
-                                {itemTypes.map((type) => (
-                                  <Button
-                                    key={type.value}
-                                    type="button"
-                                    variant={product?.itemVariantType === type.value ? "default" : "outline"}
-                                    size="sm"
-                                    className="h-8 text-xs"
-                                    onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
-                                  >
-                                    {type.label}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
+                        <div className="flex flex-col w-full space-y-6">
                           {isSingleItem && (
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey={'items.update.description'}>Description</Translate>
-                                  </label>
-                                  <Textarea
-                                    name="desc"
-                                    id="desc"
-                                    placeholder={translate('items.update.description')}
-                                    value={product?.variants?.[0]?.description || ''}
-                                    onChange={e => setProduct(prev => {
-                                      return {
-                                        ...prev, variants: prev.variants.map(variant => {
-                                          return { ...variant, description: e.target.value }
-                                        })
-                                      }
-                                    })}
-                                    className="text-xs min-h-[80px]"
-                                    rows={3}
+                            <RetailFormSection
+                              title="SKU & barcode"
+                              description="USB scanner: focus this field, then scan — the code fills in automatically. Use the wand to generate a SKU."
+                            >
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                </label>
+                                <div className="relative flex gap-2">
+                                  <Input
+                                    name="sku"
+                                    id="sku"
+                                    required={true}
+                                    placeholder={translate('items.update.placeholders.itemSku')}
+                                    value={product?.variants?.[0]?.sku || ''}
+                                    onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                    className="h-8 text-xs pr-10"
                                   />
+                                  <Button
+                                    onClick={async () => {
+                                      const generatedSku = await generateSku()
+                                      handleVariantFieldChange(0, 'sku', generatedSku)
+                                    }}
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 h-8 w-8 p-0"
+                                  >
+                                    <ImMagicWand size={14} />
+                                  </Button>
                                 </div>
                               </div>
+                            </RetailFormSection>
+                          )}
+                          <SharedItemUpdate
+                            item={product}
+                            onFieldChange={handleFieldChange}
+                            defaultPrice={defaultPrice}
+                            setDefaultPrice={setDefaultPrice}
+                            showFormErrors={showFormErrors}
+                            groupedSections
+                          />
 
-                              <div className="mb-3">
-                                <p className="text-base font-bold mb-2">Shipping Details: </p>
+                          <RetailFormSection
+                            title="Unit & product structure"
+                            description="Base unit of measure and whether this item is simple or has multiple variants."
+                          >
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold">
+                                <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                              </label>
+                              <Select
+                                value={product?.baseMeasure || null}
+                                options={measureList}
+                                name="baseMeasure"
+                                getOptionValue={option => option.id}
+                                getOptionLabel={option => option.name}
+                                onChange={handleBaseMeasureChange}
+                                styles={customSelectStyles}
+                              />
+                            </div>
+
+                            {!product.askForPrice && (
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                                </label>
+                                <div className="flex gap-1 flex-wrap">
+                                  {itemTypes.map((type) => (
+                                    <Button
+                                      key={type.value}
+                                      type="button"
+                                      variant={product?.itemVariantType === type.value ? "default" : "outline"}
+                                      size="sm"
+                                      className="h-8 text-xs"
+                                      onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
+                                    >
+                                      {type.label}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </RetailFormSection>
+
+                          {isSingleItem && (
+                            <>
+                              <RetailFormSection title="Variant description" description="Longer description for this SKU (simple product).">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey={'items.update.description'}>Description</Translate>
+                                    </label>
+                                    <Textarea
+                                      name="desc"
+                                      id="desc"
+                                      placeholder={translate('items.update.description')}
+                                      value={product?.variants?.[0]?.description || ''}
+                                      onChange={e => setProduct(prev => {
+                                        return {
+                                          ...prev, variants: prev.variants.map(variant => {
+                                            return { ...variant, description: e.target.value }
+                                          })
+                                        }
+                                      })}
+                                      className="text-xs min-h-[80px]"
+                                      rows={3}
+                                    />
+                                  </div>
+                                </div>
+                              </RetailFormSection>
+
+                              <RetailFormSection title="Shipping dimensions" description="Used for shipping labels and carrier calculations.">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1">
                                     <label className="text-xs font-semibold">
@@ -1285,90 +1327,104 @@ export const ProductUpdate = () => {
                                     />
                                   </div>
                                 </div>
-                              </div>
+                              </RetailFormSection>
 
                               {!product.askForPrice && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold">
-                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                    </label>
-                                    <Input
-                                      type="number"
-                                      name="sale-price"
-                                      id="sale-price"
-                                      min={0}
-                                      step="0.01"
-                                      placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                      value={product?.variants?.[0]?.salePrice ?? ''}
-                                      onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) ?? null)}
-                                      className="h-8 text-xs"
-                                    />
+                                <RetailFormSection
+                                  title="Sale price & promotions"
+                                  description="Optional sale price, discounts, and mix-and-match rules for this variant."
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-semibold">
+                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                      </label>
+                                      <Input
+                                        type="number"
+                                        name="sale-price"
+                                        id="sale-price"
+                                        min={0}
+                                        step="0.01"
+                                        placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                        value={product?.variants?.[0]?.salePrice ?? ''}
+                                        onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) ?? null)}
+                                        className="h-8 text-xs"
+                                      />
+                                    </div>
                                   </div>
-                                </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2">
+                                      <DiscountDropdown
+                                        discounts={product?.variants?.[0]?.discounts}
+                                        variantIndex={0}
+                                        handleVariantChange={handleVariantFieldChange}
+                                      />
+
+                                      <div className="space-y-1 mt-2">
+                                        <label className="text-xs font-semibold">
+                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                        </label>
+                                        <Select
+                                          isClearable
+                                          value={product?.variants?.[0]?.mixAndMatchRule || null}
+                                          options={mixAndMatchRuleList}
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
+                                          styles={customSelectStyles}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </RetailFormSection>
                               )}
 
-                              {
-                                !isNew && (
+                              {!isNew && (
+                                <RetailFormSection title="Packaging" description="How this variant is packaged when not using the base unit.">
                                   <VariantPackaging
                                     product={product}
                                     variantIndex={0}
                                     variant={product?.variants?.[0]}
                                     handleVariantFieldChange={handleVariantFieldChange}
                                   />
-                                )
-                              }
-                              {!product.askForPrice && (
-                                <ItemStock
-                                  productPurchaseConfig={productPurchaseConfig}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                  variant={product?.variants?.[0]}
-                                  variantIndex={0}
-                                  itemId={product.id}
-                                />
+                                </RetailFormSection>
                               )}
-
                               {!product.askForPrice && (
-                                <VariantBranchPrice
-                                  itemVariantType={'RETAIL'}
-                                  branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                  variantIndex={0}
-                                  branchList={branchList}
-                                  handleBranchPriceChange={handleBranchPriceChange}
-                                  handleHideItemPerBranch={handleHideItemPerBranch}
-                                  variant={product?.variants?.[0]}
-                                  setItem={setProduct}
-                                />
-                              )}
-
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-2">
-                                  <DiscountDropdown
-                                    discounts={product?.variants?.[0]?.discounts}
+                                <RetailFormSection title="Stock & purchasing" description="Inventory and supplier purchasing settings for this variant.">
+                                  <ItemStock
+                                    productPurchaseConfig={productPurchaseConfig}
+                                    handleVariantFieldChange={handleVariantFieldChange}
+                                    variant={product?.variants?.[0]}
                                     variantIndex={0}
-                                    handleVariantChange={handleVariantFieldChange}
+                                    itemId={product.id}
                                   />
+                                </RetailFormSection>
+                              )}
 
-                                  <div className="space-y-1 mt-2">
-                                    <label className="text-xs font-semibold">
-                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                    </label>
-                                    <Select
-                                      isClearable
-                                      value={product?.variants?.[0]?.mixAndMatchRule || null}
-                                      options={mixAndMatchRuleList}
-                                      getOptionLabel={option => option.name}
-                                      getOptionValue={option => option.id}
-                                      onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
-                                      styles={customSelectStyles}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                              {!product.askForPrice && (
+                                <RetailFormSection
+                                  title="Branch pricing & visibility"
+                                  description="Override prices or hide this item per location."
+                                >
+                                  <VariantBranchPrice
+                                    itemVariantType={'RETAIL'}
+                                    branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                    variantIndex={0}
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    handleHideItemPerBranch={handleHideItemPerBranch}
+                                    variant={product?.variants?.[0]}
+                                    setItem={setProduct}
+                                  />
+                                </RetailFormSection>
+                              )}
+                            </>
                           )}
 
-                          <div className="space-y-4">
+                          <RetailFormSection
+                            title="Variant attributes"
+                            description="Define option dimensions (size, color, etc.). Each variant row below uses these values."
+                          >
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div className="md:col-span-1 space-y-1">
                                 <label className="text-xs font-semibold">
@@ -1434,10 +1490,13 @@ export const ProductUpdate = () => {
                                 </div>
                               ))}
                             </div>
-                          </div>
+                          </RetailFormSection>
 
-                          <div className="space-y-4">
-                            {isVariableItem && (
+                          {isVariableItem && (
+                            <RetailFormSection
+                              title="Product variants"
+                              description="Each row is a sellable SKU. Drag the handle to reorder. Expand a row for details, pricing, and stock."
+                            >
                               <div className="space-y-4">
                                 <label htmlFor="price" className="text-xs font-semibold">
                                   <Translate contentKey={'items.update.variants'}>Variants</Translate>
@@ -1725,14 +1784,18 @@ export const ProductUpdate = () => {
                                   ))}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                          <div>
+                            </RetailFormSection>
+                          )}
+
+                          <RetailFormSection
+                            title="Custom fields"
+                            description="Extra fields configured for your company (definitions managed separately)."
+                          >
                             <CustomDefinitionValuesWrapper
                               entityId={product.id}
                               entityType={CustomDefinitionEntityType.ITEM}
                             />
-                          </div>
+                          </RetailFormSection>
                         </div>
                       </div>
                     </TabsContent>
@@ -1765,19 +1828,15 @@ export const ProductUpdate = () => {
               </CardContent>
             </Card>
           </div>
-          <div
-            className="lg:w-1/4"
-            style={{
-              position: 'sticky',
-              top: '0',
-              height: '90vh',
-            }}
-          >
-            <Card>
-              <CardHeader className="p-2">
-                <div className="text-sm font-semibold">Actions</div>
+          <div className="lg:w-1/4 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto space-y-4">
+            <Card className="border-border/80 shadow-sm">
+              <CardHeader className="p-3 pb-2 space-y-0">
+                <CardTitle className="text-sm font-semibold">Save & navigation</CardTitle>
+                <CardDescription className="text-xs pt-1">
+                  Applies all changes on this page. Audit history is below, separate from actions.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              <CardContent className="p-3 pt-0 space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="secondary"
@@ -1826,14 +1885,28 @@ export const ProductUpdate = () => {
                     <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
                   </Button>
                 </div>
-                {showFormErrors &&
-                  <div className="text-red-500 text-xs font-bold">
-                    Some Fields are required
+                {showFormErrors && (
+                  <div className="text-destructive text-xs font-medium">
+                    Some fields are required — check highlighted inputs in the form.
                   </div>
-                }
+                )}
               </CardContent>
             </Card>
-            {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
+
+            {productEntity?.id ? (
+              <>
+                <Separator className="opacity-60" />
+                <Card className="border-border/80 shadow-sm">
+                  <CardHeader className="p-3 pb-2">
+                    <CardTitle className="text-sm font-semibold">Audit history</CardTitle>
+                    <CardDescription className="text-xs">Read-only log of changes to this product.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 pt-0">
+                    <AuditLogs entityId={productEntity?.id} />
+                  </CardContent>
+                </Card>
+              </>
+            ) : null}
           </div>
         </div>
 
