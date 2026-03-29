@@ -11,6 +11,11 @@ const addErrorAlert = (message, key?, data?, localizedMessage?) => {
 export default () => next => action => {
   const { error, payload } = action;
 
+  /** Load-more uses inline retry in the panel; avoid toast spam when offline (scroll no longer retries until user taps). */
+  if (action.type === 'notification/fetch_entity_list/rejected' && action.meta?.arg?.append === true) {
+    return next(action);
+  }
+
   /**
    *
    * The notification middleware serves to add success and error notifications

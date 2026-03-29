@@ -1,5 +1,5 @@
 import { FilterMatchMode } from 'primereact/api';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { translate } from 'react-jhipster';
 import { Chart } from 'primereact/chart';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -7,17 +7,15 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'app/shared/components/select/select';
 import { DateSlotPeriod, IRetailDashboard } from 'app/shared/model/retail-dashboard.model';
 import { getReportData } from './retail-dashboard.reducer';
-import { List, Grid2X2, Grid3X3, Grid } from 'lucide-react';
-import { addMinutes, format } from 'date-fns';
+import { CalendarIcon, Grid, Grid2X2, Grid3X3, List, Loader2 } from 'lucide-react';
+import { addMinutes, format, subMonths } from 'date-fns';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
-import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 const initialState = {
@@ -40,18 +38,73 @@ enum GridViewLabel {
     FOUR = 'FOUR'
 }
 
+/** Default range: the past month through now (rolling one calendar month). */
+function getDefaultRetailDashboardDateRange() {
+    const to = new Date();
+    const from = subMonths(to, 1);
+    return { from, to };
+}
+
+function dashboardDateToApiString(value: unknown): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    if (typeof value === 'string') {
+        return value;
+    }
+    return String(value);
+}
+
+const REPORT_TYPES = [
+    'revenue',
+    'customer-count',
+    'sale-count',
+    'average-items-sale',
+    'gross-profit',
+    'discount',
+    'discount-percentage',
+] as const;
+
+const VIEW_OPTIONS = [
+    { name: 'Week', value: DateSlotPeriod.WEEK },
+    { name: 'Month', value: DateSlotPeriod.MONTH },
+    { name: 'Year', value: DateSlotPeriod.YEAR },
+];
+
+/** Debounce delay for slots (each keystroke was firing 7 API calls). */
+const SLOTS_DEBOUNCE_MS = 450;
+
 const RetialDashboard: React.FC = () => {
     const dispatch = useAppDispatch();
     const branches = useAppSelector(state => state.branch.entities);
 
-    const [filterState, setFilterState] = useState(initialState);
-    const [view, setView] = useState<DateSlotPeriod>(DateSlotPeriod.MONTH);
+    const [filterState, setFilterState] = useState(() => {
+        const { from, to } = getDefaultRetailDashboardDateRange();
+        return {
+            ...initialState,
+            filters: {
+                ...initialState.filters,
+                instantClockedIn: {
+                    value: addMinutes(from, -from.getTimezoneOffset()),
+                    matchMode: FilterMatchMode.STARTS_WITH,
+                },
+                instantClockedOut: {
+                    value: addMinutes(to, -to.getTimezoneOffset()),
+                    matchMode: FilterMatchMode.ENDS_WITH,
+                },
+            },
+        };
+    });
+    const [view, setView] = useState<DateSlotPeriod>(DateSlotPeriod.WEEK);
     const [slots, setSlots] = useState<number>(12);
     const [gridView, setGridView] = useState({
         label: GridViewLabel.TWO,
         value: 6
     })
-    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>(() => {
+        const { from, to } = getDefaultRetailDashboardDateRange();
+        return { from, to };
+    });
     const [data, setData] = useState<{
         revenueData?: IRetailDashboard;
         customerCountData?: IRetailDashboard;
@@ -62,62 +115,94 @@ const RetialDashboard: React.FC = () => {
         discountPercentageData?: IRetailDashboard;
     }>({});
 
-    const views = [
-        { name: 'Week', value: DateSlotPeriod.WEEK },
-        { name: 'Month', value: DateSlotPeriod.MONTH },
-        { name: 'Year', value: DateSlotPeriod.YEAR },
-    ];
+    const [chartsLoading, setChartsLoading] = useState(false);
+
+    const [debouncedSlots, setDebouncedSlots] = useState(slots);
+    const fetchGenerationRef = useRef(0);
+
+    useEffect(() => {
+        const t = window.setTimeout(() => setDebouncedSlots(slots), SLOTS_DEBOUNCE_MS);
+        return () => window.clearTimeout(t);
+    }, [slots]);
+
+    const filterFingerprint = useMemo(() => {
+        const fromVal = filterState.filters.instantClockedIn.value;
+        const toVal = filterState.filters.instantClockedOut.value;
+        return {
+            branchId: filterState.filters.branchId.value ?? '',
+            fromKey: fromVal instanceof Date ? fromVal.getTime() : String(fromVal ?? ''),
+            toKey: toVal instanceof Date ? toVal.getTime() : String(toVal ?? ''),
+        };
+    }, [
+        filterState.filters.branchId.value,
+        filterState.filters.instantClockedIn.value,
+        filterState.filters.instantClockedOut.value,
+    ]);
+
+    const branchesLength = branches?.length ?? 0;
+    const defaultBranchId = branches?.[0]?.id;
 
     useEffect(() => {
         dispatch(getBranches({ page: 0, size: 100, sort: 'id,desc' }));
     }, [dispatch]);
 
     useEffect(() => {
-        fetchData();
-    }, [view, filterState.filters, branches, slots]);
+        if (branchesLength === 0) return;
 
-    const fetchData = async () => {
-        if (branches?.length === 0) return
+        const fromVal = filterState.filters.instantClockedIn.value;
+        const toVal = filterState.filters.instantClockedOut.value;
+        if (fromVal == null || toVal == null) return;
+
+        const myGen = ++fetchGenerationRef.current;
+        let cancelled = false;
+
+        setChartsLoading(true);
+
         const payload: IRetailDashboard = {
             nodes: [],
             dateRange: {
-                from: filterState.filters.instantClockedIn.value || '2024-01-01T00:00:00.00Z',
-                to: filterState.filters.instantClockedOut.value || '2024-11-10T00:00:00.00Z',
+                from: dashboardDateToApiString(fromVal),
+                to: dashboardDateToApiString(toVal),
                 dateSlot: {
                     period: view,
-                    slots
-                }
+                    slots: debouncedSlots,
+                },
             },
-            branch: filterState.filters.branchId.value || branches?.[0]?.id
+            branch: filterState.filters.branchId.value || defaultBranchId,
         };
 
-        const reportTypes = [
-            'revenue',
-            'customer-count',
-            'sale-count',
-            'average-items-sale',
-            'gross-profit',
-            'discount',
-            'discount-percentage'
-        ];
+        (async () => {
+            const promises = REPORT_TYPES.map(async reportType => {
+                const response = await dispatch(getReportData({ entity: payload, reportType }));
+                return { reportType, data: response.payload };
+            });
 
-        const promises = reportTypes.map(async (type) => {
-            const response = await dispatch(getReportData({ entity: payload, reportType: type }));
-            return { type, data: response.payload };
-        });
+            try {
+                const results = await Promise.all(promises);
+                if (cancelled || myGen !== fetchGenerationRef.current) return;
 
-        const results = await Promise.all(promises);
-        const updatedData: { [key: string]: IRetailDashboard } = {};
+                const updatedData: { [key: string]: IRetailDashboard } = {};
+                results.forEach(({ reportType, data }) => {
+                    const camelCaseKey = toCamelCase(reportType) + 'Data';
+                    updatedData[camelCaseKey] = data as IRetailDashboard;
+                });
+                setData(updatedData);
+            } catch {
+                // Errors surface via global middleware
+            } finally {
+                if (!cancelled && myGen === fetchGenerationRef.current) {
+                    setChartsLoading(false);
+                }
+            }
+        })();
 
-        results.forEach(({ type, data }) => {
-            const camelCaseKey = toCamelCase(type) + 'Data';
-            updatedData[camelCaseKey] = data as IRetailDashboard;
-        });
-        setData(updatedData);
-    };
+        return () => {
+            cancelled = true;
+        };
+    }, [view, debouncedSlots, branchesLength, defaultBranchId, filterFingerprint, dispatch]);
 
     const toCamelCase = (str: string) => {
-        return str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+        return str.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
     };
 
     const handleViewChange = (value: DateSlotPeriod) => {
@@ -171,7 +256,7 @@ const RetialDashboard: React.FC = () => {
                     <div className="space-y-2">
                         <Label htmlFor="view" className="text-xs font-semibold">View</Label>
                         <div className="flex gap-1">
-                            {views.map((v) => (
+                            {VIEW_OPTIONS.map((v) => (
                                 <Button
                                     key={v.value}
                                     type="button"
@@ -297,42 +382,60 @@ const RetialDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className={`grid ${getGridClass(gridView.value)} gap-4`}>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Revenue" {...chartDataMapper(data.revenueData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Customer Count" {...chartDataMapper(data.customerCountData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Sale Count" {...chartDataMapper(data.saleCountData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Average Items Sale" {...chartDataMapper(data.averageItemsSaleData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Gross Profit" {...chartDataMapper(data.grossProfitData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Discount" {...chartDataMapper(data.discountData)} />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <GeneralChart title="Discount Percentage" {...chartDataMapper(data.discountPercentageData)} />
-                        </CardContent>
-                    </Card>
+                <div className="relative min-h-[420px] md:min-h-[520px]">
+                    <div
+                        className={cn(
+                            `grid ${getGridClass(gridView.value)} gap-4`,
+                            chartsLoading && 'pointer-events-none select-none opacity-50'
+                        )}
+                        aria-busy={chartsLoading}
+                    >
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Revenue" {...chartDataMapper(data.revenueData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Customer Count" {...chartDataMapper(data.customerCountData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Sale Count" {...chartDataMapper(data.saleCountData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Average Items Sale" {...chartDataMapper(data.averageItemsSaleData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Gross Profit" {...chartDataMapper(data.grossProfitData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Discount" {...chartDataMapper(data.discountData)} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4">
+                                <GeneralChart title="Discount Percentage" {...chartDataMapper(data.discountPercentageData)} />
+                            </CardContent>
+                        </Card>
+                    </div>
+                    {chartsLoading ? (
+                        <div
+                            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-background/75 backdrop-blur-[2px]"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+                            <p className="text-sm font-medium text-muted-foreground">Loading dashboard…</p>
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </PageWrapper>
@@ -346,38 +449,44 @@ interface GeneralChartProps {
 }
 
 const GeneralChart: React.FC<GeneralChartProps> = ({ title, labels, dataset }) => {
-    const data = {
-        labels,
-        datasets: [
-            {
-                data: dataset.data,
-                fill: true,
-                tension: 0.4,
-                borderColor: '#42A5F5',
-                backgroundColor: 'rgba(66, 165, 245, 0.2)'
-            }
-        ]
-    };
+    const data = useMemo(
+        () => ({
+            labels,
+            datasets: [
+                {
+                    data: dataset.data,
+                    fill: true,
+                    tension: 0.4,
+                    borderColor: '#42A5F5',
+                    backgroundColor: 'rgba(66, 165, 245, 0.2)',
+                },
+            ],
+        }),
+        [labels, dataset.data]
+    );
 
-    const options = {
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: (tooltipItem: any) => `$${tooltipItem.raw.toFixed(2)}`
-                }
-            }
-        },
-        scales: {
-            x: { grid: { display: false } },
-            y: { grid: { borderDash: [8, 4] }, beginAtZero: true }
-        },
-        elements: {
-            point: { radius: 5, hoverRadius: 7 }
-        },
-        responsive: true,
-        maintainAspectRatio: false
-    };
+    const options = useMemo(
+        () => ({
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (tooltipItem: any) => `$${Number(tooltipItem.raw).toFixed(2)}`,
+                    },
+                },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { borderDash: [8, 4] }, beginAtZero: true },
+            },
+            elements: {
+                point: { radius: 5, hoverRadius: 7 },
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+        }),
+        []
+    );
 
     return (
         <div>
