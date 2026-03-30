@@ -61,6 +61,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
+import { isOrderCreateRoleSelectionPending, resolveOrderCreateRoleMode } from './order-create-role-utils';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -146,8 +147,17 @@ const OrderCreate = () => {
     const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
     const requiresRoleChoice = isSalesmanRole && isAdminRole;
-    const isSalesmanMode = roleMode === 'salesman' || (isSalesmanRole && !isAdminRole);
-    const isRoleSelectionPending = requiresRoleChoice && roleMode === null;
+    const effectiveRoleMode = resolveOrderCreateRoleMode({
+        isAdminRole,
+        isSalesmanRole,
+        roleMode,
+    });
+    const isSalesmanMode = effectiveRoleMode === 'salesman';
+    const isRoleSelectionPending = isOrderCreateRoleSelectionPending({
+        isAdminRole,
+        isSalesmanRole,
+        roleMode,
+    });
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
     const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
