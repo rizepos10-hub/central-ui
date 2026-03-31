@@ -9,7 +9,7 @@ const mockDispatch = jest.fn();
 const mockToastError = jest.fn();
 const mockToastSuccess = jest.fn();
 
-let mockState: any;
+let mockState;
 let mockLocation = {
   search: '?registerId=reg-1',
   state: null,
@@ -17,7 +17,7 @@ let mockLocation = {
 
 jest.mock('app/config/store', () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector: (state: any) => any) => selector(mockState),
+  useAppSelector: selector => selector(mockState),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -28,8 +28,8 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('react-toastify', () => ({
   toast: {
-    error: (...args: any[]) => mockToastError(...args),
-    success: (...args: any[]) => mockToastSuccess(...args),
+    error: (...args) => mockToastError(...args),
+    success: (...args) => mockToastSuccess(...args),
   },
 }));
 
@@ -43,6 +43,11 @@ jest.mock('app/entities/branch/branch.reducer', () => ({
 
 jest.mock('app/entities/customer/customer.reducer', () => ({
   getEntities: jest.fn(() => ({ type: 'customer/getEntities' })),
+  getEntity: jest.fn(id => ({ type: 'customer/getEntity', payload: id })),
+}));
+
+jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => ({
+  getOnAccountSettings: jest.fn(() => ({ type: 'onAccountSettings/get' })),
 }));
 
 jest.mock('app/entities/term/retail-item-category/retail-item-category.reducer', () => ({
@@ -64,26 +69,15 @@ jest.mock('../settings/branch-registry/till/till.reducer', () => ({
   getEntitiesByStatusOpened: jest.fn(() => ({ type: 'till/getEntitiesByStatusOpened' })),
 }));
 
-jest.mock('./order.reducer', () => {
-  const createEntity = jest.fn(entity => ({ type: 'order/create_entity', payload: entity }));
-  const updateEntity = jest.fn(entity => ({ type: 'order/update_entity', payload: entity }));
-
-  (createEntity as any).fulfilled = {
-    match: (action: { type?: string }) => action?.type === 'order/create_entity/fulfilled',
-  };
-
-  (updateEntity as any).fulfilled = {
-    match: (action: { type?: string }) => action?.type === 'order/update_entity/fulfilled',
-  };
-
-  return {
-    calculateItemPrice: jest.fn(() => ({ type: 'order/calculate_item_price' })),
-    changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
-    createEntity,
-    updateEntity,
-    reset: jest.fn(() => ({ type: 'order/reset' })),
-  };
-});
+jest.mock('./order.reducer', () => ({
+  calculateItemPrice: jest.fn(payload => ({ type: 'order/calculate_item_price', payload })),
+  changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
+  createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
+  updateEntity: jest.fn(entity => ({ type: 'order/update_entity', payload: entity })),
+  createDraftBill: jest.fn(payload => ({ type: 'order/create_draft_bill', payload })),
+  addPaymentToBill: jest.fn(payload => ({ type: 'order/add_payment_to_bill', payload })),
+  reset: jest.fn(() => ({ type: 'order/reset' })),
+}));
 
 jest.mock('app/entities/customer/components/DeliveryAddressDialog', () => () => null);
 jest.mock('../customer/customer-update', () => () => null);
@@ -92,19 +86,19 @@ jest.mock('app/shared/components/filter/drop-down-filter', () => () => null);
 
 jest.mock('app/shared/components/select/select', () => ({
   __esModule: true,
-  default: ({ options = [], value, onChange, placeholder, isDisabled, className }: any) => (
+  default: ({ options = [], value, onChange, placeholder, isDisabled, className }) => (
     <select
       aria-label={placeholder || 'select'}
       className={className}
       disabled={isDisabled}
       value={value?.value ?? ''}
       onChange={event => {
-        const nextOption = options.find((option: any) => String(option.value) === event.target.value) || null;
+        const nextOption = options.find(option => String(option.value) === event.target.value) || null;
         onChange?.(nextOption);
       }}
     >
       <option value="">{placeholder || 'select'}</option>
-      {options.map((option: any) => (
+      {options.map(option => (
         <option key={String(option.value)} value={String(option.value)}>
           {option.label}
         </option>
@@ -114,22 +108,11 @@ jest.mock('app/shared/components/select/select', () => ({
 }));
 
 jest.mock('@/components/ui/dialog', () => ({
-  Dialog: ({ open, children }: any) => (open ? <div>{children}</div> : null),
-  DialogContent: ({ children }: any) => <div>{children}</div>,
-  DialogHeader: ({ children }: any) => <div>{children}</div>,
-  DialogTitle: ({ children }: any) => <div>{children}</div>,
-  DialogFooter: ({ children }: any) => <div>{children}</div>,
-}));
-
-jest.mock('@/components/ui/alert-dialog', () => ({
-  AlertDialog: ({ open, children }: any) => (open ? <div>{children}</div> : null),
-  AlertDialogAction: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-  AlertDialogCancel: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-  AlertDialogContent: ({ children }: any) => <div>{children}</div>,
-  AlertDialogDescription: ({ children }: any) => <div>{children}</div>,
-  AlertDialogFooter: ({ children }: any) => <div>{children}</div>,
-  AlertDialogHeader: ({ children }: any) => <div>{children}</div>,
-  AlertDialogTitle: ({ children }: any) => <div>{children}</div>,
+  Dialog: ({ open, children }) => (open ? <div>{children}</div> : null),
+  DialogContent: ({ children }) => <div>{children}</div>,
+  DialogHeader: ({ children }) => <div>{children}</div>,
+  DialogTitle: ({ children }) => <div>{children}</div>,
+  DialogFooter: ({ children }) => <div>{children}</div>,
 }));
 
 beforeAll(() => {
@@ -147,7 +130,7 @@ beforeAll(() => {
     })),
   });
 
-  (global as any).ResizeObserver = class ResizeObserver {
+  global.ResizeObserver = class ResizeObserver {
     observe() {}
     unobserve() {}
     disconnect() {}
@@ -176,11 +159,15 @@ beforeEach(() => {
           },
         ],
         branchId: 'branch-1',
+        customer: {
+          id: 'customer-1',
+        },
         orderMethod: OrderMethod.Delivery,
         scheduledAt: null,
         deliverTo: null,
       },
       loading: false,
+      updating: false,
       itemPriceLoading: {},
       itemPriceCalculations: {},
     },
@@ -193,9 +180,21 @@ beforeEach(() => {
     },
     customer: {
       entities: [],
+      entity: {
+        id: 'customer-1',
+        onAccountEnabled: true,
+        onAccountDebitLimit: 100,
+        onAccountDebitUsed: 20,
+      },
     },
     pricingPoint: {
       entities: [],
+    },
+    onAccountSettings: {
+      entity: {
+        onAccountBalanceType: 'BY_BUSINESS',
+      },
+      loading: false,
     },
     branchRegistry: {
       entities: [
@@ -217,25 +216,47 @@ beforeEach(() => {
 
   mockDispatch.mockImplementation(action => {
     if (action?.type === 'order/create_entity') {
-      return Promise.resolve({
-        type: 'order/create_entity/fulfilled',
-        payload: {
-          data: {
-            id: 'created-order-id',
-          },
-        },
-      });
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'created-order-id',
+            },
+          }),
+      };
     }
 
     if (action?.type === 'order/update_entity') {
-      return Promise.resolve({
-        type: 'order/update_entity/fulfilled',
-        payload: {
-          data: {
-            id: 'updated-order-id',
-          },
-        },
-      });
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'updated-order-id',
+            },
+          }),
+      };
+    }
+
+    if (action?.type === 'order/create_draft_bill') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'draft-bill-id',
+            },
+          }),
+      };
+    }
+
+    if (action?.type === 'order/add_payment_to_bill') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'draft-bill-id',
+            },
+          }),
+      };
     }
 
     if (action?.type === 'till/getEntitiesByStatusOpened') {
@@ -283,39 +304,127 @@ beforeEach(() => {
   });
 });
 
-const renderOrderCreate = (authorities: string[]) => {
+const renderOrderCreate = authorities => {
   mockState.authentication.account.authorities = authorities;
   return render(<OrderCreate />);
 };
 
-describe('OrderCreate dual-role validation', () => {
-  it('shows the chooser and lets dual-role admins submit without salesman-required fields', async () => {
-    renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
+const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderReducer.createEntity.mock.calls.length - 1][0];
+const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
-    expect(screen.getByText('Select your mode')).not.toBeNull();
+describe('OrderCreate payment flow', () => {
+  it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
     fireEvent.click(screen.getByRole('button', { name: /continue as admin/i }));
 
-    await waitFor(() => {
-      expect(screen.queryByText(/before creating an order\./i)).toBeNull();
-    });
+    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
 
-    const placeOrderButton = (await screen.findByRole('button', { name: /place order/i })) as HTMLButtonElement;
-    expect(placeOrderButton.disabled).toBe(false);
+    expect(screen.getByText('Create Order & Payment')).not.toBeNull();
 
-    fireEvent.click(placeOrderButton);
-    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create without payment/i }));
 
     await waitFor(() => {
       expect(orderReducer.createEntity).toHaveBeenCalledWith(
         expect.objectContaining({
           branchId: 'branch-1',
-          scheduledAt: null,
-          deliverTo: null,
           orderMethod: OrderMethod.Delivery,
         })
       );
     });
+
+    expect(getLatestCreatePayload().wholesale).toBeUndefined();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/created-order-id');
+    });
+  });
+
+  it('creates the order, draft bill, and payment when using create and pay with a partial amount', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+
+    const amountInput = screen.getAllByRole('spinbutton')[0];
+    fireEvent.change(amountInput, { target: { value: '5' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.createEntity).toHaveBeenCalled();
+      expect(orderReducer.createDraftBill).toHaveBeenCalledWith({
+        orderId: 'created-order-id',
+        payee: null,
+        createdBy: null,
+        discount: null,
+      });
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
+        orderId: 'created-order-id',
+        billId: 'draft-bill-id',
+        amount: 5,
+        tipAmount: 0,
+        transactionMethod: 'cash',
+      });
+    });
+
+    expect(getLatestCreatePayload().wholesale).toBeUndefined();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/created-order-id');
+    });
+  });
+
+  it('sends wholesale when a dual-role user continues as salesman and creates without payment', async () => {
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
+
+    fireEvent.click(screen.getByRole('button', { name: /continue as salesman/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create without payment/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.createEntity).toHaveBeenCalled();
+    });
+
+    expect(getLatestCreatePayload()).toEqual(
+      expect.objectContaining({
+        wholesale: true,
+      })
+    );
+  });
+
+  it('sends wholesale for salesman-only create and pay', async () => {
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+
+    renderOrderCreate(['ROLE_WHOLESALE_SALESMAN']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+
+    const amountInput = screen.getAllByRole('spinbutton')[0];
+    fireEvent.change(amountInput, { target: { value: '5' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.createEntity).toHaveBeenCalled();
+      expect(orderReducer.createDraftBill).toHaveBeenCalled();
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalled();
+    });
+
+    expect(getLatestCreatePayload()).toEqual(
+      expect.objectContaining({
+        wholesale: true,
+      })
+    );
   });
 
   it('keeps salesman validation active when a dual-role user chooses salesman', async () => {
@@ -327,18 +436,37 @@ describe('OrderCreate dual-role validation', () => {
       expect(screen.getByText(/before creating an order\./i)).not.toBeNull();
     });
 
-    expect((await screen.findByRole('button', { name: /place order/i }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByPlaceholderText('Search for products') as HTMLInputElement).disabled).toBe(true);
+    expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(true);
+    expect(screen.getByPlaceholderText('Search for products').disabled).toBe(true);
   });
 
-  it('keeps salesman-only users gated without showing the chooser', async () => {
-    renderOrderCreate(['ROLE_WHOLESALE_SALESMAN']);
+  it('updates existing orders directly without opening the payment dialog', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1',
+      state: {
+        editOrder: {
+          id: 'existing-order-id',
+          branchId: 'branch-1',
+        },
+        orderId: 'existing-order-id',
+      },
+    };
+    mockState.order.entity.id = 'existing-order-id';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /update order/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/before creating an order\./i)).not.toBeNull();
+      expect(orderReducer.updateEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'existing-order-id',
+        })
+      );
     });
 
-    expect(screen.queryByText('Select your mode')).toBeNull();
-    expect((screen.getByRole('button', { name: /place order/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(getLatestUpdatePayload().wholesale).toBeUndefined();
+
+    expect(screen.queryByText('Create Order & Payment')).toBeNull();
   });
 });
