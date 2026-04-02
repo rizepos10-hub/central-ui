@@ -50,6 +50,8 @@ const toCurrency = (value?: number | null): string => currencyFormatter.format(t
 
 const toQuantity = (value?: number | null): string => quantityFormatter.format(toNumber(value));
 
+const hasVoidedStatus = (value?: { status?: string | null } | null): boolean => value?.status === 'VOIDED';
+
 const splitLines = (value?: string | null): string[] =>
   (value || '')
     .split(',')
@@ -163,6 +165,10 @@ const PrintOrder = () => {
     const rows: IInvoiceLine[] = [];
 
     (orderEntity?.items || []).forEach((item, itemIndex) => {
+      if (hasVoidedStatus(item)) {
+        return;
+      }
+
       const quantity = toNumber(item.amount);
       const unitPrice = toNumber(item.price);
       const baseAmount = quantity * unitPrice;
@@ -186,6 +192,10 @@ const PrintOrder = () => {
       });
 
       (item.addons || []).forEach((addon, addonIndex) => {
+        if (hasVoidedStatus(addon)) {
+          return;
+        }
+
         const addonQuantity = toNumber(addon.amount);
         const addonUnitPrice = toNumber(addon.price);
         const addonBaseAmount = addonQuantity * addonUnitPrice;

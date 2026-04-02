@@ -4,6 +4,7 @@ import { IDiscount } from "app/shared/model/discount.model";
 export interface IOrderedAddon extends IOrderAudit {
   name?: string;
   id?: string;
+  status?: string | null;
   price?: number;
   discount?: IDiscount;
   amount?: number;
