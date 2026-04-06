@@ -17,13 +17,16 @@ interface MediaLibraryProps {
     multiSelect?: boolean
     handleFilesSelectCallback: (files: FileLibraryListItem[]) => void
     defaultValues?: FileLibraryListItem[]
+    /** compact: small add zone + open library only (no duplicate thumbnail grid — use with ProductImageGallery). */
+    layout?: 'default' | 'compact'
 }
 
 const MediaLibrary: React.FC<MediaLibraryProps> = ({
     sizePerPage = 30,
     multiSelect,
     handleFilesSelectCallback,
-    defaultValues
+    defaultValues,
+    layout = 'default',
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [attachments, setAttachments] = useState<IAttachment[]>([]);
@@ -56,26 +59,34 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             setLoading(true);
             await dispatch(uploadImage(formData)).then((res) => {
                 const response = res.payload as any;
-                console.log(response)
+                const uploaded = files.map(file => ({
+                    _id: response?.id,
+                    name: file.name,
+                    path: file.name,
+                    size: file.size,
+                    type: undefined as string | undefined,
+                    updatedAt: new Date().toISOString(),
+                    thumbnailUrl: response?.url,
+                }));
                 setAttachments([]);
-                setSelectedItems(files.map(file => ({
-                    _id: response?.id,
-                    name: file.name,
-                    path: file.name,
-                    size: file.size,
-                    type: file.type,
-                    updatedAt: new Date().toISOString(),
-                    thumbnailUrl: response?.url,
-                })));
-                handleFilesSelectCallback(files.map(file => ({
-                    _id: response?.id,
-                    name: file.name,
-                    path: file.name,
-                    size: file.size,
-                    type: undefined,
-                    updatedAt: new Date().toISOString(),
-                    thumbnailUrl: response?.url,
-                })));
+                if (multiSelect && defaultValues?.length) {
+                    const existingIds = new Set(defaultValues.map(d => d._id));
+                    const merged = [...defaultValues];
+                    for (const u of uploaded) {
+                        if (u._id && !existingIds.has(u._id)) {
+                            merged.push(u);
+                            existingIds.add(u._id);
+                        }
+                    }
+                    setSelectedItems(merged);
+                    handleFilesSelectCallback(merged);
+                } else if (multiSelect && (!defaultValues || defaultValues.length === 0)) {
+                    setSelectedItems(uploaded);
+                    handleFilesSelectCallback(uploaded);
+                } else {
+                    setSelectedItems(uploaded);
+                    handleFilesSelectCallback(uploaded);
+                }
             });
             setLoading(false);
             return true;
@@ -114,44 +125,57 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         }
     };
 
+    const isCompact = layout === 'compact';
+
     return (
         <>
             <div
                 {...getRootProps({
                     onClick: handleClick
                 })}
-                className="p-5 border border-primary rounded cursor-pointer hover:bg-muted/50 transition-colors"
-                style={{ textAlign: 'center' }}
+                className={
+                    isCompact
+                        ? 'p-3 border border-dashed border-border rounded-md cursor-pointer hover:bg-muted/40 transition-colors text-center'
+                        : 'p-5 border border-primary rounded cursor-pointer hover:bg-muted/50 transition-colors text-center'
+                }
             >
                 <input {...getInputProps()} />
-                <p className="text-xs">Drag n drop some files here, or click to open the media library</p>
-                {loading && <Loader2 className="animate-spin h-12 w-12 mx-auto mt-3" />}
+                <p className="text-xs text-muted-foreground">
+                    {isCompact
+                        ? 'Drop files to upload, or click to browse the media library'
+                        : 'Drag n drop some files here, or click to open the media library'}
+                </p>
+                {loading && (
+                    <Loader2 className={isCompact ? 'animate-spin h-6 w-6 mx-auto mt-2' : 'animate-spin h-12 w-12 mx-auto mt-3'} />
+                )}
             </div>
-            <div className="flex flex-wrap gap-3 my-3">
-                {defaultValues?.map((item, index) => (
-                    <div key={index} className="relative">
-                        <img
-                            src={item.thumbnailUrl}
-                            alt={item.name}
-                            className="object-cover"
-                            style={{
-                                maxWidth: '100px',
-                                maxHeight: '100px',
-                            }}
-                        />
-                        <TiDelete
-                            onClick={() => confirm1(index)}
-                            style={{
-                                position: 'absolute',
-                                top: '-0.5rem',
-                                right: '-0.5rem'
-                            }}
-                            className='cursor-pointer text-bg-light'
-                            size={20}
-                        />
-                    </div>
-                ))}
-            </div>
+            {!isCompact ? (
+                <div className="flex flex-wrap gap-3 my-3">
+                    {defaultValues?.map((item, index) => (
+                        <div key={index} className="relative">
+                            <img
+                                src={item.thumbnailUrl}
+                                alt={item.name}
+                                className="object-cover"
+                                style={{
+                                    maxWidth: '100px',
+                                    maxHeight: '100px',
+                                }}
+                            />
+                            <TiDelete
+                                onClick={() => confirm1(index)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-0.5rem',
+                                    right: '-0.5rem'
+                                }}
+                                className='cursor-pointer text-bg-light'
+                                size={20}
+                            />
+                        </div>
+                    ))}
+                </div>
+            ) : null}
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>

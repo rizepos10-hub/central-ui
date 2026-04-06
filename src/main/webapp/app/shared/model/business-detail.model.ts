@@ -76,6 +76,8 @@ export interface IDeliveryConfiguration {
   };
   shipmentRange: IDistance;
   minCharge: number;
+  /** Order subtotal ≥ this amount → delivery fee is zero (same as central `DELIVERY_PRICING`). Omit or clear to disable. */
+  freeOnAmount?: number | null;
   definedChargeRules: IChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
 }

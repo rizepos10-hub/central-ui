@@ -8,6 +8,7 @@ import {
   ITookanSettingRequest,
   ITookanSettingResponse,
   ITookanSettingValue,
+  normalizeTookanSettingValue,
 } from 'app/shared/model/tookan-setting.model';
 
 export interface ITookanTeam {
@@ -45,15 +46,10 @@ const settingsApiUrl = 'api/settings/tookan';
 const teamsApiUrl = 'api/tookan/teams';
 const agentsApiUrl = 'api/tookan/agents';
 
-const normalizeValue = (value?: ITookanSettingValue): ITookanSettingValue => ({
-  ...defaultTookanSettingValue,
-  ...(value || {}),
-});
-
 const normalizeResponse = (response?: ITookanSettingResponse): ITookanSettingResponse => ({
   ...defaultTookanSettingResponse,
   ...(response || {}),
-  value: normalizeValue(response?.value),
+  value: normalizeTookanSettingValue(response?.value),
   hasApiKey: response?.hasApiKey ?? false,
   hasWebhookSecret: response?.hasWebhookSecret ?? false,
 });

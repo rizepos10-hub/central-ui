@@ -41,6 +41,8 @@ type SharedItemProps = {
   showFormErrors?: boolean;
   /** When true (retail product screen only), wrap fields in titled cards for clearer hierarchy. */
   groupedSections?: boolean;
+  /** Retail product (simple or variable): catalog images are shown in the product page sidebar instead of this block. */
+  hideCatalogImages?: boolean;
 };
 
 export const SharedItemUpdate = ({
@@ -50,6 +52,7 @@ export const SharedItemUpdate = ({
   setDefaultPrice,
   showFormErrors,
   groupedSections = false,
+  hideCatalogImages = false,
 }: SharedItemProps) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -170,7 +173,7 @@ export const SharedItemUpdate = ({
     return (
       <Card className="shadow-sm border-border/80">
         <CardHeader className="pb-2 space-y-1">
-          <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+          <CardTitle className="text-lg font-semibold tracking-tight text-foreground">{title}</CardTitle>
           {description ? <CardDescription className="text-xs">{description}</CardDescription> : null}
         </CardHeader>
         <CardContent className="space-y-3 pt-0">{body}</CardContent>
@@ -445,7 +448,9 @@ export const SharedItemUpdate = ({
           ? section('Product options', 'Weight-based sale and brand.', retailOptionsBody)
           : null
         : retailOptionsBody}
-      {section('Catalog images', 'Main product photos for this item (not variant-specific images).', imageBlock)}
+      {!hideCatalogImages
+        ? section('Catalog images', 'Main product photos for this item (not variant-specific images).', imageBlock)
+        : null}
     </div>
   );
 };
