@@ -642,13 +642,6 @@ export const Branches = () => {
                 <TabsTrigger value="4" className="text-xs h-7">Inventory Settings</TabsTrigger>
                 <TabsTrigger value="5" className="text-xs h-7">Payment Configuration</TabsTrigger>
               </TabsList>
-              <p className="text-[10px] text-muted-foreground mt-1.5 mb-0">
-                Tab selection is stored in the URL as{' '}
-                <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
-                  #b{branchIndex}-s{activeBranchIndex}
-                </code>{' '}
-                (branch index and section 0–5) so reload and the back button restore this view.
-              </p>
               <TabsContent value="0">
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">

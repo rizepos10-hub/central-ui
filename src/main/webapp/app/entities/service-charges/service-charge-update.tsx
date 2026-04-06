@@ -328,7 +328,7 @@ export const ServiceChargeUpdate = () => {
                       options={deliveryProviderOptions}
                       placeholder="Select provider"
                     />
-                    <Alert className="border-muted bg-muted/30">
+                    <Alert variant="warning">
                       <AlertDescription className="text-[11px] leading-relaxed text-muted-foreground">
                         This fee applies only when checkout uses the <strong>same</strong> delivery provider. It does{' '}
                         <strong>not</strong> replace distance-based delivery fees — those are set under{' '}
@@ -526,7 +526,7 @@ export const ServiceChargeUpdate = () => {
                     </div>
                   </div>
 
-                  <Alert className="border-muted bg-muted/30">
+                  <Alert variant="warning">
                     <AlertDescription className="text-[11px] leading-relaxed text-muted-foreground">
                       Conditional rules are evaluated on subtotal. Max cap is an absolute fee amount (currency), not a percentage.
                       When configured, do not set legacy charge at the same time.
