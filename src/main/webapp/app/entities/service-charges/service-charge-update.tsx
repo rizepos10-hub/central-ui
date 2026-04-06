@@ -12,6 +12,8 @@ import {
   ServiceChargeCalculationMethod,
   ServiceChargeWhenToApply,
   IServiceCharge,
+  DeliveryProviderKey,
+  SubtotalComparisonOperator,
 } from 'app/shared/model/service-charge.model';
 import { IPaymentMethodSetting } from 'app/shared/model/payment-method-setting.model';
 import { getAllEntities as getAllPaymentMethodSettings } from 'app/entities/settings/payment-method-setting/payment-method-setting.reducer';
@@ -22,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -43,6 +46,7 @@ export const ServiceChargeUpdate = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   useEffect(() => {
     if (!isNew) {
@@ -70,6 +74,16 @@ export const ServiceChargeUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
+    setValidationError(null);
+
+    const hasConditional =
+      !!serviceChargeEntity?.setting?.chargeCalculationSetting?.percentageOnCondition ||
+      !!serviceChargeEntity?.setting?.chargeCalculationSetting?.flatOnCondition;
+    const hasLegacyCharge = serviceChargeEntity?.charge !== undefined && serviceChargeEntity?.charge !== null;
+    if (serviceChargeEntity?.key === ServiceChargeKey.PLATFORM_FEE && hasConditional && hasLegacyCharge) {
+      setValidationError('For PLATFORM_FEE use either legacy charge OR conditional fee rules, not both.');
+      return;
+    }
 
     if (isNew) {
       dispatch(createEntity(serviceChargeEntity)).then((res) => {
@@ -98,6 +112,8 @@ export const ServiceChargeUpdate = () => {
     switch (key) {
       case ServiceChargeKey.SHIPPING_FEE:
         return "Shipping Fee";
+      case ServiceChargeKey.PLATFORM_FEE:
+        return "Platform fee (delivery)";
       case ServiceChargeKey.WRAPPING_FEE:
         return "Wrapping Fee";
       case ServiceChargeKey.GRATUITY:
@@ -225,7 +241,50 @@ export const ServiceChargeUpdate = () => {
   const handleBranchesChange = (selectedOptions) => {
     const selectedBranches = selectedOptions.map(option => branchList.find(b => b.id === option.value)).filter(Boolean);
     dispatch(changeEntityField({ name: 'branches', value: selectedBranches }));
-  }
+  };
+
+  const handleKeyChange = option => {
+    const v = option?.value as ServiceChargeKey | undefined;
+    dispatch(changeEntityField({ name: 'key', value: v }));
+    if (v !== ServiceChargeKey.PLATFORM_FEE) {
+      dispatch(changeEntityField({ name: 'deliveryProvider', value: undefined }));
+      const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+      _.unset(updatedEntity, 'setting.chargeCalculationSetting');
+      dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+    }
+  };
+
+  const updateConditionalSetting = (path: string, value: unknown) => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, path, value);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  };
+
+  const applyTookanDefaultRule = () => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.set(updatedEntity, 'setting.chargeCalculationSetting.percentageOnCondition.percentCharge', 10);
+    _.set(updatedEntity, 'setting.chargeCalculationSetting.percentageOnCondition.maxCharge', 6.5);
+    _.set(updatedEntity, 'setting.chargeCalculationSetting.flatOnCondition.amountCharge', 2.5);
+    _.set(
+      updatedEntity,
+      'setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.comparisonOperator',
+      SubtotalComparisonOperator.LESS_THAN
+    );
+    _.set(updatedEntity, 'setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.subTotal', 18);
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+    dispatch(changeEntityField({ name: 'charge', value: undefined }));
+  };
+
+  const clearConditionalRule = () => {
+    const updatedEntity = _.cloneDeep(serviceChargeEntity || {});
+    _.unset(updatedEntity, 'setting.chargeCalculationSetting');
+    dispatch(changeEntityField({ name: 'setting', value: updatedEntity.setting }));
+  };
+
+  const deliveryProviderOptions = [
+    { label: 'Tookan', value: 'TOOKAN' as DeliveryProviderKey },
+    { label: 'Icabbi', value: 'ICABBI' as DeliveryProviderKey },
+  ];
 
 
   return (
@@ -239,6 +298,11 @@ export const ServiceChargeUpdate = () => {
           <p>Loading...</p>
         ) : (
           <form className="space-y-6">
+            {validationError && (
+              <Alert className="border-destructive/40 bg-destructive/5">
+                <AlertDescription className="text-xs text-destructive">{validationError}</AlertDescription>
+              </Alert>
+            )}
             <div className="grid gap-6 md:grid-cols-2">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -246,12 +310,36 @@ export const ServiceChargeUpdate = () => {
                   <Select
                     id="service-charge-key"
                     value={serviceChargeEntity.key ? serviceChargeKeys.find(k => k.value === serviceChargeEntity.key) : null}
-                    onChange={(option) => dispatch(changeEntityField({ name: 'key', value: option?.value }))}
+                    onChange={handleKeyChange}
                     options={serviceChargeKeys}
                     placeholder="Select Type"
                     isClearable
                   />
                 </div>
+                {serviceChargeEntity.key === ServiceChargeKey.PLATFORM_FEE && (
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="platform-delivery-provider" className="text-xs">
+                      Delivery provider (required)
+                    </Label>
+                    <Select
+                      inputId="platform-delivery-provider"
+                      value={deliveryProviderOptions.find(o => o.value === serviceChargeEntity.deliveryProvider) || null}
+                      onChange={opt => dispatch(changeEntityField({ name: 'deliveryProvider', value: opt?.value }))}
+                      options={deliveryProviderOptions}
+                      placeholder="Select provider"
+                    />
+                    <Alert className="border-muted bg-muted/30">
+                      <AlertDescription className="text-[11px] leading-relaxed text-muted-foreground">
+                        This fee applies only when checkout uses the <strong>same</strong> delivery provider. It does{' '}
+                        <strong>not</strong> replace distance-based delivery fees — those are set under{' '}
+                        <Link to="/branches" className="font-medium text-primary underline-offset-2 hover:underline">
+                          Branches → Delivery pricing
+                        </Link>
+                        .
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="service-charge-name" className="text-xs">{translate('service-charge.name')}</Label>
                   <Input
@@ -308,6 +396,7 @@ export const ServiceChargeUpdate = () => {
                     value={serviceChargeEntity.charge || 0}
                     onChange={(e) => dispatch(changeEntityField({ name: 'charge', value: parseFloat(e.target.value) }))}
                     className="h-9 text-xs"
+                    disabled={serviceChargeEntity.key === ServiceChargeKey.PLATFORM_FEE && !!serviceChargeEntity?.setting?.chargeCalculationSetting}
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
@@ -336,6 +425,116 @@ export const ServiceChargeUpdate = () => {
             </div>
 
             <div className="space-y-4">
+              {serviceChargeEntity.key === ServiceChargeKey.PLATFORM_FEE && (
+                <div className="grid gap-4 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold">Conditional Platform Fee Rules</Label>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={clearConditionalRule}>
+                        Clear rules
+                      </Button>
+                      <Button type="button" size="sm" className="h-7 text-xs" onClick={applyTookanDefaultRule}>
+                        Use Tookan default
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Percentage charge (%)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={serviceChargeEntity?.setting?.chargeCalculationSetting?.percentageOnCondition?.percentCharge ?? ''}
+                        onChange={e =>
+                          updateConditionalSetting(
+                            'setting.chargeCalculationSetting.percentageOnCondition.percentCharge',
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Max fee cap (flat amount)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={serviceChargeEntity?.setting?.chargeCalculationSetting?.percentageOnCondition?.maxCharge ?? ''}
+                        onChange={e =>
+                          updateConditionalSetting(
+                            'setting.chargeCalculationSetting.percentageOnCondition.maxCharge',
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Flat amount</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={serviceChargeEntity?.setting?.chargeCalculationSetting?.flatOnCondition?.amountCharge ?? ''}
+                        onChange={e =>
+                          updateConditionalSetting(
+                            'setting.chargeCalculationSetting.flatOnCondition.amountCharge',
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Flat subtotal operator</Label>
+                      <Select
+                        value={
+                          serviceChargeEntity?.setting?.chargeCalculationSetting?.flatOnCondition?.subtotalCondition?.comparisonOperator
+                            ? {
+                                label:
+                                  serviceChargeEntity.setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.comparisonOperator,
+                                value:
+                                  serviceChargeEntity.setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.comparisonOperator,
+                              }
+                            : null
+                        }
+                        onChange={option =>
+                          updateConditionalSetting(
+                            'setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.comparisonOperator',
+                            option?.value
+                          )
+                        }
+                        options={Object.values(SubtotalComparisonOperator).map(v => ({ label: v, value: v }))}
+                        placeholder="Select operator"
+                        isClearable
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Flat subtotal value</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={serviceChargeEntity?.setting?.chargeCalculationSetting?.flatOnCondition?.subtotalCondition?.subTotal ?? ''}
+                        onChange={e =>
+                          updateConditionalSetting(
+                            'setting.chargeCalculationSetting.flatOnCondition.subtotalCondition.subTotal',
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <Alert className="border-muted bg-muted/30">
+                    <AlertDescription className="text-[11px] leading-relaxed text-muted-foreground">
+                      Conditional rules are evaluated on subtotal. Max cap is an absolute fee amount (currency), not a percentage.
+                      When configured, do not set legacy charge at the same time.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+
               {serviceChargeEntity.whenToApply === ServiceChargeWhenToApply.AUTOMATIC && (
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">

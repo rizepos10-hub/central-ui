@@ -31,8 +31,7 @@ import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-r
 import AuditLogs from 'app/shared/components/logs/audit-logs';
 import VariantBranchPrice from 'app/shared/components/item/variant-branch-price';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
-import MediaLibrary from 'app/shared/components/media-library/media-library';
-import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { IMeasureValue, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
@@ -56,7 +55,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import * as AccordionPrimitive from '@radix-ui/react-accordion';
+import { Accordion, AccordionContent, AccordionItem } from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,7 +67,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Trash2, GripVertical, Loader2 } from 'lucide-react';
+import { Trash2, GripVertical, Loader2, ChevronDown } from 'lucide-react';
+import { cn } from 'app/lib/utils';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 
@@ -100,7 +101,7 @@ type RetailFormSectionProps = { title: string; description?: string; children: R
 const RetailFormSection = ({ title, description, children }: RetailFormSectionProps) => (
   <Card className="border-border/80 shadow-sm">
     <CardHeader className="pb-2 space-y-1">
-      <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+      <CardTitle className="text-lg font-semibold tracking-tight text-foreground">{title}</CardTitle>
       {description ? <CardDescription className="text-xs">{description}</CardDescription> : null}
     </CardHeader>
     <CardContent className="space-y-4 pt-0">{children}</CardContent>
@@ -154,6 +155,8 @@ export const ProductUpdate = () => {
   const [product, setProduct] = useState<IProduct>({});
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
+  /** Product-level catalog attachments (IItem.attachments); variant photos stay on each variant row. */
+  const showCatalogImagePanel = product?.itemType === 'RETAIL' && (isSingleItem || isVariableItem);
 
   const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
 
@@ -337,10 +340,6 @@ export const ProductUpdate = () => {
         variants: updatedVariants,
       };
     });
-  };
-
-  const addImage = (variantIndex, files) => {
-    handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleBaseMeasureChange = baseMeasure => {
@@ -939,17 +938,18 @@ export const ProductUpdate = () => {
     </div>
   );
 
-  const VariantAccordionHeader = variantIndex => (
+  /** Variant row form fields only — delete + expand chevron live in the accordion trigger beside this block. */
+  const VariantAccordionForm = variantIndex => (
     <div
       onClick={e => {
         e.preventDefault();
         e.stopPropagation();
       }}
-      className="flex flex-1 gap-3 ml-2 p-draggable"
+      className="flex flex-1 min-w-0 gap-3 ml-2 p-draggable"
     >
-      <div className="flex-1 gap-2">
+      <div className="flex-1 min-w-0 gap-2">
         <div className="flex flex-col md:flex-row gap-4 mb-2">
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label className="text-xs font-semibold">
               <Translate contentKey="items.update.name">Name</Translate>
             </label>
@@ -971,7 +971,7 @@ export const ProductUpdate = () => {
             />
           </div>
 
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label htmlFor="price" className="text-xs font-semibold">
               <Translate contentKey={'items.update.price'}>Price</Translate>
             </label>
@@ -994,7 +994,7 @@ export const ProductUpdate = () => {
             />
           </div>
 
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label className="text-xs font-semibold">
               <Translate contentKey={'items.update.sku'}>SKU</Translate>
             </label>
@@ -1052,12 +1052,6 @@ export const ProductUpdate = () => {
             />
           ))}
         </div>
-      </div>
-      <div className="flex justify-end items-start">
-        <Trash2
-          onClick={() => setDeleteVariantDialog({ open: true, index: variantIndex })}
-          className="h-4 w-4 cursor-pointer text-red-500 hover:text-red-700"
-        />
       </div>
     </div>
   );
@@ -1185,6 +1179,7 @@ export const ProductUpdate = () => {
                             setDefaultPrice={setDefaultPrice}
                             showFormErrors={showFormErrors}
                             groupedSections
+                            hideCatalogImages={showCatalogImagePanel}
                           />
 
                           <RetailFormSection
@@ -1516,22 +1511,56 @@ export const ProductUpdate = () => {
                                     </Button>
                                   )}
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-0">
                                   {product?.variants?.map((variant, variantIndex) => (
-                                    <div
-                                      key={variantIndex}
-                                      className={`flex ${dragOverIndex === variantIndex ? 'border-t-2 border-primary' : ''}`}
-                                      draggable
-                                      onDragStart={() => setDraggedIndex(variantIndex)}
-                                      onDragOver={e => handleDragOver(e, variantIndex)}
-                                      onDragLeave={handleDragLeave}
-                                      onDrop={() => handleDrop(variantIndex)}
-                                    >
-                                      <Accordion type="single" collapsible className="flex-1 ml-1">
-                                        <AccordionItem value={`variant-${variantIndex}`}>
-                                          <AccordionTrigger className="text-xs hover:no-underline">
-                                            {VariantAccordionHeader(variantIndex)}
-                                          </AccordionTrigger>
+                                    <React.Fragment key={variantIndex}>
+                                      {variantIndex > 0 ? <Separator className="my-4 bg-border/80" /> : null}
+                                      <div
+                                        className={`flex gap-2 items-stretch ${dragOverIndex === variantIndex ? 'border-t-2 border-primary pt-2 -mt-0.5' : ''}`}
+                                        draggable
+                                        onDragStart={() => setDraggedIndex(variantIndex)}
+                                        onDragOver={e => handleDragOver(e, variantIndex)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={() => handleDrop(variantIndex)}
+                                      >
+                                        <div
+                                          className="flex flex-col items-center justify-start gap-1 shrink-0 w-10 pt-3 pb-2 rounded-md border border-border/60 bg-muted/30 text-muted-foreground cursor-grab active:cursor-grabbing select-none"
+                                          title="Drag to reorder"
+                                        >
+                                          <GripVertical className="h-4 w-4 shrink-0" aria-hidden />
+                                          <span className="text-[11px] font-semibold tabular-nums text-foreground leading-none">
+                                            #{variantIndex + 1}
+                                          </span>
+                                        </div>
+                                        <Accordion type="single" collapsible className="flex-1 min-w-0">
+                                        <AccordionItem value={`variant-${variantIndex}`} className="border-b-0">
+                                          <AccordionPrimitive.Header className="flex w-full min-w-0">
+                                            <AccordionPrimitive.Trigger
+                                              className={cn(
+                                                'group flex flex-1 w-full min-w-0 items-start gap-2 py-3 pr-1 text-left text-xs font-medium',
+                                                'rounded-md transition-colors hover:bg-muted/40 hover:no-underline'
+                                              )}
+                                            >
+                                              <div className="min-w-0 flex-1">{VariantAccordionForm(variantIndex)}</div>
+                                              <div className="flex shrink-0 items-center gap-2 self-start pt-7">
+                                                <Button
+                                                  type="button"
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                                                  onClick={e => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setDeleteVariantDialog({ open: true, index: variantIndex });
+                                                  }}
+                                                  aria-label="Delete variant"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                                              </div>
+                                            </AccordionPrimitive.Trigger>
+                                          </AccordionPrimitive.Header>
                                           <AccordionContent>
                                             <Tabs defaultValue="general">
                                               <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
@@ -1581,19 +1610,18 @@ export const ProductUpdate = () => {
                                                       />
                                                     </div>
                                                   </div>
-                                                  <div>
-                                                    <div className="space-y-1">
-                                                      <label className="text-xs font-semibold">
-                                                        <Translate contentKey={'items.update.image'}>Image</Translate>
-                                                      </label>
-                                                      <MediaLibrary
-                                                        handleFilesSelectCallback={files => addImage(variantIndex, files)}
-                                                        defaultValues={transformAttachmentStructure(
-                                                          variant?.attachments,
-                                                          'toFileLibraryListItem'
-                                                        )}
-                                                      />
-                                                    </div>
+                                                  <div className="space-y-2">
+                                                    <label className="text-xs font-semibold">
+                                                      <Translate contentKey={'items.update.image'}>Images</Translate>
+                                                    </label>
+                                                    <ProductImageGallery
+                                                      showCard={false}
+                                                      attachments={variant?.attachments}
+                                                      onAttachmentsChange={atts =>
+                                                        handleVariantFieldChange(variantIndex, 'attachments', atts)
+                                                      }
+                                                      description="Photos for this variant (menus, online, POS)."
+                                                    />
                                                   </div>
                                                 </div>
                                               </TabsContent>
@@ -1780,7 +1808,8 @@ export const ProductUpdate = () => {
                                           </AccordionContent>
                                         </AccordionItem>
                                       </Accordion>
-                                    </div>
+                                      </div>
+                                    </React.Fragment>
                                   ))}
                                 </div>
                               </div>
@@ -1831,9 +1860,9 @@ export const ProductUpdate = () => {
           <div className="lg:w-1/4 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto space-y-4">
             <Card className="border-border/80 shadow-sm">
               <CardHeader className="p-3 pb-2 space-y-0">
-                <CardTitle className="text-sm font-semibold">Save & navigation</CardTitle>
+                <CardTitle className="text-base font-semibold tracking-tight text-foreground">Save & navigation</CardTitle>
                 <CardDescription className="text-xs pt-1">
-                  Applies all changes on this page. Audit history is below, separate from actions.
+                  Applies all changes on this page.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3 pt-0 space-y-2">
@@ -1893,12 +1922,25 @@ export const ProductUpdate = () => {
               </CardContent>
             </Card>
 
+            {showCatalogImagePanel ? (
+              <ProductImageGallery
+                attachments={product.attachments}
+                onAttachmentsChange={atts => handleFieldChange('attachments', atts)}
+                title={<Translate contentKey="items.update.image">Catalog images</Translate>}
+                description={
+                  isVariableItem
+                    ? 'Shared product-level photos (menus, online, POS). Variant-specific images are set under each variant in General.'
+                    : 'Main photos for this product (menus, online, POS). Add from the library or drop files in the area below.'
+                }
+              />
+            ) : null}
+
             {productEntity?.id ? (
               <>
                 <Separator className="opacity-60" />
                 <Card className="border-border/80 shadow-sm">
                   <CardHeader className="p-3 pb-2">
-                    <CardTitle className="text-sm font-semibold">Audit history</CardTitle>
+                    <CardTitle className="text-base font-semibold tracking-tight text-foreground">Audit history</CardTitle>
                     <CardDescription className="text-xs">Read-only log of changes to this product.</CardDescription>
                   </CardHeader>
                   <CardContent className="p-3 pt-0">

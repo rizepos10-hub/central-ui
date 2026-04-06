@@ -5,7 +5,12 @@ import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import { defaultTookanSettingValue, ITookanSettingRequest, ITookanSettingValue } from 'app/shared/model/tookan-setting.model';
+import {
+  defaultTookanSettingValue,
+  ITookanSettingRequest,
+  ITookanSettingValue,
+  normalizeTookanSettingValue,
+} from 'app/shared/model/tookan-setting.model';
 import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
@@ -32,7 +37,24 @@ const TookanSettings = () => {
   const tenant = getTenantFromURL() || '{tenant}';
   const webhookBaseUrl = useMemo(() => SERVER_API_URL.replace(/\/$/, ''), []);
   const webhookUrl = useMemo(() => `${webhookBaseUrl}/api/tookan/event/${tenant}`, [tenant, webhookBaseUrl]);
-  const settingValue = tookanEntity.value || defaultTookanSettingValue;
+  const tookanPlatformFeeQuery = useMemo(
+    () =>
+      encodeURIComponent(
+        JSON.stringify({
+          first: 0,
+          rows: 20,
+          page: 0,
+          sortField: null,
+          sortOrder: null,
+          filters: {
+            key: { value: 'PLATFORM_FEE', matchMode: 'equals' },
+            deliveryProvider: { value: 'TOOKAN', matchMode: 'equals' },
+          },
+        })
+      ),
+    []
+  );
+  const settingValue = normalizeTookanSettingValue(tookanEntity.value || defaultTookanSettingValue);
 
   useEffect(() => {
     dispatch(getBranches({}));
@@ -84,10 +106,14 @@ const TookanSettings = () => {
       toast.error('Please select a branch first.');
       return;
     }
+    const normalized = normalizeTookanSettingValue(settingValue);
+    const { deliveryConfiguration: _dc, chargeCalculationSetting: _ccs, ...integrationOnly } = normalized;
+    void _dc;
+    void _ccs;
     const request: ITookanSettingRequest = {
       branchId: selectedBranchId,
       value: {
-        ...settingValue,
+        ...integrationOnly,
         apiKey: apiKeyInput.trim(),
         webhookSharedSecret: webhookSecretInput.trim(),
       },
@@ -228,6 +254,27 @@ const TookanSettings = () => {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">Configure this URL in Tookan notifications. Append `?task_history=1` if needed.</p>
+          </div>
+
+          <div className="text-[11px] text-muted-foreground border-t pt-3 space-y-2">
+            <p>
+              <strong>Customer delivery fee</strong> (distance bands, min charge, free-delivery threshold) is edited on{' '}
+              <Link to="/branches#b0-s2" className="font-medium text-primary underline-offset-2 hover:underline">
+                Branches (delivery pricing)
+              </Link>{' '}
+              <span className="text-muted-foreground">(hash targets branch #0; adjust <code className="text-[10px]">b0</code> if needed)</span>. That data is stored as the{' '}
+              <code className="text-[10px]">DELIVERY_PRICING</code> setting for the branch.
+            </p>
+            <p>
+              <strong>Platform / provider fees</strong> use{' '}
+              <Link
+                to={`/service-charge?query=${tookanPlatformFeeQuery}`}
+                className="font-medium text-primary underline-offset-2 hover:underline"
+              >
+                Service charges
+              </Link>{' '}
+              with key <code className="text-[10px]">PLATFORM_FEE</code> and the same delivery provider (e.g. Tookan).
+            </p>
           </div>
 
           {loading && <p className="text-[11px] text-muted-foreground">Loading Tookan settings...</p>}

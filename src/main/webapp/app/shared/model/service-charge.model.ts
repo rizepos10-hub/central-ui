@@ -16,11 +16,16 @@ export interface IServiceCharge {
   whenToApply?: ServiceChargeWhenToApply;
   charge?: number;
   isArchived?: boolean;
-  accountingGroup?: IProfileGroup
+  accountingGroup?: IProfileGroup;
+  /** Required for {@link ServiceChargeKey.PLATFORM_FEE}; must be omitted for other keys. */
+  deliveryProvider?: DeliveryProviderKey;
 }
+
+export type DeliveryProviderKey = 'TOOKAN' | 'ICABBI';
 
 export enum ServiceChargeKey {
   SHIPPING_FEE = "SHIPPING_FEE",
+  PLATFORM_FEE = "PLATFORM_FEE",
   WRAPPING_FEE = "WRAPPING_FEE",
   GRATUITY = "GRATUITY",
   OTHER = "OTHER"
@@ -31,6 +36,35 @@ export interface IServiceChargeSetting {
   applicableOn?: ServiceChargeApplicableOn;
   discountable?: boolean;
   loyaltyEligible?: boolean;
+  chargeCalculationSetting?: IChargeCalculationSetting;
+}
+
+export interface IChargeCalculationSetting {
+  percentageOnCondition?: IPercentageOnCondition;
+  flatOnCondition?: IFlatOnCondition;
+}
+
+export interface IPercentageOnCondition {
+  percentCharge?: number;
+  /** Absolute fee cap amount (currency), not a percentage. */
+  maxCharge?: number;
+  subtotalCondition?: ISubtotalCondition;
+}
+
+export interface IFlatOnCondition {
+  amountCharge?: number;
+  subtotalCondition?: ISubtotalCondition;
+}
+
+export interface ISubtotalCondition {
+  comparisonOperator?: SubtotalComparisonOperator;
+  subTotal?: number;
+}
+
+export enum SubtotalComparisonOperator {
+  LESS_THAN = 'LESS_THAN',
+  GREATER_THAN = 'GREATER_THAN',
+  EQUALS = 'EQUALS',
 }
 
 export interface ServiceChargeApplicableOn {

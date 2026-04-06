@@ -1,13 +1,22 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
 import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
-import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails, DeliveryTaggingModeEnum } from 'app/shared/model/business-detail.model';
+import {
+  IBusinessDetail,
+  Metric,
+  UnitCostCalculationMode,
+  dayTypeEnum,
+  IBranchDetails,
+  DeliveryTaggingModeEnum,
+  IDeliveryConfiguration,
+} from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
 import { CustomMapControl, autocompleteModes } from 'app/shared/components/google/map-control';
-import { Save, AlertTriangle } from 'lucide-react';
+import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
 import Select from 'react-select'
@@ -21,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -54,6 +63,89 @@ export enum AddressComponentTypesEnum {
   "locality" = "locality",
 }
 
+function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
+  if (!dc) {
+    return [{ label: 'Status', value: 'Not initialized — set coverage and rates below, then save the branch.' }];
+  }
+  const lines: { label: string; value: string }[] = [];
+  const maxR = dc.shipmentRange?.value;
+  const maxM = dc.shipmentRange?.metric;
+  if (maxR != null && Number(maxR) > 0) {
+    lines.push({
+      label: 'Max delivery radius',
+      value: maxM ? `${maxR} ${maxM}` : `${maxR} (pick a distance unit)`,
+    });
+  } else {
+    lines.push({
+      label: 'Max delivery radius',
+      value: 'Not set — configure a limit so far-away orders are rejected.',
+    });
+  }
+
+  const bands = dc.definedChargeRules?.filter(Boolean).length ?? 0;
+  lines.push({
+    label: 'Price model',
+    value: bands > 0 ? `${bands} distance band(s)` : 'Per-step rate only (no bands)',
+  });
+
+  const step = dc.chargePerDistance;
+  if (bands === 0 && step?.charge != null && step.distance?.value) {
+    lines.push({
+      label: 'Per-step rate',
+      value: `${step.charge} per ${step.distance.value} ${step.distance?.metric ?? ''}`.trim(),
+    });
+  }
+
+  if (dc.minCharge != null && Number(dc.minCharge) > 0) {
+    lines.push({ label: 'Minimum delivery fee', value: String(dc.minCharge) });
+  } else {
+    lines.push({ label: 'Minimum delivery fee', value: 'None / zero' });
+  }
+
+  const free = dc.freeOnAmount;
+  if (free != null && Number(free) > 0) {
+    lines.push({ label: 'Free delivery', value: `When order subtotal ≥ ${free}` });
+  } else {
+    lines.push({ label: 'Free delivery', value: 'Off' });
+  }
+
+  lines.push({
+    label: 'Tagging mode',
+    value: String(dc.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED),
+  });
+
+  return lines;
+}
+
+function branchHasReliableMapOrigin(address: IBranchDetails['address'] | undefined): boolean {
+  const lat = address?.latitude;
+  const lng = address?.longitude;
+  return typeof lat === 'number' && typeof lng === 'number' && !(lat === 0 && lng === 0);
+}
+
+/** Inner section tabs: Details, Address, Delivery pricing, … */
+const BRANCH_SECTION_COUNT = 6;
+
+function parseBranchesLocationHash(): { branch: number; section: number } | null {
+  if (typeof window === 'undefined') return null;
+  const h = window.location.hash.replace(/^#/, '').trim();
+  if (!h) return null;
+  const m = h.match(/^b(\d+)-s(\d+)$/i);
+  if (!m) return null;
+  return { branch: Number(m[1]), section: Number(m[2]) };
+}
+
+function buildBranchesLocationHash(branch: number, section: number): string {
+  return `#b${branch}-s${section}`;
+}
+
+function clampBranchesHash(parsed: { branch: number; section: number }, branchCount: number) {
+  if (branchCount <= 0) return null;
+  const branch = Math.min(Math.max(0, parsed.branch), branchCount - 1);
+  const section = Math.min(Math.max(0, parsed.section), BRANCH_SECTION_COUNT - 1);
+  return { branch, section };
+}
+
 export const Branches = () => {
   const dispatch = useAppDispatch();
 
@@ -83,6 +175,59 @@ export const Branches = () => {
   });
   const [editingBranchPayments, setEditingBranchPayments] = useState(null);
   const [editPaymentIndex, setEditingPaymentIndex] = useState(null);
+
+  const branchDetailsRef = useRef(businessDetailsState.branchDetails);
+  branchDetailsRef.current = businessDetailsState.branchDetails;
+
+  const applyBranchTabFromHash = useCallback(() => {
+    const details = branchDetailsRef.current;
+    const count = details?.length ?? 0;
+    if (count === 0) return;
+    const parsed = parseBranchesLocationHash();
+    if (!parsed) return;
+    const c = clampBranchesHash(parsed, count);
+    if (!c) return;
+    setActiveIndex(c.branch);
+    setActiveBranchIndex(c.section);
+    const br = details[c.branch];
+    if (br) {
+      setEditingBranchPayments(br.paymentConfigurations || []);
+      setEditingPaymentIndex(c.branch);
+    }
+  }, []);
+
+  const didApplyInitialBranchHash = useRef(false);
+  const branchCount = businessDetailsState.branchDetails?.length ?? 0;
+
+  useEffect(() => {
+    if (branchCount === 0) {
+      didApplyInitialBranchHash.current = false;
+    }
+  }, [branchCount]);
+
+  useLayoutEffect(() => {
+    if (branchCount === 0 || didApplyInitialBranchHash.current) return;
+    didApplyInitialBranchHash.current = true;
+    applyBranchTabFromHash();
+  }, [branchCount, applyBranchTabFromHash]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      applyBranchTabFromHash();
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [applyBranchTabFromHash]);
+
+  useEffect(() => {
+    if (branchCount === 0) return;
+    const c = clampBranchesHash({ branch: activeIndex, section: activeBranchIndex }, branchCount);
+    if (!c) return;
+    const next = buildBranchesLocationHash(c.branch, c.section);
+    if (window.location.hash !== next) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${next}`);
+    }
+  }, [activeIndex, activeBranchIndex, branchCount]);
 
   const showDialog = (branch, index) => {
     setEditingBranchPayments(branch.paymentConfigurations)
@@ -235,28 +380,30 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const defaultDeliveryConfiguration = () => ({
+    chargePerDistance: {
+      charge: 0,
+      distance: {
+        metric: undefined,
+        value: 0,
+      },
+    },
+    shipmentRange: {
+      metric: undefined,
+      value: 0,
+    },
+    minCharge: 0,
+    freeOnAmount: null,
+    definedChargeRules: [],
+    deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
+  });
+
   const handleDeliveryConfiguration = (branchIndex, field, value) => {
     setBusinessDetailsState(prevState => {
       const newState = _.cloneDeep(prevState);
 
-      // Check if deliveryConfiguration is null and initialize it if necessary
       if (!newState.branchDetails[branchIndex].deliveryConfiguration) {
-        newState.branchDetails[branchIndex].deliveryConfiguration = {
-          chargePerDistance: {
-            charge: 0,
-            distance: {
-              metric: undefined,
-              value: 0,
-            }
-          },
-          shipmentRange: {
-            metric: undefined,
-            value: 0,
-          },
-          minCharge: 0,
-          definedChargeRules: [],
-          deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
-        };
+        newState.branchDetails[branchIndex].deliveryConfiguration = defaultDeliveryConfiguration();
       }
 
       _.set(newState.branchDetails[branchIndex].deliveryConfiguration, field, value);
@@ -384,24 +531,31 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   }
 
-
-
   const handleAddChargeRule = (branchIndex) => {
-    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    newData[branchIndex].deliveryConfiguration.definedChargeRules.push({
-      minDistance: {
-        value: 0,
-        metric: 'KILOMETERS'
-      },
-      maxDistance: {
-        value: 0,
-        metric: 'KILOMETERS'
-      },
-      charge: 0,
-      orderAmount: 0,
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const branch = newState.branchDetails[branchIndex];
+      if (!branch.deliveryConfiguration) {
+        branch.deliveryConfiguration = defaultDeliveryConfiguration();
+      }
+      if (!branch.deliveryConfiguration.definedChargeRules) {
+        branch.deliveryConfiguration.definedChargeRules = [];
+      }
+      branch.deliveryConfiguration.definedChargeRules.push({
+        minDistance: {
+          value: 0,
+          metric: Metric.KILOMETERS,
+        },
+        maxDistance: {
+          value: 0,
+          metric: Metric.KILOMETERS,
+        },
+        charge: 0,
+        orderAmount: 0,
+      });
+      return newState;
     });
-    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
-  }
+  };
 
   const handleDetailsChange = (index: number, branch: any, branchIndex: number) => {
     setEditingPaymentIndex(branchIndex)
@@ -410,10 +564,15 @@ export const Branches = () => {
   }
 
   const handleDeleteChargeRule = (branchIndex, chargeRuleIndex) => {
-    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    newData[branchIndex].deliveryConfiguration.definedChargeRules.splice(chargeRuleIndex, 1);
-    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
-  }
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const rules = newState.branchDetails[branchIndex].deliveryConfiguration?.definedChargeRules;
+      if (rules) {
+        rules.splice(chargeRuleIndex, 1);
+      }
+      return newState;
+    });
+  };
 
   const handleHideMapOnOnlineOrderingChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
@@ -478,11 +637,18 @@ export const Branches = () => {
               <TabsList className="h-9 w-full justify-start">
                 <TabsTrigger value="0" className="text-xs h-7">Details</TabsTrigger>
                 <TabsTrigger value="1" className="text-xs h-7">Address</TabsTrigger>
-                <TabsTrigger value="2" className="text-xs h-7">Delivery Configuration</TabsTrigger>
+                <TabsTrigger value="2" className="text-xs h-7">Delivery pricing</TabsTrigger>
                 <TabsTrigger value="3" className="text-xs h-7">Opening Hours</TabsTrigger>
                 <TabsTrigger value="4" className="text-xs h-7">Inventory Settings</TabsTrigger>
                 <TabsTrigger value="5" className="text-xs h-7">Payment Configuration</TabsTrigger>
               </TabsList>
+              <p className="text-[10px] text-muted-foreground mt-1.5 mb-0">
+                Tab selection is stored in the URL as{' '}
+                <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
+                  #b{branchIndex}-s{activeBranchIndex}
+                </code>{' '}
+                (branch index and section 0–5) so reload and the back button restore this view.
+              </p>
               <TabsContent value="0">
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
@@ -588,6 +754,13 @@ export const Branches = () => {
                 </div>
               </TabsContent>
               <TabsContent value="1">
+                <Alert className="mb-4 border-amber-200/80 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20">
+                  <MapPin className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+                  <AlertDescription className="text-xs leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">Delivery distance</span> is calculated from this branch to the customer (Google Distance Matrix).
+                    Pin the branch on the map or enter <strong>latitude / longitude</strong> for the most accurate fees; address text alone is less reliable.
+                  </AlertDescription>
+                </Alert>
                 <div className='flex gap-5'>
                   <div>
                     <Label className="font-bold text-xs my-2">Branch Address</Label>
@@ -673,222 +846,422 @@ export const Branches = () => {
                 </div>
               </TabsContent>
               <TabsContent value="2">
-                <>
-                  <div>
-                    <div className='p-2'>
-                      <div className='mb-4'>
-                        <Label className="font-bold text-xs mb-2 block">
-                          Charge Per Distance
-                        </Label>
-                        <div className='p-2 space-y-3'>
-                          <div className="flex flex-wrap gap-3">
-                            <div className='flex flex-col gap-1'>
-                              <Label className='font-bold text-xs'>Distance</Label>
+                <div className="flex flex-col gap-6">
+                  <div className="w-full min-w-0 space-y-4">
+                    <Alert className="border-muted bg-muted/20">
+                      <Truck className="h-4 w-4 shrink-0" />
+                      <AlertDescription className="text-xs leading-relaxed text-muted-foreground space-y-2">
+                        <p>
+                          Configure <strong>customer delivery fees</strong> (distance-based). The same rules apply whether you dispatch with Tookan or
+                          Icabbi — pricing is stored as the <code className="rounded bg-muted px-1 py-0.5 text-[10px]">DELIVERY_PRICING</code> setting
+                          for this branch (and overrides the tenant default when present).
+                        </p>
+                        <p>
+                          <strong>Platform / provider fees</strong> (e.g. per-order surcharges) are separate: configure them under{' '}
+                          <Link to="/service-charge" className="font-medium text-primary underline-offset-2 hover:underline inline-flex items-center gap-0.5">
+                            Service charges <ExternalLink className="h-3 w-3" />
+                          </Link>{' '}
+                          using charge type <code className="rounded bg-muted px-1 py-0.5 text-[10px]">PLATFORM_FEE</code> and the matching delivery
+                          provider.
+                        </p>
+                      </AlertDescription>
+                    </Alert>
+
+                    {!branchHasReliableMapOrigin(branch.address) && (
+                      <Alert>
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <AlertDescription className="text-xs">
+                          This branch has no map coordinates yet. Open the <strong>Address</strong> tab and set the pin (or lat/long) so distance-based
+                          fees calculate correctly.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+                    <div className="min-w-0 flex-1 space-y-4">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <Card>
+                      <CardHeader className="space-y-1 pb-2">
+                        <CardTitle className="text-sm font-semibold">Coverage</CardTitle>
+                        <CardDescription className="text-[11px]">Maximum delivery radius and how delivery is classified for routing.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="rounded-md border bg-muted/10 p-3 space-y-3">
+                          <p className="text-[11px] font-medium text-foreground">Max delivery distance</p>
+                          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                            <div className="flex min-w-[7rem] flex-1 flex-col gap-1">
+                              <Label className="text-xs text-muted-foreground">Radius</Label>
                               <Input
                                 type="number"
-                                placeholder="Distance Value"
-                                value={branch.deliveryConfiguration?.chargePerDistance.distance.value ?? ''}
+                                placeholder="e.g. 8"
+                                value={branch.deliveryConfiguration?.shipmentRange?.value ?? ''}
                                 onChange={(e) =>
-                                  handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', Number(e.target.value))
+                                  handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', Number(e.target.value))
                                 }
-                                className="h-7 text-xs"
+                                className="h-8 text-xs"
                               />
                             </div>
+                            <div className="flex flex-1 flex-col gap-2">
+                              <Label className="text-xs text-muted-foreground">Unit</Label>
+                              <RadioGroup
+                                value={branch.deliveryConfiguration?.shipmentRange?.metric}
+                                onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.metric', value)}
+                                className="flex flex-wrap gap-3"
+                              >
+                                {metrics.map((metric, idx) => (
+                                  <div className="flex items-center gap-2" key={idx}>
+                                    <RadioGroupItem value={metric} id={`shipment-metric-${branchIndex}-${idx}`} />
+                                    <Label htmlFor={`shipment-metric-${branchIndex}-${idx}`} className="cursor-pointer text-xs font-normal">
+                                      {metric}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Delivery tagging mode</Label>
+                          <ShadSelect
+                            value={branch.deliveryConfiguration?.deliveryTaggingMode}
+                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(DeliveryTaggingModeEnum).map(mode => (
+                                <SelectItem key={mode} value={mode} className="text-xs">
+                                  {mode}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </ShadSelect>
+                          <p className="text-[10px] text-muted-foreground">
+                            Restricted vs unrestricted affects how deliveries are grouped or limited in integrations.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
 
+                    <Card>
+                      <CardHeader className="space-y-1 pb-2">
+                        <CardTitle className="text-sm font-semibold">Base rates</CardTitle>
+                        <CardDescription className="text-[11px]">
+                          Per-unit distance charge and a floor for the delivery fee when no band applies.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="rounded-md border bg-muted/10 p-3 space-y-3">
+                          <p className="text-[11px] font-medium text-foreground">Charge per distance step</p>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="flex flex-col gap-1">
+                              <Label className="text-xs text-muted-foreground">Step size</Label>
+                              <Input
+                                type="number"
+                                placeholder="Distance per step"
+                                value={branch.deliveryConfiguration?.chargePerDistance?.distance?.value ?? ''}
+                                onChange={(e) =>
+                                  handleDeliveryConfiguration(
+                                    branchIndex,
+                                    'chargePerDistance.distance.value',
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Label className="text-xs text-muted-foreground">Charge per step</Label>
+                              <Input
+                                type="number"
+                                placeholder="Amount"
+                                value={branch.deliveryConfiguration?.chargePerDistance?.charge ?? ''}
+                                onChange={(e) =>
+                                  handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', Number(e.target.value))
+                                }
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs text-muted-foreground">Step unit</Label>
                             <RadioGroup
                               value={branch.deliveryConfiguration?.chargePerDistance?.distance?.metric}
-                              onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.metric', value)}
+                              onValueChange={(value) =>
+                                handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.metric', value)
+                              }
                               className="flex flex-wrap gap-3"
                             >
                               {metrics.map((metric, idx) => (
                                 <div className="flex items-center gap-2" key={idx}>
-                                  <RadioGroupItem
-                                    value={metric}
-                                    id={`charge-metric-${branchIndex}-${idx}`}
-                                  />
-                                  <Label htmlFor={`charge-metric-${branchIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
+                                  <RadioGroupItem value={metric} id={`charge-metric-${branchIndex}-${idx}`} />
+                                  <Label htmlFor={`charge-metric-${branchIndex}-${idx}`} className="cursor-pointer text-xs font-normal">
+                                    {metric}
+                                  </Label>
                                 </div>
                               ))}
                             </RadioGroup>
                           </div>
-
-                          <div className='flex flex-col gap-1'>
-                            <Label className='font-bold text-xs'>Charge</Label>
-                            <Input
-                              type="number"
-                              placeholder="Charge"
-                              value={branch.deliveryConfiguration?.chargePerDistance.charge ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
                         </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs font-medium">Minimum delivery charge</Label>
+                          <Input
+                            type="number"
+                            placeholder="Minimum fee"
+                            value={branch.deliveryConfiguration?.minCharge ?? ''}
+                            onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', Number(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                          <p className="text-[10px] text-muted-foreground">Applied as a floor when calculating delivery cost.</p>
+                        </div>
+                        <div className="flex flex-col gap-1 rounded-md border border-dashed bg-muted/5 p-3">
+                          <Label className="text-xs font-medium">Free delivery threshold (order subtotal)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            placeholder="e.g. 50 — leave empty to disable"
+                            value={
+                              branch.deliveryConfiguration?.freeOnAmount != null
+                                ? String(branch.deliveryConfiguration.freeOnAmount)
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                handleDeliveryConfiguration(branchIndex, 'freeOnAmount', null);
+                                return;
+                              }
+                              const n = Number(raw);
+                              handleDeliveryConfiguration(branchIndex, 'freeOnAmount', Number.isFinite(n) ? n : null);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            When the cart subtotal is <strong>≥</strong> this amount, the <strong>distance delivery fee</strong> becomes zero. Does
+                            not remove service charges (e.g. platform fees) — those are configured separately.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-sm font-semibold">Distance bands</CardTitle>
+                        <CardDescription className="text-[11px]">
+                          Optional tiers: set min/max distance, fee, and optional minimum order for each band. Bands are evaluated in order.
+                        </CardDescription>
                       </div>
-                      <div className='mb-4'>
-                        <Label className="font-bold text-xs mb-2 block">
-                          Shipment Range
-                        </Label>
-
-                        <div className="flex flex-wrap gap-3 p-2">
-                          <div className='flex flex-col gap-1'>
-                            <Label className='font-bold text-xs'>Distance</Label>
-                            <Input
-                              type="number"
-                              placeholder="Distance Value"
-                              value={branch.deliveryConfiguration?.shipmentRange.value ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-
-                          <RadioGroup
-                            value={branch.deliveryConfiguration?.shipmentRange?.metric}
-                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.metric', value)}
-                            className="flex flex-wrap gap-3"
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 shrink-0 gap-1 text-xs"
+                        onClick={() => handleAddChargeRule(branchIndex)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add band
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                      {(branch.deliveryConfiguration?.definedChargeRules?.length ?? 0) === 0 ? (
+                        <div className="rounded-md border border-dashed bg-muted/10 px-4 py-8 text-center">
+                          <p className="text-xs text-muted-foreground">
+                            No bands yet. Use “Add band” for stepped pricing (e.g. 0–3 km = $5, 3–6 km = $8).
+                          </p>
+                        </div>
+                      ) : (
+                        (branch.deliveryConfiguration?.definedChargeRules ?? []).map((chargeRule, chargeRuleIndex) => (
+                          <div
+                            key={chargeRuleIndex}
+                            className="rounded-lg border bg-card p-3 shadow-sm space-y-3"
                           >
-                            {metrics.map((metric, idx) => (
-                              <div className="flex items-center gap-2" key={idx}>
-                                <RadioGroupItem
-                                  value={metric}
-                                  id={`shipment-metric-${branchIndex}-${idx}`}
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-foreground">Band {chargeRuleIndex + 1}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 gap-1 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteChargeRule(branchIndex, chargeRuleIndex)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+                              <div className="lg:col-span-2 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground" htmlFor={`rule-min-${branchIndex}-${chargeRuleIndex}`}>
+                                  Min distance
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`rule-min-${branchIndex}-${chargeRuleIndex}`}
+                                  placeholder="Min"
+                                  value={chargeRule.minDistance.value ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].minDistance.value`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
                                 />
-                                <Label htmlFor={`shipment-metric-${branchIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
                               </div>
-                            ))}
-                          </RadioGroup>
-                        </div>
-                      </div>
-                      <div className='mb-4'>
-                        <Label className="font-bold text-xs mb-2 block">
-                          Minimum Charge
-                        </Label>
-
-                        <Input
-                          type="number"
-                          placeholder="Distance Value"
-                          value={branch.deliveryConfiguration?.minCharge ?? ''}
-                          onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', Number(e.target.value))}
-                          className="h-7 text-xs"
-                        />
-                      </div>
+                              <div className="lg:col-span-2 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground" htmlFor={`rule-max-${branchIndex}-${chargeRuleIndex}`}>
+                                  Max distance
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`rule-max-${branchIndex}-${chargeRuleIndex}`}
+                                  placeholder="Max"
+                                  value={chargeRule.maxDistance.value ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].maxDistance.value`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div className="lg:col-span-2 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground" htmlFor={`rule-charge-${branchIndex}-${chargeRuleIndex}`}>
+                                  Charge
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`rule-charge-${branchIndex}-${chargeRuleIndex}`}
+                                  placeholder="Fee"
+                                  value={chargeRule.charge ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].charge`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div className="lg:col-span-2 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground" htmlFor={`rule-order-${branchIndex}-${chargeRuleIndex}`}>
+                                  Min order amount
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`rule-order-${branchIndex}-${chargeRuleIndex}`}
+                                  placeholder="Optional"
+                                  value={chargeRule.orderAmount ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].orderAmount`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div className="lg:col-span-3 flex flex-col gap-2">
+                                <Label className="text-xs text-muted-foreground">Distance unit</Label>
+                                <RadioGroup
+                                  value={chargeRule.maxDistance.metric}
+                                  onValueChange={(value) => {
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].maxDistance.metric`,
+                                      value
+                                    );
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `definedChargeRules[${chargeRuleIndex}].minDistance.metric`,
+                                      value
+                                    );
+                                  }}
+                                  className="flex flex-wrap gap-3"
+                                >
+                                  {metrics.map((metric, idx) => (
+                                    <div className="flex items-center gap-2" key={idx}>
+                                      <RadioGroupItem
+                                        value={metric}
+                                        id={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`}
+                                      />
+                                      <Label
+                                        htmlFor={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`}
+                                        className="cursor-pointer text-xs font-normal"
+                                      >
+                                        {metric}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
                     </div>
 
-                    <div className='p-2'>
-                      <div className='mb-4'>
-                        <Label className="font-bold text-xs mb-2 block">
-                          Cash on Delivery
-                        </Label>
-                        <Checkbox
-                          checked={branch?.activeCOD}
-                          onCheckedChange={(checked) => handleCODChange(branchIndex, checked)}
-                          id={`cod-${branchIndex}`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className='space-y-4'>
-                      <div className="mb-2">
-                        <Button onClick={() => handleAddChargeRule(branchIndex)} type='button' className="h-7 text-xs">Add Charge</Button>
-                      </div>
-                      {branch.deliveryConfiguration?.definedChargeRules.map((chargeRule, chargeRuleIndex) => (
-                        <div className='grid grid-cols-1 md:grid-cols-6 gap-2 items-end' key={chargeRuleIndex}>
-                          <div>
-                            <Label htmlFor="minDistance" className="text-xs">Min Distance</Label>
-                            <Input
-                              type="number"
-                              name="minDistance"
-                              id="minDistance"
-                              placeholder="Enter Min Distance"
-                              value={chargeRule.minDistance.value ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.value`, Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="maxDistance" className="text-xs">Max Distance</Label>
-                            <Input
-                              type="number"
-                              name="maxDistance"
-                              id="maxDistance"
-                              placeholder="Enter Max Distance"
-                              value={chargeRule.maxDistance.value ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.value`, Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="charge" className="text-xs">Charge</Label>
-                            <Input
-                              type="number"
-                              name="charge"
-                              id="charge"
-                              placeholder="Enter Charge"
-                              value={chargeRule.charge ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].charge`, Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="minOrderAmount" className="text-xs">Min Order Amount</Label>
-                            <Input
-                              type="number"
-                              name="orderAmount"
-                              id="orderAmount"
-                              placeholder="Enter Min Order"
-                              value={chargeRule.orderAmount ?? ''}
-                              onChange={(e) => handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].orderAmount`, Number(e.target.value))}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="metric" className="text-xs">Metric</Label>
-                            <RadioGroup
-                              value={chargeRule.maxDistance.metric}
-                              onValueChange={(value) => {
-                                handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].maxDistance.metric`, value)
-                                handleDeliveryConfiguration(branchIndex, `definedChargeRules[${chargeRuleIndex}].minDistance.metric`, value)
-                              }}
-                              className="flex flex-col gap-2"
-                            >
-                              {metrics.map((metric, idx) => (
-                                <div className="flex items-center gap-2" key={idx}>
-                                  <RadioGroupItem
-                                    value={metric}
-                                    id={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`}
-                                  />
-                                  <Label htmlFor={`charge-rule-metric-${branchIndex}-${chargeRuleIndex}-${idx}`} className="text-xs cursor-pointer">{metric}</Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          </div>
-                          <div>
-                            <Button variant="destructive" onClick={() => handleDeleteChargeRule(branchIndex, chargeRuleIndex)} type='button' className="h-7 text-xs">Delete</Button>
-                          </div>
-                        </div>
-                      ))}
-
-                      <div className='p-2'>
-                        <Label className="font-bold text-xs mb-2 block">
-                          Delivery Tagging Mode
-                        </Label>
-                        <ShadSelect
-                          value={branch.deliveryConfiguration?.deliveryTaggingMode}
-                          onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
+                  <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72 lg:max-w-sm lg:sticky lg:top-4 lg:self-start">
+                    <Card>
+                      <CardHeader className="space-y-1 pb-2">
+                        <CardTitle className="text-sm font-semibold">At a glance</CardTitle>
+                        <CardDescription className="text-[11px]">
+                          Plain-language summary of this branch&apos;s delivery fee rules (verify before saving).
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <dl className="grid gap-2 text-xs">
+                          {deliveryPricingSummaryLines(branch.deliveryConfiguration).map((row) => (
+                            <div key={row.label} className="rounded-md border bg-muted/20 px-3 py-2">
+                              <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{row.label}</dt>
+                              <dd className="mt-0.5 font-medium text-foreground leading-snug">{row.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-dashed">
+                      <CardHeader className="space-y-1 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Receipt className="h-4 w-4" />
+                          Related settings
+                        </CardTitle>
+                        <CardDescription className="text-[11px]">Complete the delivery stack in a few clicks.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-xs">
+                        <Link
+                          to="/tookan-settings"
+                          className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"
                         >
-                          <SelectTrigger className="h-7 text-xs">
-                            <SelectValue placeholder="Select mode" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(DeliveryTaggingModeEnum).map(mode => (
-                              <SelectItem key={mode} value={mode} className="text-xs">{mode}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </ShadSelect>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                          Tookan integration
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Link>
+                        <Link
+                          to="/service-charge"
+                          className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"
+                        >
+                          Service charges &amp; platform fees
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Link>
+                        <p className="text-[10px] text-muted-foreground pt-1">
+                          Use <strong>Address</strong> for branch coordinates used in distance calculation.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </aside>
+                </div>
+                </div>
               </TabsContent>
               <TabsContent value="3">
                 <div>
@@ -1039,30 +1412,95 @@ export const Branches = () => {
                 </div>
               </TabsContent>
               <TabsContent value="5">
-                <Tabs defaultValue="converge" className='w-100'>
-                  <TabsList className="h-9">
-                    <TabsTrigger value="converge" className="text-xs h-7">Converge</TabsTrigger>
-                    <TabsTrigger value="bambora" className="text-xs h-7">Bambora</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="converge">
-                    <BranchPaymentConfig
-                      editingBranchPayments={editingBranchPayments}
-                      setEditingBranchPayments={setEditingBranchPayments}
-                      branchIndex={branchIndex}
-                      moduleCode="CONVERGE_LIGHTBOX"
-                      onPaymentConfigChange={handlePaymentConfigChange}
-                    />
-                  </TabsContent>
-                  <TabsContent value="bambora">
-                    <BranchPaymentConfig
-                      editingBranchPayments={editingBranchPayments}
-                      setEditingBranchPayments={setEditingBranchPayments}
-                      branchIndex={branchIndex}
-                      moduleCode="BAMBORA"
-                      onPaymentConfigChange={handlePaymentConfigChange}
-                    />
-                  </TabsContent>
-                </Tabs>
+                <div className="max-w-5xl space-y-4">
+                  <Card>
+                    <CardHeader className="space-y-1 pb-2">
+                      <CardTitle className="text-sm font-semibold">Branch payment methods</CardTitle>
+                      <CardDescription className="text-[11px] leading-relaxed">
+                        Control which payment types are available at this branch. Card gateways are configured below.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <label
+                        htmlFor={`cod-${branchIndex}`}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/5"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <Banknote className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium leading-none">Cash on delivery (COD)</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Delivery
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            When enabled, staff and online ordering can accept cash payment to the driver at drop-off. Works with your delivery workflow and driver tagging settings.
+                          </p>
+                        </div>
+                        <div className="shrink-0 pt-0.5">
+                          <Checkbox
+                            checked={!!branch?.activeCOD}
+                            onCheckedChange={(checked) => handleCODChange(branchIndex, checked)}
+                            id={`cod-${branchIndex}`}
+                            className="h-4 w-4"
+                            aria-describedby={`cod-help-${branchIndex}`}
+                          />
+                        </div>
+                      </label>
+                      <p id={`cod-help-${branchIndex}`} className="text-[10px] text-muted-foreground px-1">
+                        Tip: COD is independent of Converge/Bambora — it only toggles whether cash-on-delivery is allowed for this branch.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="space-y-1 border-b pb-3">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <CreditCard className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <CardTitle className="text-sm font-semibold">Card processing</CardTitle>
+                          <CardDescription className="text-[11px] leading-relaxed">
+                            Configure Converge Lightbox or Bambora credentials and options for card-present and online card payments at this branch.
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <Tabs defaultValue="converge" className="w-full">
+                        <TabsList className="mb-4 h-9 w-full justify-start sm:w-auto">
+                          <TabsTrigger value="converge" className="text-xs h-7 px-3">
+                            Converge
+                          </TabsTrigger>
+                          <TabsTrigger value="bambora" className="text-xs h-7 px-3">
+                            Bambora
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="converge" className="mt-0 rounded-md border bg-muted/10 p-3">
+                          <BranchPaymentConfig
+                            editingBranchPayments={editingBranchPayments}
+                            setEditingBranchPayments={setEditingBranchPayments}
+                            branchIndex={branchIndex}
+                            moduleCode="CONVERGE_LIGHTBOX"
+                            onPaymentConfigChange={handlePaymentConfigChange}
+                          />
+                        </TabsContent>
+                        <TabsContent value="bambora" className="mt-0 rounded-md border bg-muted/10 p-3">
+                          <BranchPaymentConfig
+                            editingBranchPayments={editingBranchPayments}
+                            setEditingBranchPayments={setEditingBranchPayments}
+                            branchIndex={branchIndex}
+                            moduleCode="BAMBORA"
+                            onPaymentConfigChange={handlePaymentConfigChange}
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
             </TabsContent>
