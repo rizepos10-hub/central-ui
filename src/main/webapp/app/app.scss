@@ -21,6 +21,8 @@
     --accent-foreground: 224.4444 64.2857% 32.9412%;
     --destructive: 0 84.2365% 60.1961%;
     --destructive-foreground: 0 0% 100%;
+    --warning: 32 95% 52%;
+    --warning-foreground: 20 90% 22%;
     --border: 220 13.0435% 90.9804%;
     --input: 220 13.0435% 70.9804%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -77,6 +79,8 @@
     --accent-foreground: 213.3333 96.9231% 87.2549%;
     --destructive: 0 84.2365% 60.1961%;
     --destructive-foreground: 0 0% 100%;
+    --warning: 33 100% 58%;
+    --warning-foreground: 34 100% 90%;
     --border: 0 0% 25.0980%;
     --input: 0 0% 25.0980%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -120,6 +124,20 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Make in-body links more discoverable without becoming too heavy. */
+  :where(p, li, td, .text-muted-foreground) a:not(.no-body-link) {
+    color: hsl(var(--primary));
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+
+  :where(p, li, td, .text-muted-foreground) a:not(.no-body-link):hover {
+    color: hsl(var(--foreground));
+    text-decoration-style: solid;
   }
 }
 
