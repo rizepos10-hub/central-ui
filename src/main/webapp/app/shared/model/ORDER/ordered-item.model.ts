@@ -6,6 +6,7 @@ import { ITaxonomy } from '../taxonomy.model';
 export interface IOrderedItem extends IOrderAudit {
   returnedAmount?: number;
   sequenceNumber?: number;
+  status?: string | null;
   itemName?: string;
   variantName?: string;
   id?: string;

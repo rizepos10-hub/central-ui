@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
 import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus } from 'lucide-react';
@@ -35,7 +35,6 @@ import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
-import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
 import { changeEntityField as changeBillEntityField } from '../bill/bill.reducer';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
@@ -45,19 +44,13 @@ import { getEntity as getUiSettings } from 'app/entities/online-ordering/setting
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
-import { getEntity as getCustomerEntity } from 'app/entities/customer/customer.reducer';
-import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
-import { getOnAccountSettings } from 'app/entities/settings/on-account/on-account-settings.reducer';
-import { getOnAccountPaymentValidation } from './order-on-account.utils';
-import { cn } from 'app/lib/utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
+import OrderPaymentDialog from './order-payment-dialog';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
-  const autoOpenPaymentHandledRef = useRef(false);
 
   const pagePrintRef = useRef(null);
 
@@ -66,9 +59,6 @@ export const OrderDetail = () => {
   const loading = useAppSelector(state => state.order.loading);
   const billEntity: IBill = useAppSelector(state => state.bill.entity);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
-  const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
-  const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
-  const onAccountSettingsLoading = useAppSelector(state => state.onAccountSettings.loading);
   const activeProviders: Array<'ICABBI' | 'TOOKAN'> = useAppSelector(state => state.delivery.activeProviders || []);
   const tookanTeams = useAppSelector(state => state.delivery.teams || []);
   const tookanAgents = useAppSelector(state => state.delivery.agents || []);
@@ -103,26 +93,7 @@ export const OrderDetail = () => {
   // Payment dialog states
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState<number>(0);
-  const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
-  const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
-  const [pendingBillCreation, setPendingBillCreation] = useState(false);
-  const paymentCustomer = customerEntity?.id && customerEntity.id === orderEntity.customer?.id ? customerEntity : null;
-  const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
-  const paymentMethodOptions = Object.values(TransactionMethodEnum).map(method => ({
-    label: formatTransactionMethodLabel(method),
-    value: method,
-  }));
-  const onAccountValidation = getOnAccountPaymentValidation({
-    customer: paymentCustomer,
-    orderBranchId: orderEntity.branchId,
-    paymentAmount,
-    onAccountBalanceType: onAccountSettings?.onAccountBalanceType,
-  });
-  const onAccountDataLoading = isOnAccountPayment && (onAccountSettingsLoading || (Boolean(orderEntity.customer?.id) && !paymentCustomer));
-  const onAccountValidationMessage = onAccountDataLoading ? 'Loading account details...' : onAccountValidation.validationMessage;
-  const canProceedWithOnAccountPayment = !isOnAccountPayment || (!onAccountDataLoading && onAccountValidation.canProceed);
-  const formatCurrencyAmount = (value?: number | null) => `$${(value ?? 0).toFixed(2)}`;
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
 
   const toDateTimeLocal = (value?: string) => {
     if (!value) return '';
@@ -203,14 +174,7 @@ export const OrderDetail = () => {
   useEffect(() => {
     dispatch(getEntity(id));
     dispatch(getUiSettings());
-    dispatch(getOnAccountSettings());
   }, [dispatch, id]);
-
-  useEffect(() => {
-    if (orderEntity.customer?.id) {
-      dispatch(getCustomerEntity(orderEntity.customer.id));
-    }
-  }, [dispatch, orderEntity.customer?.id]);
 
 
   useEffect(() => {
@@ -244,42 +208,27 @@ export const OrderDetail = () => {
     setDataTableValues(newDataTableValues);
   }, [orderEntity])
 
-  useEffect(() => {
-    autoOpenPaymentHandledRef.current = false;
-  }, [id]);
-
   const openPaymentDialog = (bill: IBill) => {
     setSelectedBillForPayment(bill);
-    // Calculate remaining balance
-    const totalPaid = bill.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
-    const remaining = (bill.total || 0) - totalPaid;
-    setPaymentAmount(Math.max(0, remaining));
-    setPaymentTipAmount(0);
-    setPaymentTransactionMethod(TransactionMethodEnum.cash);
     setShowPaymentDialog(true);
   };
 
   const handleOpenPaymentDialogOrCreateBill = async () => {
-    // Check if order has any bills
     const hasBills = filteredOrderEntity?.bills && filteredOrderEntity.bills.length > 0;
-    
+
     if (!hasBills) {
-      // Create draft bill first, then open payment dialog
       try {
-        setPendingBillCreation(true);
-        await dispatch(createDraftBill({
+        const createdBillResponse = await dispatch(createDraftBill({
           orderId: filteredOrderEntity.id,
           payee: null,
           createdBy: null,
           discount: null
         })).unwrap();
-        // The useEffect will handle opening the payment dialog when the bill is created
+        openPaymentDialog(createdBillResponse.data);
       } catch (error) {
-        setPendingBillCreation(false);
         toast.error('Failed to create draft bill');
       }
     } else {
-      // Find the first draft bill, or use the first bill
       const draftBill = filteredOrderEntity.bills.find(bill => bill.status === 'DRAFT');
       const billToUse = draftBill || filteredOrderEntity.bills[0];
       if (billToUse) {
@@ -288,60 +237,39 @@ export const OrderDetail = () => {
     }
   };
 
-  useEffect(() => {
-    const shouldAutoOpenPayment = new URLSearchParams(location.search).get('openPayment') === '1';
-    const currentOrderLoaded = String(orderEntity?.id || '') === String(id || '');
-
-    if (!shouldAutoOpenPayment || autoOpenPaymentHandledRef.current || loading || !currentOrderLoaded) {
-      return;
-    }
-
-    autoOpenPaymentHandledRef.current = true;
-    handleOpenPaymentDialogOrCreateBill();
-
-    const searchParams = new URLSearchParams(location.search);
-    searchParams.delete('openPayment');
-    navigate(
-      {
-        pathname: location.pathname,
-        search: searchParams.toString() ? `?${searchParams.toString()}` : '',
-      },
-      { replace: true }
-    );
-  }, [handleOpenPaymentDialogOrCreateBill, id, loading, location.pathname, location.search, navigate, orderEntity?.id]);
-
   const resetPaymentDialog = () => {
     setShowPaymentDialog(false);
     setSelectedBillForPayment(null);
-    setPaymentAmount(0);
-    setPaymentTipAmount(0);
-    setPaymentTransactionMethod(TransactionMethodEnum.cash);
+    setPaymentSubmitting(false);
   };
 
-  const handleAddPayment = () => {
+  const handleAddPayment = async ({
+    amount,
+    tipAmount,
+    transactionMethod,
+  }: {
+    amount: number;
+    tipAmount: number;
+    transactionMethod: string;
+  }) => {
     if (!selectedBillForPayment) return;
 
-    if (isOnAccountPayment) {
-      if (onAccountDataLoading) {
-        toast.error('Loading account details...');
-        return;
-      }
-
-      if (!onAccountValidation.canProceed) {
-        toast.error(onAccountValidation.validationMessage || 'Unable to continue with on account payment.');
-        return;
-      }
+    try {
+      setPaymentSubmitting(true);
+      await dispatch(
+        addPaymentToBill({
+          orderId: filteredOrderEntity.id,
+          billId: selectedBillForPayment.id,
+          amount,
+          tipAmount,
+          transactionMethod,
+        })
+      ).unwrap();
+      resetPaymentDialog();
+    } catch (error) {
+      setPaymentSubmitting(false);
+      toast.error('Failed to add payment');
     }
-    
-    dispatch(addPaymentToBill({
-      orderId: filteredOrderEntity.id,
-      billId: selectedBillForPayment.id,
-      amount: paymentAmount,
-      tipAmount: paymentTipAmount,
-      transactionMethod: paymentTransactionMethod
-    }));
-
-    resetPaymentDialog();
   };
 
   const changeProcessingStatusConfirm = (status: OrderStatus) => {
@@ -366,18 +294,6 @@ export const OrderDetail = () => {
     setShowProcessingConfirm(false);
     setPendingProcessingStatus(null);
   };
-
-  // Auto-open payment dialog when draft bill is created
-  useEffect(() => {
-    if (pendingBillCreation && filteredOrderEntity?.bills && filteredOrderEntity.bills.length > 0) {
-      const draftBill = filteredOrderEntity.bills.find(bill => bill.status === 'DRAFT');
-      const billToUse = draftBill || filteredOrderEntity.bills[0];
-      if (billToUse) {
-        setPendingBillCreation(false);
-        openPaymentDialog(billToUse);
-      }
-    }
-  }, [filteredOrderEntity?.bills, pendingBillCreation])
 
   const openRefundDialog = (bill: IBill) => {
     setSelectedBillForRefund(bill);
@@ -1115,146 +1031,28 @@ export const OrderDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Dialog */}
-      <Dialog
+      <OrderPaymentDialog
         open={showPaymentDialog}
         onOpenChange={open => {
           if (!open) {
             resetPaymentDialog();
           }
         }}
-      >
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Add Payment to Bill #{selectedBillForPayment?.sequenceNumber}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {selectedBillForPayment && (() => {
-              const totalPaid = selectedBillForPayment.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
-              const remaining = (selectedBillForPayment.total || 0) - totalPaid;
-              return (
-                <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Payment Method</div>
-                    <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-lg border bg-muted/20 p-2">
-                      {paymentMethodOptions.map(method => (
-                        <button
-                          key={method.value}
-                          type="button"
-                          className={cn(
-                            'w-full rounded-md border px-3 py-3 text-left text-sm transition-colors',
-                            paymentTransactionMethod === method.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-border bg-background hover:bg-muted'
-                          )}
-                          onClick={() => setPaymentTransactionMethod(method.value)}
-                        >
-                          {method.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-muted-foreground">Bill Total:</span>
-                        <span className="font-semibold">${(selectedBillForPayment.total || 0).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-muted-foreground">Total Paid:</span>
-                        <span className="font-semibold">${totalPaid.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t">
-                        <span className="font-semibold">Remaining:</span>
-                        <span className="font-bold text-lg">${remaining.toFixed(2)}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Payment Amount</label>
-                      <Input
-                        type="number"
-                        value={paymentAmount}
-                        onChange={(e) => setPaymentAmount(Math.max(0, Number(e.target.value)))}
-                        min={0}
-                        step={0.01}
-                        max={remaining}
-                        className="h-9"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Tip Amount (Optional)</label>
-                      <Input
-                        type="number"
-                        value={paymentTipAmount}
-                        onChange={(e) => setPaymentTipAmount(Math.max(0, Number(e.target.value)))}
-                        min={0}
-                        step={0.01}
-                        className="h-9"
-                      />
-                    </div>
-                    {isOnAccountPayment && (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-sm space-y-2">
-                        <div className="font-medium text-amber-950">On Account Validation</div>
-                        {onAccountDataLoading ? (
-                          <div className="text-xs text-amber-800">Loading account details...</div>
-                        ) : (
-                          <>
-                            <div className="flex justify-between gap-3">
-                              <span className="text-muted-foreground">Account Balance</span>
-                              <span className="font-semibold">{formatCurrencyAmount(onAccountValidation.accountBalance)}</span>
-                            </div>
-                            <div className="flex justify-between gap-3">
-                              <span className="text-muted-foreground">Account Limit</span>
-                              <span className="font-semibold">{formatCurrencyAmount(onAccountValidation.accountLimit)}</span>
-                            </div>
-                            <div className="flex justify-between gap-3">
-                              <span className="text-muted-foreground">Account Remaining</span>
-                              <span className={`font-semibold ${onAccountValidation.accountRemaining >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>
-                                {formatCurrencyAmount(onAccountValidation.accountRemaining)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between gap-3 border-t border-amber-200 pt-2">
-                              <span className="font-medium">Balance After Payment</span>
-                              <span className={`font-semibold ${onAccountValidation.canProceed ? 'text-emerald-700' : 'text-destructive'}`}>
-                                {formatCurrencyAmount(onAccountValidation.accountBalanceAfterPayment)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between gap-3">
-                              <span className="font-medium">Remaining After Payment</span>
-                              <span className={`font-semibold ${onAccountValidation.accountRemainingAfterPayment >= 0 ? 'text-emerald-700' : 'text-destructive'}`}>
-                                {formatCurrencyAmount(onAccountValidation.accountRemainingAfterPayment)}
-                              </span>
-                            </div>
-                            {onAccountValidationMessage && (
-                              <div className="text-xs font-medium text-destructive">{onAccountValidationMessage}</div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={resetPaymentDialog}
-              className="h-8 text-xs"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddPayment}
-              disabled={!selectedBillForPayment || paymentAmount <= 0 || !canProceedWithOnAccountPayment}
-              className="h-8 text-xs"
-            >
-              Add Payment
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        title={`Add Payment to Bill #${selectedBillForPayment?.sequenceNumber ?? ''}`}
+        orderBranchId={orderEntity.branchId}
+        customerId={orderEntity.customer?.id}
+        totalAmount={selectedBillForPayment?.total ?? 0}
+        totalPaid={selectedBillForPayment?.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0}
+        defaultPaymentAmount={Math.max(
+          0,
+          (selectedBillForPayment?.total || 0) -
+            (selectedBillForPayment?.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0)
+        )}
+        submitLabel="Add Payment"
+        onSubmit={handleAddPayment}
+        submitting={paymentSubmitting}
+        submitDisabled={!selectedBillForPayment}
+      />
     </div>
   );
 };
