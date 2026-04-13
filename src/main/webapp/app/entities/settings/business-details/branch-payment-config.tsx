@@ -17,7 +17,7 @@ const CONVERGE_DEFAULT_URLS: Record<PaymentEnvironment, { apiUrl: string; lightb
     lightboxUrl: 'https://demo.convergepay.com/hosted-payments/PayWithConverge.js',
   },
   PROD: {
-    apiUrl: 'https://api.convergepay.com/hostedpayments/transactions',
+    apiUrl: 'https://api.convergepay.com/hosted-payments/transaction_token',
     lightboxUrl: 'https://www.convergepay.com/hosted-payments/PayWithConverge.js',
   },
 };
