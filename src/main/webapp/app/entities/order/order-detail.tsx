@@ -94,6 +94,7 @@ export const OrderDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const orderProviderCode = orderEntity.orderDeliveryDetails?.deliveryProviderCode as 'ICABBI' | 'TOOKAN' | undefined;
 
   const toDateTimeLocal = (value?: string) => {
     if (!value) return '';
@@ -122,24 +123,24 @@ export const OrderDetail = () => {
   useEffect(() => {
     const delivery = orderEntity.orderDeliveryDetails?.date || orderEntity.orderDeliveryDetails?.pickupDate;
     setDeliveryDateTime(toDateTimeLocal(delivery));
-    if (orderEntity.orderDeliveryDetails?.deliveryProvider) {
-      setSelectedProvider(orderEntity.orderDeliveryDetails.deliveryProvider);
+    if (orderProviderCode) {
+      setSelectedProvider(orderProviderCode);
     }
-  }, [orderEntity.orderDeliveryDetails?.date, orderEntity.orderDeliveryDetails?.pickupDate, orderEntity.orderDeliveryDetails?.deliveryProvider]);
+  }, [orderEntity.orderDeliveryDetails?.date, orderEntity.orderDeliveryDetails?.pickupDate, orderProviderCode]);
 
   useEffect(() => {
-    if (orderEntity?.id && !orderEntity.orderDeliveryDetails) {
+    if (orderEntity?.id && !orderEntity.orderDeliveryDetails && !orderProviderCode) {
       dispatch(getActiveProviders(orderEntity.id));
     }
-  }, [dispatch, orderEntity?.id, orderEntity.orderDeliveryDetails]);
+  }, [dispatch, orderEntity?.id, orderEntity.orderDeliveryDetails, orderProviderCode]);
 
   useEffect(() => {
-    if (!orderEntity.orderDeliveryDetails && activeProviders.length === 1) {
+    if (!orderEntity.orderDeliveryDetails && !orderProviderCode && activeProviders.length === 1) {
       setSelectedProvider(activeProviders[0]);
     }
-  }, [activeProviders, orderEntity.orderDeliveryDetails]);
+  }, [activeProviders, orderEntity.orderDeliveryDetails, orderProviderCode]);
 
-  const isTookanBooking = orderEntity.orderDeliveryDetails?.deliveryProvider === 'TOOKAN';
+  const isTookanBooking = orderProviderCode === 'TOOKAN';
 
   useEffect(() => {
     if (!isTookanBooking) {

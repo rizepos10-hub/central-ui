@@ -59,7 +59,7 @@ export interface IOrderDeliveryDetails {
   createDate?: string;
   date?: string;
   deliveryDetailId?: string;
-  deliveryProvider?: 'ICABBI' | 'TOOKAN';
+  deliveryProviderCode?: string;
   driverInformation?: IOrderDeliveryInformation;
   expectedArrivalAt?: string;
   integrationDetails?: IOrderIntegrationDetails;

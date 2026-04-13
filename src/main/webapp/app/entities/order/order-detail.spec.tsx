@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import OrderDetail from './order-detail';
 import * as orderReducer from './order.reducer';
+import * as deliveryReducer from './delivery.reducer';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -45,6 +46,10 @@ jest.mock('app/entities/online-ordering/settings/settings.reducer', () => ({
 
 jest.mock('app/shared/util/timezone-utils', () => ({
   formatDateForDisplay: jest.fn(() => 'Mar 30, 2026'),
+}));
+
+jest.mock('app/shared/util/date-utils', () => ({
+  toLocalISOString: jest.fn(value => (value instanceof Date ? value.toISOString() : value)),
 }));
 
 jest.mock('../bill/bill.reducer', () => ({
@@ -196,5 +201,72 @@ describe('OrderDetail payment integration', () => {
     });
 
     expect(orderReducer.createDraftBill).not.toHaveBeenCalled();
+  });
+});
+
+describe('OrderDetail delivery provider source', () => {
+  it('uses deliveryProviderCode from totals for booked Tookan orders without fetching active providers', async () => {
+    mockState.order.entity.orderDeliveryDetails = {
+      deliveryProviderCode: 'TOOKAN',
+      date: '2026-03-30T09:00:00Z',
+      integrationDetails: {
+        teamId: '11',
+        fleetId: '22',
+      },
+    };
+    mockState.delivery.activeProviders = ['ICABBI', 'TOOKAN'];
+
+    renderOrderDetail();
+
+    await waitFor(() => {
+      expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith('branch-1');
+    });
+
+    expect(deliveryReducer.getActiveProviders).not.toHaveBeenCalled();
+    expect(screen.getByText('Update Booking')).toBeTruthy();
+    expect(screen.getByText('Assign Tookan Driver')).toBeTruthy();
+  });
+
+  it('does not initialize booked orders from activeProviders when totals already has a provider', () => {
+    mockState.order.entity.orderDeliveryDetails = {
+      deliveryProviderCode: 'ICABBI',
+      date: '2026-03-30T09:00:00Z',
+    };
+    mockState.delivery.activeProviders = ['TOOKAN'];
+
+    renderOrderDetail();
+
+    expect(deliveryReducer.getActiveProviders).not.toHaveBeenCalled();
+    expect(screen.getByText('Update Booking')).toBeTruthy();
+    expect(screen.queryByLabelText('Select provider')).toBeNull();
+  });
+
+  it('keeps using activeProviders for the unbooked create-booking flow', () => {
+    mockState.delivery.activeProviders = ['ICABBI', 'TOOKAN'];
+
+    renderOrderDetail();
+
+    expect(deliveryReducer.getActiveProviders).toHaveBeenCalledWith('order-1');
+    expect(screen.getByText('Create Booking')).toBeTruthy();
+    expect(screen.getByLabelText('Select provider')).toBeTruthy();
+  });
+
+  it('auto-selects the single active provider for unbooked orders', async () => {
+    mockState.delivery.activeProviders = ['ICABBI'];
+
+    const { container } = renderOrderDetail();
+    const dateInput = container.querySelector('input[type="datetime-local"]') as HTMLInputElement;
+
+    fireEvent.change(dateInput, { target: { value: '2026-04-13T10:30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(deliveryReducer.createBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-1',
+          provider: 'ICABBI',
+        })
+      );
+    });
   });
 });
