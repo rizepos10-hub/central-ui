@@ -80,6 +80,7 @@ export interface IDeliveryConfiguration {
   freeOnAmount?: number | null;
   definedChargeRules: IChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
+  defaultBookingLeadMinutes?: number | null;
 }
 
 export enum DeliveryTaggingModeEnum {
