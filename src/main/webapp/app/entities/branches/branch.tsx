@@ -396,6 +396,7 @@ export const Branches = () => {
     freeOnAmount: null,
     definedChargeRules: [],
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
+    defaultBookingLeadMinutes: null,
   });
 
   const handleDeliveryConfiguration = (branchIndex, field, value) => {
@@ -1008,6 +1009,31 @@ export const Branches = () => {
                             className="h-8 text-xs"
                           />
                           <p className="text-[10px] text-muted-foreground">Applied as a floor when calculating delivery cost.</p>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-xs font-medium">Default booking lead minutes</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            placeholder="e.g. 15"
+                            value={
+                              branch.deliveryConfiguration?.defaultBookingLeadMinutes != null
+                                ? String(branch.deliveryConfiguration.defaultBookingLeadMinutes)
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', null);
+                                return;
+                              }
+                              handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', Number(raw));
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            Leave empty to keep this unset, or provide the default lead time in minutes for branch bookings.
+                          </p>
                         </div>
                         <div className="flex flex-col gap-1 rounded-md border border-dashed bg-muted/5 p-3">
                           <Label className="text-xs font-medium">Free delivery threshold (order subtotal)</Label>
