@@ -8,7 +8,6 @@ import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { getEntity as getOrder } from './order.reducer';
 
 type DeliveryState = EntityState<IDeliveryBooking> & {
-    activeProviders: Array<'ICABBI' | 'TOOKAN'>;
     teams: any[];
     agents: any[];
 };
@@ -21,7 +20,6 @@ const initialState: DeliveryState = {
     updating: false,
     updateSuccess: false,
     orderSources: [],
-    activeProviders: [],
     teams: [],
     agents: [],
 };
@@ -68,15 +66,6 @@ export const cancelBooking = createAsyncThunk(
     async (entity: IOrder, thunkAPI) => {
         const result = await axios.post<IOrder>(`${apiUrl}/cancel-booking/${entity.id}`);
         thunkAPI.dispatch(getOrder(entity.id));
-        return result;
-    },
-    { serializeError: serializeAxiosError }
-);
-
-export const getActiveProviders = createAsyncThunk(
-    'order/getActiveProviders',
-    async (orderId: string) => {
-        const result = await axios.get<Array<'ICABBI' | 'TOOKAN'>>(`${apiUrl}/providers/${orderId}`);
         return result;
     },
     { serializeError: serializeAxiosError }
@@ -151,10 +140,6 @@ export const DeliverySlice = createEntitySlice({
                 state.updateSuccess = true;
                 state.entity = {};
             })
-            .addCase(getActiveProviders.fulfilled, (state, action) => {
-                state.loading = false;
-                state.activeProviders = action.payload.data ?? [];
-            })
             .addCase(getTookanTeams.fulfilled, (state, action) => {
                 state.loading = false;
                 state.teams = action.payload.data ?? [];
@@ -174,7 +159,7 @@ export const DeliverySlice = createEntitySlice({
                 state.updateSuccess = false;
                 state.updating = true;
             })
-            .addMatcher(isPending(getActiveProviders, getTookanTeams, getTookanAgents), state => {
+            .addMatcher(isPending(getTookanTeams, getTookanAgents), state => {
                 state.errorMessage = null;
                 state.loading = true;
             });

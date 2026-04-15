@@ -38,7 +38,7 @@ import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { changeEntityField as changeBillEntityField } from '../bill/bill.reducer';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
-import { assignDriver, cancelBooking, createBooking, getActiveProviders, getTookanAgents, getTookanTeams, syncBooking, updateBooking } from './delivery.reducer';
+import { assignDriver, cancelBooking, createBooking, getTookanAgents, getTookanTeams, syncBooking, updateBooking } from './delivery.reducer';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -59,7 +59,6 @@ export const OrderDetail = () => {
   const loading = useAppSelector(state => state.order.loading);
   const billEntity: IBill = useAppSelector(state => state.bill.entity);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
-  const activeProviders: Array<'ICABBI' | 'TOOKAN'> = useAppSelector(state => state.delivery.activeProviders || []);
   const tookanTeams = useAppSelector(state => state.delivery.teams || []);
   const tookanAgents = useAppSelector(state => state.delivery.agents || []);
 
@@ -75,7 +74,6 @@ export const OrderDetail = () => {
     return Storage.local.get(tokenKey) || Storage.session.get(tokenKey);
   };
   const [deliveryDateTime, setDeliveryDateTime] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<'ICABBI' | 'TOOKAN' | undefined>(undefined);
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined);
   const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(undefined);
 
@@ -123,22 +121,7 @@ export const OrderDetail = () => {
   useEffect(() => {
     const delivery = orderEntity.orderDeliveryDetails?.date || orderEntity.orderDeliveryDetails?.pickupDate;
     setDeliveryDateTime(toDateTimeLocal(delivery));
-    if (orderProviderCode) {
-      setSelectedProvider(orderProviderCode);
-    }
-  }, [orderEntity.orderDeliveryDetails?.date, orderEntity.orderDeliveryDetails?.pickupDate, orderProviderCode]);
-
-  useEffect(() => {
-    if (orderEntity?.id && !orderEntity.orderDeliveryDetails && !orderProviderCode) {
-      dispatch(getActiveProviders(orderEntity.id));
-    }
-  }, [dispatch, orderEntity?.id, orderEntity.orderDeliveryDetails, orderProviderCode]);
-
-  useEffect(() => {
-    if (!orderEntity.orderDeliveryDetails && !orderProviderCode && activeProviders.length === 1) {
-      setSelectedProvider(activeProviders[0]);
-    }
-  }, [activeProviders, orderEntity.orderDeliveryDetails, orderProviderCode]);
+  }, [orderEntity.orderDeliveryDetails?.date, orderEntity.orderDeliveryDetails?.pickupDate]);
 
   const isTookanBooking = orderProviderCode === 'TOOKAN';
 
@@ -626,20 +609,6 @@ export const OrderDetail = () => {
                       <CardTitle>Create Booking</CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-3 text-xs">
-                      {activeProviders.length > 1 && (
-                        <div className="flex flex-col gap-1">
-                          <label className="font-medium">Provider</label>
-                          <Select
-                            options={activeProviders.map(provider => ({
-                              label: provider,
-                              value: provider,
-                            }))}
-                            value={selectedProvider ? { label: selectedProvider, value: selectedProvider } : null}
-                            onChange={(option: any) => setSelectedProvider(option?.value)}
-                            placeholder="Select provider"
-                          />
-                        </div>
-                      )}
                       <div className="flex flex-col gap-1">
                         <label className="font-medium">Delivery Time</label>
                         <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="h-8 text-xs" />
@@ -647,16 +616,15 @@ export const OrderDetail = () => {
                       <Button
                         type="button"
                         className="h-8 text-xs"
-                        disabled={!deliveryDateTime || (activeProviders.length > 1 && !selectedProvider)}
+                        disabled={!deliveryDateTime}
                         onClick={() => {
                           dispatch(createBooking({
                             orderId: orderEntity.id || '',
                             date: toServerDateTime(deliveryDateTime),
-                            provider: selectedProvider,
                           }))
                         }}
                       >
-                        Create
+                        Create Booking
                       </Button>
                     </CardContent>
                   </Card>

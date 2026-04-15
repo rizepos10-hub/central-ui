@@ -33,7 +33,6 @@ jest.mock('./delivery.reducer', () => ({
   assignDriver: jest.fn(payload => ({ type: 'delivery/assign_driver', payload })),
   cancelBooking: jest.fn(payload => ({ type: 'delivery/cancel_booking', payload })),
   createBooking: jest.fn(payload => ({ type: 'delivery/create_booking', payload })),
-  getActiveProviders: jest.fn(payload => ({ type: 'delivery/get_active_providers', payload })),
   getTookanAgents: jest.fn(payload => ({ type: 'delivery/get_tookan_agents', payload })),
   getTookanTeams: jest.fn(payload => ({ type: 'delivery/get_tookan_teams', payload })),
   syncBooking: jest.fn(payload => ({ type: 'delivery/sync_booking', payload })),
@@ -114,7 +113,6 @@ beforeEach(() => {
       entity: {},
     },
     delivery: {
-      activeProviders: [],
       teams: [],
       agents: [],
     },
@@ -205,7 +203,7 @@ describe('OrderDetail payment integration', () => {
 });
 
 describe('OrderDetail delivery provider source', () => {
-  it('uses deliveryProviderCode from totals for booked Tookan orders without fetching active providers', async () => {
+  it('uses deliveryProviderCode from totals for booked Tookan orders', async () => {
     mockState.order.entity.orderDeliveryDetails = {
       deliveryProviderCode: 'TOOKAN',
       date: '2026-03-30T09:00:00Z',
@@ -214,7 +212,6 @@ describe('OrderDetail delivery provider source', () => {
         fleetId: '22',
       },
     };
-    mockState.delivery.activeProviders = ['ICABBI', 'TOOKAN'];
 
     renderOrderDetail();
 
@@ -222,49 +219,44 @@ describe('OrderDetail delivery provider source', () => {
       expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith('branch-1');
     });
 
-    expect(deliveryReducer.getActiveProviders).not.toHaveBeenCalled();
     expect(screen.getByText('Update Booking')).toBeTruthy();
     expect(screen.getByText('Assign Tookan Driver')).toBeTruthy();
   });
 
-  it('does not initialize booked orders from activeProviders when totals already has a provider', () => {
+  it('does not show provider selection for booked orders', () => {
     mockState.order.entity.orderDeliveryDetails = {
       deliveryProviderCode: 'ICABBI',
       date: '2026-03-30T09:00:00Z',
     };
-    mockState.delivery.activeProviders = ['TOOKAN'];
 
     renderOrderDetail();
 
-    expect(deliveryReducer.getActiveProviders).not.toHaveBeenCalled();
     expect(screen.getByText('Update Booking')).toBeTruthy();
     expect(screen.queryByLabelText('Select provider')).toBeNull();
   });
 
-  it('keeps using activeProviders for the unbooked create-booking flow', () => {
-    mockState.delivery.activeProviders = ['ICABBI', 'TOOKAN'];
-
+  it('shows create-booking flow without provider selection for unbooked orders', () => {
     renderOrderDetail();
 
-    expect(deliveryReducer.getActiveProviders).toHaveBeenCalledWith('order-1');
     expect(screen.getByText('Create Booking')).toBeTruthy();
-    expect(screen.getByLabelText('Select provider')).toBeTruthy();
+    expect(screen.queryByLabelText('Select provider')).toBeNull();
   });
 
-  it('auto-selects the single active provider for unbooked orders', async () => {
-    mockState.delivery.activeProviders = ['ICABBI'];
-
+  it('creates a booking without a provider for unbooked orders', async () => {
     const { container } = renderOrderDetail();
-    const dateInput = container.querySelector('input[type="datetime-local"]') as HTMLInputElement;
+    const dateInput = container.querySelector<HTMLInputElement>('input[type="datetime-local"]');
+
+    if (!dateInput) {
+      throw new Error('Expected delivery datetime input to be rendered');
+    }
 
     fireEvent.change(dateInput, { target: { value: '2026-04-13T10:30' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create Booking' }));
 
     await waitFor(() => {
       expect(deliveryReducer.createBooking).toHaveBeenCalledWith(
         expect.objectContaining({
           orderId: 'order-1',
-          provider: 'ICABBI',
         })
       );
     });
