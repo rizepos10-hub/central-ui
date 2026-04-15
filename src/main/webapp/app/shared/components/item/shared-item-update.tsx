@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -38,9 +39,21 @@ type SharedItemProps = {
   defaultPrice?: number;
   setDefaultPrice?: (price: number) => void;
   showFormErrors?: boolean;
+  /** When true (retail product screen only), wrap fields in titled cards for clearer hierarchy. */
+  groupedSections?: boolean;
+  /** Retail product (simple or variable): catalog images are shown in the product page sidebar instead of this block. */
+  hideCatalogImages?: boolean;
 };
 
-export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefaultPrice, showFormErrors }: SharedItemProps) => {
+export const SharedItemUpdate = ({
+  item,
+  onFieldChange,
+  defaultPrice,
+  setDefaultPrice,
+  showFormErrors,
+  groupedSections = false,
+  hideCatalogImages = false,
+}: SharedItemProps) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
@@ -151,232 +164,293 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
     }
   }, [isRestaurantItem, isRetailItem, isVariableItem]);
 
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-xs font-semibold">
-            <Translate contentKey={'items.update.name'}>Name</Translate>
-          </Label>
-          <Input
-            type="text"
-            name="name"
-            id="name"
-            required={true}
-            placeholder={translate('items.update.placeholders.itemName')}
-            value={item.name || ''}
-            onChange={e => onFieldChange('name', e.target.value)}
-            className={`h-8 text-xs ${showFormErrors && !item.name ? 'border-destructive' : ''}`}
-          />
-        </div>
+  const useRetailSections = groupedSections && isRetailItem;
 
-        {!item.askForPrice && !isPredefinedPizza && !isComboItem && (
-          <div className="space-y-2">
-            <Label htmlFor="price" className="text-xs font-semibold">
-              {isRetailVariable ? 'Default Price' : 'Price'}
-            </Label>
-            <Input
-              type="number"
-              name="price"
-              id="price"
-              required={true}
-              min={0}
-              step={0.01}
-              placeholder={translate('items.update.placeholders.itemPrice')}
-              value={defaultPrice ?? ''}
-              onChange={e => {
-                console.log(e.target.value)
-                setDefaultPrice(parseFloat(e.target.value) ?? 0);
-              }}
-              className={`h-8 text-xs ${showFormErrors && !item?.variants?.[0]?.price ? 'border-destructive' : ''}`}
-            />
-          </div>
-        )}
+  const section = (title: string, description: string | undefined, body: React.ReactNode) => {
+    if (!useRetailSections) {
+      return body;
+    }
+    return (
+      <Card className="shadow-sm border-border/80">
+        <CardHeader className="pb-2 space-y-1">
+          <CardTitle className="text-lg font-semibold tracking-tight text-foreground">{title}</CardTitle>
+          {description ? <CardDescription className="text-xs">{description}</CardDescription> : null}
+        </CardHeader>
+        <CardContent className="space-y-3 pt-0">{body}</CardContent>
+      </Card>
+    );
+  };
 
-        {(item?.itemVariantType === ItemVariantType.RETAIL_SIMPLE || item?.itemVariantType === ItemVariantType.RESTAURANT_VARIABLE) && (
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold">
-              <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
-            </Label>
-            <div className="flex items-center">
-              <Checkbox
-                checked={item?.askForPrice || false}
-                onCheckedChange={(checked) => onFieldChange('askForPrice', checked)}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
+  const namePriceRow = (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
-        <Label htmlFor="desc" className="text-xs font-semibold">
-          <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+        <Label htmlFor="name" className="text-xs font-semibold">
+          <Translate contentKey={'items.update.name'}>Name</Translate>
         </Label>
-        <Textarea
-          name="desc"
-          id="desc"
-          placeholder={translate('items.update.placeholders.shortDescription')}
-          value={item.desc || ''}
-          onChange={e => onFieldChange('desc', e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              e.stopPropagation();
-            }
-          }}
-          rows={5}
-          className="text-xs"
+        <Input
+          type="text"
+          name="name"
+          id="name"
+          required={true}
+          placeholder={translate('items.update.placeholders.itemName')}
+          value={item.name || ''}
+          onChange={e => onFieldChange('name', e.target.value)}
+          className={`h-8 text-xs ${showFormErrors && !item.name ? 'border-destructive' : ''}`}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {!item.askForPrice && !isPredefinedPizza && !isComboItem && (
         <div className="space-y-2">
-          <Label className="text-xs font-semibold">
-            <Translate contentKey="items.update.productionCenter">Production Center</Translate>
+          <Label htmlFor="price" className="text-xs font-semibold">
+            {isRetailVariable ? 'Default Price' : 'Price'}
           </Label>
-          <Select
-            value={item?.productionCenter || null}
-            options={productionCenterOptions}
-            isClearable
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
-            onMenuOpen={() => {
-              dispatch(
-                getProductionCenters({
-                  page: paginationState.activePage - 1,
-                  size: paginationState.itemsPerPage,
-                  sort: `${paginationState.sort},${paginationState.order}`,
-                })
-              );
+          <Input
+            type="number"
+            name="price"
+            id="price"
+            required={true}
+            min={0}
+            step={0.01}
+            placeholder={translate('items.update.placeholders.itemPrice')}
+            value={defaultPrice ?? ''}
+            onChange={e => {
+              console.log(e.target.value)
+              setDefaultPrice(parseFloat(e.target.value) ?? 0);
             }}
+            className={`h-8 text-xs ${showFormErrors && !item?.variants?.[0]?.price ? 'border-destructive' : ''}`}
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold">
-            <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
-          </Label>
-          <Select
-            value={item?.accountingGroups || []}
-            isClearable
-            options={profileGroupsOptions}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
-            onMenuOpen={() => {
-              dispatch(
-                getProfileGroups({
-                  page: paginationState.activePage - 1,
-                  size: paginationState.itemsPerPage,
-                  sort: `${paginationState.sort},${paginationState.order}`,
-                })
-              );
-            }}
-          />
-        </div>
-
-        {isVariableItem ? (
-          <div>
-            <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold">
-            <Translate contentKey="items.update.categories">Categories</Translate>
-          </Label>
-          <Select
-            value={item?.categories || []}
-            isMulti={true}
-            options={itemCategoriesOptions}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
-            onMenuOpen={() => {
-              if (isRestaurantItem) {
-                dispatch(
-                  getRestaurantItemCategories({
-                    page: paginationState.activePage - 1,
-                    size: paginationState.itemsPerPage,
-                    sort: `${paginationState.sort},${paginationState.order}`,
-                  })
-                )
-              } else {
-                dispatch(
-                  getRetailItemCategories({
-                    page: paginationState.activePage - 1,
-                    size: paginationState.itemsPerPage,
-                    sort: `${paginationState.sort},${paginationState.order}`,
-                  })
-                )
-              }
-            }}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold">
-            <Translate contentKey="items.update.tags">Tags</Translate>
-          </Label>
-          <Select
-            value={item?.tags || []}
-            isMulti={true}
-            options={tags}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            onChange={selectedTags => onFieldChange('tags', selectedTags)}
-            onMenuOpen={() => {
-              dispatch(
-                getTags({
-                  page: paginationState.activePage - 1,
-                  size: paginationState.itemsPerPage,
-                  sort: `${paginationState.sort},${paginationState.order}`,
-                })
-              );
-            }}
-          />
-        </div>
-      </div>
-
-      {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && item?.variants?.length === 1 && (
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold">
-            <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
-          </Label>
-          <div className="flex items-center">
-            <Checkbox checked={item?.byWeight ? true : false} onCheckedChange={checked => onFieldChange('byWeight', checked)} />
-          </div>
         </div>
       )}
 
-      {isRetailItem ? (
-        <div className="space-y-2 md:w-1/2">
+      {(item?.itemVariantType === ItemVariantType.RETAIL_SIMPLE || item?.itemVariantType === ItemVariantType.RESTAURANT_VARIABLE) && (
+        <div className="space-y-2 md:col-span-2">
           <Label className="text-xs font-semibold">
-            <Translate contentKey="items.update.brand">brand</Translate>
+            <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
           </Label>
-          <Select
-            value={item?.brand || null}
-            isClearable
-            options={brands}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            onChange={brand => onFieldChange('brand', brand)}
-          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={item?.askForPrice || false}
+              onCheckedChange={(checked) => onFieldChange('askForPrice', checked)}
+            />
+          </div>
+          {useRetailSections && isRetailItem && (
+            <p className="text-xs text-muted-foreground max-w-xl">
+              When enabled, the item has no fixed list price at POS; staff can enter or quote a price at sale. Item type stays simple while this is on.
+            </p>
+          )}
         </div>
-      ) : null}
+      )}
+    </div>
+  );
+
+  const shortDescriptionBlock = (
+    <div className="space-y-2">
+      <Label htmlFor="desc" className="text-xs font-semibold">
+        <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+      </Label>
+      <Textarea
+        name="desc"
+        id="desc"
+        placeholder={translate('items.update.placeholders.shortDescription')}
+        value={item.desc || ''}
+        onChange={e => onFieldChange('desc', e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.stopPropagation();
+          }
+        }}
+        rows={5}
+        className="text-xs"
+      />
+    </div>
+  );
+
+  const productionProfileRow = (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">
+          <Translate contentKey="items.update.productionCenter">Production Center</Translate>
+        </Label>
+        <Select
+          value={item?.productionCenter || null}
+          options={productionCenterOptions}
+          isClearable
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
+          onMenuOpen={() => {
+            dispatch(
+              getProductionCenters({
+                page: paginationState.activePage - 1,
+                size: paginationState.itemsPerPage,
+                sort: `${paginationState.sort},${paginationState.order}`,
+              })
+            );
+          }}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label className="text-xs font-semibold">
-          <Translate contentKey={'items.update.image'}>Image</Translate>
+          <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
         </Label>
-        <MediaLibrary
-          multiSelect={true}
-          handleFilesSelectCallback={files => addImage(files)}
-          defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+        <Select
+          value={item?.accountingGroups || []}
+          isClearable
+          options={profileGroupsOptions}
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
+          onMenuOpen={() => {
+            dispatch(
+              getProfileGroups({
+                page: paginationState.activePage - 1,
+                size: paginationState.itemsPerPage,
+                sort: `${paginationState.sort},${paginationState.order}`,
+              })
+            );
+          }}
         />
       </div>
+
+      {isVariableItem ? (
+        <div>
+          <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const categoriesTagsRow = (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">
+          <Translate contentKey="items.update.categories">Categories</Translate>
+        </Label>
+        <Select
+          value={item?.categories || []}
+          isMulti={true}
+          options={itemCategoriesOptions}
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
+          onMenuOpen={() => {
+            if (isRestaurantItem) {
+              dispatch(
+                getRestaurantItemCategories({
+                  page: paginationState.activePage - 1,
+                  size: paginationState.itemsPerPage,
+                  sort: `${paginationState.sort},${paginationState.order}`,
+                })
+              )
+            } else {
+              dispatch(
+                getRetailItemCategories({
+                  page: paginationState.activePage - 1,
+                  size: paginationState.itemsPerPage,
+                  sort: `${paginationState.sort},${paginationState.order}`,
+                })
+              )
+            }
+          }}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">
+          <Translate contentKey="items.update.tags">Tags</Translate>
+        </Label>
+        <Select
+          value={item?.tags || []}
+          isMulti={true}
+          options={tags}
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.id}
+          onChange={selectedTags => onFieldChange('tags', selectedTags)}
+          onMenuOpen={() => {
+            dispatch(
+              getTags({
+                page: paginationState.activePage - 1,
+                size: paginationState.itemsPerPage,
+                sort: `${paginationState.sort},${paginationState.order}`,
+              })
+            );
+          }}
+        />
+      </div>
+    </div>
+  );
+
+  const byWeightBlock =
+    item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && item?.variants?.length === 1 ? (
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">
+          <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
+        </Label>
+        <div className="flex items-center">
+          <Checkbox checked={item?.byWeight ? true : false} onCheckedChange={checked => onFieldChange('byWeight', checked)} />
+        </div>
+      </div>
+    ) : null;
+
+  const brandBlock = isRetailItem ? (
+    <div className="space-y-2 md:w-1/2">
+      <Label className="text-xs font-semibold">
+        <Translate contentKey="items.update.brand">brand</Translate>
+      </Label>
+      <Select
+        value={item?.brand || null}
+        isClearable
+        options={brands}
+        getOptionLabel={option => option.name}
+        getOptionValue={option => option.id}
+        onChange={brand => onFieldChange('brand', brand)}
+      />
+    </div>
+  ) : null;
+
+  const imageBlock = (
+    <div className="space-y-2">
+      <Label className="text-xs font-semibold">
+        <Translate contentKey={'items.update.image'}>Image</Translate>
+      </Label>
+      <MediaLibrary
+        multiSelect={true}
+        handleFilesSelectCallback={files => addImage(files)}
+        defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+      />
+    </div>
+  );
+
+  const retailOptionsBody = (
+    <>
+      {byWeightBlock}
+      {brandBlock}
+    </>
+  );
+
+  return (
+    <div className={useRetailSections ? 'space-y-4' : 'space-y-4'}>
+      {section(
+        'Name & pricing',
+        'Required selling identity and default list price (when not asking for price at POS).',
+        namePriceRow
+      )}
+      {section('Store listing text', 'Shown in menus and online where a short blurb is used.', shortDescriptionBlock)}
+      {section(
+        'Kitchen & reporting',
+        'Production routing and default profile group for this product.',
+        productionProfileRow
+      )}
+      {section('Categories & tags', 'How the item is found, filtered, and grouped in reports.', categoriesTagsRow)}
+      {useRetailSections
+        ? byWeightBlock || brandBlock
+          ? section('Product options', 'Weight-based sale and brand.', retailOptionsBody)
+          : null
+        : retailOptionsBody}
+      {!hideCatalogImages
+        ? section('Catalog images', 'Main product photos for this item (not variant-specific images).', imageBlock)
+        : null}
     </div>
   );
 };

@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
 import { Loader2, Save, RotateCw } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { updateEntity, createEntity, getEntities, reset } from './business-detail.reducer';
-import { uploadImage } from 'app/entities/attachment/attachment.reducer';
+import { updateEntity, createEntity, getEntities } from './business-detail.reducer';
 import { updateSetupStatus } from 'app/entities/settings/guided-tour/guided-tour.reducer';
-import { IBusinessDetail, Metric } from "app/shared/model/business-detail.model";
-import _ from 'lodash';
+import { IBusinessDetail } from "app/shared/model/business-detail.model";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Button } from '@/components/ui/button';
@@ -20,8 +17,6 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
-
-  const navigate = useNavigate();
 
 
   const businessDetailEntities = useAppSelector(state => state.businessDetail.entities);
@@ -52,37 +47,13 @@ export const BusinessDetailUpdate = () => {
 
   const [selectedAttachments, setSelectedAttachments]: any = useState(null)
 
-
-  const [editingBranchPayments, setEditingBranchPayments] = useState(null);
-  const [editPaymentIndex, setEditingPaymentIndex] = useState(null);
-
-
-  const showDialog = (branch, index) => {
-    setEditingBranchPayments(branch.paymentConfigurations)
-    setEditingPaymentIndex(index)
-  }
-
-  const hideDialog = () => {
-    setEditingBranchPayments(null)
-  }
-
-  const handleClose = () => {
-    navigate(-1);
-  };
-
   const handleResetTour = () => {
     dispatch(updateSetupStatus(false));
   };
 
   useEffect(() => {
-    if (isNew) {
-      dispatch(reset());
-    } else {
-      dispatch(getEntities({}))
-    }
-    dispatch(getEntities({}))
-   
-  }, [updateSuccess]);
+    dispatch(getEntities({}));
+  }, [dispatch, updateSuccess]);
 
   useEffect(() => {
     if (businessDetailEntity?.logo) {
@@ -93,7 +64,7 @@ export const BusinessDetailUpdate = () => {
 
 
 
-  const saveEntity = () => {
+  const saveEntity = async () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
       ...businessDetailsState,
@@ -112,9 +83,9 @@ export const BusinessDetailUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      await dispatch(createEntity(entity));
     } else {
-      dispatch(updateEntity(entity));
+      await dispatch(updateEntity(entity));
     }
   };
 

@@ -4,7 +4,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Soft canvas (not pure white) — easier on the eyes; cards stay near-white for contrast */
+    --background: 220 16% 96%;
     --foreground: 0 0% 20%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 20%;
@@ -14,12 +15,14 @@
     --primary-foreground: 0 0% 100%;
     --secondary: 220.0000 14.2857% 95.8824%;
     --secondary-foreground: 215 13.7931% 34.1176%;
-    --muted: 210 20.0000% 98.0392%;
+    --muted: 220 14% 93%;
     --muted-foreground: 220 8.9362% 46.0784%;
     --accent: 204.0000 93.7500% 93.7255%;
     --accent-foreground: 224.4444 64.2857% 32.9412%;
     --destructive: 0 84.2365% 60.1961%;
     --destructive-foreground: 0 0% 100%;
+    --warning: 32 95% 52%;
+    --warning-foreground: 20 90% 22%;
     --border: 220 13.0435% 90.9804%;
     --input: 220 13.0435% 70.9804%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -28,7 +31,7 @@
     --chart-3: 224.2781 76.3265% 48.0392%;
     --chart-4: 225.9310 70.7317% 40.1961%;
     --chart-5: 224.4444 64.2857% 32.9412%;
-    --sidebar: 210 20.0000% 98.0392%;
+    --sidebar: 220 16% 97%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -56,7 +59,7 @@
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 220 16% 96%;
   }
   
   .dark {
@@ -76,6 +79,8 @@
     --accent-foreground: 213.3333 96.9231% 87.2549%;
     --destructive: 0 84.2365% 60.1961%;
     --destructive-foreground: 0 0% 100%;
+    --warning: 33 100% 58%;
+    --warning-foreground: 34 100% 90%;
     --border: 0 0% 25.0980%;
     --input: 0 0% 25.0980%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -119,6 +124,20 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Make in-body links more discoverable without becoming too heavy. */
+  :where(p, li, td, .text-muted-foreground) a:not(.no-body-link) {
+    color: hsl(var(--primary));
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+
+  :where(p, li, td, .text-muted-foreground) a:not(.no-body-link):hover {
+    color: hsl(var(--foreground));
+    text-decoration-style: solid;
   }
 }
 

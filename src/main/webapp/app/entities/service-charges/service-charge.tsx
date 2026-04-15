@@ -28,6 +28,7 @@ import { FilterMatchMode } from 'primereact/api';
 import { Pencil, Trash2, RefreshCw, Plus, Filter, Loader2 } from 'lucide-react';
 import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const initialServiceChargeFilterState = {
   first: 0,
@@ -124,6 +125,8 @@ export const ServiceCharge = () => {
     switch (key) {
       case ServiceChargeKey.SHIPPING_FEE:
         return "Shipping Fee";
+      case ServiceChargeKey.PLATFORM_FEE:
+        return "Platform fee";
       case ServiceChargeKey.WRAPPING_FEE:
         return "Wrapping Fee";
       case ServiceChargeKey.GRATUITY:
@@ -188,6 +191,32 @@ export const ServiceCharge = () => {
       ?.replace(/([a-z])([A-Z])/g, '$1 $2')
       ?.replace(/_/g, ' ')
       ?.replace(/\b\w/g, char => char.toUpperCase()) || method;
+
+  const formatConditionalPlatformFeeSummary = (charge: IServiceCharge) => {
+    const cfg = charge?.setting?.chargeCalculationSetting;
+    if (!cfg) return null;
+    const parts: string[] = [];
+    const percent = cfg.percentageOnCondition?.percentCharge;
+    const max = cfg.percentageOnCondition?.maxCharge;
+    const flat = cfg.flatOnCondition?.amountCharge;
+    const op = cfg.flatOnCondition?.subtotalCondition?.comparisonOperator;
+    const subTotal = cfg.flatOnCondition?.subtotalCondition?.subTotal;
+
+    if (percent !== undefined && percent !== null) {
+      parts.push(`${percent}%`);
+    }
+    if (max !== undefined && max !== null) {
+      parts.push(`max fee ${max}`);
+    }
+    if (flat !== undefined && flat !== null) {
+      if (op && subTotal !== undefined && subTotal !== null) {
+        parts.push(`flat ${flat} if subtotal ${op} ${subTotal}`);
+      } else {
+        parts.push(`flat ${flat}`);
+      }
+    }
+    return parts.length > 0 ? parts.join(', ') : null;
+  };
 
   const serviceChargeKeyOptions = Object.keys(ServiceChargeKey).map(key => ({
     label: formatServiceChargeKey(ServiceChargeKey[key]),
@@ -296,6 +325,16 @@ export const ServiceCharge = () => {
 
   return (
     <PageWrapper>
+      <Alert className="mb-3 border-muted bg-muted/20">
+        <AlertDescription className="text-xs leading-relaxed text-muted-foreground">
+          <strong>Distance delivery fees</strong> (max radius, per-km or bands, free delivery on subtotal) are configured under{' '}
+          <Link to="/branches" className="font-medium text-primary underline-offset-2 hover:underline">
+            Branches
+          </Link>{' '}
+          → <strong>Delivery pricing</strong>. Use this screen for <strong>service charges</strong> (taxes, tips, payment-method fees, and{' '}
+          <code className="rounded bg-muted px-1 py-0.5 text-[10px]">PLATFORM_FEE</code> per delivery provider).
+        </AlertDescription>
+      </Alert>
       {/* Header */}
       <div className="bg-muted/50 p-2 flex justify-between items-center">
         <h2 className="text-xl font-bold">
@@ -537,7 +576,7 @@ export const ServiceCharge = () => {
                   <TableCell className="text-xs">{nameColumnTemplate(charge)}</TableCell>
                   <TableCell className="text-xs">{charge.branches?.map(b => b?.name).join(', ') || '-'}</TableCell>
                   <TableCell className="text-xs">{formatServiceChargeWhenToApply(charge.whenToApply)}</TableCell>
-                  <TableCell className="text-xs">{charge.charge || '-'}</TableCell>
+                  <TableCell className="text-xs">{formatConditionalPlatformFeeSummary(charge) || charge.charge || '-'}</TableCell>
                   <TableCell className="text-xs">{formatServiceChargeCalculationMethod(charge.setting?.method)}</TableCell>
                   <TableCell className="text-xs">
                     {charge.setting?.applicableOn?.orderMethods?.map(om => formatServiceChargeOrderMethod(om)).join(', ') || '-'}

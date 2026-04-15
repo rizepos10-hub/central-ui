@@ -1,16 +1,16 @@
 // DynamicEndOfDayReportUI.tsx
 import React, { useEffect, useState } from 'react';
 import ReactToPrint from 'react-to-print';
-import { Translate, translate } from 'react-jhipster';
+import { translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
-import EndOfTillTotalReceived from 'app/shared/components/report/summary-report-total-received';
+import SummaryReportTotalReceived from 'app/shared/components/report/summary-report-total-received';
 import TipSummary from 'app/shared/components/report/tip-summary';
 import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills';
 import BillsSummary from 'app/shared/components/report/bills-summary';
+import OrderChargeSummary from 'app/shared/components/report/order-charge-summary';
 import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
 import { Button } from '@/components/ui/button';
-import CatalogSection from './catalog-section';
 import { fetchFirstLastBills, fetchFirstLastBillsSummary } from '../../api';
 import { useAppDispatch } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
@@ -21,8 +21,6 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
-import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
-import { formatNumber } from 'app/shared/util/price-utils';
 
 interface DynamicEndOfDayReportUIProps {
   reportData: any;
@@ -144,20 +142,15 @@ const DynamicEndOfDayReportUI = ({
   }, [dispatch]);
 
   useEffect(() => {
-    console.log(businessDetailsState);
     if (businessDetailsState) {
-      console.log(branchId);
       if (branchId) {
         const selectedBranch = businessDetailsState.branchDetails.find((branch: any) => branch?.branchId.toString() === branchId);
-        console.log(selectedBranch, 'selectedBranch');
         setEndOfDayReportSection(selectedBranch?.endOfDayReportSection);
       } else {
         setEndOfDayReportSection(Object.values(EndOfDayReportSection));
       }
     }
   }, [businessDetailsState, branchId]);
-
-  console.log(endOfDayReportSection, 'endOfDayReportSection');
 
   useEffect(() => {
     if (endOfDay?.id) {
@@ -325,20 +318,13 @@ const DynamicEndOfDayReportUI = ({
                 <EodReportLayout summary={endOfDay} />
             </div> */}
 
-          {/* Old Layout - Commented Out */}
-          <div className="bg-white p-3 mb-2 rounded-md border section-totalSales">
-            <GenericSalesReport
-              title={translate('analytics.report.totalSales')}
-              report={reportData.totalSales}
-              payments={reportData.totalReceived}
-            />
-            <EndOfTillTotalReceived totalReceived={reportData.totalReceived} />
-          </div>
+          <div className="space-y-3">
+            <GenericSalesReport title={translate('analytics.report.totalSales')} report={reportData.totalSales} />
 
-          {visibleSections.orderMethod && showOrderMethod && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-orderMethod">
-              <h3 className="text-base font-semibold mb-2">Order Method</h3>
-              <div className="pl-3">
+            {reportData.totalReceived && <SummaryReportTotalReceived totalReceived={reportData.totalReceived} />}
+
+            {visibleSections.orderMethod && showOrderMethod && (
+              <>
                 {reportData.totalSalesByOrderOption?.DineIn?.orders > 0 && (
                   <GenericSalesReport title={translate('analytics.report.dineIn')} report={reportData.totalSalesByOrderOption.DineIn} />
                 )}
@@ -351,86 +337,43 @@ const DynamicEndOfDayReportUI = ({
                 {reportData.totalSalesByOrderOption?.WalkIn?.orders > 0 && (
                   <GenericSalesReport title={translate('analytics.report.walkIn')} report={reportData.totalSalesByOrderOption.WalkIn} />
                 )}
-              </div>
-              <hr className="my-2 border-gray-300" />
-            </div>
-          )}
+              </>
+            )}
 
-          <div className="bg-white p-3 mb-2 rounded-md border section-catalogRecords">
             {visibleSections.retailCatalog && (
               <GenericSalesReport
-                title={'Retail Catalog'}
+                title="Retail Catalog"
                 report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RETAIL')}
               />
             )}
 
             {visibleSections.restaurantCatalog && (
               <GenericSalesReport
-                title={'Restaurant Catalog'}
+                title="Restaurant Catalog"
                 report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RESTAURANT')}
               />
             )}
-          </div>
 
-          {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-catalogRecords">
+            {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
               <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
-            </div>
-          )}
+            )}
 
-          {visibleSections.chargesSummary && reportData?.chargesSummary?.charges?.length > 0 && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-chargesSummary">
-              <h3 className="text-base font-semibold mb-2">Order Charge Summary</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Charge Name</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Number of Orders</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Net Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {reportData.chargesSummary.charges.map((charge: any, idx: number) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-2 text-sm text-gray-900">{charge.name || 'No Charge'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{charge.numberOfOrders || '0.0'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">{formatNumber(charge.netTotal) || '0.00'}</td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gray-50 font-bold">
-                      <td className="px-4 py-2 text-sm text-gray-900">Total</td>
-                      <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                      {formatNumber(reportData.chargesSummary.numberOfOrders) || '0.0'}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                        {formatNumber(reportData.chargesSummary.netTotal) || '0.00'}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <hr className="my-2 border-gray-300" />
-            </div>
-          )}
+            {visibleSections.chargesSummary && reportData?.chargesSummary?.charges?.length > 0 && (
+              <OrderChargeSummary chargesSummary={reportData.chargesSummary} />
+            )}
 
-          {visibleSections.tipSummary && endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-tipSummary">
+            {visibleSections.tipSummary && endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
               <TipSummary report={reportData.tipSummary} />
-              <hr className="my-2 border-gray-300" />
-            </div>
-          )}
-          {visibleSections.billsSummary && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-billsSummary">
+            )}
+
+            {visibleSections.billsSummary && (
               <BillsSummary branchId={branchId} fromDate={fromDate} toDate={toDate} eodId={endOfDay?.id} source={source} />
-            </div>
-          )}
-          {visibleSections.relatedTills && endOfDay?.fromDate && endOfDay?.toDate && (
-            <div className="bg-white p-3 mb-2 rounded-md border section-relatedTills">
-              <h3 className="text-base font-semibold mb-2">Related Tills</h3>
+            )}
+
+            {visibleSections.relatedTills && endOfDay?.fromDate && endOfDay?.toDate && (
               <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>

@@ -45,6 +45,7 @@ import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 import businessTimeZone from 'app/entities/settings/business-details/business-timezone.reducer';
 import businessType from 'app/entities/settings/business-type/business-type.reducer';
+import onAccountSettings from 'app/entities/settings/on-account/on-account-settings.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
@@ -76,6 +77,7 @@ import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 import product from 'app/entities/item/retail/product/product.reducer';
 import zones from "app/entities/settings/zones/zones.reducer"
 import paymentMethodSetting from "app/entities/settings/payment-method-setting/payment-method-setting.reducer";
+import tookanSetting from "app/entities/settings/tookan/tookan.reducer";
 import variant from "app/entities/variant/variant.reducer";
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
@@ -138,6 +140,7 @@ const entitiesReducers = {
   businessDetail,
   businessTimeZone,
   businessType,
+  onAccountSettings,
   voidReason,
   printer,
   printingProfiles,
@@ -200,6 +203,7 @@ const entitiesReducers = {
   brand,
   zones,
   paymentMethodSetting,
+  tookanSetting,
   variant,
   GiftCardItem,
   GiftCardCoupon,

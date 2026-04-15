@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { ArrowLeft, Save, Pencil, Trash2, Plus } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Translate, translate } from 'react-jhipster';
+import { ArrowLeft, Save, Pencil, Trash2, Plus, CalendarIcon, RefreshCw } from 'lucide-react';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
+import type { DateRange } from 'react-day-picker';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ICustomer, IWholesalePriceLine } from 'app/shared/model/CUSTOMER/customer.model';
+import { IBranchOnAccountDebit } from 'app/shared/model/on-account-settings.model';
 import {
   getEntity,
   updateEntity,
@@ -39,6 +44,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Select from 'app/shared/components/select/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Checkbox } from '@/components/ui/checkbox';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { ICustomerOnAccountAudit } from 'app/shared/model/customer-on-account-audit.model';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/src/main/webapp/app/lib/utils';
+import { omitGlobalOnAccountFields } from './customer-on-account.utils';
 
 export const CustomerUpdate = ({
   firstName,
@@ -62,6 +74,7 @@ export const CustomerUpdate = ({
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
+  const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
   const loyaltyCardsList = useAppSelector(state => state.loyaltycard.entities);
   const loading = useAppSelector(state => state.customer.loading);
   const updating = useAppSelector(state => state.customer.updating);
@@ -77,8 +90,17 @@ export const CustomerUpdate = ({
   });
   const [confirmAssignCardOpen, setConfirmAssignCardOpen] = useState(false);
   const [deleteAddressConfirm, setDeleteAddressConfirm] = useState<{ open: boolean; address: IAddress | null }>({ open: false, address: null });
+  const [onAccountAudits, setOnAccountAudits] = useState<ICustomerOnAccountAudit[]>([]);
+  const [onAccountAuditsLoading, setOnAccountAuditsLoading] = useState(false);
+  const [onAccountAuditsError, setOnAccountAuditsError] = useState<string | null>(null);
+  const [onAccountAuditsDateRange, setOnAccountAuditsDateRange] = useState<DateRange | undefined>(undefined);
+  const [appliedOnAccountAuditsDateRange, setAppliedOnAccountAuditsDateRange] = useState<{ fromDate: string; toDate: string } | null>(null);
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
+  const parseNumericField = (value: string) => {
+    const parsedValue = parseFloat(value);
+    return Number.isNaN(parsedValue) ? 0 : parsedValue;
+  };
 
   const handleBranchPricingPointChange = (branchId, pricingPoint) => {
     dispatch(
@@ -90,6 +112,56 @@ export const CustomerUpdate = ({
         },
       })
     );
+  };
+
+  const getBranchOnAccountDebit = (branchId: string): IBranchOnAccountDebit => {
+    return customerEntity?.branchOnAccountDebits?.[branchId] || { debitLimit: 0, debitUsed: 0 };
+  };
+
+  const handleBranchOnAccountDebitChange = (branchId: string, field: keyof IBranchOnAccountDebit, value: number) => {
+    dispatch(
+      changeEntityField({
+        name: 'branchOnAccountDebits',
+        value: {
+          ...customerEntity?.branchOnAccountDebits,
+          [branchId]: {
+            ...getBranchOnAccountDebit(branchId),
+            [field]: value,
+          },
+        },
+      })
+    );
+  };
+
+  const formatAuditAmount = (value?: number | null) => {
+    return typeof value === 'number' ? value.toFixed(2) : '0.00';
+  };
+
+  const formatBoundaryDate = (date: Date, boundary: 'start' | 'end') => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const time = boundary === 'start' ? '00:00:00' : '23:59:59';
+
+    if (!businessTimeZone) {
+      const localDate = new Date(date);
+      if (boundary === 'start') {
+        localDate.setHours(0, 0, 0, 0);
+      } else {
+        localDate.setHours(23, 59, 59, 0);
+      }
+      return localDate.toISOString();
+    }
+
+    return fromZonedTime(`${year}-${month}-${day} ${time}`, businessTimeZone).toISOString();
+  };
+
+  const getBranchName = (branchId?: string | null) => {
+    if (!branchId) {
+      return '-';
+    }
+
+    return branchList.find(branch => branch.id === branchId)?.name || branchId;
   };
 
   const loadOptions = (inputValue, callback) => {
@@ -169,12 +241,80 @@ export const CustomerUpdate = ({
     }
   }, [customerEntity?.loyaltyCard?.id]);
 
+  const loadOnAccountAudits = (filters?: { fromDate: string; toDate: string } | null) => {
+    setOnAccountAuditsLoading(true);
+    setOnAccountAuditsError(null);
+
+    return axios
+      .get<ICustomerOnAccountAudit[]>(`api/customers/${id}/on-account-audits`, {
+        params: {
+          fromDate: filters?.fromDate,
+          toDate: filters?.toDate,
+        },
+      })
+      .then(response => {
+        setOnAccountAudits(Array.isArray(response.data) ? response.data : []);
+        setAppliedOnAccountAuditsDateRange(filters || null);
+      })
+      .catch(() => {
+        setOnAccountAudits([]);
+        setOnAccountAuditsError('Unable to load on account audits.');
+      })
+      .finally(() => {
+        setOnAccountAuditsLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (isNew || !id) {
+      setOnAccountAudits([]);
+      setOnAccountAuditsError(null);
+      setOnAccountAuditsLoading(false);
+      setAppliedOnAccountAuditsDateRange(null);
+      return;
+    }
+
+    loadOnAccountAudits();
+  }, [id, isNew]);
+
+  const handleApplyOnAccountAuditsFilter = async () => {
+    if ((onAccountAuditsDateRange?.from && !onAccountAuditsDateRange?.to) || (!onAccountAuditsDateRange?.from && onAccountAuditsDateRange?.to)) {
+      setOnAccountAuditsError('Please select both from and to dates.');
+      return;
+    }
+
+    if (!onAccountAuditsDateRange?.from || !onAccountAuditsDateRange?.to) {
+      await loadOnAccountAudits();
+      return;
+    }
+
+    await loadOnAccountAudits({
+      fromDate: formatBoundaryDate(onAccountAuditsDateRange.from, 'start'),
+      toDate: formatBoundaryDate(onAccountAuditsDateRange.to, 'end'),
+    });
+  };
+
+  const handleResetOnAccountAuditsFilter = async () => {
+    setOnAccountAuditsDateRange(undefined);
+    await loadOnAccountAudits();
+  };
+
+  const onAccountAuditsDateRangeLabel = useMemo(() => {
+    if (!onAccountAuditsDateRange?.from) {
+      return 'Pick a date range';
+    }
+
+    if (!onAccountAuditsDateRange.to) {
+      return format(onAccountAuditsDateRange.from, 'PP');
+    }
+
+    return `${format(onAccountAuditsDateRange.from, 'PP')} - ${format(onAccountAuditsDateRange.to, 'PP')}`;
+  }, [onAccountAuditsDateRange]);
+
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
-    const entity = {
-      ...customerEntity,
-    };
+    const entity = omitGlobalOnAccountFields(customerEntity);
 
     if (isNew) {
       dispatch(createEntity(entity)).then(res => {
@@ -262,8 +402,10 @@ export const CustomerUpdate = ({
                 <TabsTrigger value="personal" className="text-xs h-7">Personal Details</TabsTrigger>
                 <TabsTrigger value="addresses" className="text-xs h-7">Addresses</TabsTrigger>
                 <TabsTrigger value="additional" className="text-xs h-7">{translate('common.additionalInfo')}</TabsTrigger>
+                <TabsTrigger value="on-account" className="text-xs h-7">On Account</TabsTrigger>
                 <TabsTrigger value="pricing" className="text-xs h-7">Pricing Point</TabsTrigger>
                 <TabsTrigger value="orders" className="text-xs h-7">Customer Orders</TabsTrigger>
+                {!isNew && <TabsTrigger value="on-account-audits" className="text-xs h-7">On Account Audits</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="personal" className="space-y-3">
@@ -328,6 +470,16 @@ export const CustomerUpdate = ({
                   />
                 </div>
 
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="customer-accountNumber" className="text-xs">Account Number</Label>
+                  <Input
+                    id="customer-accountNumber"
+                    className="h-8 text-xs"
+                    value={customerEntity?.accountNumber || ''}
+                    onChange={e => dispatch(changeEntityField({ name: 'accountNumber', value: e.target.value }))}
+                  />
+                </div>
+
                 {!isNew && (
                   <div className="flex flex-col gap-1">
                     <Label htmlFor="customer-card" className="text-xs">{translate('tempApp.assignCard')}</Label>
@@ -371,6 +523,7 @@ export const CustomerUpdate = ({
                     />
                   </div>
                 )}
+
               </TabsContent>
 
               <TabsContent value="addresses" className="space-y-3">
@@ -475,6 +628,102 @@ export const CustomerUpdate = ({
                 </div>
               </TabsContent>
 
+              <TabsContent value="on-account" className="space-y-3">
+                <div className="space-y-3 rounded-md">
+                  <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                    <Checkbox
+                      id="customer-onAccountEnabled"
+                      checked={customerEntity?.onAccountEnabled === true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'onAccountEnabled', value: checked === true }))}
+                    />
+                    <Label htmlFor="customer-onAccountEnabled" className="text-xs cursor-pointer">On Account Enabled</Label>
+                  </div>
+
+                  <div className="space-y-3 rounded-md border p-3">
+                    <h5 className="text-sm font-medium">Business Balance</h5>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="customer-onAccountDebitLimit" className="text-xs">Debit Limit</Label>
+                        <Input
+                          id="customer-onAccountDebitLimit"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="h-8 text-xs"
+                          value={customerEntity?.onAccountDebitLimit ?? 0}
+                          disabled={customerEntity?.onAccountEnabled !== true}
+                          onChange={e => dispatch(changeEntityField({ name: 'onAccountDebitLimit', value: parseNumericField(e.target.value) }))}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="customer-onAccountDebitUsed" className="text-xs">Debit Used</Label>
+                        <Input
+                          id="customer-onAccountDebitUsed"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="h-8 text-xs"
+                          value={customerEntity?.onAccountDebitUsed ?? 0}
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Branch</TableHead>
+                        <TableHead className="text-xs">Debit Limit</TableHead>
+                        <TableHead className="text-xs">Debit Used</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {branchList.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-xs text-center text-muted-foreground py-4">
+                            No branches available
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        branchList.map(branch => {
+                          const branchDebit = getBranchOnAccountDebit(branch.id);
+
+                          return (
+                            <TableRow key={branch.id}>
+                              <TableCell className="text-xs">{branch.name}</TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  className="h-8 text-xs"
+                                  value={branchDebit.debitLimit ?? 0}
+                                  disabled={customerEntity?.onAccountEnabled !== true}
+                                  onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
+                                />
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  className="h-8 text-xs"
+                                  value={customerEntity?.branchOnAccountDebits?.[branch.id]?.debitUsed ?? 0}
+                                  disabled
+                                  readOnly
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+
               <TabsContent value="pricing" className="space-y-3">
                 {pricingPoints?.length > 0 ? (
                   <Table>
@@ -517,6 +766,115 @@ export const CustomerUpdate = ({
                   </div>
                 )}
               </TabsContent>
+
+              {!isNew && (
+                <TabsContent value="on-account-audits" className="space-y-3">
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">On Account Audits</h4>
+
+                    <div className="rounded-md border p-3 space-y-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold">Date Range</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={cn('h-7 text-xs w-full justify-start', !onAccountAuditsDateRange?.from && 'text-muted-foreground')}
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {onAccountAuditsDateRangeLabel}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="range" selected={onAccountAuditsDateRange} onSelect={setOnAccountAuditsDateRange} numberOfMonths={2} />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs text-muted-foreground">
+                          {appliedOnAccountAuditsDateRange ? 'Date filter applied' : 'Showing all audits'}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => loadOnAccountAudits(appliedOnAccountAuditsDateRange)}
+                            disabled={onAccountAuditsLoading}
+                          >
+                            <RefreshCw className={`mr-2 h-3 w-3 ${onAccountAuditsLoading ? 'animate-spin' : ''}`} />
+                            Refresh
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={handleResetOnAccountAuditsFilter}
+                            disabled={onAccountAuditsLoading}
+                          >
+                            Show All
+                          </Button>
+                          <Button
+                            type="button"
+                            className="h-7 text-xs"
+                            onClick={handleApplyOnAccountAuditsFilter}
+                            disabled={onAccountAuditsLoading}
+                          >
+                            Apply Filter
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {onAccountAuditsLoading ? (
+                      <div className="text-xs text-muted-foreground">Loading on account audits...</div>
+                    ) : onAccountAuditsError ? (
+                      <div className="text-xs text-destructive">{onAccountAuditsError}</div>
+                    ) : onAccountAudits.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">No on account audits found.</div>
+                    ) : (
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs">Created Date</TableHead>
+                              <TableHead className="text-xs">Action</TableHead>
+                              <TableHead className="text-xs">Branch</TableHead>
+                              <TableHead className="text-xs">Amount</TableHead>
+                              <TableHead className="text-xs">Balance Before</TableHead>
+                              <TableHead className="text-xs">Balance After</TableHead>
+                              <TableHead className="text-xs">Debit Limit</TableHead>
+                              <TableHead className="text-xs">Order ID</TableHead>
+                              <TableHead className="text-xs">Note</TableHead>
+                              <TableHead className="text-xs">Created By</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {onAccountAudits.map(audit => (
+                              <TableRow key={audit.id || `${audit.createdDate}-${audit.orderId}-${audit.amount}`}>
+                                <TableCell className="text-xs align-top whitespace-nowrap">
+                                  {audit.createdDate ? formatDateForDisplay(audit.createdDate) : '-'}
+                                </TableCell>
+                                <TableCell className="text-xs align-top">{audit.action || '-'}</TableCell>
+                                <TableCell className="text-xs align-top">{getBranchName(audit.branchId)}</TableCell>
+                                <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(audit.amount)}</TableCell>
+                                <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(audit.balanceBefore)}</TableCell>
+                                <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(audit.balanceAfter)}</TableCell>
+                                <TableCell className="text-xs align-top whitespace-nowrap">{formatAuditAmount(audit.debitLimit)}</TableCell>
+                                <TableCell className="text-xs align-top">{audit.orderId || '-'}</TableCell>
+                                <TableCell className="text-xs align-top break-words">{audit.note || '-'}</TableCell>
+                                <TableCell className="text-xs align-top">{audit.createdBy || '-'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
 
             <div className="flex gap-2 mt-4">

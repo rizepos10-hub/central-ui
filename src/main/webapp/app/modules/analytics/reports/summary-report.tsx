@@ -153,8 +153,8 @@ const SalesSummaryReport = () => {
 
       exportExcelEodSummaryReport(
         selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
-        formatDateForDisplay(dateRange.from),
-        formatDateForDisplay(dateRange.to),
+        dateRange.from,
+        dateRange.to,
         'Sales Summary Report'
       )
     }

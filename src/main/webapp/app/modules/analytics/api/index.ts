@@ -1,4 +1,9 @@
 import axios from 'axios';
+import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
+import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
+import { ISalesActivitySummaryReport } from 'app/shared/model/sales-activity-summary-report.model';
+import { IOptimizedProductSalesReport } from 'app/shared/model/optimized-product-sales-report.model';
+import { ICashierByTerminalReport } from 'app/shared/model/cashier-by-terminal-report.model';
 
 
 
@@ -129,11 +134,27 @@ export const fetchOrdersByYear = async (year) => {
 
 
 export const fetchEndOfDaysData = async (page: number, size: number, sort: string, sortOrder: string, branchId: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
-  const branchIdParam = branchId ? `branchId=${branchId}` : null
-  const fromDateParam = fromDate ? `fromDate=${fromDate}` : null
-  const toDateParam = toDate ? `toDate=${toDate}` : null
   try {
-    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&sortOrder=${sortOrder}&${branchIdParam}&${fromDateParam}&${toDateParam}`);
+    const params = new URLSearchParams({
+      page: `${page}`,
+      size: `${size}`,
+      sort,
+      sortOrder,
+    });
+
+    if (branchId) {
+      params.set('branchId', branchId);
+    }
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    }
+
+    const response = await axios.get(`/api/end-of-day?${params.toString()}`);
     return response;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -166,7 +187,28 @@ export const fetchFirstLastBills = async (eodId: string | null = null) => {
 
 export const fetchRecentByDate = async (page: number, size: number, fromDate: string | null = null, toDate: string | null = null, branch: string | null = null, source: string | null = null) => {
   try {
-    const response = await axios.get(`/api/report/recent-bills?page=${page}&size=${size}&fromDate=${fromDate}&toDate=${toDate}&branch=${branch ? branch : ''}&source=${source ? source : ''}`);
+    const params = new URLSearchParams({
+      page: `${page}`,
+      size: `${size}`,
+    });
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    }
+
+    if (branch) {
+      params.set('branch', branch);
+    }
+
+    if (source) {
+      params.set('source', source);
+    }
+
+    const response = await axios.get(`/api/report/recent-bills?${params.toString()}`);
 
     return response;
   }
@@ -179,9 +221,30 @@ export const fetchRecentByDate = async (page: number, size: number, fromDate: st
 
 // http://localhost:8080/api/report/bills-summary?branch=64d61d46d0931101a489e8ca&fromDate=2024-01-01T00%3A00%3A00.00Z&toDate=2024-11-10T00%3A00%3A00.00Z&page=0&size=60&source=null
 
-export const fetchFirstLastBillsSummary = async (branch: string, source: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
+export const fetchFirstLastBillsSummary = async (branch: string | null = null, source: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
   try {
-    const response = await axios.get(`/api/report/bills-summary?branch=${branch ? branch : ''}&fromDate=${fromDate}&toDate=${toDate}&page=0&size=60&source=${source ? source : ''}`);
+    const params = new URLSearchParams({
+      page: '0',
+      size: '60',
+    });
+
+    if (branch) {
+      params.set('branch', branch);
+    }
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    }
+
+    if (source) {
+      params.set('source', source);
+    }
+
+    const response = await axios.get(`/api/report/bills-summary?${params.toString()}`);
 
     return response;
   }
@@ -190,3 +253,193 @@ export const fetchFirstLastBillsSummary = async (branch: string, source: string 
     throw error;
   }
 }
+
+export const fetchStoreCreditReport = async ({
+  fromDate,
+  toDate,
+  onAccountEnabled,
+  accountNumber,
+  page,
+  size,
+}: {
+  fromDate?: string | null;
+  toDate?: string | null;
+  onAccountEnabled?: boolean | null;
+  accountNumber?: string | null;
+  page: number;
+  size: number;
+}) => {
+  try {
+    const params = new URLSearchParams({
+      page: `${page}`,
+      size: `${size}`,
+    });
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    }
+
+    if (onAccountEnabled === true) {
+      params.set('onAccountEnabled', 'true');
+    }
+
+    if (accountNumber) {
+      params.set('accountNumber', accountNumber);
+    }
+
+    const response = await axios.get<IStoreCreditReportRow[]>(`/api/report/on-account?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching store credit report:', error);
+    throw error;
+  }
+};
+
+export const fetchHouseChargesReport = async ({
+  fromDate,
+  toDate,
+  branch,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+}) => {
+  try {
+    const params = new URLSearchParams({
+      fromDate,
+      toDate,
+    });
+
+    if (branch) {
+      params.set('branch', branch);
+    }
+
+    const response = await axios.get<IHouseChargesReportRow[]>(`/api/report/house-charges?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching house charges report:', error);
+    throw error;
+  }
+};
+
+export const fetchSalesActivitySummaryReport = async ({
+  fromDate,
+  toDate,
+  branch,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+}) => {
+  try {
+    const response = await axios.post<ISalesActivitySummaryReport>(
+      `/api/report/sales-activity-summary?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}&branch=${encodeURIComponent(branch)}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sales activity summary report:', error);
+    throw error;
+  }
+};
+
+export const fetchOptimizedProductSalesReport = async ({
+  fromDate,
+  toDate,
+  branch,
+  source,
+  registryId,
+  tillId,
+  username,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+  source: string | null;
+  registryId: string | null;
+  tillId: string | null;
+  username: string | null;
+}) => {
+  try {
+    const params = new URLSearchParams({
+      fromDate,
+      toDate,
+    });
+
+    if (branch) {
+      params.set('branch', branch);
+    }
+
+    if (source) {
+      params.set('source', source);
+    }
+
+    if (registryId) {
+      params.set('registryId', registryId);
+    }
+
+    if (tillId) {
+      params.set('tillId', tillId);
+    }
+
+    if (username) {
+      params.set('username', username);
+    }
+
+    const response = await axios.post<IOptimizedProductSalesReport>(
+      `/api/report/items/optimized-sales?${params.toString()}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching optimized product sales report:', error);
+    throw error;
+  }
+};
+
+export const fetchCashierByTerminalReport = async ({
+  fromDate,
+  toDate,
+  branch,
+  source,
+  tillId,
+  username,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string | null;
+  source: string | null;
+  tillId: string | null;
+  username: string | null;
+}) => {
+  try {
+    const params = new URLSearchParams({
+      fromDate,
+      toDate,
+    });
+
+    if (branch) {
+      params.set('branch', branch);
+    }
+
+    if (source) {
+      params.set('source', source);
+    }
+
+    if (tillId) {
+      params.set('tillId', tillId);
+    }
+
+    if (username) {
+      params.set('username', username);
+    }
+
+    const response = await axios.post<ICashierByTerminalReport>(`/api/report/cashier-by-terminal?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching cashier by terminal report:', error);
+    throw error;
+  }
+};

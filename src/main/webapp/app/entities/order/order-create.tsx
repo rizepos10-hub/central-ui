@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { calculateItemPrice, changeEntityField, createEntity, updateEntity, reset } from './order.reducer';
+import { addPaymentToBill, calculateItemPrice, changeEntityField, createDraftBill, createEntity, updateEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
@@ -38,16 +38,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import Select from 'app/shared/components/select/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -61,6 +51,8 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
+import { isOrderCreateRoleSelectionPending, resolveOrderCreateRoleMode } from './order-create-role-utils';
+import OrderPaymentDialog from './order-payment-dialog';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -68,8 +60,6 @@ const OrderCreate = () => {
     const location = useLocation();
     const ORDER_METHOD = 'orderMethod';
     const orderEntity: IOrder = useAppSelector(state => state.order.entity);
-    const orderLoading = useAppSelector(state => state.order.loading);
-    
     const products: IProduct[] = useAppSelector(state => state.product.entities)
     const totalItems: number = useAppSelector(state => state.product.totalItems)
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
@@ -134,6 +124,7 @@ const OrderCreate = () => {
     });
 
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
+    const [submittingOrder, setSubmittingOrder] = useState(false);
     const [visible, setVisible] = useState(false);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
@@ -146,8 +137,17 @@ const OrderCreate = () => {
     const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
     const requiresRoleChoice = isSalesmanRole && isAdminRole;
-    const isSalesmanMode = roleMode === 'salesman' || (isSalesmanRole && !isAdminRole);
-    const isRoleSelectionPending = requiresRoleChoice && roleMode === null;
+    const effectiveRoleMode = resolveOrderCreateRoleMode({
+        isAdminRole,
+        isSalesmanRole,
+        roleMode,
+    });
+    const isSalesmanMode = effectiveRoleMode === 'salesman';
+    const isRoleSelectionPending = isOrderCreateRoleSelectionPending({
+        isAdminRole,
+        isSalesmanRole,
+        roleMode,
+    });
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
     const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
@@ -933,73 +933,181 @@ const OrderCreate = () => {
         findCombinationVariants()
     }, [variantDialog.product.variants, JSON.stringify(variantDialog.selectedRetailAttributes)])
 
-    const handlePayment = () => {
+    const getApiErrorMessage = (error: any, fallback: string) => {
+        const data = error?.response?.data;
+        return (
+            data?.message ||
+            data?.localizedMessage ||
+            data?.detail ||
+            data?.title ||
+            error?.message ||
+            fallback
+        );
+    };
+
+    const resetVariantDialogState = () => {
+        setVariantDialog({
+            visible: false,
+            product: {},
+            selectedRetailAttributes: [],
+            chosenVariant: null,
+            availableVariants: []
+        });
+    };
+
+    const buildBaseStructuredEntity = (): IOrder => ({
+        ...(isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
+        items: orderEntity?.items?.map(item => ({
+            itemId: item.itemId,
+            variantId: item.variantId,
+            amount: item.amount,
+            price: item.price,
+            selectedRetailAttributes: item.selectedRetailAttributes,
+            ...(item?.discount?.value && item?.discount?.type ? {
+                discount: {
+                    value: item.discount.value,
+                    type: item.discount.type
+                }
+            } : {}),
+        })),
+        branchId: orderEntity?.branchId,
+        customer: orderEntity?.customer,
+        orderCharges: orderEntity?.orderCharges || [],
+        scheduledAt: orderEntity?.scheduledAt ?? null,
+        orderMethod: orderEntity?.orderMethod,
+        deliverTo: orderEntity?.deliverTo ?? null,
+        processingStatus: OrderStatus.PROCESSING,
+        tillId: till?.id,
+    });
+
+    const buildCreateStructuredEntity = (): IOrder => ({
+        ...buildBaseStructuredEntity(),
+        ...(isSalesmanMode ? { wholesale: true } : {}),
+    });
+
+    const buildUpdateStructuredEntity = (): IOrder => buildBaseStructuredEntity();
+
+    const finalizeCreatedOrder = (createdOrderId?: string | null) => {
+        resetVariantDialogState();
+        localStorage.removeItem(cartStorageKey);
+        dispatch(reset());
+        setOpenPaymentModal(false);
+
+        if (createdOrderId) {
+            navigate(`/order/${createdOrderId}`);
+        } else {
+            navigate('/order');
+        }
+    };
+
+    const ensureCreateFlowAllowed = () => {
         if (shouldGateSalesman) {
             toast.error(`${salesmanGateMessage} before placing the order.`);
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleUpdateOrder = async () => {
+        if (!ensureCreateFlowAllowed() || !orderEntity?.id) {
             return;
         }
-        const structuredEntity = {
-            ...(isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
-            items: orderEntity?.items?.map(item => ({
-                itemId: item.itemId,
-                variantId: item.variantId,
-                amount: item.amount,
-                price: item.price,
-                selectedRetailAttributes: item.selectedRetailAttributes,
-                ...(item?.discount?.value && item?.discount?.type ? {
-                    discount: {
-                        value: item.discount.value,
-                        type: item.discount.type
-                    }
-                } : {}),
-            })),
-            branchId: orderEntity?.branchId,
-            customer: orderEntity?.customer,
-            orderCharges: orderEntity?.orderCharges || [],
-            scheduledAt: orderEntity?.scheduledAt ?? null,
-            orderMethod: orderEntity?.orderMethod,
-            deliverTo: orderEntity?.deliverTo ?? null,
-            processingStatus: OrderStatus.PROCESSING,
-            tillId: till?.id,
+
+        try {
+            setSubmittingOrder(true);
+            const response = await dispatch(updateEntity(buildUpdateStructuredEntity())).unwrap();
+            resetVariantDialogState();
+            toast.success('Order Updated Successfully!');
+            navigate(`/order/${response.data?.id || orderEntity.id}`);
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, 'Failed to update order'));
+        } finally {
+            setSubmittingOrder(false);
+        }
+    };
+
+    const handleCreateWithoutPayment = async () => {
+        if (!ensureCreateFlowAllowed()) {
+            return;
         }
 
-        const action = isEditMode && orderEntity?.id 
-            ? dispatch(updateEntity(structuredEntity))
-            : dispatch(createEntity(structuredEntity));
+        try {
+            setSubmittingOrder(true);
+            const response = await dispatch(createEntity(buildCreateStructuredEntity())).unwrap();
+            toast.success('Order Created Successfully!');
+            finalizeCreatedOrder(response.data?.id || orderEntity.id);
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, 'Failed to create order'));
+        } finally {
+            setSubmittingOrder(false);
+        }
+    };
 
-        action.then((actionResult) => {
-            if ((isEditMode ? updateEntity : createEntity).fulfilled.match(actionResult)) {
-                setVariantDialog({
-                    visible: false,
-                    product: {},
-                    selectedRetailAttributes: [],
-                    chosenVariant: null,
-                    availableVariants: []
-                })
+    const handleCreateWithPayment = async ({
+        amount,
+        tipAmount,
+        transactionMethod,
+    }: {
+        amount: number;
+        tipAmount: number;
+        transactionMethod: string;
+    }) => {
+        if (!ensureCreateFlowAllowed()) {
+            return;
+        }
 
-                if (isEditMode) {
-                    toast.success('Order Updated Successfully!');
-                    // Navigate back to order detail page
-                    navigate(`/order/${orderEntity.id}`);
-                } else {
-                const branchId = orderEntity.branchId;
-                console.log('fixing branch... reset() called after order creation, preserving branchId:', branchId);
-                dispatch(reset());
-                if (branchId) {
-                    dispatch(changeEntityField({
-                        name: 'branchId',
-                        value: branchId,
-                    }));
-                }
+        let createdOrderId: string | null | undefined = null;
+
+        try {
+            setSubmittingOrder(true);
+            const createResponse = await dispatch(createEntity(buildCreateStructuredEntity())).unwrap();
+            createdOrderId = createResponse.data?.id || orderEntity.id;
+
+            if (!createdOrderId) {
                 toast.success('Order Created Successfully!');
-                }
-            } else {
-                toast.error(actionResult.error?.message || `Failed to ${isEditMode ? 'update' : 'create'} order`);
+                finalizeCreatedOrder(createdOrderId);
+                return;
             }
-        }).finally(() => {
-            setOpenPaymentModal(false)
-        })
-    }
+
+            try {
+                const draftBillResponse = await dispatch(createDraftBill({
+                    orderId: createdOrderId,
+                    payee: null,
+                    createdBy: null,
+                    discount: null,
+                })).unwrap();
+                const draftBillId = draftBillResponse.data?.id;
+
+                if (!draftBillId) {
+                    throw new Error('Draft bill was not created successfully.');
+                }
+
+                await dispatch(addPaymentToBill({
+                    orderId: createdOrderId,
+                    billId: draftBillId,
+                    amount,
+                    tipAmount,
+                    transactionMethod,
+                })).unwrap();
+
+                toast.success('Order created and payment added successfully!');
+            } catch (paymentError) {
+                toast.error(
+                    getApiErrorMessage(
+                        paymentError,
+                        'Order created, but payment failed. You can retry from the order details page.'
+                    )
+                );
+            }
+
+            finalizeCreatedOrder(createdOrderId);
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, 'Failed to create order'));
+        } finally {
+            setSubmittingOrder(false);
+        }
+    };
     const footerTemplate = () => {
         return (
             <div className="flex items-center justify-center mt-2">
@@ -1345,65 +1453,21 @@ const OrderCreate = () => {
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
-                <AlertDialogContent className="max-w-lg">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Order</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Review your order before confirming.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                        {orderEntity?.items.map(item => (
-                            <div key={item.cartId || item.id} className="grid grid-cols-12 gap-2 text-sm">
-                                <div className="col-span-2">{item.amount}</div>
-                                <div className="col-span-7 truncate">{item.variantName}</div>
-                                <div className="col-span-3 text-right flex items-center justify-end gap-1">
-                                    <span>{item.price != null ? `$${item.price.toFixed(2)}` : 'Awaiting price'}</span>
-                                    {itemPriceLoading?.[item.cartId] && (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                        <div className="pt-2 border-t space-y-1">
-                            <div className="flex justify-between items-center text-sm">
-                                <span>Items:</span>
-                                <span>{cartQuantityTotal}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span>Sub-total:</span>
-                                <span>${cartTotals.itemsTotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span>Taxes:</span>
-                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm font-semibold pt-1 border-t">
-                                <span>Total:</span>
-                                <span>${cartTotals.total.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handlePayment}
-                            disabled={orderLoading || shouldGateSalesman}
-                            className="bg-emerald-600 hover:bg-emerald-700"
-                        >
-                            {orderLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Processing...
-                                </>
-                            ) : (
-                                'Confirm'
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <OrderPaymentDialog
+                open={openPaymentModal}
+                onOpenChange={setOpenPaymentModal}
+                title="Create Order & Payment"
+                orderBranchId={orderEntity.branchId}
+                customerId={orderEntity.customer?.id}
+                totalAmount={cartTotals.total}
+                totalPaid={0}
+                defaultPaymentAmount={cartTotals.total}
+                submitLabel="Create Order & Pay"
+                onSubmit={handleCreateWithPayment}
+                submitting={submittingOrder}
+                secondaryActionLabel="Create Without Payment"
+                onSecondaryAction={handleCreateWithoutPayment}
+            />
 
             <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
                 <DialogContent className="max-w-md">
@@ -2288,10 +2352,23 @@ const OrderCreate = () => {
                                     </div>
                                     <Button
                                         className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
-                                        onClick={() => setOpenPaymentModal(true)}
-                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman}
+                                        onClick={() => {
+                                            if (isEditMode) {
+                                                void handleUpdateOrder();
+                                                return;
+                                            }
+                                            setOpenPaymentModal(true);
+                                        }}
+                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
                                     >
-                                        <span>{isEditMode ? 'Update Order' : 'Place Order'}</span>
+                                        {submittingOrder ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                <span>{isEditMode ? 'Updating...' : 'Processing...'}</span>
+                                            </>
+                                        ) : (
+                                            <span>{isEditMode ? 'Update Order' : 'Place Order'}</span>
+                                        )}
                                     </Button>
                                 </div>
                             </div>

@@ -1,6 +1,9 @@
 export enum DeliverStatus {
+    ACCEPTED = 'ACCEPTED',
     IN_DELIVERY = 'IN_DELIVERY',
     ARRIVED = 'ARRIVED',
     HANDED = 'HANDED',
     DELIVERED = 'DELIVERED',
+    FAILED = 'FAILED',
+    CANCELLED = 'CANCELLED',
 }

@@ -31,8 +31,7 @@ import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-r
 import AuditLogs from 'app/shared/components/logs/audit-logs';
 import VariantBranchPrice from 'app/shared/components/item/variant-branch-price';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
-import MediaLibrary from 'app/shared/components/media-library/media-library';
-import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { IMeasureValue, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
@@ -52,9 +51,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import * as AccordionPrimitive from '@radix-ui/react-accordion';
+import { Accordion, AccordionContent, AccordionItem } from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,7 +67,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Trash2, GripVertical, Loader2 } from 'lucide-react';
+import { Trash2, GripVertical, Loader2, ChevronDown } from 'lucide-react';
+import { cn } from 'app/lib/utils';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 
@@ -92,6 +95,18 @@ const itemTypes = [
     value: ItemVariantType.RETAIL_VARIABLE,
   },
 ];
+
+type RetailFormSectionProps = { title: string; description?: string; children: React.ReactNode };
+
+const RetailFormSection = ({ title, description, children }: RetailFormSectionProps) => (
+  <Card className="border-border/80 shadow-sm">
+    <CardHeader className="pb-2 space-y-1">
+      <CardTitle className="text-lg font-semibold tracking-tight text-foreground">{title}</CardTitle>
+      {description ? <CardDescription className="text-xs">{description}</CardDescription> : null}
+    </CardHeader>
+    <CardContent className="space-y-4 pt-0">{children}</CardContent>
+  </Card>
+);
 
 const customSelectStyles = {
   control: (base) => ({
@@ -140,6 +155,8 @@ export const ProductUpdate = () => {
   const [product, setProduct] = useState<IProduct>({});
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
+  /** Product-level catalog attachments (IItem.attachments); variant photos stay on each variant row. */
+  const showCatalogImagePanel = product?.itemType === 'RETAIL' && (isSingleItem || isVariableItem);
 
   const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
 
@@ -323,10 +340,6 @@ export const ProductUpdate = () => {
         variants: updatedVariants,
       };
     });
-  };
-
-  const addImage = (variantIndex, files) => {
-    handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleBaseMeasureChange = baseMeasure => {
@@ -925,17 +938,18 @@ export const ProductUpdate = () => {
     </div>
   );
 
-  const VariantAccordionHeader = variantIndex => (
+  /** Variant row form fields only — delete + expand chevron live in the accordion trigger beside this block. */
+  const VariantAccordionForm = variantIndex => (
     <div
       onClick={e => {
         e.preventDefault();
         e.stopPropagation();
       }}
-      className="flex flex-1 gap-3 ml-2 p-draggable"
+      className="flex flex-1 min-w-0 gap-3 ml-2 p-draggable"
     >
-      <div className="flex-1 gap-2">
+      <div className="flex-1 min-w-0 gap-2">
         <div className="flex flex-col md:flex-row gap-4 mb-2">
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label className="text-xs font-semibold">
               <Translate contentKey="items.update.name">Name</Translate>
             </label>
@@ -957,7 +971,7 @@ export const ProductUpdate = () => {
             />
           </div>
 
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label htmlFor="price" className="text-xs font-semibold">
               <Translate contentKey={'items.update.price'}>Price</Translate>
             </label>
@@ -980,7 +994,7 @@ export const ProductUpdate = () => {
             />
           </div>
 
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-1 min-w-0">
             <label className="text-xs font-semibold">
               <Translate contentKey={'items.update.sku'}>SKU</Translate>
             </label>
@@ -1038,12 +1052,6 @@ export const ProductUpdate = () => {
             />
           ))}
         </div>
-      </div>
-      <div className="flex justify-end items-start">
-        <Trash2
-          onClick={() => setDeleteVariantDialog({ open: true, index: variantIndex })}
-          className="h-4 w-4 cursor-pointer text-red-500 hover:text-red-700"
-        />
       </div>
     </div>
   );
@@ -1111,110 +1119,139 @@ export const ProductUpdate = () => {
                     </TabsList>
 
                     <TabsContent value="details">
-                      <div className="w-full">
-                        <div className="text-lg font-semibold mb-4">
-                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {product.name}</span>}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex flex-col p-1 bg-white w-full space-y-4">
-                          {isSingleItem && (
-                            <div className="space-y-1">
-                              <label className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                              </label>
-                              <div className="relative flex gap-2">
-                                <Input
-                                  name="sku"
-                                  id="sku"
-                                  required={true}
-                                  placeholder={translate('items.update.placeholders.itemSku')}
-                                  value={product?.variants?.[0]?.sku || ''}
-                                  onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                  className="h-8 text-xs pr-10"
-                                />
-                                <Button
-                                  onClick={async () => {
-                                    const generatedSku = await generateSku()
-                                    handleVariantFieldChange(0, 'sku', generatedSku)
-                                  }}
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 h-8 w-8 p-0"
-                                >
-                                  <ImMagicWand size={14} />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                          <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-semibold">
-                              <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                            </label>
-                            <Select
-                              value={product?.baseMeasure || null}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
-                              styles={customSelectStyles}
-                            />
+                      <div className="space-y-6">
+                        <div className="space-y-2 border-b border-border/70 pb-4">
+                          <div className="flex flex-wrap items-center gap-2 gap-y-1">
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                              {isNew ? translate('items.update.tabs.details.titles.create.variable') : product.name || translate('items.update.tabs.details.titles.create.variable')}
+                            </h1>
+                            {product.askForPrice ? (
+                              <Badge variant="secondary" className="text-xs font-normal">
+                                Ask for price
+                              </Badge>
+                            ) : null}
                           </div>
+                          <p className="text-sm text-muted-foreground">
+                            Retail product · {isNew ? 'Create new' : 'Edit details'}
+                          </p>
+                        </div>
 
-                          {!product.askForPrice && (
-                            <div className="space-y-1">
-                              <label className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
-                              </label>
-                              <div className="flex gap-1">
-                                {itemTypes.map((type) => (
-                                  <Button
-                                    key={type.value}
-                                    type="button"
-                                    variant={product?.itemVariantType === type.value ? "default" : "outline"}
-                                    size="sm"
-                                    className="h-8 text-xs"
-                                    onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
-                                  >
-                                    {type.label}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
+                        <div className="flex flex-col w-full space-y-6">
                           {isSingleItem && (
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey={'items.update.description'}>Description</Translate>
-                                  </label>
-                                  <Textarea
-                                    name="desc"
-                                    id="desc"
-                                    placeholder={translate('items.update.description')}
-                                    value={product?.variants?.[0]?.description || ''}
-                                    onChange={e => setProduct(prev => {
-                                      return {
-                                        ...prev, variants: prev.variants.map(variant => {
-                                          return { ...variant, description: e.target.value }
-                                        })
-                                      }
-                                    })}
-                                    className="text-xs min-h-[80px]"
-                                    rows={3}
+                            <RetailFormSection
+                              title="SKU & barcode"
+                              description="USB scanner: focus this field, then scan — the code fills in automatically. Use the wand to generate a SKU."
+                            >
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                </label>
+                                <div className="relative flex gap-2">
+                                  <Input
+                                    name="sku"
+                                    id="sku"
+                                    required={true}
+                                    placeholder={translate('items.update.placeholders.itemSku')}
+                                    value={product?.variants?.[0]?.sku || ''}
+                                    onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                    className="h-8 text-xs pr-10"
                                   />
+                                  <Button
+                                    onClick={async () => {
+                                      const generatedSku = await generateSku()
+                                      handleVariantFieldChange(0, 'sku', generatedSku)
+                                    }}
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 h-8 w-8 p-0"
+                                  >
+                                    <ImMagicWand size={14} />
+                                  </Button>
                                 </div>
                               </div>
+                            </RetailFormSection>
+                          )}
+                          <SharedItemUpdate
+                            item={product}
+                            onFieldChange={handleFieldChange}
+                            defaultPrice={defaultPrice}
+                            setDefaultPrice={setDefaultPrice}
+                            showFormErrors={showFormErrors}
+                            groupedSections
+                            hideCatalogImages={showCatalogImagePanel}
+                          />
 
-                              <div className="mb-3">
-                                <p className="text-base font-bold mb-2">Shipping Details: </p>
+                          <RetailFormSection
+                            title="Unit & product structure"
+                            description="Base unit of measure and whether this item is simple or has multiple variants."
+                          >
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold">
+                                <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                              </label>
+                              <Select
+                                value={product?.baseMeasure || null}
+                                options={measureList}
+                                name="baseMeasure"
+                                getOptionValue={option => option.id}
+                                getOptionLabel={option => option.name}
+                                onChange={handleBaseMeasureChange}
+                                styles={customSelectStyles}
+                              />
+                            </div>
+
+                            {!product.askForPrice && (
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                                </label>
+                                <div className="flex gap-1 flex-wrap">
+                                  {itemTypes.map((type) => (
+                                    <Button
+                                      key={type.value}
+                                      type="button"
+                                      variant={product?.itemVariantType === type.value ? "default" : "outline"}
+                                      size="sm"
+                                      className="h-8 text-xs"
+                                      onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
+                                    >
+                                      {type.label}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </RetailFormSection>
+
+                          {isSingleItem && (
+                            <>
+                              <RetailFormSection title="Variant description" description="Longer description for this SKU (simple product).">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey={'items.update.description'}>Description</Translate>
+                                    </label>
+                                    <Textarea
+                                      name="desc"
+                                      id="desc"
+                                      placeholder={translate('items.update.description')}
+                                      value={product?.variants?.[0]?.description || ''}
+                                      onChange={e => setProduct(prev => {
+                                        return {
+                                          ...prev, variants: prev.variants.map(variant => {
+                                            return { ...variant, description: e.target.value }
+                                          })
+                                        }
+                                      })}
+                                      className="text-xs min-h-[80px]"
+                                      rows={3}
+                                    />
+                                  </div>
+                                </div>
+                              </RetailFormSection>
+
+                              <RetailFormSection title="Shipping dimensions" description="Used for shipping labels and carrier calculations.">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1">
                                     <label className="text-xs font-semibold">
@@ -1285,90 +1322,104 @@ export const ProductUpdate = () => {
                                     />
                                   </div>
                                 </div>
-                              </div>
+                              </RetailFormSection>
 
                               {!product.askForPrice && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold">
-                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                    </label>
-                                    <Input
-                                      type="number"
-                                      name="sale-price"
-                                      id="sale-price"
-                                      min={0}
-                                      step="0.01"
-                                      placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                      value={product?.variants?.[0]?.salePrice ?? ''}
-                                      onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) ?? null)}
-                                      className="h-8 text-xs"
-                                    />
+                                <RetailFormSection
+                                  title="Sale price & promotions"
+                                  description="Optional sale price, discounts, and mix-and-match rules for this variant."
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-semibold">
+                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                      </label>
+                                      <Input
+                                        type="number"
+                                        name="sale-price"
+                                        id="sale-price"
+                                        min={0}
+                                        step="0.01"
+                                        placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                        value={product?.variants?.[0]?.salePrice ?? ''}
+                                        onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) ?? null)}
+                                        className="h-8 text-xs"
+                                      />
+                                    </div>
                                   </div>
-                                </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2">
+                                      <DiscountDropdown
+                                        discounts={product?.variants?.[0]?.discounts}
+                                        variantIndex={0}
+                                        handleVariantChange={handleVariantFieldChange}
+                                      />
+
+                                      <div className="space-y-1 mt-2">
+                                        <label className="text-xs font-semibold">
+                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                        </label>
+                                        <Select
+                                          isClearable
+                                          value={product?.variants?.[0]?.mixAndMatchRule || null}
+                                          options={mixAndMatchRuleList}
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
+                                          styles={customSelectStyles}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </RetailFormSection>
                               )}
 
-                              {
-                                !isNew && (
+                              {!isNew && (
+                                <RetailFormSection title="Packaging" description="How this variant is packaged when not using the base unit.">
                                   <VariantPackaging
                                     product={product}
                                     variantIndex={0}
                                     variant={product?.variants?.[0]}
                                     handleVariantFieldChange={handleVariantFieldChange}
                                   />
-                                )
-                              }
-                              {!product.askForPrice && (
-                                <ItemStock
-                                  productPurchaseConfig={productPurchaseConfig}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                  variant={product?.variants?.[0]}
-                                  variantIndex={0}
-                                  itemId={product.id}
-                                />
+                                </RetailFormSection>
                               )}
-
                               {!product.askForPrice && (
-                                <VariantBranchPrice
-                                  itemVariantType={'RETAIL'}
-                                  branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                  variantIndex={0}
-                                  branchList={branchList}
-                                  handleBranchPriceChange={handleBranchPriceChange}
-                                  handleHideItemPerBranch={handleHideItemPerBranch}
-                                  variant={product?.variants?.[0]}
-                                  setItem={setProduct}
-                                />
-                              )}
-
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-2">
-                                  <DiscountDropdown
-                                    discounts={product?.variants?.[0]?.discounts}
+                                <RetailFormSection title="Stock & purchasing" description="Inventory and supplier purchasing settings for this variant.">
+                                  <ItemStock
+                                    productPurchaseConfig={productPurchaseConfig}
+                                    handleVariantFieldChange={handleVariantFieldChange}
+                                    variant={product?.variants?.[0]}
                                     variantIndex={0}
-                                    handleVariantChange={handleVariantFieldChange}
+                                    itemId={product.id}
                                   />
+                                </RetailFormSection>
+                              )}
 
-                                  <div className="space-y-1 mt-2">
-                                    <label className="text-xs font-semibold">
-                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                    </label>
-                                    <Select
-                                      isClearable
-                                      value={product?.variants?.[0]?.mixAndMatchRule || null}
-                                      options={mixAndMatchRuleList}
-                                      getOptionLabel={option => option.name}
-                                      getOptionValue={option => option.id}
-                                      onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
-                                      styles={customSelectStyles}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                              {!product.askForPrice && (
+                                <RetailFormSection
+                                  title="Branch pricing & visibility"
+                                  description="Override prices or hide this item per location."
+                                >
+                                  <VariantBranchPrice
+                                    itemVariantType={'RETAIL'}
+                                    branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                    variantIndex={0}
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    handleHideItemPerBranch={handleHideItemPerBranch}
+                                    variant={product?.variants?.[0]}
+                                    setItem={setProduct}
+                                  />
+                                </RetailFormSection>
+                              )}
+                            </>
                           )}
 
-                          <div className="space-y-4">
+                          <RetailFormSection
+                            title="Variant attributes"
+                            description="Define option dimensions (size, color, etc.). Each variant row below uses these values."
+                          >
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div className="md:col-span-1 space-y-1">
                                 <label className="text-xs font-semibold">
@@ -1434,10 +1485,13 @@ export const ProductUpdate = () => {
                                 </div>
                               ))}
                             </div>
-                          </div>
+                          </RetailFormSection>
 
-                          <div className="space-y-4">
-                            {isVariableItem && (
+                          {isVariableItem && (
+                            <RetailFormSection
+                              title="Product variants"
+                              description="Each row is a sellable SKU. Drag the handle to reorder. Expand a row for details, pricing, and stock."
+                            >
                               <div className="space-y-4">
                                 <label htmlFor="price" className="text-xs font-semibold">
                                   <Translate contentKey={'items.update.variants'}>Variants</Translate>
@@ -1457,22 +1511,56 @@ export const ProductUpdate = () => {
                                     </Button>
                                   )}
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-0">
                                   {product?.variants?.map((variant, variantIndex) => (
-                                    <div
-                                      key={variantIndex}
-                                      className={`flex ${dragOverIndex === variantIndex ? 'border-t-2 border-primary' : ''}`}
-                                      draggable
-                                      onDragStart={() => setDraggedIndex(variantIndex)}
-                                      onDragOver={e => handleDragOver(e, variantIndex)}
-                                      onDragLeave={handleDragLeave}
-                                      onDrop={() => handleDrop(variantIndex)}
-                                    >
-                                      <Accordion type="single" collapsible className="flex-1 ml-1">
-                                        <AccordionItem value={`variant-${variantIndex}`}>
-                                          <AccordionTrigger className="text-xs hover:no-underline">
-                                            {VariantAccordionHeader(variantIndex)}
-                                          </AccordionTrigger>
+                                    <React.Fragment key={variantIndex}>
+                                      {variantIndex > 0 ? <Separator className="my-4 bg-border/80" /> : null}
+                                      <div
+                                        className={`flex gap-2 items-stretch ${dragOverIndex === variantIndex ? 'border-t-2 border-primary pt-2 -mt-0.5' : ''}`}
+                                        draggable
+                                        onDragStart={() => setDraggedIndex(variantIndex)}
+                                        onDragOver={e => handleDragOver(e, variantIndex)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={() => handleDrop(variantIndex)}
+                                      >
+                                        <div
+                                          className="flex flex-col items-center justify-start gap-1 shrink-0 w-10 pt-3 pb-2 rounded-md border border-border/60 bg-muted/30 text-muted-foreground cursor-grab active:cursor-grabbing select-none"
+                                          title="Drag to reorder"
+                                        >
+                                          <GripVertical className="h-4 w-4 shrink-0" aria-hidden />
+                                          <span className="text-[11px] font-semibold tabular-nums text-foreground leading-none">
+                                            #{variantIndex + 1}
+                                          </span>
+                                        </div>
+                                        <Accordion type="single" collapsible className="flex-1 min-w-0">
+                                        <AccordionItem value={`variant-${variantIndex}`} className="border-b-0">
+                                          <AccordionPrimitive.Header className="flex w-full min-w-0">
+                                            <AccordionPrimitive.Trigger
+                                              className={cn(
+                                                'group flex flex-1 w-full min-w-0 items-start gap-2 py-3 pr-1 text-left text-xs font-medium',
+                                                'rounded-md transition-colors hover:bg-muted/40 hover:no-underline'
+                                              )}
+                                            >
+                                              <div className="min-w-0 flex-1">{VariantAccordionForm(variantIndex)}</div>
+                                              <div className="flex shrink-0 items-center gap-2 self-start pt-7">
+                                                <Button
+                                                  type="button"
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                                                  onClick={e => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setDeleteVariantDialog({ open: true, index: variantIndex });
+                                                  }}
+                                                  aria-label="Delete variant"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                                              </div>
+                                            </AccordionPrimitive.Trigger>
+                                          </AccordionPrimitive.Header>
                                           <AccordionContent>
                                             <Tabs defaultValue="general">
                                               <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
@@ -1522,19 +1610,18 @@ export const ProductUpdate = () => {
                                                       />
                                                     </div>
                                                   </div>
-                                                  <div>
-                                                    <div className="space-y-1">
-                                                      <label className="text-xs font-semibold">
-                                                        <Translate contentKey={'items.update.image'}>Image</Translate>
-                                                      </label>
-                                                      <MediaLibrary
-                                                        handleFilesSelectCallback={files => addImage(variantIndex, files)}
-                                                        defaultValues={transformAttachmentStructure(
-                                                          variant?.attachments,
-                                                          'toFileLibraryListItem'
-                                                        )}
-                                                      />
-                                                    </div>
+                                                  <div className="space-y-2">
+                                                    <label className="text-xs font-semibold">
+                                                      <Translate contentKey={'items.update.image'}>Images</Translate>
+                                                    </label>
+                                                    <ProductImageGallery
+                                                      showCard={false}
+                                                      attachments={variant?.attachments}
+                                                      onAttachmentsChange={atts =>
+                                                        handleVariantFieldChange(variantIndex, 'attachments', atts)
+                                                      }
+                                                      description="Photos for this variant (menus, online, POS)."
+                                                    />
                                                   </div>
                                                 </div>
                                               </TabsContent>
@@ -1721,18 +1808,23 @@ export const ProductUpdate = () => {
                                           </AccordionContent>
                                         </AccordionItem>
                                       </Accordion>
-                                    </div>
+                                      </div>
+                                    </React.Fragment>
                                   ))}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                          <div>
+                            </RetailFormSection>
+                          )}
+
+                          <RetailFormSection
+                            title="Custom fields"
+                            description="Extra fields configured for your company (definitions managed separately)."
+                          >
                             <CustomDefinitionValuesWrapper
                               entityId={product.id}
                               entityType={CustomDefinitionEntityType.ITEM}
                             />
-                          </div>
+                          </RetailFormSection>
                         </div>
                       </div>
                     </TabsContent>
@@ -1765,19 +1857,15 @@ export const ProductUpdate = () => {
               </CardContent>
             </Card>
           </div>
-          <div
-            className="lg:w-1/4"
-            style={{
-              position: 'sticky',
-              top: '0',
-              height: '90vh',
-            }}
-          >
-            <Card>
-              <CardHeader className="p-2">
-                <div className="text-sm font-semibold">Actions</div>
+          <div className="lg:w-1/4 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto space-y-4">
+            <Card className="border-border/80 shadow-sm">
+              <CardHeader className="p-3 pb-2 space-y-0">
+                <CardTitle className="text-base font-semibold tracking-tight text-foreground">Save & navigation</CardTitle>
+                <CardDescription className="text-xs pt-1">
+                  Applies all changes on this page.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-2 space-y-2">
+              <CardContent className="p-3 pt-0 space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="secondary"
@@ -1826,14 +1914,41 @@ export const ProductUpdate = () => {
                     <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
                   </Button>
                 </div>
-                {showFormErrors &&
-                  <div className="text-red-500 text-xs font-bold">
-                    Some Fields are required
+                {showFormErrors && (
+                  <div className="text-destructive text-xs font-medium">
+                    Some fields are required — check highlighted inputs in the form.
                   </div>
-                }
+                )}
               </CardContent>
             </Card>
-            {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
+
+            {showCatalogImagePanel ? (
+              <ProductImageGallery
+                attachments={product.attachments}
+                onAttachmentsChange={atts => handleFieldChange('attachments', atts)}
+                title={<Translate contentKey="items.update.image">Catalog images</Translate>}
+                description={
+                  isVariableItem
+                    ? 'Shared product-level photos (menus, online, POS). Variant-specific images are set under each variant in General.'
+                    : 'Main photos for this product (menus, online, POS). Add from the library or drop files in the area below.'
+                }
+              />
+            ) : null}
+
+            {productEntity?.id ? (
+              <>
+                <Separator className="opacity-60" />
+                <Card className="border-border/80 shadow-sm">
+                  <CardHeader className="p-3 pb-2">
+                    <CardTitle className="text-base font-semibold tracking-tight text-foreground">Audit history</CardTitle>
+                    <CardDescription className="text-xs">Read-only log of changes to this product.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 pt-0">
+                    <AuditLogs entityId={productEntity?.id} />
+                  </CardContent>
+                </Card>
+              </>
+            ) : null}
           </div>
         </div>
 

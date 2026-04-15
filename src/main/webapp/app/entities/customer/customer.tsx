@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
+const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
+
 export const Customer = () => {
   const dispatch = useAppDispatch();
 
@@ -36,13 +38,11 @@ export const Customer = () => {
     phone: '',
   });
 
-
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
     name: `${customer.firstName} ${customer.lastName}`
   }));
 
-  console.log(customerList,'customerList')
   const getAllEntities = () => {
     if (search) {
       dispatch(
@@ -203,6 +203,9 @@ export const Customer = () => {
                   />
                 </div>
               </TableHead>
+              <TableHead className="min-w-[110px]">On Account</TableHead>
+              <TableHead className="min-w-[110px] text-right">Debit Limit</TableHead>
+              <TableHead className="min-w-[110px] text-right">Debit Used</TableHead>
               <TableHead className="w-[50px]">{translate('common.edit')}</TableHead>
               <TableHead className="w-[50px]">{translate('common.delete')}</TableHead>
             </TableRow>
@@ -212,7 +215,7 @@ export const Customer = () => {
               <TableRow key={customer.id}>
                 <TableCell className="text-xs">
                   <Link
-                    to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    to={`/customer/${customer.id}?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
                     className="hover:underline"
                   >
                     {customer.name}
@@ -220,6 +223,13 @@ export const Customer = () => {
                 </TableCell>
                 <TableCell className="text-xs">{customer.email}</TableCell>
                 <TableCell className="text-xs">{customer.phone}</TableCell>
+                <TableCell className="text-xs">
+                  <span className={customer.onAccountEnabled ? 'font-medium text-emerald-600' : 'text-muted-foreground'}>
+                    {customer.onAccountEnabled ? 'Active' : 'Inactive'}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitLimit)}</TableCell>
+                <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitUsed)}</TableCell>
                 <TableCell>
                   <Link to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">

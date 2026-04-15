@@ -64,6 +64,21 @@ export const dateToUTCString = (date: Date, timeZone?: string): string => {
 // 🔴 DEBUG FLAG: Only enable in development mode
 const DEBUG_DATES = process.env.NODE_ENV === 'development';
 
+const parseDateValue = (date: Date | string): Date | null => {
+  if (date instanceof Date) {
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const parsedDate = new Date(date);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return parsedDate;
+  }
+
+  // Support values like "2026-03-18 00:00:00" that some browsers won't parse directly.
+  const normalizedDate = new Date(date.replace(' ', 'T'));
+  return Number.isNaN(normalizedDate.getTime()) ? null : normalizedDate;
+};
+
 /**
  * Format a UTC date string for display in the business timezone.
  * Use this to replace .toLocaleString() throughout the app.
@@ -81,13 +96,17 @@ export const formatDateForDisplay = (
   if (!date) return '';
 
   const targetTimeZone = timeZone || getStore().getState().businessTimeZone?.timeZone;
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const dateObj = parseDateValue(date);
+
+  if (!dateObj) {
+    return typeof date === 'string' ? date : '';
+  }
 
   let formattedDate: string;
 
   if (!targetTimeZone) {
-    // No business timezone set, fall back to default locale formatting
-    formattedDate = dateObj.toLocaleString();
+    // No business timezone set, fall back to formatting in the local timezone
+    formattedDate = format(dateObj, formatString);
   } else {
     // Format the UTC date in the business timezone
     formattedDate = format(toZonedTime(dateObj, targetTimeZone), formatString);

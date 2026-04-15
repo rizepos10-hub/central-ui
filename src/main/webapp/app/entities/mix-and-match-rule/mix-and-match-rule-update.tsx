@@ -313,7 +313,7 @@ export const MixAndMatchRuleUpdate = () => {
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Tax Rule</Label>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs">Above This Quantity</span>
+                        <span className="text-xs">Above This Quantity Or Equal</span>
                         <Input
                           type="number"
                           value={mixAndMatchRule?.rules?.[0]?.aboveQuantity ?? ''}

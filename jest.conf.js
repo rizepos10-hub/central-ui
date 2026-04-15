@@ -15,6 +15,10 @@ module.exports = {
   coveragePathIgnorePatterns: ['<rootDir>/src/test/javascript/'],
   moduleNameMapper: mapTypescriptAliasToJestAlias({
     '\\.(css|scss)$': 'identity-obj-proxy',
+    '^@/src/main/webapp/app/(.*)$': '<rootDir>/src/main/webapp/app/$1',
+    '^@/components/(.*)$': '<rootDir>/components/$1',
+    '^@/lib/(.*)$': '<rootDir>/src/main/webapp/app/lib/$1',
+    '^@/(.*)$': '<rootDir>/$1',
   }),
   reporters: [
     'default',
