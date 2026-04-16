@@ -93,6 +93,12 @@ export const OrderDetail = () => {
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const orderProviderCode = orderEntity.orderDeliveryDetails?.deliveryProviderCode as 'ICABBI' | 'TOOKAN' | undefined;
+  const canEditOrder = !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED;
+  const canManageProcessingStatus = !orderEntity?.refund;
+  const processingStatusOptions = Object.values(OrderStatus).map(status => ({
+    label: status,
+    value: status,
+  }));
 
   const toDateTimeLocal = (value?: string) => {
     if (!value) return '';
@@ -356,20 +362,35 @@ export const OrderDetail = () => {
 
   return (
     <div className="p-2">
-      <div className="flex items-center gap-4 mb-4">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Back</span>
-        </Button>
-        <h1 className="text-lg font-semibold">
-          #{orderEntity?.sequenceNumber} - <span className="font-normal text-muted-foreground">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
-          <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}</span>
-        </h1>
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
+          <h1 className="text-lg font-semibold">
+            #{orderEntity?.sequenceNumber} - <span className="font-normal text-muted-foreground">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
+            <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}</span>
+          </h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {canEditOrder && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEditOrder}
+              className="h-8 text-xs"
+            >
+              <Pencil className="mr-1 h-3 w-3" />
+              Edit Order
+            </Button>
+          )}
+        </div>
       </div>
       <div ref={pagePrintRef}>
         <style>
@@ -404,19 +425,8 @@ export const OrderDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="mb-4 flex justify-between items-center">
                     <span className="text-sm font-medium">Items</span>
-                    {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleEditOrder}
-                        className="h-8 text-xs"
-                      >
-                        <Pencil className="h-3 w-3 mr-1" />
-                        Edit Order
-                      </Button>
-                    )}
                   </div>
                   {dataTableValues && dataTableValues.length > 0 && (
                     <OrderedItems dataTableValues={dataTableValues} />
@@ -480,9 +490,30 @@ export const OrderDetail = () => {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <label className="font-medium">Processing Status:</label>
-                      <span>{filteredOrderEntity.processingStatus}</span>
+                    <div className="flex flex-col gap-1">
+                      <label className="font-medium">Processing Status</label>
+                      <Select
+                        options={processingStatusOptions}
+                        value={
+                          filteredOrderEntity.processingStatus
+                            ? {
+                                label: filteredOrderEntity.processingStatus,
+                                value: filteredOrderEntity.processingStatus,
+                              }
+                            : null
+                        }
+                        onChange={(option: any) => {
+                          const nextStatus = option?.value as OrderStatus | undefined;
+
+                          if (!nextStatus || nextStatus === filteredOrderEntity.processingStatus) {
+                            return;
+                          }
+
+                          changeProcessingStatusConfirm(nextStatus);
+                        }}
+                        placeholder="Processing Status"
+                        isDisabled={!canManageProcessingStatus}
+                      />
                     </div>
                     {orderEntity?.deliveryStatus != null && (
                       <div className="flex items-center gap-2">
@@ -500,23 +531,6 @@ export const OrderDetail = () => {
                   </div>
                 </CardContent>
               </Card>
-              {(UiSettingsEntity.orderConfirmation && orderEntity.processingStatus === OrderStatus.DRAFT) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Confirm Order</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button onClick={() => changeProcessingStatusConfirm(OrderStatus.CONFIRMED)} className="h-8 text-xs">
-                        Confirm
-                      </Button>
-                      <Button variant="destructive" onClick={() => changeProcessingStatusConfirm(OrderStatus.REJECTED)} className="h-8 text-xs">
-                        Reject
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
 
               <Card id="customer">
                 <CardHeader>
