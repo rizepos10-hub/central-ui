@@ -625,10 +625,10 @@ export const Branches = () => {
             }
           }
         }}
-        className="flex gap-4"
+        className="flex items-start gap-4"
         orientation="vertical"
       >
-        <TabsList className="h-auto flex-col items-stretch w-48 bg-muted/30">
+        <TabsList className="sticky top-4 self-start h-auto max-h-[calc(100vh-2rem)] w-48 flex-col items-stretch justify-start overflow-y-auto bg-muted/30">
           {businessDetailsState?.branchDetails?.map((branch, index) => (
             <TabsTrigger
               key={index}
