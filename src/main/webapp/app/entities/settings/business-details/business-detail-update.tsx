@@ -69,17 +69,7 @@ export const BusinessDetailUpdate = () => {
       ...businessDetailEntity,
       ...businessDetailsState,
       logo: selectedAttachments,
-      branchDetails: businessDetailsState?.branchDetails?.map(branch => {
-        return {
-          ...branch, zones: branch.zones?.map(zone => {
-            return {
-              ...zone, coordinates: zone.coordinates?.map(coordinate => {
-                return { x: coordinate.x, y: coordinate.y };
-              })
-            };
-          })
-        };
-      }),
+      branchDetails: businessDetailsState?.branchDetails,
     };
 
     if (isNew) {
