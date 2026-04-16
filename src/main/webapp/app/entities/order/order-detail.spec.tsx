@@ -202,6 +202,35 @@ describe('OrderDetail payment integration', () => {
   });
 });
 
+describe('OrderDetail primary actions', () => {
+  it('navigates to order edit when Edit Order is clicked', () => {
+    renderOrderDetail();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Order' }));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/order/create',
+      expect.objectContaining({
+        state: expect.objectContaining({
+          orderId: 'order-1',
+        }),
+      })
+    );
+  });
+
+  it('opens the processing status confirmation dialog from the dropdown', async () => {
+    mockState.order.entity.processingStatus = 'DRAFT';
+
+    renderOrderDetail();
+
+    fireEvent.change(screen.getByLabelText('Processing Status'), { target: { value: 'CONFIRMED' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Are you sure you want to change the status to CONFIRMED?')).toBeTruthy();
+    });
+  });
+});
+
 describe('OrderDetail delivery provider source', () => {
   it('uses deliveryProviderCode from totals for booked Tookan orders', async () => {
     mockState.order.entity.orderDeliveryDetails = {
@@ -238,7 +267,7 @@ describe('OrderDetail delivery provider source', () => {
   it('shows create-booking flow without provider selection for unbooked orders', () => {
     renderOrderDetail();
 
-    expect(screen.getByText('Create Booking')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Create Booking' })).toBeTruthy();
     expect(screen.queryByLabelText('Select provider')).toBeNull();
   });
 

@@ -126,6 +126,7 @@ const OrderCreate = () => {
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
     const [submittingOrder, setSubmittingOrder] = useState(false);
     const [visible, setVisible] = useState(false);
+    const scheduledAtInputRef = useRef<HTMLInputElement | null>(null);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
     const cartStorageKey = `pos-cart:${selectedRegistryId || 'unknown'}`;
@@ -168,6 +169,14 @@ const OrderCreate = () => {
         const verb = missingSalesmanFields.length === 1 ? 'is' : 'are';
         return `${label} ${verb} required`;
     }, [missingSalesmanFields]);
+
+    const openScheduledAtPicker = useCallback(() => {
+        const input = scheduledAtInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+
+        if (input?.showPicker) {
+            input.showPicker();
+        }
+    }, []);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
 
@@ -2064,8 +2073,11 @@ const OrderCreate = () => {
                                 <div className="grid grid-cols-5 gap-2">
                                     <div className="col-span-3">
                                         <Input
+                                            ref={scheduledAtInputRef}
                                             type="datetime-local"
                                             value={scheduledAtLocal}
+                                            onClick={openScheduledAtPicker}
+                                            onFocus={openScheduledAtPicker}
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 setScheduledAtLocal(value);
