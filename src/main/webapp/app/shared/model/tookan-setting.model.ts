@@ -22,8 +22,14 @@ export interface IDefinedChargeRule {
   charge?: number;
 }
 
+export interface IZoneChargeRule {
+  zoneId?: string;
+  charge?: number;
+}
+
 export interface IDeliveryConfiguration {
   definedChargeRules?: IDefinedChargeRule[];
+  zoneChargeRules?: IZoneChargeRule[];
   deliveryTaggingMode?: DeliveryTaggingMode;
   chargePerDistance?: IDistanceCharge;
   shipmentRange?: IDistance;
@@ -83,6 +89,7 @@ export interface ITookanSettingResponse {
 
 export const defaultDeliveryConfiguration: Readonly<IDeliveryConfiguration> = {
   definedChargeRules: [],
+  zoneChargeRules: [],
   deliveryTaggingMode: 'UNRESTRICTED',
   chargePerDistance: undefined,
   shipmentRange: undefined,
@@ -96,7 +103,7 @@ export const defaultTookanSettingValue: Readonly<ITookanSettingValue> = {
   notify: true,
   geofence: false,
   trackingLink: true,
-  deliveryConfiguration: { ...defaultDeliveryConfiguration, definedChargeRules: [] },
+  deliveryConfiguration: { ...defaultDeliveryConfiguration, definedChargeRules: [], zoneChargeRules: [] },
   chargeCalculationSetting: {},
 };
 
@@ -108,10 +115,12 @@ export const defaultTookanSettingResponse: Readonly<ITookanSettingResponse> = {
 
 function normalizeDeliveryConfiguration(dc?: IDeliveryConfiguration | null): IDeliveryConfiguration {
   const rules = dc?.definedChargeRules;
+  const zoneRules = dc?.zoneChargeRules;
   return {
     ...defaultDeliveryConfiguration,
     ...(dc || {}),
     definedChargeRules: Array.isArray(rules) ? rules.map(r => ({ ...r })) : [],
+    zoneChargeRules: Array.isArray(zoneRules) ? zoneRules.map(r => ({ ...r })) : [],
     deliveryTaggingMode: dc?.deliveryTaggingMode ?? 'UNRESTRICTED',
   };
 }

@@ -88,6 +88,12 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
     value: bands > 0 ? `${bands} distance band(s)` : 'Per-step rate only (no bands)',
   });
 
+  const zoneRules = dc.zoneChargeRules?.filter(rule => rule?.zoneId).length ?? 0;
+  lines.push({
+    label: 'Zone pricing',
+    value: zoneRules > 0 ? `${zoneRules} zone-specific fee(s)` : 'Off',
+  });
+
   const step = dc.chargePerDistance;
   if (bands === 0 && step?.charge != null && step.distance?.value) {
     lines.push({
@@ -309,7 +315,6 @@ export const Branches = () => {
 
   const handleImageChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    console.log(value, 'value')
     newData[branchIndex].logo = value?.[0];
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
@@ -395,6 +400,7 @@ export const Branches = () => {
     minCharge: 0,
     freeOnAmount: null,
     definedChargeRules: [],
+    zoneChargeRules: [],
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
     defaultBookingLeadMinutes: null,
   });
@@ -448,17 +454,6 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
-  const handleZoneChange = (selectedZones, branchIndex) => {
-    setBusinessDetailsState((prev) => ({
-      ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
-        if (i === branchIndex) {
-          return { ...branch, zones: selectedZones.map(zone => ({ id: zone.id, name: zone.name })) };
-        }
-        return branch;
-      })
-    }));
-  }
-
   const handleTimeZoneChange = (selectedTimeZone, branchIndex) => {
     setBusinessDetailsState((prev) => ({
       ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
@@ -491,18 +486,7 @@ export const Branches = () => {
   const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
-      // change the coordinates sent inside every zone in the branches in the array
-      branchDetails: businessDetailsState?.branchDetails?.map(branch => {
-        return {
-          ...branch, zones: branch.zones?.map(zone => {
-            return {
-              ...zone, coordinates: zone.coordinates?.map(coordinate => {
-                return { x: coordinate.x, y: coordinate.y };
-              })
-            };
-          })
-        };
-      }),
+      branchDetails: businessDetailsState?.branchDetails,
     };
 
     if (isNew) {
@@ -570,6 +554,35 @@ export const Branches = () => {
       const rules = newState.branchDetails[branchIndex].deliveryConfiguration?.definedChargeRules;
       if (rules) {
         rules.splice(chargeRuleIndex, 1);
+      }
+      return newState;
+    });
+  };
+
+  const handleAddZoneChargeRule = (branchIndex) => {
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const branch = newState.branchDetails[branchIndex];
+      if (!branch.deliveryConfiguration) {
+        branch.deliveryConfiguration = defaultDeliveryConfiguration();
+      }
+      if (!branch.deliveryConfiguration.zoneChargeRules) {
+        branch.deliveryConfiguration.zoneChargeRules = [];
+      }
+      branch.deliveryConfiguration.zoneChargeRules.push({
+        zoneId: '',
+        charge: 0,
+      });
+      return newState;
+    });
+  };
+
+  const handleDeleteZoneChargeRule = (branchIndex, zoneChargeRuleIndex) => {
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const rules = newState.branchDetails[branchIndex].deliveryConfiguration?.zoneChargeRules;
+      if (rules) {
+        rules.splice(zoneChargeRuleIndex, 1);
       }
       return newState;
     });
@@ -715,19 +728,6 @@ export const Branches = () => {
                       id={`token-${branchIndex}`}
                     />
                     <Label htmlFor={`token-${branchIndex}`} className="font-bold text-xs cursor-pointer">Should token expire?</Label>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label className="font-bold text-xs">Zones</Label>
-                    <Select
-                      value={branch.zones}
-                      isMulti={true}
-                      options={zones}
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(e) => handleZoneChange(e, activeIndex)}
-                      className="text-xs"
-                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -1229,6 +1229,100 @@ export const Branches = () => {
                       )}
                     </CardContent>
                   </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-sm font-semibold">Zone charges</CardTitle>
+                        <CardDescription className="text-[11px]">
+                          Optional overrides: assign a flat delivery fee to specific zones using the configured zone catalog.
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 shrink-0 gap-1 text-xs"
+                        onClick={() => handleAddZoneChargeRule(branchIndex)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add zone charge
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                      {(branch.deliveryConfiguration?.zoneChargeRules?.length ?? 0) === 0 ? (
+                        <div className="rounded-md border border-dashed bg-muted/10 px-4 py-8 text-center">
+                          <p className="text-xs text-muted-foreground">
+                            No zone-specific fees yet. Add one when a zone should have its own flat delivery charge.
+                          </p>
+                        </div>
+                      ) : (
+                        (branch.deliveryConfiguration?.zoneChargeRules ?? []).map((zoneChargeRule, zoneChargeRuleIndex) => (
+                          <div
+                            key={zoneChargeRuleIndex}
+                            className="rounded-lg border bg-card p-3 shadow-sm space-y-3"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-foreground">Zone rule {zoneChargeRuleIndex + 1}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 gap-1 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteZoneChargeRule(branchIndex, zoneChargeRuleIndex)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+                              <div className="lg:col-span-8 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground">Zone</Label>
+                                <Select
+                                  value={zones.find(zone => zone.id === zoneChargeRule.zoneId) ?? null}
+                                  options={zones}
+                                  getOptionLabel={option => option.name}
+                                  getOptionValue={option => option.id}
+                                  onChange={(selectedZone) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `zoneChargeRules[${zoneChargeRuleIndex}].zoneId`,
+                                      selectedZone?.id ?? ''
+                                    )
+                                  }
+                                  placeholder="Select zone..."
+                                  isClearable
+                                  className="text-xs"
+                                />
+                              </div>
+                              <div className="lg:col-span-4 flex flex-col gap-1">
+                                <Label
+                                  className="text-xs text-muted-foreground"
+                                  htmlFor={`zone-charge-${branchIndex}-${zoneChargeRuleIndex}`}
+                                >
+                                  Charge
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`zone-charge-${branchIndex}-${zoneChargeRuleIndex}`}
+                                  placeholder="Fee"
+                                  value={zoneChargeRule.charge ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `zoneChargeRules[${zoneChargeRuleIndex}].charge`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
                     </div>
 
                   <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72 lg:max-w-sm lg:sticky lg:top-4 lg:self-start">
@@ -1571,8 +1665,8 @@ const MapComponent = ({
         fullAddress: place.formatted_address
       });
       map.setCenter({ lat, lng });
-    }).catch((error) => {
-      console.error('Geocode error:', error);
+    }).catch(() => {
+      toast.error('Failed to geocode the selected address.');
     });
   };
 

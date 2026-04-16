@@ -1,7 +1,6 @@
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { IAddress } from 'app/shared/model/address.model';
 import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
-import { IZone } from './ZONE/zone.model';
 import { EndingType } from './ENUMS/ending-type.model';
 import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
 import { ISeo } from './ITEM/retail/product.model';
@@ -41,7 +40,6 @@ export interface IBranchDetails {
   paymentConfigurations?: IPaymentConfigurations[];
   endOfDayReportSection?: EndOfDayReportSection[];
   activeCOD?: boolean;
-  zones: IZone[];
   hideRetailShop?: boolean;
   hideMapOnOnlineOrdering?: boolean;
   unitCostCalculationMode?: UnitCostCalculationMode;
@@ -79,6 +77,7 @@ export interface IDeliveryConfiguration {
   /** Order subtotal ≥ this amount → delivery fee is zero (same as central `DELIVERY_PRICING`). Omit or clear to disable. */
   freeOnAmount?: number | null;
   definedChargeRules: IChargeRule[];
+  zoneChargeRules: IZoneChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
 }
@@ -92,6 +91,11 @@ export interface IChargeRule {
   minDistance: IDistance;
   maxDistance: IDistance;
   orderAmount: number;
+  charge: number;
+}
+
+export interface IZoneChargeRule {
+  zoneId: string;
   charge: number;
 }
 

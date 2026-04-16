@@ -11,7 +11,7 @@ import reducer, {
   reset,
   updateTookanSetting,
 } from './tookan.reducer';
-import { defaultTookanSettingValue } from 'app/shared/model/tookan-setting.model';
+import { defaultTookanSettingValue, normalizeTookanSettingValue } from 'app/shared/model/tookan-setting.model';
 
 describe('Tookan settings reducer tests', () => {
   const initialState = {
@@ -53,7 +53,19 @@ describe('Tookan settings reducer tests', () => {
     expect(state.entity.branchId).toBe('branch-1');
     expect(state.entity.value.active).toBe(true);
     expect(state.entity.value.notify).toBe(true);
+    expect(state.entity.value.deliveryConfiguration.zoneChargeRules).toEqual([]);
     expect(state.entity.hasApiKey).toBe(true);
+  });
+
+  it('should preserve zone charge rules when normalizing settings', () => {
+    const normalized = normalizeTookanSettingValue({
+      deliveryConfiguration: {
+        zoneChargeRules: [{ zoneId: 'zone-1', charge: 12 }],
+      },
+    });
+
+    expect(normalized.deliveryConfiguration.zoneChargeRules).toEqual([{ zoneId: 'zone-1', charge: 12 }]);
+    expect(normalized.deliveryConfiguration.definedChargeRules).toEqual([]);
   });
 
   it('should set teams and agents on successful fetch', () => {
