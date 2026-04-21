@@ -331,6 +331,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handlePrintZeroPriceAddonsChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].printZeroPriceAddons = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleTokenExpiredFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].tokenExpired = checked;
@@ -695,6 +701,17 @@ export const Branches = () => {
                       id={`ebt-${branchIndex}`}
                     />
                     <Label htmlFor={`ebt-${branchIndex}`} className="font-bold text-xs cursor-pointer">Is EBT Eligible</Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.printZeroPriceAddons}
+                      onCheckedChange={(checked) => handlePrintZeroPriceAddonsChange(branchIndex, checked)}
+                      id={`print-zero-price-addons-${branchIndex}`}
+                    />
+                    <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print Zero Price Addons
+                    </Label>
                   </div>
 
                   <div className="flex flex-col gap-2">

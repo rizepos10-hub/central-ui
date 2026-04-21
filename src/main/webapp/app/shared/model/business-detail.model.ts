@@ -35,6 +35,7 @@ export interface IBranchDetails {
   address: IAddress;
   days: IBusinessDayDetail[];
   wholesale: boolean;
+  printZeroPriceAddons?: boolean;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
