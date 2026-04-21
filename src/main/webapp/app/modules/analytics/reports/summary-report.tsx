@@ -12,6 +12,7 @@ import { exportExcelEodSummaryReport, exportExcelSummaryReport } from 'app/share
 import DynamicEndOfDayReportUI from './end-of-day/dynamic-end-of-day-report';
 import { fetchRecentByDate } from '../api';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import ReportErrorState from 'app/shared/components/report/report-error-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -21,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Loader2, BarChart3, CalendarIcon } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +35,7 @@ const SalesSummaryReport = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [convertedFromDate, setConvertedFromDate] = useState<string | undefined>(undefined);
   const [convertedToDate, setConvertedToDate] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
   const branchList = useAppSelector(state => state.branch.entities);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
@@ -86,6 +89,7 @@ const SalesSummaryReport = () => {
 
     try {
       setLoading(true);
+      setError(null);
 
       // Convert dates using the same pattern as order.tsx
       const targetTimeZone = (selectedBranch ? branchList.find(b => b.id === selectedBranch)?.timezone : null) || businessTimeZone;
@@ -114,7 +118,8 @@ const SalesSummaryReport = () => {
       });
       setSalesData(data);
     } catch (error) {
-      console.log(error, 'error');
+      setSalesData(undefined);
+      setError(getReportApiErrorMessage(error, 'Unable to load sales summary report.'));
     } finally {
       setLoading(false);
     }
@@ -122,41 +127,41 @@ const SalesSummaryReport = () => {
 
   const fetchExcelData = async () => {
     if (branchList && dateRange?.from && dateRange?.to) {
-      const promises = branchList.map(async (branch) => {
-        const formData = new FormData();
+      try {
+        setError(null);
+        const promises = branchList.map(async (branch) => {
+          const formData = new FormData();
 
-        // Convert dates using the same pattern as order.tsx
-        const targetTimeZone = branch?.timezone || businessTimeZone;
+          const targetTimeZone = branch?.timezone || businessTimeZone;
+          const fromDateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
+          const formattedFromDate = fromZonedTime(`${fromDateStr} 00:00:00`, targetTimeZone).toISOString();
+          const toDateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
+          const formattedToDate = fromZonedTime(`${toDateStr} 23:59:59`, targetTimeZone).toISOString();
 
-        // Format fromDate (00:00:00)
-        const fromDateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
-        const formattedFromDate = fromZonedTime(`${fromDateStr} 00:00:00`, targetTimeZone).toISOString();
+          formData.append('fromDate', formattedFromDate);
+          formData.append('toDate', formattedToDate);
+          if (selectedSource) formData.append('source', selectedSource);
+          if (selectedDay) formData.append('dayOfWeek', selectedDay);
+          formData.append('branch', branch?.id);
 
-        // Format toDate (23:59:59)
-        const toDateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
-        const formattedToDate = fromZonedTime(`${toDateStr} 23:59:59`, targetTimeZone).toISOString();
+          const { data } = await axios.post(`/api/report/sales-summary`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
 
-        formData.append('fromDate', formattedFromDate);
-        formData.append('toDate', formattedToDate);
-        if (selectedSource) formData.append('source', selectedSource);
-        if (selectedDay) formData.append('dayOfWeek', selectedDay);
-        formData.append('branch', branch?.id);
-
-        const { data } = await axios.post(`/api/report/sales-summary`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          return { branch, data };
         });
 
-        return { branch, data };
-      });
+        const excelDataArr = await Promise.all(promises);
 
-      const excelDataArr = await Promise.all(promises);
-
-      exportExcelEodSummaryReport(
-        selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
-        dateRange.from,
-        dateRange.to,
-        'Sales Summary Report'
-      )
+        exportExcelEodSummaryReport(
+          selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
+          dateRange.from,
+          dateRange.to,
+          'Sales Summary Report'
+        );
+      } catch (error) {
+        setError(getReportApiErrorMessage(error, 'Unable to export sales summary report.'));
+      }
     }
   };
 
@@ -355,19 +360,22 @@ const SalesSummaryReport = () => {
           </Card>
         </form>
 
-        {/* Report Results */}
+        {error ? <ReportErrorState message={error} dataTestId="sales-summary-report-error" /> : null}
+
+        {salesData || loading ? (
           <DynamicEndOfDayReportUI
             reportData={salesData}
             endOfDay={null}
             printWrapperRef={printWrapperRef}
             loading={loading}
-            title=""
+            title="Sales Summary Report"
             branchId={selectedBranch}
             fromDate={convertedFromDate}
             toDate={convertedToDate}
             source={selectedSource}
             handleExcelExport={fetchExcelData}
           />
+        ) : null}
       </div>
     </PageWrapper>
   );

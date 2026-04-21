@@ -11,6 +11,7 @@ import { fetchStoreCreditReport } from 'app/modules/analytics/api';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import { useReactToPrint } from 'react-to-print';
 import {
   analyticsReportPrintStyles,
@@ -20,6 +21,7 @@ import {
   fetchAllStoreCreditRows,
   saveWorkbookAsExcel,
 } from 'app/shared/util/report-export-utils';
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const PAGE_SIZE = 10;
 const EXPORT_PAGE_SIZE = 250;
@@ -95,6 +97,7 @@ const StoreCreditReport = () => {
   const handleExcelExport = async () => {
     try {
       setBusyAction('excel');
+      setError(null);
       const allRows = await ensureExportRows();
       await saveWorkbookAsExcel(
         buildStoreCreditWorkbook(allRows, {
@@ -106,6 +109,8 @@ const StoreCreditReport = () => {
         }),
         fileName
       );
+    } catch (error) {
+      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -118,6 +123,7 @@ const StoreCreditReport = () => {
 
     try {
       setBusyAction('pdf');
+      setError(null);
       await ensureExportRows();
 
       if (exportContentRef.current) {
@@ -126,6 +132,8 @@ const StoreCreditReport = () => {
           orientation: 'portrait',
         });
       }
+    } catch (error) {
+      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -137,7 +145,14 @@ const StoreCreditReport = () => {
     pageStyle: analyticsReportPrintStyles('portrait'),
     onBeforeGetContent: async () => {
       setBusyAction('print');
-      await ensureExportRows();
+      setError(null);
+      try {
+        await ensureExportRows();
+      } catch (error) {
+        setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+        setBusyAction(null);
+        throw error;
+      }
     },
     onAfterPrint: () => {
       setBusyAction(null);
@@ -305,19 +320,19 @@ const StoreCreditReport = () => {
           </div>
         </div>
 
-        <div className="fixed -left-[10000px] top-0 w-[1000px] bg-white p-6" aria-hidden="true">
+        <div className="pointer-events-none fixed -left-[10000px] top-0 w-fit max-w-none bg-white p-6" aria-hidden="true">
           <div ref={exportContentRef} className="report-export-root space-y-4">
-            <div className="rounded-md border bg-white p-4">
-              <h2 className="text-lg font-semibold">{REPORT_TITLE}</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Full export dataset</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                On Account Enabled: {appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All'}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Account Number: {appliedFilters.accountNumber || 'All'}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Total records: {exportRows.length}</p>
-            </div>
+            <ReportExportHeader
+              reportTitle={REPORT_TITLE}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              meta={[{ label: 'Dataset', value: 'Full export dataset' }]}
+              filters={[
+                { label: 'On Account Enabled', value: appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All' },
+                { label: 'Account Number', value: appliedFilters.accountNumber || 'All' },
+                { label: 'Total Records', value: exportRows.length },
+              ]}
+            />
 
             <div className="rounded-md border bg-white">
               <Table>
