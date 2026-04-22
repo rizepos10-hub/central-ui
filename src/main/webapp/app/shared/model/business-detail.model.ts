@@ -75,12 +75,19 @@ export interface IDeliveryConfiguration {
   };
   shipmentRange: IDistance;
   minCharge: number;
+  pricingMode?: DeliveryPricingMode;
   /** Order subtotal ≥ this amount → delivery fee is zero (same as central `DELIVERY_PRICING`). Omit or clear to disable. */
   freeOnAmount?: number | null;
   definedChargeRules: IChargeRule[];
   zoneChargeRules: IZoneChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
+}
+
+export enum DeliveryPricingMode {
+  COVERAGE_BASE = 'COVERAGE_BASE',
+  DISTANCE_BAND_RULE = 'DISTANCE_BAND_RULE',
+  ZONE_RULE = 'ZONE_RULE',
 }
 
 export enum DeliveryTaggingModeEnum {
