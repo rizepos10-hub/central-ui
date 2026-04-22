@@ -72,10 +72,12 @@ jest.mock('../settings/branch-registry/till/till.reducer', () => ({
 jest.mock('./order.reducer', () => ({
   calculateItemPrice: jest.fn(payload => ({ type: 'order/calculate_item_price', payload })),
   changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
+  clearChargesPreview: jest.fn(() => ({ type: 'order/clear_charges_preview' })),
   createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
   updateEntity: jest.fn(entity => ({ type: 'order/update_entity', payload: entity })),
   createDraftBill: jest.fn(payload => ({ type: 'order/create_draft_bill', payload })),
   addPaymentToBill: jest.fn(payload => ({ type: 'order/add_payment_to_bill', payload })),
+  previewCharges: jest.fn(entity => ({ type: 'order/preview_charges', payload: entity })),
   reset: jest.fn(() => ({ type: 'order/reset' })),
 }));
 
@@ -170,6 +172,9 @@ beforeEach(() => {
       updating: false,
       itemPriceLoading: {},
       itemPriceCalculations: {},
+      chargesPreview: null,
+      chargesPreviewLoading: false,
+      chargesPreviewError: null,
     },
     product: {
       entities: [],
@@ -287,6 +292,16 @@ beforeEach(() => {
             itemTotal: 15,
             taxTotal: 0,
           },
+        },
+      });
+    }
+
+    if (action?.type === 'order/preview_charges') {
+      return Promise.resolve({
+        type: 'order/preview_charges/fulfilled',
+        payload: {
+          totalCharges: 0,
+          orderCharges: [],
         },
       });
     }
@@ -468,5 +483,155 @@ describe('OrderCreate payment flow', () => {
     expect(getLatestUpdatePayload().wholesale).toBeUndefined();
 
     expect(screen.queryByText('Create Order & Payment')).toBeNull();
+  });
+
+  it('requests a charge preview when the order has enough data and shows the previewed total', async () => {
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+    mockState.order.chargesPreview = {
+      deliveryCharge: {
+        amount: 3,
+        chargeType: 'SHIPPING_FEE',
+      },
+      orderCharges: [
+        {
+          amount: 2,
+          chargeType: 'PLATFORM_FEE',
+        },
+      ],
+      totalCharges: 5,
+    };
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.previewCharges).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branchId: 'branch-1',
+          orderMethod: OrderMethod.Delivery,
+          deliverTo: expect.objectContaining({
+            id: 'address-1',
+          }),
+        })
+      );
+    });
+
+    expect(await screen.findByRole('button', { name: /place order/i })).not.toBeNull();
+    expect(screen.queryByText('Service Charges')).toBeNull();
+    expect(screen.queryByText('Shipping Fee')).toBeNull();
+    expect(screen.getByText('Platform Fee')).not.toBeNull();
+    expect(screen.getAllByText('$17.00').length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+
+    expect(screen.getByText('Base Total:')).not.toBeNull();
+    expect(screen.getByText('Final Total:')).not.toBeNull();
+    expect(screen.getAllByText('$15.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$2.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$17.00').length).toBeGreaterThan(0);
+  });
+
+  it('requests a charge preview even before a delivery address is selected', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.previewCharges).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branchId: 'branch-1',
+          orderMethod: OrderMethod.Delivery,
+          deliverTo: null,
+        })
+      );
+    });
+  });
+
+  it('does not request a charge preview when the branch id is missing', async () => {
+    mockState.order.entity.branchId = null;
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.clearChargesPreview).toHaveBeenCalled();
+    });
+
+    expect(orderReducer.previewCharges).not.toHaveBeenCalled();
+  });
+
+  it('does not request a charge preview while item prices are still loading', async () => {
+    mockState.order.itemPriceLoading = {
+      'cart-1': true,
+    };
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.clearChargesPreview).toHaveBeenCalled();
+    });
+
+    expect(orderReducer.previewCharges).not.toHaveBeenCalled();
+  });
+
+  it('does not request a charge preview when any item price is null', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: null,
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.clearChargesPreview).toHaveBeenCalled();
+    });
+
+    expect(orderReducer.previewCharges).not.toHaveBeenCalled();
+  });
+
+  it('shows a non-blocking preview failure message and keeps the order action enabled', async () => {
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+    mockState.order.chargesPreviewError = 'Preview failed';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(false);
+    expect(await screen.findByText(/charge preview unavailable/i)).not.toBeNull();
+  });
+
+  it('hides service charge labels when preview total is zero', async () => {
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+    mockState.order.chargesPreview = {
+      totalCharges: 0,
+      orderCharges: [
+        {
+          amount: 0,
+          chargeType: 'PLATFORM_FEE',
+        },
+      ],
+    };
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(orderReducer.previewCharges).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByText('Service Charges')).toBeNull();
+    expect(screen.queryByText('Platform Fee')).toBeNull();
   });
 });

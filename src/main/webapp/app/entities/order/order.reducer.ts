@@ -3,7 +3,7 @@ import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } fr
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
-import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
+import { IOrder, IOrderChargesPreviewResponse, defaultValue } from 'app/shared/model/ORDER/order.model';
 import { IAuditLog } from "app/shared/model/audit-log.model";
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 
@@ -32,6 +32,9 @@ export interface OrderState extends EntityState<IOrder> {
   itemPriceCalculations: Record<string, ItemPriceTotals>;
   itemPriceLoading: Record<string, boolean>;
   itemPriceErrors: Record<string, string | null>;
+  chargesPreview: IOrderChargesPreviewResponse | null;
+  chargesPreviewLoading: boolean;
+  chargesPreviewError: string | null;
 }
 
 const initialState: OrderState = {
@@ -44,7 +47,10 @@ const initialState: OrderState = {
   orderSources: [],
   itemPriceCalculations: {},
   itemPriceLoading: {},
-  itemPriceErrors: {}
+  itemPriceErrors: {},
+  chargesPreview: null,
+  chargesPreviewLoading: false,
+  chargesPreviewError: null,
 };
 
 const apiUrl = 'api/orders';
@@ -88,6 +94,15 @@ export const calculateItemPrice = createAsyncThunk(
       cartId,
       data: result.data,
     };
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const previewCharges = createAsyncThunk(
+  'order/preview_charges',
+  async (entity: IOrder) => {
+    const result = await axios.post<IOrderChargesPreviewResponse>(`${apiUrl}/preview-charges`, cleanEntity(entity));
+    return result.data;
   },
   { serializeError: serializeAxiosError }
 );
@@ -257,9 +272,18 @@ export const deleteEntities = createAsyncThunk(
 // slice
 export const changeEntityField = createAction<ChangeFieldPayload<IOrder>>('online-ordering-settings/change-entity-field');
 
-export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, never>>({
+export const OrderSlice = createEntitySlice<IOrder, OrderState, {
+  clearChargesPreview: (state: OrderState) => void;
+}>({
   name: 'order',
   initialState,
+  reducers: {
+    clearChargesPreview(state) {
+      state.chargesPreview = null;
+      state.chargesPreviewLoading = false;
+      state.chargesPreviewError = null;
+    },
+  },
   extraReducers(builder) {
     builder
       .addCase(changeEntityField, (state, action) => {
@@ -293,6 +317,20 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, n
         const { cartId } = action.meta.arg;
         state.itemPriceLoading[cartId] = false;
         state.itemPriceErrors[cartId] = action.error?.message || 'Failed to calculate item price';
+      })
+      .addCase(previewCharges.pending, state => {
+        state.chargesPreviewLoading = true;
+        state.chargesPreviewError = null;
+      })
+      .addCase(previewCharges.fulfilled, (state, action) => {
+        state.chargesPreviewLoading = false;
+        state.chargesPreview = action.payload;
+        state.chargesPreviewError = null;
+      })
+      .addCase(previewCharges.rejected, (state, action) => {
+        state.chargesPreviewLoading = false;
+        state.chargesPreview = null;
+        state.chargesPreviewError = action.error?.message || 'Failed to preview charges';
       })
       .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
         const { data, headers } = action.payload;
@@ -342,6 +380,7 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, Record<string, n
 });
 
 export const { reset } = OrderSlice.actions;
+export const { clearChargesPreview } = OrderSlice.actions;
 
 // Reducer
 export default OrderSlice.reducer;
