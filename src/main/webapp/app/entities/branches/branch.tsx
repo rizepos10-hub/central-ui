@@ -4,6 +4,7 @@ import { getEntities, updateEntity, createEntity } from '../settings/business-de
 import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
   IBusinessDetail,
+  DeliveryPricingMode,
   Metric,
   UnitCostCalculationMode,
   dayTypeEnum,
@@ -63,11 +64,18 @@ export enum AddressComponentTypesEnum {
   "locality" = "locality",
 }
 
+const deliveryPricingModeLabels: Record<DeliveryPricingMode, string> = {
+  [DeliveryPricingMode.COVERAGE_BASE]: 'Coverage base',
+  [DeliveryPricingMode.DISTANCE_BAND_RULE]: 'Distance band rule',
+  [DeliveryPricingMode.ZONE_RULE]: 'Zone rule',
+};
+
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
     return [{ label: 'Status', value: 'Not initialized — set coverage and rates below, then save the branch.' }];
   }
   const lines: { label: string; value: string }[] = [];
+  const pricingMode = dc.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE;
   const maxR = dc.shipmentRange?.value;
   const maxM = dc.shipmentRange?.metric;
   if (maxR != null && Number(maxR) > 0) {
@@ -84,8 +92,12 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
 
   const bands = dc.definedChargeRules?.filter(Boolean).length ?? 0;
   lines.push({
-    label: 'Price model',
-    value: bands > 0 ? `${bands} distance band(s)` : 'Per-step rate only (no bands)',
+    label: 'Pricing mode',
+    value: deliveryPricingModeLabels[pricingMode],
+  });
+  lines.push({
+    label: 'Distance bands',
+    value: bands > 0 ? `${bands} configured` : 'Off',
   });
 
   const zoneRules = dc.zoneChargeRules?.filter(rule => rule?.zoneId).length ?? 0;
@@ -404,6 +416,7 @@ export const Branches = () => {
       value: 0,
     },
     minCharge: 0,
+    pricingMode: DeliveryPricingMode.COVERAGE_BASE,
     freeOnAmount: null,
     definedChargeRules: [],
     zoneChargeRules: [],
@@ -931,6 +944,27 @@ export const Branches = () => {
                               </RadioGroup>
                             </div>
                           </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Pricing mode</Label>
+                          <ShadSelect
+                            value={branch.deliveryConfiguration?.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE}
+                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'pricingMode', value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select pricing mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(DeliveryPricingMode).map(mode => (
+                                <SelectItem key={mode} value={mode} className="text-xs">
+                                  {deliveryPricingModeLabels[mode]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </ShadSelect>
+                          <p className="text-[10px] text-muted-foreground">
+                            Choose whether delivery pricing follows coverage-base logic, distance bands only, or zone rules only.
+                          </p>
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-medium">Delivery tagging mode</Label>
