@@ -107,4 +107,58 @@ describe('OrderPaymentDialog', () => {
       transactionMethod: 'cash',
     });
   });
+
+  it('renders previewed charges and uses the final total for remaining balance', () => {
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        baseOrderTotal={15}
+        chargePreviewRows={[
+          { key: 'shipping', label: 'Shipping Fee', amount: 3 },
+          { key: 'platform', label: 'Platform Fee', amount: 2 },
+        ]}
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Base Total:')).not.toBeNull();
+    expect(screen.getByText('Shipping Fee:')).not.toBeNull();
+    expect(screen.getByText('Platform Fee:')).not.toBeNull();
+    expect(screen.queryByText('Service Charges:')).toBeNull();
+    expect(screen.getByText('Final Total:')).not.toBeNull();
+    expect(screen.getByText('Remaining:')).not.toBeNull();
+    expect(screen.getAllByText('$20.00').length).toBeGreaterThan(0);
+  });
+
+  it('hides zero-value charge rows and summary', () => {
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        baseOrderTotal={15}
+        chargePreviewRows={[
+          { key: 'platform', label: 'Platform Fee', amount: 0 },
+        ]}
+        totalAmount={15}
+        totalPaid={0}
+        defaultPaymentAmount={15}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByText('Platform Fee:')).toBeNull();
+    expect(screen.queryByText('Service Charges:')).toBeNull();
+  });
 });

@@ -5,16 +5,18 @@ import thunk from 'redux-thunk';
 import sinon from 'sinon';
 
 import reducer, {
+  clearChargesPreview,
   createEntity,
   deleteEntity,
   getEntities,
   searchEntities,
   getEntity,
+  previewCharges,
   updateEntity,
   partialUpdateEntity,
   reset,
+  OrderState,
 } from './order.reducer';
-import { EntityState } from 'app/shared/reducers/reducer.utils';
 import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 
 describe('Entities reducer tests', () => {
@@ -26,13 +28,20 @@ describe('Entities reducer tests', () => {
     }
   }
 
-  const initialState: EntityState<IOrder> = {
+  const initialState: OrderState = {
     loading: false,
     errorMessage: null,
     entities: [],
     entity: defaultValue,
     updating: false,
     updateSuccess: false,
+    orderSources: [],
+    itemPriceCalculations: {},
+    itemPriceLoading: {},
+    itemPriceErrors: {},
+    chargesPreview: null,
+    chargesPreviewLoading: false,
+    chargesPreviewError: null,
   };
 
   function testInitialState(state) {
@@ -88,6 +97,22 @@ describe('Entities reducer tests', () => {
         ...initialState,
       });
     });
+
+    it('should clear the charges preview state', () => {
+      expect(
+        reducer(
+          {
+            ...initialState,
+            chargesPreview: { totalCharges: 5 },
+            chargesPreviewLoading: true,
+            chargesPreviewError: 'Preview failed',
+          },
+          clearChargesPreview()
+        )
+      ).toEqual({
+        ...initialState,
+      });
+    });
   });
 
   describe('Failures', () => {
@@ -119,7 +144,7 @@ describe('Entities reducer tests', () => {
 
   describe('Successes', () => {
     it('should fetch all entities', () => {
-      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }] };
+      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': '2' } };
       expect(
         reducer(undefined, {
           type: getEntities.fulfilled.type,
@@ -129,10 +154,11 @@ describe('Entities reducer tests', () => {
         ...initialState,
         loading: false,
         entities: payload.data,
+        totalOrders: 2,
       });
     });
     it('should search all entities', () => {
-      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }] };
+      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': '2' } };
       expect(
         reducer(undefined, {
           type: searchEntities.fulfilled.type,
@@ -142,6 +168,7 @@ describe('Entities reducer tests', () => {
         ...initialState,
         loading: false,
         entities: payload.data,
+        totalOrders: 2,
       });
     });
 
@@ -156,6 +183,25 @@ describe('Entities reducer tests', () => {
         ...initialState,
         loading: false,
         entity: payload.data,
+      });
+    });
+
+    it('should store previewed charges', () => {
+      const payload = {
+        deliveryCharge: { amount: 5, chargeType: 'SHIPPING_FEE' },
+        orderCharges: [{ amount: 2, chargeType: 'PLATFORM_FEE' }],
+        totalCharges: 7,
+      };
+      expect(
+        reducer(undefined, {
+          type: previewCharges.fulfilled.type,
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        chargesPreview: payload,
+        chargesPreviewLoading: false,
+        chargesPreviewError: null,
       });
     });
 
@@ -283,6 +329,25 @@ describe('Entities reducer tests', () => {
       expect(store.getActions()[2]).toMatchObject(expectedActions[2]);
     });
 
+    it('dispatches PREVIEW_CHARGES actions', async () => {
+      const expectedActions = [
+        {
+          type: previewCharges.pending.type,
+        },
+        {
+          type: previewCharges.fulfilled.type,
+          payload: resolvedObject.data,
+        },
+      ];
+      (axios.post as sinon.SinonStub).returns(Promise.resolve({ ...resolvedObject, data: { totalCharges: 7 } }));
+      await store.dispatch(previewCharges({ id: 'PREVIEW' }));
+      expect(store.getActions()[0]).toMatchObject(expectedActions[0]);
+      expect(store.getActions()[1]).toMatchObject({
+        type: previewCharges.fulfilled.type,
+        payload: { totalCharges: 7 },
+      });
+    });
+
     it('dispatches PARTIAL_UPDATE_ORDER actions', async () => {
       const expectedActions = [
         {
@@ -308,9 +373,6 @@ describe('Entities reducer tests', () => {
           type: deleteEntity.pending.type,
         },
         {
-          type: getEntities.pending.type,
-        },
-        {
           type: deleteEntity.fulfilled.type,
           payload: resolvedObject,
         },
@@ -318,7 +380,6 @@ describe('Entities reducer tests', () => {
       await store.dispatch(deleteEntity(42666));
       expect(store.getActions()[0]).toMatchObject(expectedActions[0]);
       expect(store.getActions()[1]).toMatchObject(expectedActions[1]);
-      expect(store.getActions()[2]).toMatchObject(expectedActions[2]);
     });
 
     it('dispatches RESET actions', async () => {

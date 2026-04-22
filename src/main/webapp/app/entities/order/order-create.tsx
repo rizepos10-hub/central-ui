@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { addPaymentToBill, calculateItemPrice, changeEntityField, createDraftBill, createEntity, updateEntity, reset } from './order.reducer';
-import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { addPaymentToBill, calculateItemPrice, changeEntityField, clearChargesPreview, createDraftBill, createEntity, previewCharges, updateEntity, reset } from './order.reducer';
+import { IOrder, IOrderCharge } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -53,6 +53,13 @@ import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
 import { isOrderCreateRoleSelectionPending, resolveOrderCreateRoleMode } from './order-create-role-utils';
 import OrderPaymentDialog from './order-payment-dialog';
+import { formatServiceChargeKey } from 'app/shared/util/service-charge-utils';
+
+type ChargePreviewRow = {
+    key: string;
+    label: string;
+    amount: number;
+};
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -129,6 +136,8 @@ const OrderCreate = () => {
     const scheduledAtInputRef = useRef<HTMLInputElement | null>(null);
     const itemPriceLoading = useAppSelector(state => state.order.itemPriceLoading);
     const itemPriceCalculations = useAppSelector(state => state.order.itemPriceCalculations);
+    const chargesPreview = useAppSelector(state => state.order.chargesPreview);
+    const chargesPreviewError = useAppSelector(state => state.order.chargesPreviewError);
     const cartStorageKey = `pos-cart:${selectedRegistryId || 'unknown'}`;
     const isFirstContextRun = useRef(true);
     const hasHydratedCart = useRef(false);
@@ -169,6 +178,14 @@ const OrderCreate = () => {
         const verb = missingSalesmanFields.length === 1 ? 'is' : 'are';
         return `${label} ${verb} required`;
     }, [missingSalesmanFields]);
+    const hasPendingItemPriceCalculation = useMemo(
+        () => Object.values(itemPriceLoading || {}).some(Boolean),
+        [itemPriceLoading]
+    );
+    const hasItemWithMissingPrice = useMemo(
+        () => (orderEntity?.items ?? []).some(item => item?.price == null),
+        [orderEntity?.items]
+    );
 
     const openScheduledAtPicker = useCallback(() => {
         const input = scheduledAtInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
@@ -964,8 +981,16 @@ const OrderCreate = () => {
         });
     };
 
-    const buildBaseStructuredEntity = (): IOrder => ({
-        ...(isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
+    const buildBaseStructuredEntity = useCallback(({
+        includeId = false,
+        includeOrderCharges = true,
+        includeWholesale = false,
+    }: {
+        includeId?: boolean;
+        includeOrderCharges?: boolean;
+        includeWholesale?: boolean;
+    } = {}): IOrder => ({
+        ...(includeId && isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
         items: orderEntity?.items?.map(item => ({
             itemId: item.itemId,
             variantId: item.variantId,
@@ -981,20 +1006,38 @@ const OrderCreate = () => {
         })),
         branchId: orderEntity?.branchId,
         customer: orderEntity?.customer,
-        orderCharges: orderEntity?.orderCharges || [],
+        ...(includeOrderCharges ? { orderCharges: orderEntity?.orderCharges || [] } : {}),
         scheduledAt: orderEntity?.scheduledAt ?? null,
         orderMethod: orderEntity?.orderMethod,
         deliverTo: orderEntity?.deliverTo ?? null,
         processingStatus: OrderStatus.PROCESSING,
         tillId: till?.id,
-    });
+        ...(includeWholesale && isSalesmanMode ? { wholesale: true } : {}),
+    }), [isEditMode, isSalesmanMode, orderEntity, till?.id]);
 
-    const buildCreateStructuredEntity = (): IOrder => ({
-        ...buildBaseStructuredEntity(),
-        ...(isSalesmanMode ? { wholesale: true } : {}),
-    });
+    const buildChargesPreviewPayload = useCallback(
+        (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: false, includeWholesale: true }),
+        [buildBaseStructuredEntity]
+    );
 
-    const buildUpdateStructuredEntity = (): IOrder => buildBaseStructuredEntity();
+    const buildCreateStructuredEntity = useCallback(
+        (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: true, includeWholesale: true }),
+        [buildBaseStructuredEntity]
+    );
+
+    const buildUpdateStructuredEntity = useCallback(
+        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true }),
+        [buildBaseStructuredEntity]
+    );
+
+    useEffect(() => {
+        if (!orderEntity?.branchId || hasPendingItemPriceCalculation || hasItemWithMissingPrice) {
+            dispatch(clearChargesPreview());
+            return;
+        }
+
+        dispatch(previewCharges(buildChargesPreviewPayload()));
+    }, [buildChargesPreviewPayload, dispatch, hasItemWithMissingPrice, hasPendingItemPriceCalculation, orderEntity?.branchId]);
 
     const finalizeCreatedOrder = (createdOrderId?: string | null) => {
         resetVariantDialogState();
@@ -1197,6 +1240,52 @@ const OrderCreate = () => {
             };
         }, { itemsTotal: 0, totalTaxes: 0, total: 0 });
     }, [cartItems]);
+    const previewChargeRows = useMemo<ChargePreviewRow[]>(() => {
+        const rows: ChargePreviewRow[] = [];
+        const seenKeys = new Set<string>();
+
+        const buildChargeKey = (charge?: IOrderCharge | null) => {
+            if (charge?.id) {
+                return charge.id;
+            }
+            return `${charge?.chargeType || 'SERVICE_CHARGE'}-${Number(charge?.amount ?? 0).toFixed(2)}`;
+        };
+
+        const pushChargeRow = (charge: IOrderCharge | null | undefined, label: string) => {
+            if (!charge) {
+                return;
+            }
+            const amount = Number(charge.amount ?? 0);
+            if (amount <= 0) {
+                return;
+            }
+
+            const key = buildChargeKey(charge);
+            if (seenKeys.has(key)) {
+                return;
+            }
+
+            seenKeys.add(key);
+            rows.push({
+                key,
+                label,
+                amount,
+            });
+        };
+
+        (chargesPreview?.orderCharges || []).forEach(charge => {
+            pushChargeRow(charge, formatServiceChargeKey(charge.chargeType));
+        });
+
+        return rows;
+    }, [chargesPreview]);
+    const previewChargesTotal = useMemo(() => {
+        return previewChargeRows.reduce((sum, charge) => sum + charge.amount, 0);
+    }, [previewChargeRows]);
+    const finalPayableTotal = cartTotals.total + previewChargesTotal;
+    const previewUnavailableMessage = chargesPreviewError
+        ? 'Charge preview unavailable. Final charges will be recalculated when the order is submitted.'
+        : null;
 
     const orderMethodOptions = useMemo(
         () => Object.values(OrderMethod)
@@ -1468,9 +1557,11 @@ const OrderCreate = () => {
                 title="Create Order & Payment"
                 orderBranchId={orderEntity.branchId}
                 customerId={orderEntity.customer?.id}
-                totalAmount={cartTotals.total}
+                totalAmount={finalPayableTotal}
                 totalPaid={0}
-                defaultPaymentAmount={cartTotals.total}
+                defaultPaymentAmount={finalPayableTotal}
+                baseOrderTotal={cartTotals.total}
+                chargePreviewRows={previewChargeRows}
                 submitLabel="Create Order & Pay"
                 onSubmit={handleCreateWithPayment}
                 submitting={submittingOrder}
@@ -2356,9 +2447,24 @@ const OrderCreate = () => {
                                                 <span>Taxes</span>
                                                 <span>${cartTotals.totalTaxes.toFixed(2)}</span>
                                             </div>
+                                            {(previewChargeRows.length > 0 || previewUnavailableMessage) ? (
+                                                <>
+                                                    {previewChargeRows.map(charge => (
+                                                        <div key={charge.key} className="flex items-center justify-between text-muted-foreground">
+                                                            <span>{charge.label}</span>
+                                                            <span>${charge.amount.toFixed(2)}</span>
+                                                        </div>
+                                                    ))}
+                                                    {previewUnavailableMessage ? (
+                                                        <div className="pt-1 text-[10px] text-amber-700">
+                                                            {previewUnavailableMessage}
+                                                        </div>
+                                                    ) : null}
+                                                </>
+                                            ) : null}
                                         </div>
                                         <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
-                                            <span className="text-lg font-semibold">${cartTotals.total.toFixed(2)}</span>
+                                            <span className="text-lg font-semibold">${finalPayableTotal.toFixed(2)}</span>
                                         </div>
                                     </div>
                                     </div>
