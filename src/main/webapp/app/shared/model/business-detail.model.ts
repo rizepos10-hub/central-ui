@@ -48,6 +48,7 @@ export interface IBranchDetails {
   tokenExpired?: boolean;
   logo?: IAttachment;
   ebteligible?: boolean;
+  enableAskOnTablePermissions?: boolean;
   pages?: ISeoPages
   timeZone?: string;
 }

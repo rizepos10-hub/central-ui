@@ -349,6 +349,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].enableAskOnTablePermissions = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleTokenExpiredFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].tokenExpired = checked;
@@ -724,6 +730,20 @@ export const Branches = () => {
                     />
                     <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Print Zero Price Addons
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.enableAskOnTablePermissions}
+                      onCheckedChange={(checked) => handleEnableAskOnTablePermissionsChange(branchIndex, checked)}
+                      id={`enable-ask-on-table-permissions-${branchIndex}`}
+                    />
+                    <Label
+                      htmlFor={`enable-ask-on-table-permissions-${branchIndex}`}
+                      className="font-bold text-xs cursor-pointer"
+                    >
+                      Enable Ask On Table Permissions
                     </Label>
                   </div>
 
