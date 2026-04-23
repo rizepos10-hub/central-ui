@@ -19,7 +19,6 @@ import DateCustomComponent from 'app/modules/analytics/reports/sales-report/cust
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
 import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import {
-  reportCellClassName,
   reportHeadClassName,
   reportHeaderRowClassName,
   reportLabelCellClassName,
@@ -135,10 +134,6 @@ const buildExcelRows = ({
   };
 
   const formatMetricValue = (column: SalesReportMetricColumn, value: SalesReportCellValue) => {
-    if (column.kind === 'text') {
-      return value ?? '';
-    }
-
     const numericValue = formatNumericValue(value);
     if (numericValue === null) {
       return '';
@@ -164,10 +159,6 @@ const buildExcelRows = ({
   const footerRows = model.footerRows.map(row => [
     row.label,
     ...model.periodColumns.map(column => {
-      if (row.key === 'taxes') {
-        return row.periodValues[column.key] || '';
-      }
-
       const numericValue = formatNumericValue(row.periodValues[column.key]);
       if (numericValue === null) {
         return '';
@@ -218,10 +209,6 @@ const SalesReportDataTable = ({
   };
 
   const formatMetricValue = (column: SalesReportMetricColumn, value: SalesReportCellValue) => {
-    if (column.kind === 'text') {
-      return getDisplayValue(value);
-    }
-
     const numericValue = formatNumericValue(value);
     if (numericValue === null) {
       return '-';
@@ -239,10 +226,6 @@ const SalesReportDataTable = ({
   };
 
   const formatFooterValue = (row: SalesReportFooterRow, value: SalesReportCellValue) => {
-    if (row.key === 'taxes') {
-      return value || '';
-    }
-
     const numericValue = formatNumericValue(value);
     if (numericValue === null) {
       return '';
@@ -302,7 +285,7 @@ const SalesReportDataTable = ({
                 </TableCell>
               ))}
               {metricColumns.map(column => (
-                <TableCell key={`${row.id}-${column.key}`} className={column.kind === 'text' ? reportCellClassName : reportNumericCellClassName}>
+                <TableCell key={`${row.id}-${column.key}`} className={reportNumericCellClassName}>
                   {formatMetricValue(column, row.metricValues[column.key])}
                 </TableCell>
               ))}
@@ -348,10 +331,6 @@ const SalesReportMetricSummaryTable = ({
   exchange: any;
 }) => {
   const formatMetricValue = (column: SalesReportMetricColumn, value: SalesReportCellValue) => {
-    if (column.kind === 'text') {
-      return getDisplayValue(value);
-    }
-
     const numericValue = formatNumericValue(value);
     if (numericValue === null) {
       return '-';
@@ -398,7 +377,7 @@ const SalesReportMetricSummaryTable = ({
             <TableRow key={row.id}>
               <TableCell className={cn(reportLabelCellClassName, 'align-top')}>{row.label}</TableCell>
               {metricColumns.map(column => (
-                <TableCell key={`${row.id}-${column.key}`} className={column.kind === 'text' ? reportCellClassName : reportNumericCellClassName}>
+                <TableCell key={`${row.id}-${column.key}`} className={reportNumericCellClassName}>
                   {formatMetricValue(column, row.metricValues[column.key])}
                 </TableCell>
               ))}
@@ -592,8 +571,8 @@ export const SalesReport = () => {
         }
       });
 
-      worksheet['!cols'] = headers.map((header, index) => ({
-        wpx: index === 0 ? 220 : header === 'Taxes' ? 150 : 120,
+      worksheet['!cols'] = headers.map((_, index) => ({
+        wpx: index === 0 ? 220 : 120,
       }));
 
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
