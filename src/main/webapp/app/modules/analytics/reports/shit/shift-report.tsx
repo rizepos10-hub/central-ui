@@ -9,18 +9,23 @@ import { convertDateTimeFromServer } from "app/shared/util/date-utils";
 import GenericSalesReport from "app/shared/components/report/generic-sales-report";
 import SummaryReportTotalReceived from "app/shared/components/report/summary-report-total-received";
 import { IUserClock } from "app/shared/model/user-clock.model";
-import ReactToPrint from "react-to-print";
+import { useReactToPrint } from "react-to-print";
 import { format } from "date-fns";
 import { exportExcelSummaryReport } from "app/shared/util/excel-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import ReportActionBar from "app/shared/components/report/report-action-bar";
+import ReportErrorState from 'app/shared/components/report/report-error-state';
+import ReportExportHeader from "app/shared/components/report/report-export-header";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, FileSpreadsheet, Printer, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/src/main/webapp/app/lib/utils";
+import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from "app/shared/util/report-export-utils";
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const initialState = {
   first: 0,
@@ -37,16 +42,19 @@ const initialState = {
 
 const ShiftReport = () => {
   const dispatch = useAppDispatch();
-  const printWrapper = useRef(null);
+  const reportContentRef = useRef(null);
   const users = useAppSelector(state => state.PosBranchUser.entities);
   const loadingUsers = useAppSelector(state => state.PosBranchUser.loading);
   const userClocks = useAppSelector(state => state.userClock.entities);
   const loadingClocks = useAppSelector(state => state.userClock.loading);
   const summaryReport = useAppSelector(state => state.userClock.report);
   const loadingReport = useAppSelector(state => state.userClock.loadingReport);
+  const userClockErrorMessage = useAppSelector(state => state.userClock.errorMessage);
 
   const [filterState, setFilterState] = useState(initialState);
   const [selectedShift, setSelectedShift] = useState<IUserClock | null>(null);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined
@@ -88,51 +96,72 @@ const ShiftReport = () => {
     });
   }
 
-  const pageStyle = `
-    @media print {
-      .hide-on-print {
-        display: none !important;
-      }
-
-      .shift-report-print-header {
-        display: flex !important;
-        flex-direction: column !important;
-      }
-
-      @page {
-        size: A4;
-        margin: 0;
-      }
+  const fileName = createReportFileName('Shift Report', [filterState.filters.username.value, selectedShift?.id || null]);
+  const handleExcelExport = async () => {
+    try {
+      setBusyAction('excel');
+      setError(null);
+      await exportExcelSummaryReport(summaryReport);
+    } catch (error) {
+      setError(getReportApiErrorMessage(error, 'Unable to export shift report.'));
+    } finally {
+      setBusyAction(null);
     }
-  `;
+  };
+
+  const handlePdfExport = async () => {
+    if (!reportContentRef.current || !summaryReport) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      setError(null);
+      await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'portrait' });
+    } catch (error) {
+      setError(getReportApiErrorMessage(error, 'Unable to export shift report.'));
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => reportContentRef.current,
+    documentTitle: fileName,
+    pageStyle: `${analyticsReportPrintStyles('portrait')}
+      @media print {
+        .hide-on-print {
+          display: none !important;
+        }
+      }
+    `,
+    onBeforeGetContent: async () => {
+      setError(null);
+      setBusyAction('print');
+    },
+    onAfterPrint: () => {
+      setBusyAction(null);
+    },
+  });
 
   return (
     <PageWrapper>
+      {error || userClockErrorMessage ? (
+        <ReportErrorState
+          message={error || getReportApiErrorMessage(userClockErrorMessage, 'Unable to load shift report.')}
+          dataTestId="shift-report-error"
+          className="mb-3"
+        />
+      ) : null}
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-lg font-semibold">Shift Report</h1>
         <div className="hide-on-print flex gap-1">
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 w-7 p-0"
-            onClick={() => exportExcelSummaryReport(summaryReport)}
-            disabled={!summaryReport}
-          >
-            <FileSpreadsheet className="h-3 w-3" />
-          </Button>
-          <ReactToPrint
-            trigger={() => (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 w-7 p-0"
-                disabled={!summaryReport}
-              >
-                <Printer className="h-3 w-3" />
-              </Button>
-            )}
-            content={() => printWrapper.current}
-            pageStyle={pageStyle}
+          <ReportActionBar
+            onExcel={handleExcelExport}
+            onPdf={handlePdfExport}
+            onPrint={handlePrint}
+            disabled={!summaryReport || busyAction !== null || !!error || !!userClockErrorMessage}
+            busyAction={busyAction}
           />
         </div>
       </div>
@@ -235,25 +264,30 @@ const ShiftReport = () => {
         </div>
       )}
 
-      {summaryReport && (
-        <div ref={printWrapper}>
-          <div className="gap-2 px-2 shift-report-print-header" style={{ display: 'none' }}>
-            <div className="text-xl font-bold text-center">Shift Report</div>
-            <div className="text-base font-semibold flex flex-col gap-1 text-xs">
-              <div>
-                <span>Username : </span>
-                <span>{filterState.filters.username.value}</span>
-              </div>
-              <div>
-                <span>Date Range : </span>
-                <span>{dateRange.from && format(dateRange.from, "yyyy-MM-dd")} - {dateRange.to && format(dateRange.to, "yyyy-MM-dd")}</span>
-              </div>
-              <div>
-                <span>Selected Shift : </span>
-                <span>{selectedShift && formatDateForDisplay(selectedShift?.instantClockedIn, "yyyy-MM-dd")} - {selectedShift && formatDateForDisplay(selectedShift?.instantClockedOut, "yyyy-MM-dd")}</span>
-              </div>
-            </div>
-          </div>
+      {summaryReport && !error && !userClockErrorMessage && (
+        <div ref={reportContentRef} className="report-export-root space-y-3">
+          <ReportExportHeader
+            reportTitle="Shift Report"
+            hiddenOnScreen
+            forceVisible={busyAction === 'pdf'}
+            filters={[
+              { label: 'Username', value: filterState.filters.username.value },
+              {
+                label: 'Date Range',
+                value:
+                  dateRange.from && dateRange.to
+                    ? `${format(dateRange.from, "yyyy-MM-dd")} - ${format(dateRange.to, "yyyy-MM-dd")}`
+                    : null,
+              },
+              {
+                label: 'Selected Shift',
+                value:
+                  selectedShift
+                    ? `${formatDateForDisplay(selectedShift.instantClockedIn, "yyyy-MM-dd")} - ${formatDateForDisplay(selectedShift.instantClockedOut, "yyyy-MM-dd")}`
+                    : null,
+              },
+            ]}
+          />
 
           <div className="mt-2 space-y-3">
             <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />

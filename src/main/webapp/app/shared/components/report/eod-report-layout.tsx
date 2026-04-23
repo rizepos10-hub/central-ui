@@ -22,9 +22,15 @@ interface EodReportLayoutProps {
   summary: any;
   isEndOfDay?: boolean;
   branchTimezone?: string;
+  hideBrandingHeader?: boolean;
 }
 
-export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEndOfDay = false, branchTimezone }) => {
+export const EodReportLayout: React.FC<EodReportLayoutProps> = ({
+  summary,
+  isEndOfDay = false,
+  branchTimezone,
+  hideBrandingHeader = false,
+}) => {
   if (!summary) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -153,39 +159,42 @@ export const EodReportLayout: React.FC<EodReportLayoutProps> = ({ summary, isEnd
       </style>
       <div className="eod-report-wrapper">
         <div className="eod-report-container">
-        {/* Header Section */}
-        <div className="mb-4">
-          <div className="text-center mb-2">
-            {summary.brandingInformation?.businessName && (
-              <h1 className="text-lg font-bold">{summary.brandingInformation.businessName}</h1>
-            )}
-            {summary.brandingInformation?.businessAddress && (
-              <p className="font-bold">{summary.brandingInformation.businessAddress}</p>
-            )}
-            {summary.brandingInformation?.branchName && (
-              <p className="font-bold">{summary.brandingInformation.branchName}</p>
-            )}
-          </div>
+        {!hideBrandingHeader ? (
+          <>
+            <div className="mb-4">
+              <div className="text-center mb-2">
+                {summary.brandingInformation?.businessName && (
+                  <h1 className="text-lg font-bold">{summary.brandingInformation.businessName}</h1>
+                )}
+                {summary.brandingInformation?.businessAddress && (
+                  <p className="font-bold">{summary.brandingInformation.businessAddress}</p>
+                )}
+                {summary.brandingInformation?.branchName && (
+                  <p className="font-bold">{summary.brandingInformation.branchName}</p>
+                )}
+              </div>
 
-          <div className="my-2"></div>
+              <div className="my-2"></div>
 
-          <div className="text-center text-xs">
-            {summary.number && <p>Daily Report # {summary.number}</p>}
-            {summary.fromDate && <p>Start: {formatDateForDisplay(summary.fromDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
-            {summary.toDate && <p>End: {formatDateForDisplay(summary.toDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
-            <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>
-            {summary.branchRegistry?.name && <p>Register: {summary.branchRegistry.name}</p>}
-          </div>
+              <div className="text-center text-xs">
+                {summary.number && <p>Daily Report # {summary.number}</p>}
+                {summary.fromDate && <p>Start: {formatDateForDisplay(summary.fromDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+                {summary.toDate && <p>End: {formatDateForDisplay(summary.toDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+                <p className="print-only">Printed: {formatDateForDisplay(new Date().toISOString(), 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>
+                {summary.branchRegistry?.name && <p>Register: {summary.branchRegistry.name}</p>}
+              </div>
 
-          <div className="my-2"></div>
+              <div className="my-2"></div>
 
-          <div className="text-center text-xs">
-            {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
-            {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
-          </div>
-        </div>
+              <div className="text-center text-xs">
+                {summary.orderDateRange?.firstOrderDate && <p>First Order: {formatDateForDisplay(summary.orderDateRange.firstOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+                {summary.orderDateRange?.lastOrderDate && <p>Last Order: {formatDateForDisplay(summary.orderDateRange.lastOrderDate, 'MM/dd/yyyy hh:mm:ss a', branchTimezone)}</p>}
+              </div>
+            </div>
 
-        <div className="border-t border-dashed border-gray-400 my-2"></div>
+            <div className="border-t border-dashed border-gray-400 my-2"></div>
+          </>
+        ) : null}
 
         {reportData && (
           <>

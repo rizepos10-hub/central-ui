@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import { useReactToPrint } from 'react-to-print';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import {
   analyticsReportPrintStyles,
   buildHouseChargesWorkbook,
@@ -275,18 +276,15 @@ const HouseChargesReport = () => {
 
         <div ref={reportContentRef} className="report-export-root space-y-3">
           {appliedFilters && (
-            <Card className="report-export-header">
-              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
-                <div>
-                  <div className="text-xs text-muted-foreground">Branch</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedBranchName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Date Range</div>
-                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportExportHeader
+              reportTitle={REPORT_TITLE}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              filters={[
+                { label: 'Branch', value: appliedBranchName },
+                { label: 'Date Range', value: intervalLabel },
+              ]}
+            />
           )}
 
           <Card>

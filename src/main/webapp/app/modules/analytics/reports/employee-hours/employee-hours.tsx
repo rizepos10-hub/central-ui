@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { FilterMatchMode } from "primereact/api";
 import { translate } from "react-jhipster";
@@ -10,14 +10,20 @@ import { format, intervalToDuration } from "date-fns";
 import { saveAsExcelFile } from "app/shared/util/excel-utils";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
+import ReportActionBar from "app/shared/components/report/report-action-bar";
+import ReportErrorState from 'app/shared/components/report/report-error-state';
+import ReportExportHeader from "app/shared/components/report/report-export-header";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarIcon, FileSpreadsheet, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/src/main/webapp/app/lib/utils";
+import { useReactToPrint } from "react-to-print";
+import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from "app/shared/util/report-export-utils";
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const initialState = {
     first: 0,
@@ -34,12 +40,16 @@ const initialState = {
 
 const EmployeeHoursReport = () => {
     const dispatch = useAppDispatch();
+    const reportContentRef = useRef<HTMLDivElement>(null);
     const branches = useAppSelector(state => state.branch.entities);
     const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
     const loadingClocks = useAppSelector(state => state.userClock.loading);
     const loadingReport = useAppSelector(state => state.userClock.loadingReport);
+    const userClockErrorMessage = useAppSelector(state => state.userClock.errorMessage);
 
     const [filterState, setFilterState] = useState(initialState);
+    const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
         from: undefined,
         to: undefined
@@ -50,6 +60,7 @@ const EmployeeHoursReport = () => {
     }, []);
 
     const getUserClocks = () => {
+        setError(null);
         const updatedState = applyMatchModeMap(filterState);
         dispatch(filterEntities({
             query: updatedState,
@@ -98,6 +109,9 @@ const EmployeeHoursReport = () => {
     };
 
     const exportExcel = async () => {
+        try {
+        setBusyAction('excel');
+        setError(null);
         const clocksByUser = {};
         userClocks.forEach(clock => {
             if (!clocksByUser[clock.username]) {
@@ -161,6 +175,11 @@ const EmployeeHoursReport = () => {
         const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
         const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
         saveAsExcelFile(excelBuffer, 'UserClocks.xlsx');
+        } catch (error) {
+            setError(getReportApiErrorMessage(error, 'Unable to export employee hours report.'));
+        } finally {
+            setBusyAction(null);
+        }
     };
 
     // Group user clocks by username
@@ -171,6 +190,43 @@ const EmployeeHoursReport = () => {
         acc[clock.username].push(clock);
         return acc;
     }, {} as Record<string, IUserClock[]>);
+    const branchLabel = branches.find(branch => branch.id === filterState.filters.branchId.value)?.name || 'All branches';
+    const dateRangeLabel =
+        dateRange.from && dateRange.to
+            ? `${format(dateRange.from, "yyyy-MM-dd")} - ${format(dateRange.to, "yyyy-MM-dd")}`
+            : null;
+    const fileName = createReportFileName('Employee Hours Report', [branchLabel, dateRangeLabel]);
+    const reportError = error || (userClockErrorMessage ? getReportApiErrorMessage(userClockErrorMessage, 'Unable to load employee hours report.') : null);
+    const hasExportData = !reportError && userClocks.length > 0;
+
+    const handlePdfExport = async () => {
+        if (!reportContentRef.current || !hasExportData) {
+            return;
+        }
+
+        try {
+            setBusyAction('pdf');
+            setError(null);
+            await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'portrait' });
+        } catch (error) {
+            setError(getReportApiErrorMessage(error, 'Unable to export employee hours report.'));
+        } finally {
+            setBusyAction(null);
+        }
+    };
+
+    const handlePrint = useReactToPrint({
+        content: () => reportContentRef.current,
+        documentTitle: fileName,
+        pageStyle: analyticsReportPrintStyles('portrait'),
+        onBeforeGetContent: async () => {
+            setError(null);
+            setBusyAction('print');
+        },
+        onAfterPrint: () => {
+            setBusyAction(null);
+        },
+    });
 
     return (
         <PageWrapper>
@@ -250,25 +306,36 @@ const EmployeeHoursReport = () => {
                 </div>
             </div>
 
+            {reportError ? <ReportErrorState message={reportError} dataTestId="employee-hours-error" /> : null}
+
             {loadingReport && (
                 <div className="flex items-center justify-center h-32">
                     <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
             )}
 
-            {userClocks?.length > 0 && (
+            {!reportError && userClocks?.length > 0 && (
                 <div className="mt-2">
                     <div className="flex justify-end mb-2">
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs gap-1"
-                            onClick={exportExcel}
-                        >
-                            <FileSpreadsheet className="h-3 w-3" />
-                            Export Excel
-                        </Button>
+                        <ReportActionBar
+                            onExcel={exportExcel}
+                            onPdf={handlePdfExport}
+                            onPrint={handlePrint}
+                            disabled={!hasExportData || loadingReport || busyAction !== null}
+                            busyAction={busyAction}
+                        />
                     </div>
+
+                    <div ref={reportContentRef} className="report-export-root space-y-3">
+                        <ReportExportHeader
+                            reportTitle="Employee Hours Report"
+                            hiddenOnScreen
+                            forceVisible={busyAction === 'pdf'}
+                            filters={[
+                                { label: 'Branch', value: branchLabel },
+                                { label: 'Date Range', value: dateRangeLabel },
+                            ]}
+                        />
 
                     <div className="rounded-lg border">
                         <Table>
@@ -309,6 +376,7 @@ const EmployeeHoursReport = () => {
                                 ))}
                             </TableBody>
                         </Table>
+                    </div>
                     </div>
                 </div>
             )}

@@ -29,13 +29,15 @@ const apiSearchUrl = 'api/_search/user-clocks';
 export const filterEntities = createAsyncThunk('user-clocks/filter_entity_list',
   async ({ query }: IQueryParams) => {
   return axios.post<IUserClock[]>(apiSearchUrl, query);
-});
+},
+{ serializeError: serializeAxiosError });
 
 export const getEntityReport = createAsyncThunk('user-clocks/fetch_entity_report',
   async ( id: string | number) => {
   const requestUrl = `${apiUrl}/${id}/generate-report`
   return axios.get<IUserClock["report"]>(requestUrl);
-});
+},
+{ serializeError: serializeAxiosError });
 
 // slice
 
@@ -71,7 +73,19 @@ export const UserClocksSlice = createSlice({
         };
       })
       .addMatcher(isPending(getEntityReport), state => {
+        state.errorMessage = null;
         state.loadingReport = true;
+      })
+      .addMatcher(isRejected(filterEntities), (state, action) => {
+        state.loading = false;
+        state.errorMessage = action.error.message ?? 'There was an error loading data from the API. Please try again.';
+        state.entities = [];
+        state.totalItems = 0;
+      })
+      .addMatcher(isRejected(getEntityReport), (state, action) => {
+        state.loadingReport = false;
+        state.report = null;
+        state.errorMessage = action.error.message ?? 'There was an error loading data from the API. Please try again.';
       })
   },
 });

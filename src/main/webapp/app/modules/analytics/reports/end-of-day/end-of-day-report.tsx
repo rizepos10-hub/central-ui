@@ -9,30 +9,40 @@ import { IBranch } from 'app/shared/model/branch.model';
 import { OrdersTab } from 'app/entities/end-of-day/orders-tab';
 import { EodReportLayout } from 'app/shared/components/report/eod-report-layout';
 import { useReactToPrint } from 'react-to-print';
-import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportErrorState from 'app/shared/components/report/report-error-state';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
+import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from 'app/shared/util/report-export-utils';
+import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const EndOfDayReportContainer = () => {
   const { id } = useParams();
   const dispatch = useAppDispatch();
-  const printWrapperRef = useRef(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   const [endOfDay, setEndOfDay] = useState<any>(null);
   const [salesData, setSalesData] = useState<any>(null);
   const [branch, setBranch] = useState<IBranch>();
   const [loading, setLoading] = useState(false);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     try {
       setLoading(true);
+      setError(null);
       const { data } = await axios.get(`/api/end-of-day/${id}`);
       setEndOfDay(data);
       setSalesData(data);
       setBranch(data.branch);
-      setLoading(false);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      setEndOfDay(null);
+      setSalesData(null);
+      setBranch(undefined);
+      setError(getReportApiErrorMessage(error, 'Unable to load end of day report.'));
+    } finally {
       setLoading(false);
     }
   };
@@ -45,25 +55,32 @@ const EndOfDayReportContainer = () => {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printWrapperRef.current,
-    pageStyle: `
-      @page {
-        size: 80mm auto;
-        margin: 0;
-      }
-      @media print {
-        body {
-          margin: 0;
-          padding: 0;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        * {
-          box-sizing: border-box;
-        }
-      }
-    `,
+    content: () => reportContentRef.current,
+    documentTitle: createReportFileName('End Of Day Report', [branch?.name || null, endOfDay?.number || null]),
+    pageStyle: analyticsReportPrintStyles('portrait'),
+    onBeforeGetContent: async () => {
+      setBusyAction('print');
+    },
+    onAfterPrint: () => {
+      setBusyAction(null);
+    },
   });
+
+  const handlePdfExport = async () => {
+    if (!reportContentRef.current || !salesData) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await downloadElementAsPdf(reportContentRef.current, {
+        fileName: createReportFileName('End Of Day Report', [branch?.name || null, endOfDay?.number || null]),
+        orientation: 'portrait',
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
   const ordersFromDate = endOfDay?.fromDate ?? endOfDay?.fromDateString ?? '';
   const ordersToDate = endOfDay?.toDate ?? endOfDay?.toDateString ?? null;
@@ -86,33 +103,56 @@ const EndOfDayReportContainer = () => {
 
   return (
     <div className="space-y-4 p-4">
+      {error ? <ReportErrorState message={error} dataTestId="end-of-day-report-error" /> : null}
       <div className="flex justify-end gap-2">
-        <Button
-          onClick={handlePrint}
-          disabled={loading}
-          variant="outline"
-          className="h-8 text-xs"
-        >
-          <Printer className="h-3 w-3 mr-1" />
-          Print
-        </Button>
+        <ReportActionBar
+          onExcel={handleExcelExport}
+          onPdf={handlePdfExport}
+          onPrint={handlePrint}
+          disabled={!salesData || loading || busyAction !== null || !!error}
+          busyAction={busyAction}
+        />
       </div>
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="lg:basis-[65%] lg:pr-4">
-          <div className="min-h-[560px] h-full rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <OrdersTab
-              branchId={ordersBranchId}
-              fromDate={ordersFromDate}
-              toDate={ordersToDate}
-            />
+      {!error ? (
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <div className="lg:basis-[65%] lg:pr-4">
+            <div className="min-h-[560px] h-full rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden">
+              <OrdersTab
+                branchId={ordersBranchId}
+                fromDate={ordersFromDate}
+                toDate={ordersToDate}
+              />
+            </div>
+          </div>
+          <div className="lg:basis-[35%] flex-1 min-w-0">
+            <div ref={reportContentRef} className="report-export-root space-y-3 bg-white mb-2 rounded-md border p-3 min-h-[560px]">
+              <ReportExportHeader
+                reportTitle="End Of Day Report"
+                hiddenOnScreen
+                forceVisible={busyAction === 'pdf'}
+                filters={[
+                  { label: 'Branch', value: branch?.name || null },
+                  { label: 'Register', value: endOfDay?.branchRegistry?.name || null },
+                  { label: 'Report Number', value: endOfDay?.number || null },
+                  {
+                    label: 'Date Range',
+                    value:
+                      endOfDay?.fromDate && endOfDay?.toDate
+                        ? `${formatDateForDisplay(endOfDay.fromDate, 'PP')} - ${formatDateForDisplay(endOfDay.toDate, 'PP')}`
+                        : null,
+                  },
+                ]}
+              />
+              <EodReportLayout
+                summary={salesData}
+                isEndOfDay={true}
+                branchTimezone={endOfDay?.branch?.timezone}
+                hideBrandingHeader
+              />
+            </div>
           </div>
         </div>
-        <div className="lg:basis-[35%] flex-1 min-w-0">
-          <div ref={printWrapperRef} className="bg-white mb-2 rounded-md border min-h-[560px]">
-            <EodReportLayout summary={salesData} isEndOfDay={true} branchTimezone={endOfDay?.branch?.timezone} />
-          </div>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 };

@@ -26,6 +26,22 @@ export type ReportFilterInfo = {
   value: string | number | null | undefined;
 };
 
+export type InventoryWorkbookRow = {
+  itemName: string;
+  variantName: string;
+  price: string;
+  locationName: string;
+  locationType: string;
+  quantity: string;
+  unitCost: string;
+};
+
+type PdfExportOptions = {
+  fileName: string;
+  orientation?: ReportOrientation;
+  contentWidthPx?: number;
+};
+
 type CellValue = string | number | null | undefined;
 
 type ExportSheet = {
@@ -55,7 +71,16 @@ type StoreCreditPageFetcher = (args: {
   size: number;
 }) => Promise<IStoreCreditReportRow[]>;
 
+type PaginatedExportResult<T> = {
+  rows: T[];
+  totalCount?: number | null;
+};
+
+type PaginatedExportRequest = Record<string, unknown>;
+
 const DEFAULT_PAGE_SIZE = 250;
+const DEFAULT_PORTRAIT_EXPORT_WIDTH = 720;
+const DEFAULT_LANDSCAPE_EXPORT_WIDTH = 1040;
 
 const formatAmount = (value?: number | null, emptyAsDash = false) => {
   if (value === null || value === undefined) {
@@ -115,6 +140,65 @@ export const createReportFileName = (reportName: string, details: Array<string |
   return parts.join('-') || 'report';
 };
 
+const reportExportLayoutStyles = `
+  .report-export-root,
+  .report-export-root .report-export-scroll,
+  .report-export-root .report-section-card,
+  .report-export-root .report-section-content,
+  .report-export-root .report-data-table,
+  .report-export-root .report-table-body {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  .report-export-root table,
+  .report-export-root .report-data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .report-export-root thead {
+    display: table-header-group;
+  }
+
+  .report-export-root tbody {
+    display: table-row-group;
+  }
+
+  .report-export-root tfoot {
+    display: table-footer-group;
+  }
+
+  .report-export-root .report-export-header,
+  .report-export-root .report-section-header,
+  .report-export-root thead,
+  .report-export-root tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-export-root .report-export-header,
+  .report-export-root .report-section-title,
+  .report-export-root .report-head-cell,
+  .report-export-root .report-text-cell,
+  .report-export-root .report-label-cell,
+  .report-export-root .report-sub-label-cell,
+  .report-export-root .report-muted-cell {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+  }
+
+  .report-export-root .report-numeric-cell {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+  }
+`;
+
 export const analyticsReportPrintStyles = (orientation: ReportOrientation = 'portrait') => `
   @page {
     size: A4 ${orientation};
@@ -144,25 +228,7 @@ export const analyticsReportPrintStyles = (orientation: ReportOrientation = 'por
       border: 0 !important;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead {
-      display: table-header-group;
-    }
-
-    tfoot {
-      display: table-footer-group;
-    }
-
-    tr,
-    section,
-    .report-section-card {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
+    ${reportExportLayoutStyles}
   }
 `;
 
@@ -171,10 +237,8 @@ export const downloadElementAsPdf = async (
   {
     fileName,
     orientation = 'portrait',
-  }: {
-    fileName: string;
-    orientation?: ReportOrientation;
-  }
+    contentWidthPx,
+  }: PdfExportOptions
 ) => {
   type Html2PdfInstance = {
     set: (options: Record<string, unknown>) => Html2PdfInstance;
@@ -187,29 +251,54 @@ export const downloadElementAsPdf = async (
   const html2pdfModule = await import('html2pdf.js');
   const html2pdf =
     (html2pdfModule as { default?: Html2PdfFactory }).default ?? (html2pdfModule as unknown as Html2PdfFactory);
+  const exportStyle = element.ownerDocument.createElement('style');
+  exportStyle.setAttribute('data-report-export-pdf-style', 'true');
+  exportStyle.textContent = reportExportLayoutStyles;
+  element.prepend(exportStyle);
+  const previousInlineWidth = element.style.width;
+  const previousInlineMaxWidth = element.style.maxWidth;
+  const previousInlineMinWidth = element.style.minWidth;
+  const resolvedContentWidth = contentWidthPx ?? (orientation === 'landscape' ? DEFAULT_LANDSCAPE_EXPORT_WIDTH : DEFAULT_PORTRAIT_EXPORT_WIDTH);
 
-  await html2pdf()
-    .set({
-      margin: [10, 10, 10, 10],
-      filename: `${fileName}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation,
-      },
-      pagebreak: {
-        mode: ['css', 'legacy'],
-      },
-    })
-    .from(element)
-    .save();
+  element.style.width = `${resolvedContentWidth}px`;
+  element.style.maxWidth = `${resolvedContentWidth}px`;
+  element.style.minWidth = '0';
+
+  try {
+    await html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `${fileName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation,
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          avoid: [
+            '.report-export-header',
+            '.report-section-header',
+            'thead',
+            'tr',
+          ],
+        },
+      })
+      .from(element)
+      .save();
+  } finally {
+    element.style.width = previousInlineWidth;
+    element.style.maxWidth = previousInlineMaxWidth;
+    element.style.minWidth = previousInlineMinWidth;
+    exportStyle.remove();
+  }
 };
 
 export const sanitizeWorksheetName = (name: string, usedNames = new Set<string>()) => {
@@ -234,6 +323,70 @@ export const sanitizeWorksheetName = (name: string, usedNames = new Set<string>(
   return candidate;
 };
 
+export const fetchAllPaginatedRows = async <T, TArgs extends PaginatedExportRequest>(
+  fetchPage: (args: TArgs & { page: number; size: number }) => Promise<PaginatedExportResult<T>>,
+  {
+    requestArgs,
+    size = DEFAULT_PAGE_SIZE,
+    getRowSignature,
+  }: {
+    requestArgs: TArgs;
+    size?: number;
+    getRowSignature: (row: T) => string;
+  }
+) => {
+  const rows: T[] = [];
+  const seenPageSignatures = new Set<string>();
+  const seenRowSignatures = new Set<string>();
+  let page = 0;
+  let totalCount: number | null = null;
+
+  while (true) {
+    const result = await fetchPage({
+      ...requestArgs,
+      page,
+      size,
+    });
+    const nextPageRows = Array.isArray(result?.rows) ? result.rows : [];
+    const pageSignature = nextPageRows.map(getRowSignature).join('||');
+
+    if (nextPageRows.length === 0 || seenPageSignatures.has(pageSignature)) {
+      break;
+    }
+
+    seenPageSignatures.add(pageSignature);
+
+    const uniqueRows = nextPageRows.filter(row => {
+      const rowSignature = getRowSignature(row);
+
+      if (seenRowSignatures.has(rowSignature)) {
+        return false;
+      }
+
+      seenRowSignatures.add(rowSignature);
+      return true;
+    });
+
+    if (uniqueRows.length === 0) {
+      break;
+    }
+
+    rows.push(...uniqueRows);
+
+    if (typeof result?.totalCount === 'number' && Number.isFinite(result.totalCount)) {
+      totalCount = result.totalCount;
+    }
+
+    if (nextPageRows.length < size || (totalCount !== null && rows.length >= totalCount)) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return rows;
+};
+
 export const fetchAllStoreCreditRows = async (
   fetchPage: StoreCreditPageFetcher,
   {
@@ -250,30 +403,36 @@ export const fetchAllStoreCreditRows = async (
     size?: number;
   } = {}
 ) => {
-  const rows: IStoreCreditReportRow[] = [];
-  let page = 0;
-  let hasMore = true;
-
-  while (hasMore) {
-    const nextPage = await fetchPage({
-      fromDate,
-      toDate,
-      onAccountEnabled,
-      accountNumber,
-      page,
-      size,
-    });
-
-    rows.push(...nextPage);
-
-    if (nextPage.length < size) {
-      hasMore = false;
-    } else {
-      page += 1;
+  return fetchAllPaginatedRows<
+    IStoreCreditReportRow,
+    {
+      fromDate?: string | null;
+      toDate?: string | null;
+      onAccountEnabled?: boolean | null;
+      accountNumber?: string | null;
     }
-  }
-
-  return rows;
+  >(
+    async ({ page, size, fromDate, toDate, onAccountEnabled, accountNumber }) => ({
+      rows: await fetchPage({
+        fromDate,
+        toDate,
+        onAccountEnabled,
+        accountNumber,
+        page,
+        size,
+      }),
+    }),
+    {
+      requestArgs: {
+        fromDate,
+        toDate,
+        onAccountEnabled,
+        accountNumber,
+      },
+      size,
+      getRowSignature: row => `${row.customerId}|${row.customerName}|${row.creditLimit}|${row.balance}`,
+    }
+  );
 };
 
 const pushSectionTable = (
@@ -397,6 +556,42 @@ export const buildStoreCreditWorkbook = (rows: IStoreCreditReportRow[], options:
         titleRowIndices: workbookHeader.titleRowIndices,
         headerRowIndices: [headerRowIndex],
         totalRowIndices: [totalRowIndex],
+      },
+    ],
+  };
+};
+
+export const buildInventoryWorkbook = (rows: InventoryWorkbookRow[], options: ExportWorkbookOptions): ExportWorkbook => {
+  const workbookHeader = getWorkbookHeader(options);
+  const sheetRows = [...workbookHeader.rows];
+  const headerRowIndex = sheetRows.length;
+
+  sheetRows.push(['Item', 'Variant', 'Price', 'Location', 'Location Type', 'Quantity', 'Unit Cost']);
+
+  if (rows.length === 0) {
+    sheetRows.push(['No inventory records found']);
+  } else {
+    rows.forEach(row => {
+      sheetRows.push([
+        row.itemName,
+        row.variantName,
+        row.price,
+        row.locationName,
+        row.locationType,
+        row.quantity,
+        row.unitCost,
+      ]);
+    });
+  }
+
+  return {
+    sheets: [
+      {
+        name: 'Inventory Report',
+        rows: sheetRows,
+        columnWidths: [28, 24, 12, 20, 18, 12, 12],
+        titleRowIndices: workbookHeader.titleRowIndices,
+        headerRowIndices: [headerRowIndex],
       },
     ],
   };

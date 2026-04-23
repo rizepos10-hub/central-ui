@@ -5,6 +5,24 @@ import { fetchStoreCreditReport } from 'app/modules/analytics/api';
 import { downloadElementAsPdf } from 'app/shared/util/report-export-utils';
 import StoreCreditReport from './store-credit-report';
 
+const mockDispatch = jest.fn();
+const mockState = {
+  businessDetail: {
+    entities: [
+      {
+        businessName: 'Maza Foods',
+        logo: { url: 'https://example.com/logo.png' },
+      },
+    ],
+    loading: false,
+  },
+};
+
+jest.mock('app/config/store', () => ({
+  useAppDispatch: () => mockDispatch,
+  useAppSelector: selector => selector(mockState),
+}));
+
 jest.mock('app/modules/analytics/api', () => ({
   fetchStoreCreditReport: jest.fn(),
 }));
@@ -76,7 +94,11 @@ describe('StoreCreditReport', () => {
       expect(mockedDownloadElementAsPdf).toHaveBeenCalledTimes(1);
     });
 
+    expect(screen.getByTestId('report-export-header')).not.toBeNull();
+    expect(screen.getByText('Maza Foods')).not.toBeNull();
     expect(mockedDownloadElementAsPdf.mock.calls[0][0]).toBeInstanceOf(HTMLElement);
+    expect((mockedDownloadElementAsPdf.mock.calls[0][0] as HTMLElement).className).toContain('report-export-root');
+    expect((mockedDownloadElementAsPdf.mock.calls[0][0] as HTMLElement).parentElement?.className).not.toContain('w-[1000px]');
     expect(mockedDownloadElementAsPdf.mock.calls[0][1]).toMatchObject({
       fileName: 'customer-balance-report',
       orientation: 'portrait',
@@ -87,6 +109,48 @@ describe('StoreCreditReport', () => {
       onAccountEnabled: null,
       accountNumber: null,
       page: 0,
+      size: 250,
+    });
+  });
+
+  it('stops requesting export pages when the backend repeats the same full page', async () => {
+    const repeatedPage = [
+      { customerId: '1', customerName: 'Alice', creditLimit: 10, balance: 3 },
+      { customerId: '2', customerName: 'Bob', creditLimit: 20, balance: 5 },
+    ];
+
+    mockedFetchStoreCreditReport
+      .mockResolvedValueOnce([{ customerId: '1', customerName: 'Alice', creditLimit: 10, balance: 3 }])
+      .mockResolvedValueOnce(repeatedPage)
+      .mockResolvedValueOnce(repeatedPage);
+
+    render(<StoreCreditReport />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Alice')).not.toBeNull();
+    });
+
+    fireEvent.click(screen.getByTestId('report-action-pdf'));
+
+    await waitFor(() => {
+      expect(mockedDownloadElementAsPdf).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockedFetchStoreCreditReport).toHaveBeenCalledTimes(3);
+    expect(mockedFetchStoreCreditReport).toHaveBeenNthCalledWith(2, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 0,
+      size: 250,
+    });
+    expect(mockedFetchStoreCreditReport).toHaveBeenNthCalledWith(3, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 1,
       size: 250,
     });
   });

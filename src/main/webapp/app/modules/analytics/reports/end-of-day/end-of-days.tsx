@@ -7,6 +7,7 @@ import { translate, Translate } from "react-jhipster";
 import { format } from "date-fns";
 import { dateToUTCString, formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
+import ReportErrorState from 'app/shared/components/report/report-error-state';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/src/main/webapp/app/lib/utils";
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 
 
@@ -29,6 +31,7 @@ export const EndOfDays = () => {
   const branchList = useAppSelector(state => state.branch.entities);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -51,6 +54,7 @@ export const EndOfDays = () => {
   const loadLazyData = async () => {
     setLoading(true);
     try {
+      setError(null);
       const sortDirection = lazyState.sortOrder === 1 ? "asc" : "desc";
       const sortField = lazyState.sortField + ',' + sortDirection;
 
@@ -78,7 +82,9 @@ export const EndOfDays = () => {
       setTotalRecords(Number(result.headers['x-total-count']));
       setEndOFDaysData(result.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      setEndOFDaysData([]);
+      setTotalRecords(0);
+      setError(getReportApiErrorMessage(error, 'Unable to load end of day reports.'));
     } finally {
       setLoading(false);
     }
@@ -164,6 +170,8 @@ export const EndOfDays = () => {
           </Popover>
         </div>
 
+        {error ? <ReportErrorState message={error} dataTestId="end-of-days-error" /> : null}
+
         <div className="rounded-md border bg-white">
           <Table>
             <TableHeader>
@@ -202,6 +210,12 @@ export const EndOfDays = () => {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-xs py-4">
                     Loading...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="p-3">
+                    <ReportErrorState message={error} compact dataTestId="end-of-days-table-error" />
                   </TableCell>
                 </TableRow>
               ) : endOfDaysData.length === 0 ? (
