@@ -4,6 +4,7 @@ import { ITv } from "./TV/tv.model";
 
 export interface ITerminalSettings {
     showItemsPic: boolean;
+    showItemThumbnailInOrderItems: boolean;
     showCategoriesPic: boolean;
     showRetailItemsOnly: boolean;
     countryCode: string | null;

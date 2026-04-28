@@ -4,6 +4,7 @@ import { getEntities, updateEntity, createEntity } from '../settings/business-de
 import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
   IBusinessDetail,
+  DeliveryPricingMode,
   Metric,
   UnitCostCalculationMode,
   dayTypeEnum,
@@ -63,11 +64,18 @@ export enum AddressComponentTypesEnum {
   "locality" = "locality",
 }
 
+const deliveryPricingModeLabels: Record<DeliveryPricingMode, string> = {
+  [DeliveryPricingMode.COVERAGE_BASE]: 'Coverage base',
+  [DeliveryPricingMode.DISTANCE_BAND_RULE]: 'Distance band rule',
+  [DeliveryPricingMode.ZONE_RULE]: 'Zone rule',
+};
+
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
     return [{ label: 'Status', value: 'Not initialized — set coverage and rates below, then save the branch.' }];
   }
   const lines: { label: string; value: string }[] = [];
+  const pricingMode = dc.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE;
   const maxR = dc.shipmentRange?.value;
   const maxM = dc.shipmentRange?.metric;
   if (maxR != null && Number(maxR) > 0) {
@@ -84,8 +92,18 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
 
   const bands = dc.definedChargeRules?.filter(Boolean).length ?? 0;
   lines.push({
-    label: 'Price model',
-    value: bands > 0 ? `${bands} distance band(s)` : 'Per-step rate only (no bands)',
+    label: 'Pricing mode',
+    value: deliveryPricingModeLabels[pricingMode],
+  });
+  lines.push({
+    label: 'Distance bands',
+    value: bands > 0 ? `${bands} configured` : 'Off',
+  });
+
+  const zoneRules = dc.zoneChargeRules?.filter(rule => rule?.zoneId).length ?? 0;
+  lines.push({
+    label: 'Zone pricing',
+    value: zoneRules > 0 ? `${zoneRules} zone-specific fee(s)` : 'Off',
   });
 
   const step = dc.chargePerDistance;
@@ -309,7 +327,6 @@ export const Branches = () => {
 
   const handleImageChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    console.log(value, 'value')
     newData[branchIndex].logo = value?.[0];
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
@@ -323,6 +340,18 @@ export const Branches = () => {
   const handleEBTEligibleFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].ebteligible = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handlePrintZeroPriceAddonsChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].printZeroPriceAddons = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].enableAskOnTablePermissions = checked;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -393,8 +422,10 @@ export const Branches = () => {
       value: 0,
     },
     minCharge: 0,
+    pricingMode: DeliveryPricingMode.COVERAGE_BASE,
     freeOnAmount: null,
     definedChargeRules: [],
+    zoneChargeRules: [],
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
     defaultBookingLeadMinutes: null,
   });
@@ -448,17 +479,6 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
-  const handleZoneChange = (selectedZones, branchIndex) => {
-    setBusinessDetailsState((prev) => ({
-      ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
-        if (i === branchIndex) {
-          return { ...branch, zones: selectedZones.map(zone => ({ id: zone.id, name: zone.name })) };
-        }
-        return branch;
-      })
-    }));
-  }
-
   const handleTimeZoneChange = (selectedTimeZone, branchIndex) => {
     setBusinessDetailsState((prev) => ({
       ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
@@ -491,18 +511,7 @@ export const Branches = () => {
   const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
-      // change the coordinates sent inside every zone in the branches in the array
-      branchDetails: businessDetailsState?.branchDetails?.map(branch => {
-        return {
-          ...branch, zones: branch.zones?.map(zone => {
-            return {
-              ...zone, coordinates: zone.coordinates?.map(coordinate => {
-                return { x: coordinate.x, y: coordinate.y };
-              })
-            };
-          })
-        };
-      }),
+      branchDetails: businessDetailsState?.branchDetails,
     };
 
     if (isNew) {
@@ -575,6 +584,35 @@ export const Branches = () => {
     });
   };
 
+  const handleAddZoneChargeRule = (branchIndex) => {
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const branch = newState.branchDetails[branchIndex];
+      if (!branch.deliveryConfiguration) {
+        branch.deliveryConfiguration = defaultDeliveryConfiguration();
+      }
+      if (!branch.deliveryConfiguration.zoneChargeRules) {
+        branch.deliveryConfiguration.zoneChargeRules = [];
+      }
+      branch.deliveryConfiguration.zoneChargeRules.push({
+        zoneId: '',
+        charge: 0,
+      });
+      return newState;
+    });
+  };
+
+  const handleDeleteZoneChargeRule = (branchIndex, zoneChargeRuleIndex) => {
+    setBusinessDetailsState((prev) => {
+      const newState = _.cloneDeep(prev);
+      const rules = newState.branchDetails[branchIndex].deliveryConfiguration?.zoneChargeRules;
+      if (rules) {
+        rules.splice(zoneChargeRuleIndex, 1);
+      }
+      return newState;
+    });
+  };
+
   const handleHideMapOnOnlineOrderingChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].hideMapOnOnlineOrdering = checked;
@@ -612,10 +650,10 @@ export const Branches = () => {
             }
           }
         }}
-        className="flex gap-4"
+        className="flex items-start gap-4"
         orientation="vertical"
       >
-        <TabsList className="h-auto flex-col items-stretch w-48 bg-muted/30">
+        <TabsList className="sticky top-4 self-start h-auto max-h-[calc(100vh-2rem)] w-48 flex-col items-stretch justify-start overflow-y-auto bg-muted/30">
           {businessDetailsState?.branchDetails?.map((branch, index) => (
             <TabsTrigger
               key={index}
@@ -684,6 +722,31 @@ export const Branches = () => {
                     <Label htmlFor={`ebt-${branchIndex}`} className="font-bold text-xs cursor-pointer">Is EBT Eligible</Label>
                   </div>
 
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.printZeroPriceAddons}
+                      onCheckedChange={(checked) => handlePrintZeroPriceAddonsChange(branchIndex, checked)}
+                      id={`print-zero-price-addons-${branchIndex}`}
+                    />
+                    <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print Zero Price Addons
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.enableAskOnTablePermissions}
+                      onCheckedChange={(checked) => handleEnableAskOnTablePermissionsChange(branchIndex, checked)}
+                      id={`enable-ask-on-table-permissions-${branchIndex}`}
+                    />
+                    <Label
+                      htmlFor={`enable-ask-on-table-permissions-${branchIndex}`}
+                      className="font-bold text-xs cursor-pointer"
+                    >
+                      Enable Ask On Table Permissions
+                    </Label>
+                  </div>
+
                   <div className="flex flex-col gap-2">
                     <Label className="font-bold text-xs">Ending Type</Label>
                     <Select
@@ -715,19 +778,6 @@ export const Branches = () => {
                       id={`token-${branchIndex}`}
                     />
                     <Label htmlFor={`token-${branchIndex}`} className="font-bold text-xs cursor-pointer">Should token expire?</Label>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label className="font-bold text-xs">Zones</Label>
-                    <Select
-                      value={branch.zones}
-                      isMulti={true}
-                      options={zones}
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(e) => handleZoneChange(e, activeIndex)}
-                      className="text-xs"
-                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -914,6 +964,27 @@ export const Branches = () => {
                               </RadioGroup>
                             </div>
                           </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Pricing mode</Label>
+                          <ShadSelect
+                            value={branch.deliveryConfiguration?.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE}
+                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'pricingMode', value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select pricing mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(DeliveryPricingMode).map(mode => (
+                                <SelectItem key={mode} value={mode} className="text-xs">
+                                  {deliveryPricingModeLabels[mode]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </ShadSelect>
+                          <p className="text-[10px] text-muted-foreground">
+                            Choose whether delivery pricing follows coverage-base logic, distance bands only, or zone rules only.
+                          </p>
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-medium">Delivery tagging mode</Label>
@@ -1222,6 +1293,100 @@ export const Branches = () => {
                                     </div>
                                   ))}
                                 </RadioGroup>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-sm font-semibold">Zone charges</CardTitle>
+                        <CardDescription className="text-[11px]">
+                          Optional overrides: assign a flat delivery fee to specific zones using the configured zone catalog.
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 shrink-0 gap-1 text-xs"
+                        onClick={() => handleAddZoneChargeRule(branchIndex)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add zone charge
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                      {(branch.deliveryConfiguration?.zoneChargeRules?.length ?? 0) === 0 ? (
+                        <div className="rounded-md border border-dashed bg-muted/10 px-4 py-8 text-center">
+                          <p className="text-xs text-muted-foreground">
+                            No zone-specific fees yet. Add one when a zone should have its own flat delivery charge.
+                          </p>
+                        </div>
+                      ) : (
+                        (branch.deliveryConfiguration?.zoneChargeRules ?? []).map((zoneChargeRule, zoneChargeRuleIndex) => (
+                          <div
+                            key={zoneChargeRuleIndex}
+                            className="rounded-lg border bg-card p-3 shadow-sm space-y-3"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-foreground">Zone rule {zoneChargeRuleIndex + 1}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 gap-1 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteZoneChargeRule(branchIndex, zoneChargeRuleIndex)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+                              <div className="lg:col-span-8 flex flex-col gap-1">
+                                <Label className="text-xs text-muted-foreground">Zone</Label>
+                                <Select
+                                  value={zones.find(zone => zone.id === zoneChargeRule.zoneId) ?? null}
+                                  options={zones}
+                                  getOptionLabel={option => option.name}
+                                  getOptionValue={option => option.id}
+                                  onChange={(selectedZone) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `zoneChargeRules[${zoneChargeRuleIndex}].zoneId`,
+                                      selectedZone?.id ?? ''
+                                    )
+                                  }
+                                  placeholder="Select zone..."
+                                  isClearable
+                                  className="text-xs"
+                                />
+                              </div>
+                              <div className="lg:col-span-4 flex flex-col gap-1">
+                                <Label
+                                  className="text-xs text-muted-foreground"
+                                  htmlFor={`zone-charge-${branchIndex}-${zoneChargeRuleIndex}`}
+                                >
+                                  Charge
+                                </Label>
+                                <Input
+                                  type="number"
+                                  id={`zone-charge-${branchIndex}-${zoneChargeRuleIndex}`}
+                                  placeholder="Fee"
+                                  value={zoneChargeRule.charge ?? ''}
+                                  onChange={(e) =>
+                                    handleDeliveryConfiguration(
+                                      branchIndex,
+                                      `zoneChargeRules[${zoneChargeRuleIndex}].charge`,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
                               </div>
                             </div>
                           </div>
@@ -1571,8 +1736,8 @@ const MapComponent = ({
         fullAddress: place.formatted_address
       });
       map.setCenter({ lat, lng });
-    }).catch((error) => {
-      console.error('Geocode error:', error);
+    }).catch(() => {
+      toast.error('Failed to geocode the selected address.');
     });
   };
 

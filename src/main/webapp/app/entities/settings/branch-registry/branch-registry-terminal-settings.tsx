@@ -213,6 +213,16 @@ function PersonalizationSettings() {
             </FieldWrapper>
 
             <FieldWrapper
+                title="Show Item Thumbnail In Order Items"
+                description="Show item thumbnails in order item rows"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showItemThumbnailInOrderItems}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showItemThumbnailInOrderItems', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
                 title="Show Retail Items Only"
                 description="Show Retail Items Only in the app"
             >

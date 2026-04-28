@@ -18,12 +18,20 @@ import { getOnAccountPaymentValidation } from './order-on-account.utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import { cn } from 'app/lib/utils';
 
+interface ChargePreviewRow {
+  key: string;
+  label: string;
+  amount: number;
+}
+
 interface OrderPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   orderBranchId?: string | null;
   customerId?: string | null;
+  baseOrderTotal?: number | null;
+  chargePreviewRows?: ChargePreviewRow[];
   totalAmount?: number | null;
   totalPaid?: number | null;
   defaultPaymentAmount?: number;
@@ -42,6 +50,8 @@ const OrderPaymentDialog = ({
   title,
   orderBranchId,
   customerId,
+  baseOrderTotal = 0,
+  chargePreviewRows = [],
   totalAmount = 0,
   totalPaid = 0,
   defaultPaymentAmount = 0,
@@ -62,9 +72,11 @@ const OrderPaymentDialog = ({
   const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
   const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
 
+  const normalizedBaseOrderTotal = baseOrderTotal ?? 0;
   const normalizedTotalAmount = totalAmount ?? 0;
   const normalizedTotalPaid = totalPaid ?? 0;
   const remaining = Math.max(0, normalizedTotalAmount - normalizedTotalPaid);
+  const visibleChargeRows = chargePreviewRows.filter(charge => (charge.amount ?? 0) > 0);
   const paymentCustomer = customerEntity?.id && customerEntity.id === customerId ? customerEntity : null;
   const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
 
@@ -164,7 +176,17 @@ const OrderPaymentDialog = ({
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-3 text-sm">
                 <div className="flex justify-between mb-1">
-                  <span className="text-muted-foreground">Total:</span>
+                  <span className="text-muted-foreground">Base Total:</span>
+                  <span className="font-semibold">{formatCurrencyAmount(normalizedBaseOrderTotal)}</span>
+                </div>
+                {visibleChargeRows.map(charge => (
+                  <div key={charge.key} className="flex justify-between mb-1">
+                    <span className="text-muted-foreground">{charge.label}:</span>
+                    <span className="font-semibold">{formatCurrencyAmount(charge.amount)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between mb-1">
+                  <span className="text-muted-foreground">Final Total:</span>
                   <span className="font-semibold">{formatCurrencyAmount(normalizedTotalAmount)}</span>
                 </div>
                 <div className="flex justify-between mb-1">

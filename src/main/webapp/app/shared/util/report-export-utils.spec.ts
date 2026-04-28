@@ -1,12 +1,38 @@
 import {
+  analyticsReportPrintStyles,
+  buildInventoryWorkbook,
   buildCashierByTerminalWorkbook,
+  buildCommissionFeesWorkbook,
   buildOptimizedProductSalesWorkbook,
   buildSalesActivitySummaryWorkbook,
   createReportFileName,
+  downloadElementAsPdf,
+  fetchAllPaginatedRows,
   fetchAllStoreCreditRows,
 } from './report-export-utils';
 
+const mockHtml2PdfSave = jest.fn().mockResolvedValue(undefined);
+const mockHtml2PdfFrom = jest.fn();
+const mockHtml2PdfSet = jest.fn();
+const mockHtml2PdfInstance = {
+  set: mockHtml2PdfSet,
+  from: mockHtml2PdfFrom,
+  save: mockHtml2PdfSave,
+};
+const mockHtml2PdfFactory = jest.fn(() => mockHtml2PdfInstance);
+
+jest.mock('html2pdf.js', () => ({
+  __esModule: true,
+  default: mockHtml2PdfFactory,
+}));
+
 describe('report export utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHtml2PdfSet.mockReturnValue(mockHtml2PdfInstance);
+    mockHtml2PdfFrom.mockReturnValue(mockHtml2PdfInstance);
+  });
+
   it('fetchAllStoreCreditRows concatenates pages until a short page is returned', async () => {
     const fetchPage = jest
       .fn()
@@ -38,10 +64,115 @@ describe('report export utils', () => {
     expect(rows).toHaveLength(3);
   });
 
+  it('fetchAllStoreCreditRows stops when the backend repeats the same full page', async () => {
+    const repeatedPage = [
+      { customerId: '1', customerName: 'A', creditLimit: 10, balance: 5 },
+      { customerId: '2', customerName: 'B', creditLimit: 20, balance: 10 },
+    ];
+    const fetchPage = jest.fn().mockResolvedValue(repeatedPage);
+
+    const rows = await fetchAllStoreCreditRows(fetchPage, { size: 2 });
+
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+    expect(fetchPage).toHaveBeenNthCalledWith(1, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 0,
+      size: 2,
+    });
+    expect(fetchPage).toHaveBeenNthCalledWith(2, {
+      fromDate: null,
+      toDate: null,
+      onAccountEnabled: null,
+      accountNumber: null,
+      page: 1,
+      size: 2,
+    });
+    expect(rows).toEqual(repeatedPage);
+  });
+
+  it('fetchAllPaginatedRows stops when total count keeps growing but unique rows stop progressing', async () => {
+    const repeatedPage = [
+      { id: '1', name: 'Burger' },
+      { id: '2', name: 'Pizza' },
+    ];
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: repeatedPage, totalCount: 10 })
+      .mockResolvedValueOnce({ rows: repeatedPage, totalCount: 10 })
+      .mockResolvedValueOnce({ rows: repeatedPage, totalCount: 10 });
+
+    const rows = await fetchAllPaginatedRows(fetchPage, {
+      size: 2,
+      getRowSignature: row => row.id,
+    });
+
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+    expect(rows).toEqual(repeatedPage);
+  });
+
   it('createReportFileName slugifies report details', () => {
     expect(createReportFileName('Customer Balance Report', ['Main Branch', '2026/03/26'])).toBe(
       'customer-balance-report-main-branch-2026-03-26'
     );
+  });
+
+  it('analyticsReportPrintStyles includes export-safe page-break and no-hyphen rules', () => {
+    const styles = analyticsReportPrintStyles('portrait');
+
+    expect(styles).toContain('.report-section-card');
+    expect(styles).toContain('.report-export-header');
+    expect(styles).toContain('.report-numeric-cell');
+    expect(styles).toContain('overflow-wrap: break-word');
+    expect(styles).toContain('hyphens: none');
+    expect(styles).toContain('page-break-inside: avoid');
+  });
+
+  it('downloadElementAsPdf injects export-safe styles, applies export width, and narrows pagebreak avoidance', async () => {
+    const element = document.createElement('div');
+    element.className = 'report-export-root';
+    document.body.appendChild(element);
+
+    await downloadElementAsPdf(element, { fileName: 'sales-summary-report', orientation: 'portrait' });
+
+    expect(mockHtml2PdfFactory).toHaveBeenCalledTimes(1);
+    expect(mockHtml2PdfSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filename: 'sales-summary-report.pdf',
+        pagebreak: expect.objectContaining({
+          mode: ['css', 'legacy'],
+          avoid: expect.arrayContaining(['tr', 'thead', '.report-section-header', '.report-export-header']),
+        }),
+      })
+    );
+    const setOptions = mockHtml2PdfSet.mock.calls[0][0];
+    expect(setOptions.pagebreak.avoid).not.toContain('td');
+    expect(setOptions.pagebreak.avoid).not.toContain('table');
+    expect(setOptions.pagebreak.avoid).not.toContain('.report-section-card');
+    expect(mockHtml2PdfFrom).toHaveBeenCalledWith(element);
+    expect(mockHtml2PdfSave).toHaveBeenCalledTimes(1);
+    expect(element.style.width).toBe('');
+    expect(element.style.maxWidth).toBe('');
+    expect(element.style.minWidth).toBe('');
+    expect(element.querySelector('[data-report-export-pdf-style="true"]')).toBeNull();
+  });
+
+  it('downloadElementAsPdf uses the landscape export width by default', async () => {
+    const element = document.createElement('div');
+    element.className = 'report-export-root';
+    document.body.appendChild(element);
+
+    mockHtml2PdfSet.mockImplementation((options: Record<string, unknown>) => {
+      expect(element.style.width).toBe('1040px');
+      expect(options.jsPDF).toEqual(expect.objectContaining({ orientation: 'landscape' }));
+      return mockHtml2PdfInstance;
+    });
+
+    await downloadElementAsPdf(element, { fileName: 'sales-report', orientation: 'landscape' });
+
+    expect(element.style.width).toBe('');
   });
 
   it('buildOptimizedProductSalesWorkbook appends the totals row', () => {
@@ -70,6 +201,62 @@ describe('report export utils', () => {
     const sheet = workbook.sheets[0];
     expect(sheet.name).toBe('Optimized Product Sales');
     expect(sheet.rows[sheet.rows.length - 1]).toEqual(['Totals', '2', '-', '5.00', '12.00', '7.00', '-']);
+  });
+
+  it('buildCommissionFeesWorkbook includes header filters and metric rows', () => {
+    const workbook = buildCommissionFeesWorkbook(
+      {
+        ordersCount: 41,
+        subtotalSum: 701925.74,
+        commissionRate: 2.5,
+        commissionAmount: 17548.14,
+      },
+      {
+        title: 'Commission Fees Report',
+        filters: [
+          { label: 'Branch', value: 'Main Branch' },
+          { label: 'Date Range', value: 'Jan 1, 2026 - Apr 1, 2026' },
+        ],
+      }
+    );
+
+    expect(workbook.sheets[0].name).toBe('Commission Fees');
+    expect(workbook.sheets[0].rows).toEqual(
+      expect.arrayContaining([
+        ['Commission Fees Report'],
+        ['Branch', 'Main Branch'],
+        ['Date Range', 'Jan 1, 2026 - Apr 1, 2026'],
+        ['Orders Count', '41'],
+        ['Subtotal Sum', '701925.74'],
+        ['Commission Rate', '2.50%'],
+        ['Commission Amount', '17548.14'],
+      ])
+    );
+  });
+
+  it('buildInventoryWorkbook uses the flattened inventory export rows', () => {
+    const workbook = buildInventoryWorkbook(
+      [
+        {
+          itemName: 'Burger',
+          variantName: 'Regular',
+          price: '10',
+          locationName: 'Main',
+          locationType: 'STORE',
+          quantity: '3',
+          unitCost: '4',
+        },
+      ],
+      { title: 'Inventory Report' }
+    );
+
+    expect(workbook.sheets[0].name).toBe('Inventory Report');
+    expect(workbook.sheets[0].rows).toEqual(
+      expect.arrayContaining([
+        ['Item', 'Variant', 'Price', 'Location', 'Location Type', 'Quantity', 'Unit Cost'],
+        ['Burger', 'Regular', '10', 'Main', 'STORE', '3', '4'],
+      ])
+    );
   });
 
   it('buildSalesActivitySummaryWorkbook creates summary and section sheets', () => {

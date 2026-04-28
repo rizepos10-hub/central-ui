@@ -62,8 +62,6 @@ export const dateToUTCString = (date: Date, timeZone?: string): string => {
 };
 
 // 🔴 DEBUG FLAG: Only enable in development mode
-const DEBUG_DATES = process.env.NODE_ENV === 'development';
-
 const parseDateValue = (date: Date | string): Date | null => {
   if (date instanceof Date) {
     return Number.isNaN(date.getTime()) ? null : date;
@@ -113,5 +111,5 @@ export const formatDateForDisplay = (
   }
 
   // 🔴 Debug mode: Wrap dates with red circle emojis to easily spot them (dev only)
-  return DEBUG_DATES ? `🔴 ${formattedDate} 🔴` : formattedDate;
+  return formattedDate;
 };

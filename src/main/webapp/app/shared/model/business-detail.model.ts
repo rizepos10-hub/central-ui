@@ -1,7 +1,6 @@
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { IAddress } from 'app/shared/model/address.model';
 import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
-import { IZone } from './ZONE/zone.model';
 import { EndingType } from './ENUMS/ending-type.model';
 import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
 import { ISeo } from './ITEM/retail/product.model';
@@ -36,12 +35,12 @@ export interface IBranchDetails {
   address: IAddress;
   days: IBusinessDayDetail[];
   wholesale: boolean;
+  printZeroPriceAddons?: boolean;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
   endOfDayReportSection?: EndOfDayReportSection[];
   activeCOD?: boolean;
-  zones: IZone[];
   hideRetailShop?: boolean;
   hideMapOnOnlineOrdering?: boolean;
   unitCostCalculationMode?: UnitCostCalculationMode;
@@ -49,6 +48,7 @@ export interface IBranchDetails {
   tokenExpired?: boolean;
   logo?: IAttachment;
   ebteligible?: boolean;
+  enableAskOnTablePermissions?: boolean;
   pages?: ISeoPages
   timeZone?: string;
 }
@@ -76,11 +76,19 @@ export interface IDeliveryConfiguration {
   };
   shipmentRange: IDistance;
   minCharge: number;
+  pricingMode?: DeliveryPricingMode;
   /** Order subtotal ≥ this amount → delivery fee is zero (same as central `DELIVERY_PRICING`). Omit or clear to disable. */
   freeOnAmount?: number | null;
   definedChargeRules: IChargeRule[];
+  zoneChargeRules: IZoneChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
+}
+
+export enum DeliveryPricingMode {
+  COVERAGE_BASE = 'COVERAGE_BASE',
+  DISTANCE_BAND_RULE = 'DISTANCE_BAND_RULE',
+  ZONE_RULE = 'ZONE_RULE',
 }
 
 export enum DeliveryTaggingModeEnum {
@@ -92,6 +100,11 @@ export interface IChargeRule {
   minDistance: IDistance;
   maxDistance: IDistance;
   orderAmount: number;
+  charge: number;
+}
+
+export interface IZoneChargeRule {
+  zoneId: string;
   charge: number;
 }
 

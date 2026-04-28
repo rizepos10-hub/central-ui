@@ -1,14 +1,26 @@
-// SalesReportTypes.ts
+export type SalesReportTaxes = Record<string, number>;
 
 interface Slot {
   order: number;
-  value: number;
+  value: number | null;
+}
+
+interface RowRecordIcon {
+  id?: string | null;
+  name?: string | null;
+  path?: string | null;
+  size?: number | null;
+  type?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  url?: string | null;
+  storageType?: string | null;
 }
 
 interface RowRecord {
   id: string;
   name: string;
-  icon: string | null;
+  icon?: RowRecordIcon | string | null;
 }
 
 interface HeaderSlot {
@@ -16,28 +28,31 @@ interface HeaderSlot {
   label: string | null;
 }
 
-interface TotalByDateRange {
-  amount: number | null;
-  costOfGoods: number | null;
-  grossProfit: number | null;
-  margin: number | null;
-  returned: boolean | null;
-  revenue: number | null;
-  tax: number | null;
-  taxes?: string | null;
-  value: null | number;
+interface TotalByDateRangeRecord {
+  amount?: number | null;
+  costOfGoods?: number | null;
+  grossProfit?: number | null;
+  margin?: number | null;
+  returned?: boolean | number | null;
+  returns?: number | null;
+  revenue?: number | null;
+  tax?: number | null;
+  taxes?: SalesReportTaxes | null;
+  value?: number | null;
+  orderCount?: number | null;
 }
 
 interface Row {
-  revenue: number;
-  costOfGoods: number;
-  grossProfit: number;
-  margin: number;
-  tax: number;
-  taxes?: string | null;
-  amount: number;
-  returned: number;
-  value: string | null;
+  revenue?: number | null;
+  costOfGoods?: number | null;
+  grossProfit?: number | null;
+  margin?: number | null;
+  tax?: number | null;
+  taxes?: SalesReportTaxes | null;
+  amount?: number | null;
+  returned?: boolean | number | null;
+  returns?: number | null;
+  value?: number | null;
   rowRecord: RowRecord;
   slots: Slot[];
 }
@@ -54,7 +69,7 @@ interface DateRange {
 export interface ISalesReport {
   headerSlots: HeaderSlot[];
   rows: Row[];
-  totalByDateRange: TotalByDateRange;
+  totalByDateRange: Record<string, TotalByDateRangeRecord> | TotalByDateRangeRecord[];
 }
 
 export interface FormRequest {

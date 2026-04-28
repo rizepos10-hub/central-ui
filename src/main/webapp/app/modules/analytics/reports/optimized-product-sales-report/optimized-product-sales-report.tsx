@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import { useReactToPrint } from 'react-to-print';
 import {
@@ -429,34 +430,19 @@ const OptimizedProductSalesReport = () => {
 
         <div ref={reportContentRef} className="report-export-root space-y-3">
           {appliedFilters && (
-            <Card className="report-export-header">
-              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
-                <div>
-                  <div className="text-xs text-muted-foreground">Branch</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedBranchName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Source</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.source || 'All sources'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Registry</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedRegistryName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Till</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedTillName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Username</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.username || 'All users'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Date Range</div>
-                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportExportHeader
+              reportTitle={REPORT_TITLE}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              filters={[
+                { label: 'Branch', value: appliedBranchName },
+                { label: 'Source', value: appliedFilters?.source || 'All sources' },
+                { label: 'Registry', value: appliedRegistryName },
+                { label: 'Till', value: appliedTillName },
+                { label: 'Username', value: appliedFilters?.username || 'All users' },
+                { label: 'Date Range', value: intervalLabel },
+              ]}
+            />
           )}
 
           <Card>

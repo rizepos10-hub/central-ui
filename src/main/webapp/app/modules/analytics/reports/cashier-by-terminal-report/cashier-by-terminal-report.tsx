@@ -24,6 +24,7 @@ import {
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -590,34 +591,19 @@ const CashierByTerminalReport = () => {
 
         <div ref={reportContentRef} className="report-export-root space-y-3">
           {appliedFilters && (
-            <Card className="report-export-header">
-              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
-                <div>
-                  <div className="text-xs text-muted-foreground">Branch</div>
-                  <div className="mt-1 text-sm font-semibold">{branchLabel}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Source</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.source || 'All sources'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Registry</div>
-                  <div className="mt-1 text-sm font-semibold">{selectedRegistryName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Till</div>
-                  <div className="mt-1 text-sm font-semibold">{selectedTillName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Username</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedFilters?.username || 'All users'}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Date Range</div>
-                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportExportHeader
+              reportTitle={REPORT_TITLE}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              filters={[
+                { label: 'Branch', value: branchLabel },
+                { label: 'Source', value: appliedFilters?.source || 'All sources' },
+                { label: 'Registry', value: selectedRegistryName },
+                { label: 'Till', value: selectedTillName },
+                { label: 'Username', value: appliedFilters?.username || 'All users' },
+                { label: 'Date Range', value: intervalLabel },
+              ]}
+            />
           )}
 
           {loading ? (

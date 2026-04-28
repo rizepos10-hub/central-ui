@@ -1,6 +1,5 @@
 // DynamicEndOfDayReportUI.tsx
-import React, { useEffect, useState } from 'react';
-import ReactToPrint from 'react-to-print';
+import React, { useEffect, useMemo, useState } from 'react';
 import { translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
 import SummaryReportTotalReceived from 'app/shared/components/report/summary-report-total-received';
@@ -12,15 +11,20 @@ import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
 import { Button } from '@/components/ui/button';
 import { fetchFirstLastBills, fetchFirstLastBillsSummary } from '../../api';
-import { useAppDispatch } from 'app/config/store';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
 import CategoryReport from './category-report';
 import { useNavigate } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, Printer } from 'lucide-react';
+import { ArrowLeft, RefreshCw, FileSpreadsheet, Download, FileText, Printer } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { useReactToPrint } from 'react-to-print';
+import ReportErrorState from 'app/shared/components/report/report-error-state';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
+import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from 'app/shared/util/report-export-utils';
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 interface DynamicEndOfDayReportUIProps {
   reportData: any;
@@ -49,8 +53,11 @@ const DynamicEndOfDayReportUI = ({
 }: DynamicEndOfDayReportUIProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const branchList = useAppSelector(state => state.branch.entities);
 
   const [billsSummary, setBillsSummary] = useState<any>(null);
+  const [billsSummaryError, setBillsSummaryError] = useState<string | null>(null);
+  const [busyAction, setBusyAction] = useState<'pdf' | 'print' | null>(null);
   
   // Default visible sections
   const defaultVisibleSections = {
@@ -104,17 +111,6 @@ const DynamicEndOfDayReportUI = ({
       setBusinessDetailsState(res.payload.data[0]);
     });
 
-    // Refetch bills summary
-    if (endOfDay?.id) {
-      fetchFirstLastBills(endOfDay?.id).then(result => {
-        setBillsSummary(result.data);
-      });
-    } else {
-      fetchFirstLastBillsSummary(branchId, source, fromDate, toDate).then(result => {
-        setBillsSummary(result.data);
-      });
-    }
-
     // // Trigger a page reload to refetch all data
     navigate(0);
     // window.location.reload();
@@ -153,19 +149,38 @@ const DynamicEndOfDayReportUI = ({
   }, [businessDetailsState, branchId]);
 
   useEffect(() => {
-    if (endOfDay?.id) {
-      fetchFirstLastBills(endOfDay?.id).then(result => {
+    const loadBillsSummary = async () => {
+      try {
+        setBillsSummaryError(null);
+        if (endOfDay?.id) {
+          const result = await fetchFirstLastBills(endOfDay?.id);
+          setBillsSummary(result.data);
+          return;
+        }
+
+        const result = await fetchFirstLastBillsSummary(branchId, source, fromDate, toDate);
         setBillsSummary(result.data);
-      });
-    } else {
-      fetchFirstLastBillsSummary(branchId, source, fromDate, toDate).then(result => {
-        setBillsSummary(result.data);
-      });
-    }
+      } catch (error) {
+        setBillsSummary(null);
+        setBillsSummaryError(getReportApiErrorMessage(error, 'Unable to load bills summary metadata.'));
+      }
+    };
+
+    void loadBillsSummary();
   }, [endOfDay?.id, branchId, fromDate, toDate, source]);
 
   const firstBillDate = formatDateForDisplay(billsSummary?.firstBill?.createdDate);
   const lastBillDate = formatDateForDisplay(billsSummary?.lastBill?.createdDate);
+  const reportTitle = title || 'Sales Summary Report';
+  const branchLabel = useMemo(
+    () => branchList.find(branch => branch.id === branchId)?.name || 'All branches',
+    [branchId, branchList]
+  );
+  const intervalLabel =
+    fromDate && toDate ? `${formatDateForDisplay(fromDate, 'PP')} - ${formatDateForDisplay(toDate, 'PP')}` : null;
+  const firstBillLabel = firstBillDate !== 'Invalid Date' ? firstBillDate : null;
+  const lastBillLabel = lastBillDate !== 'Invalid Date' ? lastBillDate : null;
+  const fileName = createReportFileName(reportTitle, [branchLabel, source || 'all-sources', intervalLabel]);
 
   const showOrderMethod =
     reportData?.totalSalesByOrderOption?.DineIn?.orders > 0 ||
@@ -173,8 +188,39 @@ const DynamicEndOfDayReportUI = ({
     reportData?.totalSalesByOrderOption?.Delivery?.orders > 0 ||
     reportData?.totalSalesByOrderOption?.WalkIn?.orders > 0;
 
+  const handlePdfExport = async () => {
+    if (!printWrapperRef.current) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await downloadElementAsPdf(printWrapperRef.current, { fileName, orientation: 'portrait' });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => printWrapperRef.current,
+    documentTitle: fileName,
+    pageStyle: `${analyticsReportPrintStyles('portrait')}
+      @media print {
+        .hide-on-print {
+          display: none !important;
+        }
+      }
+    `,
+    onBeforeGetContent: async () => {
+      setBusyAction('print');
+    },
+    onAfterPrint: () => {
+      setBusyAction(null);
+    },
+  });
+
   return (
-    <div ref={printWrapperRef} className="mt-2">
+    <div className="mt-2">
       <div className="hide-on-print bg-white p-3 mb-2 rounded-md border">
         <div className="flex justify-between items-center mb-3">
           <h5 className="text-sm font-semibold">Sections</h5>
@@ -260,11 +306,18 @@ const DynamicEndOfDayReportUI = ({
         <div>No data available.</div>
       ) : (
         <>
-          <div className="bg-white p-3 mb-2 rounded-md border">
+          <div className="hide-on-print bg-white p-3 mb-2 rounded-md border">
             <div className="flex justify-between items-center">
-              <span />
-              <h4 className="text-lg font-semibold">{title}</h4>
-              <div className="hide-on-print flex gap-2">
+              <div>
+                <h4 className="text-lg font-semibold">{reportTitle}</h4>
+                {firstBillLabel && lastBillLabel ? (
+                  <h5 className="text-sm mt-2">
+                    First bill date: <span className="text-primary font-semibold">{firstBillLabel}</span>, Last bill date:{' '}
+                    <span className="text-primary font-semibold">{lastBillLabel}</span>
+                  </h5>
+                ) : null}
+              </div>
+              <div className="flex gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="default" className="h-7 text-xs">
@@ -293,86 +346,98 @@ const DynamicEndOfDayReportUI = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <ReactToPrint
-                  trigger={() => (
-                    <Button variant="outline" className="h-7 text-xs">
-                      <Printer className="h-3 w-3 mr-1" />
-                      Print
-                    </Button>
-                  )}
-                  content={() => printWrapperRef.current}
-                  pageStyle={pageStyle}
-                />
+                <Button variant="outline" className="h-7 text-xs" onClick={handlePdfExport} disabled={busyAction !== null}>
+                  <FileText className="h-3 w-3 mr-1" />
+                  PDF
+                </Button>
+                <Button variant="outline" className="h-7 text-xs" onClick={handlePrint} disabled={busyAction !== null}>
+                  <Printer className="h-3 w-3 mr-1" />
+                  Print
+                </Button>
               </div>
             </div>
-            {firstBillDate !== 'Invalid Date' && lastBillDate !== 'Invalid Date' && (
-              <h5 className="text-sm mt-2">
-                First bill date: <span className="text-primary font-semibold">{firstBillDate}</span>, Last bill date:{' '}
-                <span className="text-primary font-semibold">{lastBillDate}</span>
-              </h5>
-            )}
+            {billsSummaryError ? <ReportErrorState message={billsSummaryError} compact className="mt-3" dataTestId="dynamic-eod-bills-summary-error" /> : null}
           </div>
 
-          {/* New EOD Report Layout */}
-          {/* <div className="bg-white mb-2 rounded-md border">
-                <EodReportLayout summary={endOfDay} />
-            </div> */}
+          <div ref={printWrapperRef} className="report-export-root space-y-3">
+            <ReportExportHeader
+              reportTitle={reportTitle}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              meta={[
+                { label: 'First Bill', value: firstBillLabel },
+                { label: 'Last Bill', value: lastBillLabel },
+              ]}
+              filters={[
+                { label: 'Branch', value: branchLabel },
+                { label: 'Source', value: source || 'All sources' },
+                { label: 'Date Range', value: intervalLabel },
+              ]}
+            />
 
-          <div className="space-y-3">
-            <GenericSalesReport title={translate('analytics.report.totalSales')} report={reportData.totalSales} />
+            <div className="space-y-3">
+              {billsSummaryError ? (
+                <ReportErrorState
+                  message={billsSummaryError}
+                  compact
+                  dataTestId="dynamic-eod-export-bills-summary-error"
+                />
+              ) : null}
+              <GenericSalesReport title={translate('analytics.report.totalSales')} report={reportData.totalSales} />
 
-            {reportData.totalReceived && <SummaryReportTotalReceived totalReceived={reportData.totalReceived} />}
+              {reportData.totalReceived && <SummaryReportTotalReceived totalReceived={reportData.totalReceived} />}
 
-            {visibleSections.orderMethod && showOrderMethod && (
-              <>
-                {reportData.totalSalesByOrderOption?.DineIn?.orders > 0 && (
-                  <GenericSalesReport title={translate('analytics.report.dineIn')} report={reportData.totalSalesByOrderOption.DineIn} />
-                )}
-                {reportData.totalSalesByOrderOption?.PickUp?.orders > 0 && (
-                  <GenericSalesReport title={translate('analytics.report.pickUp')} report={reportData.totalSalesByOrderOption.PickUp} />
-                )}
-                {reportData.totalSalesByOrderOption?.Delivery?.orders > 0 && (
-                  <GenericSalesReport title={translate('analytics.report.delivery')} report={reportData.totalSalesByOrderOption.Delivery} />
-                )}
-                {reportData.totalSalesByOrderOption?.WalkIn?.orders > 0 && (
-                  <GenericSalesReport title={translate('analytics.report.walkIn')} report={reportData.totalSalesByOrderOption.WalkIn} />
-                )}
-              </>
-            )}
+              {visibleSections.orderMethod && showOrderMethod && (
+                <>
+                  {reportData.totalSalesByOrderOption?.DineIn?.orders > 0 && (
+                    <GenericSalesReport title={translate('analytics.report.dineIn')} report={reportData.totalSalesByOrderOption.DineIn} />
+                  )}
+                  {reportData.totalSalesByOrderOption?.PickUp?.orders > 0 && (
+                    <GenericSalesReport title={translate('analytics.report.pickUp')} report={reportData.totalSalesByOrderOption.PickUp} />
+                  )}
+                  {reportData.totalSalesByOrderOption?.Delivery?.orders > 0 && (
+                    <GenericSalesReport title={translate('analytics.report.delivery')} report={reportData.totalSalesByOrderOption.Delivery} />
+                  )}
+                  {reportData.totalSalesByOrderOption?.WalkIn?.orders > 0 && (
+                    <GenericSalesReport title={translate('analytics.report.walkIn')} report={reportData.totalSalesByOrderOption.WalkIn} />
+                  )}
+                </>
+              )}
 
-            {visibleSections.retailCatalog && (
-              <GenericSalesReport
-                title="Retail Catalog"
-                report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RETAIL')}
-              />
-            )}
+              {visibleSections.retailCatalog && (
+                <GenericSalesReport
+                  title="Retail Catalog"
+                  report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RETAIL')}
+                />
+              )}
 
-            {visibleSections.restaurantCatalog && (
-              <GenericSalesReport
-                title="Restaurant Catalog"
-                report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RESTAURANT')}
-              />
-            )}
+              {visibleSections.restaurantCatalog && (
+                <GenericSalesReport
+                  title="Restaurant Catalog"
+                  report={reportData?.catalogSection?.catalogRecords?.find(record => record.name === 'RESTAURANT')}
+                />
+              )}
 
-            {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
-              <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
-            )}
+              {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
+                <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
+              )}
 
-            {visibleSections.chargesSummary && reportData?.chargesSummary?.charges?.length > 0 && (
-              <OrderChargeSummary chargesSummary={reportData.chargesSummary} />
-            )}
+              {visibleSections.chargesSummary && reportData?.chargesSummary?.charges?.length > 0 && (
+                <OrderChargeSummary chargesSummary={reportData.chargesSummary} />
+              )}
 
-            {visibleSections.tipSummary && endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
-              <TipSummary report={reportData.tipSummary} />
-            )}
+              {visibleSections.tipSummary && endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
+                <TipSummary report={reportData.tipSummary} />
+              )}
 
-            {visibleSections.billsSummary && (
-              <BillsSummary branchId={branchId} fromDate={fromDate} toDate={toDate} eodId={endOfDay?.id} source={source} />
-            )}
+              {visibleSections.billsSummary && (
+                <BillsSummary branchId={branchId} fromDate={fromDate} toDate={toDate} eodId={endOfDay?.id} source={source} />
+              )}
 
-            {visibleSections.relatedTills && endOfDay?.fromDate && endOfDay?.toDate && (
-              <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
-            )}
+              {visibleSections.relatedTills && endOfDay?.fromDate && endOfDay?.toDate && (
+                <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
+              )}
+            </div>
           </div>
         </>
       )}

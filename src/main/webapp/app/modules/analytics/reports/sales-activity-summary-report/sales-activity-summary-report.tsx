@@ -25,6 +25,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
 import ReportSection, {
   reportCellClassName,
   reportHeadClassName,
@@ -424,18 +425,15 @@ const SalesActivitySummaryReport = () => {
 
         <div ref={reportContentRef} className="report-export-root space-y-3">
           {appliedFilters && (
-            <Card className="report-export-header">
-              <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
-                <div>
-                  <div className="text-xs text-muted-foreground">Branch</div>
-                  <div className="mt-1 text-sm font-semibold">{appliedBranchName}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Date Range</div>
-                  <div className="mt-1 text-sm font-semibold">{intervalLabel}</div>
-                </div>
-              </CardContent>
-            </Card>
+            <ReportExportHeader
+              reportTitle={REPORT_TITLE}
+              hiddenOnScreen
+              forceVisible={busyAction === 'pdf'}
+              filters={[
+                { label: 'Branch', value: appliedBranchName },
+                { label: 'Date Range', value: intervalLabel },
+              ]}
+            />
           )}
 
           {loading ? (

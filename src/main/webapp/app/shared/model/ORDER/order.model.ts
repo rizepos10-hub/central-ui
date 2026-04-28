@@ -52,6 +52,13 @@ export interface IOrderCharge {
   chargeType?: ServiceChargeKey;
 }
 
+export interface IOrderChargesPreviewResponse {
+  deliveryCharge?: IOrderCharge | null;
+  orderCharges?: IOrderCharge[];
+  gratuityOrderCharge?: IOrderCharge | null;
+  totalCharges?: number | null;
+}
+
 export interface IOrderDeliveryDetails {
   arriveDate?: string;
   closeDate?: string;
