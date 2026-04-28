@@ -2,6 +2,7 @@ import {
   analyticsReportPrintStyles,
   buildInventoryWorkbook,
   buildCashierByTerminalWorkbook,
+  buildCommissionFeesWorkbook,
   buildOptimizedProductSalesWorkbook,
   buildSalesActivitySummaryWorkbook,
   createReportFileName,
@@ -200,6 +201,37 @@ describe('report export utils', () => {
     const sheet = workbook.sheets[0];
     expect(sheet.name).toBe('Optimized Product Sales');
     expect(sheet.rows[sheet.rows.length - 1]).toEqual(['Totals', '2', '-', '5.00', '12.00', '7.00', '-']);
+  });
+
+  it('buildCommissionFeesWorkbook includes header filters and metric rows', () => {
+    const workbook = buildCommissionFeesWorkbook(
+      {
+        ordersCount: 41,
+        subtotalSum: 701925.74,
+        commissionRate: 2.5,
+        commissionAmount: 17548.14,
+      },
+      {
+        title: 'Commission Fees Report',
+        filters: [
+          { label: 'Branch', value: 'Main Branch' },
+          { label: 'Date Range', value: 'Jan 1, 2026 - Apr 1, 2026' },
+        ],
+      }
+    );
+
+    expect(workbook.sheets[0].name).toBe('Commission Fees');
+    expect(workbook.sheets[0].rows).toEqual(
+      expect.arrayContaining([
+        ['Commission Fees Report'],
+        ['Branch', 'Main Branch'],
+        ['Date Range', 'Jan 1, 2026 - Apr 1, 2026'],
+        ['Orders Count', '41'],
+        ['Subtotal Sum', '701925.74'],
+        ['Commission Rate', '2.50%'],
+        ['Commission Amount', '17548.14'],
+      ])
+    );
   });
 
   it('buildInventoryWorkbook uses the flattened inventory export rows', () => {

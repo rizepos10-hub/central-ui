@@ -604,6 +604,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Commission Fees Report',
+        to: '/analytics/commission-fees-report',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Sales Activity Summary Report',
         to: '/analytics/sales-activity-summary-report',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],

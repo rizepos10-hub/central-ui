@@ -1,5 +1,6 @@
 import type { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import type { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
+import type { ICommissionFeesReport } from 'app/shared/model/commission-fees-report.model';
 import type {
   ICashierNegativeRow,
   ICollectedSalesTaxRow,
@@ -88,6 +89,11 @@ const formatAmount = (value?: number | null, emptyAsDash = false) => {
   }
 
   return value.toFixed(2);
+};
+
+const formatCount = (value?: number | null) => {
+  const safeValue = value ?? 0;
+  return Number.isInteger(safeValue) ? `${safeValue}` : `${safeValue}`;
 };
 
 const formatQuantity = (value?: number | null) => {
@@ -627,6 +633,30 @@ export const buildHouseChargesWorkbook = (rows: IHouseChargesReportRow[], option
         titleRowIndices: workbookHeader.titleRowIndices,
         headerRowIndices: [headerRowIndex],
         totalRowIndices: [totalRowIndex],
+      },
+    ],
+  };
+};
+
+export const buildCommissionFeesWorkbook = (reportData: ICommissionFeesReport, options: ExportWorkbookOptions): ExportWorkbook => {
+  const workbookHeader = getWorkbookHeader(options);
+  const sheetRows = [...workbookHeader.rows];
+  const headerRowIndex = sheetRows.length;
+
+  sheetRows.push(['Metric', 'Value']);
+  sheetRows.push(['Orders Count', formatCount(reportData.ordersCount)]);
+  sheetRows.push(['Subtotal Sum', formatAmount(reportData.subtotalSum)]);
+  sheetRows.push(['Commission Rate', `${formatPercent(reportData.commissionRate)}%`]);
+  sheetRows.push(['Commission Amount', formatAmount(reportData.commissionAmount)]);
+
+  return {
+    sheets: [
+      {
+        name: 'Commission Fees',
+        rows: sheetRows,
+        columnWidths: [28, 18],
+        titleRowIndices: workbookHeader.titleRowIndices,
+        headerRowIndices: [headerRowIndex],
       },
     ],
   };
