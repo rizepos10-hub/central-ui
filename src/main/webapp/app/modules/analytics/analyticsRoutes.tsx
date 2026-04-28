@@ -18,6 +18,7 @@ import SalesReportPrint from './reports/sales-report/sales-report-print';
 import InventoryReport from './reports/inventory-report/inventory-report';
 import StoreCreditReport from './reports/store-credit-report/store-credit-report';
 import HouseChargesReport from './reports/house-charges-report/house-charges-report';
+import CommissionFeesReport from './reports/commission-fees-report/commission-fees-report';
 import SalesActivitySummaryReport from './reports/sales-activity-summary-report/sales-activity-summary-report';
 import OptimizedProductSalesReport from './reports/optimized-product-sales-report/optimized-product-sales-report';
 import CashierByTerminalReport from './reports/cashier-by-terminal-report/cashier-by-terminal-report';
@@ -42,6 +43,7 @@ export default () => {
         <Route path="/inventory-report" element={<InventoryReport />} />
         <Route path="/store-credit-report" element={<StoreCreditReport />} />
         <Route path="/house-charges-report" element={<HouseChargesReport />} />
+        <Route path="/commission-fees-report" element={<CommissionFeesReport />} />
         <Route path="/sales-activity-summary-report" element={<SalesActivitySummaryReport />} />
         <Route path="/optimized-product-sales-report" element={<OptimizedProductSalesReport />} />
         <Route path="/cashier-by-terminal-report" element={<CashierByTerminalReport />} />

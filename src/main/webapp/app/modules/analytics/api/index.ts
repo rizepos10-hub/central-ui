@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
+import { ICommissionFeesReport } from 'app/shared/model/commission-fees-report.model';
 import { ISalesActivitySummaryReport } from 'app/shared/model/sales-activity-summary-report.model';
 import { IOptimizedProductSalesReport } from 'app/shared/model/optimized-product-sales-report.model';
 import { ICashierByTerminalReport } from 'app/shared/model/cashier-by-terminal-report.model';
@@ -322,6 +323,30 @@ export const fetchHouseChargesReport = async ({
     return response.data;
   } catch (error) {
     console.error('Error fetching house charges report:', error);
+    throw error;
+  }
+};
+
+export const fetchCommissionFeesReport = async ({
+  fromDate,
+  toDate,
+  branch,
+}: {
+  fromDate: string;
+  toDate: string;
+  branch: string;
+}) => {
+  try {
+    const params = new URLSearchParams({
+      fromDate,
+      toDate,
+      branch,
+    });
+
+    const response = await axios.post<ICommissionFeesReport>(`/api/report/commission-fees?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching commission fees report:', error);
     throw error;
   }
 };
