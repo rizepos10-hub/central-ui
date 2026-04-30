@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
-import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
+import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
   IBusinessDetail,
   DeliveryPricingMode,
@@ -12,10 +12,10 @@ import {
   DeliveryTaggingModeEnum,
   IDeliveryConfiguration,
 } from 'app/shared/model/business-detail.model';
-import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
+import { RequestType, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
-import { CustomMapControl, autocompleteModes } from 'app/shared/components/google/map-control';
+import { PlaceAutocompleteClassic } from 'app/shared/components/google/autocomplete-classic';
 import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Translate } from 'react-jhipster';
@@ -42,27 +42,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { IAddress } from 'app/shared/model/address.model';
 import allTimeZones from '../../../content/samples/all_time_zones.json';
-
-export enum AddressTypesEnum {
-  "premise" = "premise",
-  "plus_code" = "plus_code",
-  "administrative_area_level_1" = "administrative_area_level_1",
-  "administrative_area_level_2" = "administrative_area_level_2",
-  "political" = "political",
-  "country" = "country",
-  "locality" = "locality",
-  "route" = "route",
-}
-
-export enum AddressComponentTypesEnum {
-  "plus_code" = "plus_code",
-  "administrative_area_level_1" = "administrative_area_level_1",
-  "administrative_area_level_2" = "administrative_area_level_2",
-  "political" = "political",
-  "country" = "country",
-  "locality" = "locality",
-}
 
 const deliveryPricingModeLabels: Record<DeliveryPricingMode, string> = {
   [DeliveryPricingMode.COVERAGE_BASE]: 'Coverage base',
@@ -139,6 +120,76 @@ function branchHasReliableMapOrigin(address: IBranchDetails['address'] | undefin
   const lat = address?.latitude;
   const lng = address?.longitude;
   return typeof lat === 'number' && typeof lng === 'number' && !(lat === 0 && lng === 0);
+}
+
+const DEFAULT_MAP_CENTER = { lat: 0, lng: 0 };
+
+type GoogleAddressComponent = {
+  long_name: string;
+  short_name: string;
+  types: string[];
+};
+
+type GoogleAddressSource = {
+  formatted_address?: string;
+  name?: string;
+  address_components?: GoogleAddressComponent[];
+};
+
+function getAddressComponent(components: GoogleAddressComponent[] = [], type: string, useShortName = false): string {
+  const component = components.find(item => item.types?.includes(type));
+  return component ? (useShortName ? component.short_name : component.long_name) : '';
+}
+
+function buildAddressFromGoogleResult(
+  source: GoogleAddressSource | null | undefined,
+  coordinates?: { latitude?: number; longitude?: number }
+): Partial<IAddress> {
+  const components = source?.address_components ?? [];
+  const streetNumber = getAddressComponent(components, 'street_number');
+  const route = getAddressComponent(components, 'route');
+  const street = [streetNumber, route].filter(Boolean).join(' ') || route;
+  const city =
+    getAddressComponent(components, 'locality') ||
+    getAddressComponent(components, 'postal_town') ||
+    getAddressComponent(components, 'administrative_area_level_2');
+  const state = getAddressComponent(components, 'administrative_area_level_1');
+  const country = getAddressComponent(components, 'country');
+  const postalCode = getAddressComponent(components, 'postal_code');
+  const formattedAddress = source?.formatted_address || source?.name || '';
+
+  return {
+    ...(formattedAddress ? { fullAddress: formattedAddress, address: formattedAddress } : {}),
+    ...(street ? { street } : {}),
+    ...(city ? { city } : {}),
+    ...(state ? { state } : {}),
+    ...(country ? { country } : {}),
+    ...(postalCode ? { postalCode } : {}),
+    ...(typeof coordinates?.latitude === 'number' ? { latitude: coordinates.latitude } : {}),
+    ...(typeof coordinates?.longitude === 'number' ? { longitude: coordinates.longitude } : {}),
+  };
+}
+
+function getPlaceCoordinates(place: google.maps.places.PlaceResult | null): { latitude?: number; longitude?: number } {
+  const lat = place?.geometry?.location?.lat?.();
+  const lng = place?.geometry?.location?.lng?.();
+  return {
+    latitude: typeof lat === 'number' ? lat : undefined,
+    longitude: typeof lng === 'number' ? lng : undefined,
+  };
+}
+
+function getMapEventCoordinates(e: MapMouseEvent): { latitude?: number; longitude?: number } {
+  const latLng = e.detail.latLng as any;
+  const latValue = latLng?.lat;
+  const lngValue = latLng?.lng;
+  const latitude = typeof latValue === 'function' ? latValue() : latValue;
+  const longitude = typeof lngValue === 'function' ? lngValue() : lngValue;
+
+  return {
+    latitude: typeof latitude === 'number' ? latitude : undefined,
+    longitude: typeof longitude === 'number' ? longitude : undefined,
+  };
 }
 
 /** Inner section tabs: Details, Address, Delivery pricing, … */
@@ -274,8 +325,6 @@ export const Branches = () => {
   // key for geocode
   setKey(GOOGLE_MAPS_API_KEY)
 
-  const map = useMap();
-
   useEffect(() => {
     dispatch(getEntities({})).then((res: any) => {
       const businessData = res.payload.data[0];
@@ -295,24 +344,21 @@ export const Branches = () => {
   }, []);
 
   const handleGeocode = (e: MapMouseEvent, branchIndex) => {
-    geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
-      .then(({ results }) => {
-        const country = results.find(r => r.types.includes(AddressTypesEnum.country))?.formatted_address || ''
-        const state = results.find(r => r.types.includes(AddressTypesEnum.administrative_area_level_1))?.formatted_address || ''
-        const city = results.find(r => r.types.includes(AddressTypesEnum.administrative_area_level_2))?.formatted_address || ''
-        const street = results.find(r => r.types.includes(AddressTypesEnum.route))?.formatted_address || ''
-        const address = results[0]?.formatted_address || ''
+    const { latitude, longitude } = getMapEventCoordinates(e);
 
-        handleBranchAddressFieldChange(branchIndex, {
-          latitude: e.detail.latLng.lat,
-          longitude: e.detail.latLng.lng,
-          fullAddress: results[0].formatted_address,
-          country,
-          state,
-          city,
-          street,
-          address
-        });
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      toast.error('Could not read the selected map coordinates.');
+      return;
+    }
+
+    geocode(RequestType.LATLNG, `${latitude},${longitude}`)
+      .then(({ results }) => {
+        const bestResult = results?.[0];
+
+        handleBranchAddressFieldChange(
+          branchIndex,
+          buildAddressFromGoogleResult(bestResult, { latitude, longitude })
+        );
       })
       .catch(err => (
         toast.error(`Error fetching address: ${err}`)
@@ -805,80 +851,131 @@ export const Branches = () => {
                     Pin the branch on the map or enter <strong>latitude / longitude</strong> for the most accurate fees; address text alone is less reliable.
                   </AlertDescription>
                 </Alert>
-                <div className='flex gap-5'>
-                  <div>
-                    <Label className="font-bold text-xs my-2">Branch Address</Label>
-                    <div className='flex flex-col'>
-                      <MapComponent
-                        branch={branch}
-                        branchIndex={branchIndex}
-                        handleGeocode={handleGeocode}
-                        handleBranchAddressFieldChange={handleBranchAddressFieldChange}
-                      />
-                    </div>
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+                  <div className="min-w-0 space-y-2">
+                    <Label className="font-bold text-xs">Branch Address</Label>
+                    <MapComponent
+                      branch={branch}
+                      branchIndex={branchIndex}
+                      handleGeocode={handleGeocode}
+                      handleBranchAddressFieldChange={handleBranchAddressFieldChange}
+                    />
                   </div>
-                  <div className='flex flex-col gap-2 w-100'>
+                  <div className="min-w-0 space-y-3 rounded-md border bg-muted/10 p-3">
                     <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">Street</Label>
+                      <Label className="font-bold text-xs">Full Address</Label>
                       <Input
                         type="text"
-                        placeholder="Enter Street"
-                        value={branch.address?.street || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
-                        className="h-7 text-xs"
+                        placeholder="Search or enter full address"
+                        value={branch.address?.fullAddress || branch.address?.address || ''}
+                        onChange={(e) => {
+                          handleBranchAddressFieldChange(branchIndex, {
+                            fullAddress: e.target.value,
+                            address: e.target.value,
+                          });
+                        }}
+                        className="h-8 text-xs"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">City</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter City"
-                        value={branch.address?.city || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'city', e.target.value)}
-                        className="h-7 text-xs"
-                      />
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">Street</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Street"
+                          value={branch.address?.street || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">City</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter City"
+                          value={branch.address?.city || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'city', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">State</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter State"
+                          value={branch.address?.state || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'state', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">Country</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Country"
+                          value={branch.address?.country || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'country', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">Postal Code</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Postal Code"
+                          value={branch.address?.postalCode || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">Email</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Email"
+                          value={branch.address?.email || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'email', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="font-bold text-xs">Phone Number</Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter Phone Number"
+                          value={branch.address?.phoneNumber || ''}
+                          onChange={(e) => handleAddressFieldChange(branchIndex, 'phoneNumber', e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <Label className="font-bold text-xs">Latitude</Label>
+                          <Input
+                            type="number"
+                            placeholder="Latitude"
+                            value={branch.address?.latitude ?? ''}
+                            onChange={(e) =>
+                              handleAddressFieldChange(branchIndex, 'latitude', e.target.value === '' ? undefined : Number(e.target.value))
+                            }
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="font-bold text-xs">Longitude</Label>
+                          <Input
+                            type="number"
+                            placeholder="Longitude"
+                            value={branch.address?.longitude ?? ''}
+                            onChange={(e) =>
+                              handleAddressFieldChange(branchIndex, 'longitude', e.target.value === '' ? undefined : Number(e.target.value))
+                            }
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">State</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter State"
-                        value={branch.address?.state || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'state', e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">Postal Code</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter Postal Code"
-                        value={branch.address?.postalCode || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">Email</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter Email"
-                        value={branch.address?.email || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'email', e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-bold text-xs">Phone Number</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter Phone Number"
-                        value={branch.address?.phoneNumber || ''}
-                        onChange={(e) => handleAddressFieldChange(branchIndex, 'phoneNumber', e.target.value)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 pt-1">
                       <Checkbox
                         checked={branch.hideMapOnOnlineOrdering}
                         onCheckedChange={(checked) => handleHideMapOnOnlineOrderingChange(branchIndex, checked)}
@@ -1734,50 +1831,60 @@ const MapComponent = ({
   branch: IBranchDetails,
   branchIndex: number,
   handleGeocode: (e: MapMouseEvent, branchIndex: number) => void,
-  handleBranchAddressFieldChange: any
+  handleBranchAddressFieldChange: (branchIndex: number, updates: Partial<IAddress>) => void
 }) => {
-  const [selectedPlace, setSelectedPlace] =
-    useState<google.maps.places.PlaceResult | null>(null);
-
   const map = useMap(`map-${branchIndex}`);
+  const hasCoordinates = branchHasReliableMapOrigin(branch.address);
+  const mapCenter = hasCoordinates
+    ? { lat: branch.address?.latitude ?? 0, lng: branch.address?.longitude ?? 0 }
+    : DEFAULT_MAP_CENTER;
 
   useEffect(() => {
-    if (selectedPlace) {
-      selectePlaceHandler(selectedPlace);
-    }
-  }, [selectedPlace]);
+    if (!map || !hasCoordinates) return;
 
-  const selectePlaceHandler = (place: google.maps.places.PlaceResult | null) => {
-    fromAddress(place.formatted_address).then((response) => {
-      const { lat, lng } = response.results[0].geometry.location;
-      handleBranchAddressFieldChange(branchIndex, {
-        latitude: lat,
-        longitude: lng,
-        fullAddress: place.formatted_address
-      });
-      map.setCenter({ lat, lng });
-    }).catch(() => {
-      toast.error('Failed to geocode the selected address.');
-    });
-  };
+    map.panTo(mapCenter);
+    map.setZoom(15);
+  }, [hasCoordinates, map, mapCenter.lat, mapCenter.lng]);
+
+  const handlePlaceSelect = useCallback((place: google.maps.places.PlaceResult | null) => {
+    if (!place) return;
+
+    const coordinates = getPlaceCoordinates(place);
+    if (typeof coordinates.latitude !== 'number' || typeof coordinates.longitude !== 'number') {
+      toast.error('The selected address did not include map coordinates.');
+      return;
+    }
+
+    handleBranchAddressFieldChange(
+      branchIndex,
+      buildAddressFromGoogleResult(place, coordinates)
+    );
+
+    map?.panTo({ lat: coordinates.latitude, lng: coordinates.longitude });
+    map?.setZoom(15);
+  }, [branchIndex, handleBranchAddressFieldChange, map]);
 
   return (
-    <Map
-      style={{ width: '500px', height: '500px' }}
-      defaultZoom={3}
-      gestureHandling={'greedy'}
-      disableDefaultUI={true}
-      onClick={(e) => handleGeocode(e, branchIndex)}
-      defaultCenter={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
-      id={`map-${branchIndex}`}
-    >
-      <Marker position={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }} />
-
-      <CustomMapControl
-        controlPosition={ControlPosition.TOP}
-        selectedAutocompleteMode={autocompleteModes[0]}
-        onPlaceSelect={setSelectedPlace}
+    <div className="space-y-2 rounded-md border bg-muted/10 p-3">
+      <PlaceAutocompleteClassic
+        onPlaceSelect={handlePlaceSelect}
+        placeholder="Search for a precise branch address"
+        className="w-full"
+        inputClassName="h-9 w-full rounded-md border border-input bg-background px-3 text-xs shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
       />
-    </Map>
+      <div className="h-[360px] min-h-[320px] w-full overflow-hidden rounded-md border bg-background lg:h-[520px]">
+        <Map
+          style={{ width: '100%', height: '100%' }}
+          defaultZoom={hasCoordinates ? 15 : 3}
+          gestureHandling={'greedy'}
+          disableDefaultUI={false}
+          onClick={(e) => handleGeocode(e, branchIndex)}
+          defaultCenter={mapCenter}
+          id={`map-${branchIndex}`}
+        >
+          {hasCoordinates && <Marker position={mapCenter} />}
+        </Map>
+      </div>
+    </div>
   );
 };
