@@ -187,17 +187,8 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
                 </TableCell>
                 <TableCell className="px-4 py-4 text-center text-sm font-medium text-slate-700">{rowData?.amount}</TableCell>
                 <TableCell className="px-4 py-4 text-right text-sm font-medium text-slate-700">{formatNumber(rowData?.price)}</TableCell>
-                <TableCell className="px-4 py-4 text-right text-xs">
-                  {Object.keys(rowData?.taxIdsToValues || {}).length > 0 && (
-                    <div className="flex flex-col items-end gap-1 text-slate-600">
-                      {Object.keys(rowData.taxIdsToValues).map((key) => (
-                        <div key={key}>
-                          {rowData.taxIdsToValues[key].code}: {formatNumber(rowData.taxIdsToValues[key].value)}
-                        </div>
-                      ))}
-                      <div className="font-semibold text-slate-800">Total: {formatNumber(rowData?.taxValue)}</div>
-                    </div>
-                  )}
+                <TableCell className="px-4 py-4 text-right text-sm font-semibold text-slate-700">
+                  {Object.keys(rowData?.taxIdsToValues || {}).length > 0 ? 'T' : ''}
                 </TableCell>
                 <TableCell className="px-4 py-4 text-right text-xs text-slate-600">
                   {rowData?.discount && (
