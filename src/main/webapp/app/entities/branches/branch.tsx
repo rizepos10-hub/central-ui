@@ -924,11 +924,29 @@ export const Branches = () => {
 
                   <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
                     <div className="min-w-0 flex-1 space-y-4">
+                  <RadioGroup
+                    value={branch.deliveryConfiguration?.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE}
+                    onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'pricingMode', value)}
+                    className="space-y-4"
+                  >
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <Card>
+                    <Card className={branch.deliveryConfiguration?.pricingMode === DeliveryPricingMode.COVERAGE_BASE || !branch.deliveryConfiguration?.pricingMode ? 'border-primary ring-1 ring-primary/20' : ''}>
                       <CardHeader className="space-y-1 pb-2">
-                        <CardTitle className="text-sm font-semibold">Coverage</CardTitle>
-                        <CardDescription className="text-[11px]">Maximum delivery radius and how delivery is classified for routing.</CardDescription>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <CardTitle className="text-sm font-semibold">Coverage</CardTitle>
+                            <CardDescription className="text-[11px]">Maximum delivery radius and how delivery is classified for routing.</CardDescription>
+                          </div>
+                          <div className="flex items-center gap-2 rounded-md border bg-muted/20 px-2 py-1">
+                            <Label htmlFor={`pricing-mode-card-${branchIndex}-coverage`} className="cursor-pointer text-[11px] font-medium">
+                              Active
+                            </Label>
+                            <RadioGroupItem
+                              value={DeliveryPricingMode.COVERAGE_BASE}
+                              id={`pricing-mode-card-${branchIndex}-coverage`}
+                            />
+                          </div>
+                        </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="rounded-md border bg-muted/10 p-3 space-y-3">
@@ -966,30 +984,9 @@ export const Branches = () => {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-medium">Pricing mode</Label>
-                          <ShadSelect
-                            value={branch.deliveryConfiguration?.pricingMode ?? DeliveryPricingMode.COVERAGE_BASE}
-                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'pricingMode', value)}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="Select pricing mode" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.values(DeliveryPricingMode).map(mode => (
-                                <SelectItem key={mode} value={mode} className="text-xs">
-                                  {deliveryPricingModeLabels[mode]}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </ShadSelect>
-                          <p className="text-[10px] text-muted-foreground">
-                            Choose whether delivery pricing follows coverage-base logic, distance bands only, or zone rules only.
-                          </p>
-                        </div>
-                        <div className="space-y-2">
                           <Label className="text-xs font-medium">Delivery tagging mode</Label>
                           <ShadSelect
-                            value={branch.deliveryConfiguration?.deliveryTaggingMode}
+                            value={branch.deliveryConfiguration?.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED}
                             onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
                           >
                             <SelectTrigger className="h-8 text-xs">
@@ -1010,7 +1007,7 @@ export const Branches = () => {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className={branch.deliveryConfiguration?.pricingMode === DeliveryPricingMode.COVERAGE_BASE || !branch.deliveryConfiguration?.pricingMode ? 'border-primary/60 bg-primary/5' : ''}>
                       <CardHeader className="space-y-1 pb-2">
                         <CardTitle className="text-sm font-semibold">Base rates</CardTitle>
                         <CardDescription className="text-[11px]">
@@ -1138,7 +1135,7 @@ export const Branches = () => {
                     </Card>
                   </div>
 
-                  <Card>
+                  <Card className={branch.deliveryConfiguration?.pricingMode === DeliveryPricingMode.DISTANCE_BAND_RULE ? 'border-primary ring-1 ring-primary/20' : ''}>
                     <CardHeader className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-1">
                         <CardTitle className="text-sm font-semibold">Distance bands</CardTitle>
@@ -1146,16 +1143,27 @@ export const Branches = () => {
                           Optional tiers: set min/max distance, fee, and optional minimum order for each band. Bands are evaluated in order.
                         </CardDescription>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 shrink-0 gap-1 text-xs"
-                        onClick={() => handleAddChargeRule(branchIndex)}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add band
-                      </Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-md border bg-muted/20 px-2 py-1">
+                          <Label htmlFor={`pricing-mode-card-${branchIndex}-distance`} className="cursor-pointer text-[11px] font-medium">
+                            Active
+                          </Label>
+                          <RadioGroupItem
+                            value={DeliveryPricingMode.DISTANCE_BAND_RULE}
+                            id={`pricing-mode-card-${branchIndex}-distance`}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 shrink-0 gap-1 text-xs"
+                          onClick={() => handleAddChargeRule(branchIndex)}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add band
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                       {(branch.deliveryConfiguration?.definedChargeRules?.length ?? 0) === 0 ? (
@@ -1301,7 +1309,7 @@ export const Branches = () => {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className={branch.deliveryConfiguration?.pricingMode === DeliveryPricingMode.ZONE_RULE ? 'border-primary ring-1 ring-primary/20' : ''}>
                     <CardHeader className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-1">
                         <CardTitle className="text-sm font-semibold">Zone charges</CardTitle>
@@ -1309,16 +1317,27 @@ export const Branches = () => {
                           Optional overrides: assign a flat delivery fee to specific zones using the configured zone catalog.
                         </CardDescription>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 shrink-0 gap-1 text-xs"
-                        onClick={() => handleAddZoneChargeRule(branchIndex)}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add zone charge
-                      </Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-md border bg-muted/20 px-2 py-1">
+                          <Label htmlFor={`pricing-mode-card-${branchIndex}-zone`} className="cursor-pointer text-[11px] font-medium">
+                            Active
+                          </Label>
+                          <RadioGroupItem
+                            value={DeliveryPricingMode.ZONE_RULE}
+                            id={`pricing-mode-card-${branchIndex}-zone`}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 shrink-0 gap-1 text-xs"
+                          onClick={() => handleAddZoneChargeRule(branchIndex)}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add zone charge
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                       {(branch.deliveryConfiguration?.zoneChargeRules?.length ?? 0) === 0 ? (
@@ -1394,6 +1413,7 @@ export const Branches = () => {
                       )}
                     </CardContent>
                   </Card>
+                  </RadioGroup>
                     </div>
 
                   <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-72 lg:max-w-sm lg:sticky lg:top-4 lg:self-start">
