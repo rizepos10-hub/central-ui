@@ -44,8 +44,8 @@ const RegisterClosureOrder = () => {
     first: 0,
     rows: 10,
     page: 0,
-    sortField: null,
-    sortOrder: null,
+    sortField: 'createdDate',
+    sortOrder: -1,
     modifiedDate: true,
     filters: {
       createdDate: {
@@ -72,8 +72,8 @@ const RegisterClosureOrder = () => {
   const branchList = useAppSelector(state => state.branch.entities);
 
   const getBranchName = branchId => {
-    const branch = branchList.find(branch => branch.id === branchId);
-    return branch ? branch.name : 'Unknown Branch';
+    const matchedBranch = branchList.find(item => item.id === branchId);
+    return matchedBranch ? matchedBranch.name : 'Unknown Branch';
   };
 
   const filteredBranchOptions = branchList.map(branch => ({
@@ -116,7 +116,7 @@ const RegisterClosureOrder = () => {
       fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
       toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
       modifiedDate: true,
-      sort: `_id,asc`
+      sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : 'createdDate,desc'
     };
 
     dispatch(filterOrders(queryParams));
