@@ -26,6 +26,15 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
 }, ref) => {
   const dispatch = useAppDispatch();
 
+  const formatNumber = (value?: number | string | null) => {
+    if (value === null || value === undefined || value === '') {
+      return '0.00';
+    }
+
+    const numericValue = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(numericValue) ? String(value) : numericValue.toFixed(2);
+  };
+
   const handleCheckboxChange = (rowData: any, checked: boolean) => {
     if (checked) {
       dispatch(changeEntityField({
@@ -44,7 +53,7 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
   };
 
   const handleQuantityChange = (rowData: any, value: string) => {
-    const numValue = parseInt(value) ?? 0;
+    const numValue = parseInt(value, 10) ?? 0;
     const clampedValue = Math.max(0, Math.min(numValue, rowData.amount));
 
     const existingItemIndex = (entity.items || []).findIndex(item => item.id === rowData.id);
@@ -103,25 +112,28 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
           }
         `}
       </style>
-      <div className="border rounded-md">
+      <div className="overflow-hidden rounded-2xl border border-slate-200">
         <Table className="print-table">
           <TableHeader>
-            <TableRow>
-              {refundMode && <TableHead className="w-12 text-xs"></TableHead>}
-              {refundMode && <TableHead className="text-xs">Refund Quantity</TableHead>}
-              <TableHead className="w-[15%] text-xs">Name</TableHead>
-              <TableHead className="w-[15%] text-xs">Quantity</TableHead>
-              <TableHead className="w-[15%] text-xs">Price</TableHead>
-              <TableHead className="w-[15%] text-xs">Taxes</TableHead>
-              <TableHead className="w-[15%] text-xs">Discount</TableHead>
-              <TableHead className="w-[15%] text-xs">Total</TableHead>
+            <TableRow className="border-b border-slate-100 bg-slate-50/80 hover:bg-slate-50/80">
+              {refundMode && <TableHead className="w-12 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400"></TableHead>}
+              {refundMode && <TableHead className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Refund Qty</TableHead>}
+              <TableHead className="w-[34%] text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Item</TableHead>
+              <TableHead className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Qty</TableHead>
+              <TableHead className="text-right text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Price</TableHead>
+              <TableHead className="text-right text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Tax</TableHead>
+              <TableHead className="text-right text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Discount</TableHead>
+              <TableHead className="text-right text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {dataTableValues?.map((rowData: any) => (
-              <TableRow key={rowData.id} className="ctmBorder">
+              <TableRow
+                key={rowData.id}
+                className={`border-b border-slate-100 align-top hover:bg-slate-50/50 ${rowData?.isAddon ? 'bg-slate-50/70' : 'bg-white'}`}
+              >
                 {refundMode && (
-                  <TableCell>
+                  <TableCell className="px-4 py-4">
                     {!rowData?.isAddon && (
                       <Checkbox
                         checked={entity?.items?.some(item => item.id === rowData.id)}
@@ -131,7 +143,7 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
                   </TableCell>
                 )}
                 {refundMode && (
-                  <TableCell>
+                  <TableCell className="px-4 py-4">
                     {!rowData?.isAddon && (
                       <Input
                         type="number"
@@ -139,36 +151,62 @@ const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
                         min={0}
                         value={entity?.items?.find(item => item.id === rowData.id)?.amount || rowData.amount}
                         onChange={(e) => handleQuantityChange(rowData, e.target.value)}
-                        className="h-7 text-xs w-20"
+                        className="h-9 w-20 rounded-xl border-slate-200 text-xs"
                       />
                     )}
                   </TableCell>
                 )}
-                <TableCell className={`text-xs ${rowData?.isAddon ? 'pl-6' : 'font-bold'}`}>
-                  {rowData?.isAddon && '+'} {rowData?.itemName}
+                <TableCell className={`px-4 py-4 text-xs ${rowData?.isAddon ? 'md:pl-10' : ''}`}>
+                  <div className={`flex items-start gap-3 ${rowData?.isAddon ? '' : 'font-semibold text-slate-900'}`}>
+                    {rowData?.imageUrl ? (
+                      <img
+                        src={rowData.imageUrl}
+                        alt={rowData?.itemName || 'Item image'}
+                        className={`mt-0.5 shrink-0 rounded-xl object-cover ${
+                          rowData?.isAddon ? 'h-8 w-8' : 'h-10 w-10'
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`mt-0.5 flex shrink-0 items-center justify-center rounded-xl ${
+                          rowData?.isAddon ? 'h-8 w-8 bg-white text-slate-500 shadow-sm' : 'h-10 w-10 bg-slate-100'
+                        }`}
+                      >
+                        {rowData?.isAddon ? '+' : ''}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className={`${rowData?.isAddon ? 'font-medium text-slate-800' : 'font-semibold text-slate-900'}`}>
+                        {rowData?.itemName}
+                      </div>
+                      <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-slate-400">
+                        {rowData?.isAddon ? 'Addon' : 'Main item'}
+                      </div>
+                    </div>
+                  </div>
                 </TableCell>
-                <TableCell className="text-xs">{rowData?.amount}</TableCell>
-                <TableCell className="text-xs">{rowData?.price}</TableCell>
-                <TableCell className="text-xs">
+                <TableCell className="px-4 py-4 text-center text-sm font-medium text-slate-700">{rowData?.amount}</TableCell>
+                <TableCell className="px-4 py-4 text-right text-sm font-medium text-slate-700">{formatNumber(rowData?.price)}</TableCell>
+                <TableCell className="px-4 py-4 text-right text-xs">
                   {Object.keys(rowData?.taxIdsToValues || {}).length > 0 && (
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col items-end gap-1 text-slate-600">
                       {Object.keys(rowData.taxIdsToValues).map((key) => (
                         <div key={key}>
-                          {rowData.taxIdsToValues[key].code} : {rowData.taxIdsToValues[key].value?.toFixed(2)}
+                          {rowData.taxIdsToValues[key].code}: {formatNumber(rowData.taxIdsToValues[key].value)}
                         </div>
                       ))}
-                      <div className="pl-3 font-bold">Total : {rowData?.taxValue?.toFixed(2)}</div>
+                      <div className="font-semibold text-slate-800">Total: {formatNumber(rowData?.taxValue)}</div>
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="text-xs">
+                <TableCell className="px-4 py-4 text-right text-xs text-slate-600">
                   {rowData?.discount && (
-                    <div>
+                    <div className="font-medium">
                       {rowData.discount.value} {rowData.discount.type === "PERCENTAGE" && '%'}
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="text-xs">{rowData?.total}</TableCell>
+                <TableCell className="px-4 py-4 text-right text-sm font-semibold text-slate-900">{formatNumber(rowData?.total)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

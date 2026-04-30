@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
 import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
@@ -46,6 +45,7 @@ import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import OrderPaymentDialog from './order-payment-dialog';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -173,6 +173,7 @@ export const OrderDetail = () => {
       newDataTableValues.push({
         id: item.id,
         itemName: item.itemName,
+        imageUrl: getOrderItemImageUrl(item),
         amount: item.amount,
         price: item.price,
         taxIdsToValues: item.taxIdsToValues,
@@ -185,6 +186,7 @@ export const OrderDetail = () => {
         newDataTableValues.push({
           id: addon.id,
           itemName: addon.name,
+          imageUrl: getOrderItemImageUrl(addon),
           amount: addon.amount,
           price: addon.price,
           taxIdsToValues: addon.taxIdsToValues,
@@ -352,6 +354,50 @@ export const OrderDetail = () => {
     });
   };
 
+  const customerFullName = [filteredOrderEntity?.customer?.firstName, filteredOrderEntity?.customer?.lastName].filter(Boolean).join(' ');
+  const orderCreatedOn = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : '';
+  const orderCreatedAt = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy HH:mm') : '';
+  const paymentStatusIsPaid = filteredOrderEntity.paymentStatus === PaymentStatus.PAID;
+  const orderChargesTotal = orderEntity?.orderCharges?.reduce((acc, charge) => acc + (charge?.amount || 0), 0) || 0;
+  const orderMetaCards = [
+    { label: 'Payment status', value: filteredOrderEntity.paymentStatus || '-', emphasis: true },
+    { label: 'Processing status', value: filteredOrderEntity.processingStatus || '-', emphasis: true },
+    { label: 'Order method', value: filteredOrderEntity.orderMethod || '-' },
+    { label: 'Created', value: orderCreatedAt || '-' },
+  ];
+
+  if (filteredOrderEntity.deliveryStatus != null) {
+    orderMetaCards.push({ label: 'Delivery status', value: String(filteredOrderEntity.deliveryStatus) });
+  }
+
+  const getBillStatusColor = (status: string) => {
+    switch (status) {
+      case 'PAID':
+        return 'bg-green-100 text-green-800';
+      case 'REFUNDED':
+        return 'bg-orange-100 text-orange-800';
+      case 'CANCELED':
+        return 'bg-red-100 text-red-800';
+      case 'DRAFT':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const getOrderItemImageUrl = (item: any) => {
+    return item?.attachments?.[0]?.url || item?.image?.url || item?.variants?.[0]?.attachments?.[0]?.url || item?.variants?.[0]?.image?.url || '';
+  };
+
+  const summaryRows = [
+    { label: 'Items', value: `+ ${orderEntity?.itemsTotal?.toFixed(2) || '0.00'}`, valueClassName: 'text-green-600' },
+    { label: 'Addons', value: `+ ${orderEntity?.addonsTotal?.toFixed(2) || '0.00'}`, valueClassName: 'text-green-600' },
+    { label: 'Service charges', value: `+ ${orderChargesTotal.toFixed(2)}`, valueClassName: 'text-green-600' },
+    { label: 'Taxes', value: `+ ${orderEntity?.totalTaxes?.toFixed(2) || '0.00'}`, valueClassName: 'text-green-600' },
+    { label: 'Total tip', value: `+ ${orderEntity?.totalTip?.toFixed(2) || '0.00'}`, valueClassName: 'text-green-600' },
+    { label: 'Discount', value: `- ${orderEntity?.totalDiscount || '0.00'}`, valueClassName: 'text-red-600' },
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -361,550 +407,553 @@ export const OrderDetail = () => {
   }
 
   return (
-    <div className="p-2">
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Button>
-          <h1 className="text-lg font-semibold">
-            #{orderEntity?.sequenceNumber} - <span className="font-normal text-muted-foreground">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
-            <span className="font-normal text-muted-foreground"> on {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}</span>
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {canEditOrder && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEditOrder}
-              className="h-8 text-xs"
-            >
-              <Pencil className="mr-1 h-3 w-3" />
-              Edit Order
-            </Button>
-          )}
-        </div>
-      </div>
-      <div ref={pagePrintRef}>
-        <style>
-          {`
-          @media print {
-            body,
-              html {
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden;
-                box-sizing: border-box;
-              }
-          }
-        `}
-        </style>
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Order Details */}
-            <div className="lg:col-span-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      Order Details
-                      {orderEntity?.refund && <span className="text-orange-600">(Refund)</span>}
-                    </span>
-                    <span>
-                      {orderEntity?.refund && (
-                        <BanknoteArrowDown  className="h-7 w-7 text-orange-600" />
-                      )}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex justify-between items-center">
-                    <span className="text-sm font-medium">Items</span>
-                  </div>
-                  {dataTableValues && dataTableValues.length > 0 && (
-                    <OrderedItems dataTableValues={dataTableValues} />
-                  )}
-                </CardContent>
-                <CardFooter className="flex-col items-start gap-2 text-sm font-bold">
-                  <div className="w-full flex justify-between items-center">
-                    <span>Items:</span>
-                    <span className="text-green-600">+ {orderEntity?.itemsTotal?.toFixed(2)}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Addons:</span>
-                    <span className="text-green-600">+ {orderEntity?.addonsTotal?.toFixed(2)}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Service Charges:</span>
-                    <span className="text-green-600">+ {orderEntity?.orderCharges?.reduce((acc, charge) => acc + charge?.amount, 0).toFixed(2)}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Taxes:</span>
-                    <span className="text-green-600">+ {orderEntity?.totalTaxes?.toFixed(2)}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Total Tip:</span>
-                    <span className="text-green-600">+ {orderEntity?.totalTip?.toFixed(2)}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Discount:</span>
-                    <span className="text-red-600">- {orderEntity?.totalDiscount}</span>
-                  </div>
-                  <div className="w-full flex justify-between items-center">
-                    <span>Total:</span>
-                    <span>{orderEntity?.total?.toFixed(2)}</span>
-                  </div>
-                </CardFooter>
-              </Card>
-            </div>
+    <>
+      <div className="min-h-screen bg-slate-100 p-4 md:p-6">
+        <div className="mx-auto max-w-7xl space-y-6" ref={pagePrintRef}>
+          <style>
+            {`
+            @media print {
+              body,
+                html {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  overflow: hidden;
+                  box-sizing: border-box;
+                }
+            }
+          `}
+          </style>
 
-            <div className="lg:col-span-4 flex flex-col gap-4 overflow-auto">
-              <Card id="orderStatus">
-                <CardHeader>
-                  <CardTitle>Order status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-3 text-xs">
-                    <div className="flex items-center gap-2">
-                      <label className="font-medium">Order time:</label>
-                      <span>
-                        {filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="font-medium">Payment Status:</label>
-                      {filteredOrderEntity.paymentStatus === PaymentStatus.PAID ? (
-                        <Badge variant="default" className="bg-green-500">
-                          {filteredOrderEntity.paymentStatus}
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive">
-                          {filteredOrderEntity.paymentStatus}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="font-medium">Processing Status</label>
-                      <Select
-                        options={processingStatusOptions}
-                        value={
-                          filteredOrderEntity.processingStatus
-                            ? {
-                                label: filteredOrderEntity.processingStatus,
-                                value: filteredOrderEntity.processingStatus,
-                              }
-                            : null
-                        }
-                        onChange={(option: any) => {
-                          const nextStatus = option?.value as OrderStatus | undefined;
-
-                          if (!nextStatus || nextStatus === filteredOrderEntity.processingStatus) {
-                            return;
-                          }
-
-                          changeProcessingStatusConfirm(nextStatus);
-                        }}
-                        placeholder="Processing Status"
-                        isDisabled={!canManageProcessingStatus}
-                      />
-                    </div>
-                    {orderEntity?.deliveryStatus != null && (
-                      <div className="flex items-center gap-2">
-                        <label className="font-medium">Delivery Status:</label>
-                        <span>{filteredOrderEntity.deliveryStatus}</span>
-                      </div>
+          <header className="sticky top-0 z-20 rounded-3xl border border-slate-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur md:px-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border-slate-200 text-slate-600 transition hover:bg-slate-50"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back</span>
+                </Button>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500">Rize POS</p>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Order Details</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Order #{orderEntity?.sequenceNumber}</h1>
+                    {orderEntity?.refund && (
+                      <Badge className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700 hover:bg-orange-100">
+                        <BanknoteArrowDown className="mr-1 h-3.5 w-3.5" />
+                        Refunded
+                      </Badge>
                     )}
-                    <div>
-                      <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
-                        <Button variant="link" className="h-8 text-xs p-0">
-                          Print
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {orderCreatedOn || '-'}
+                    {customerFullName ? ` • ${customerFullName}` : ''}
+                  </p>
+                </div>
+              </div>
 
-              <Card id="customer">
-                <CardHeader>
-                  <CardTitle>Customer</CardTitle>
-                </CardHeader>
-                <CardContent className="text-xs">
-                  {filteredOrderEntity.customer ? (
-                    <div className="flex flex-col gap-2">
-                      <div>
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 text-xs font-normal text-left justify-start"
-                          onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}?page=1&sort=id,asc`)}
-                        >
-                          Name: {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
-                        </Button>
-                      </div>
-                      {filteredOrderEntity.customer.email && (
-                        <div>E-mail: {filteredOrderEntity.customer.email}</div>
-                      )}
-                      {filteredOrderEntity.customer.phone && (
-                        <div>Phone: {filteredOrderEntity.customer.phone}</div>
-                      )}
-                    </div>
-                  ) : (
-                    <p>No customer found</p>
-                  )}
-                </CardContent>
-              </Card>
-              {filteredOrderEntity?.deliverTo && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Deliver To</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-xs">
-                    <div className="flex flex-col gap-2">
-                      {filteredOrderEntity.deliverTo.address && (
-                        <div>Address: {filteredOrderEntity.deliverTo.address}</div>
-                      )}
-                      {filteredOrderEntity.deliverTo.addressType && (
-                        <div>Address Type: {filteredOrderEntity.deliverTo.addressType}</div>
-                      )}
-                      {filteredOrderEntity.deliverTo.contactPersonName && (
-                        <div>Contact Person Name: {filteredOrderEntity.deliverTo.contactPersonName}</div>
-                      )}
-                      {filteredOrderEntity.deliverTo.phoneNumber && (
-                        <div>Phone Number: {filteredOrderEntity.deliverTo.phoneNumber}</div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {orderEntity.orderDeliveryDetails && (
-                <Card id="deliveryDetails">
-                  <CardHeader>
-                    <CardTitle>Delivery Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-xs">
-                    <div className="flex flex-col gap-2">
-                      <div>{formatDateForDisplay(orderEntity.orderDeliveryDetails?.date)}</div>
-                      <div>{orderEntity.orderDeliveryDetails?.driverInformation?.name}</div>
-                      <div>{orderEntity.orderDeliveryDetails?.driverInformation?.phone}</div>
-                      <div>
-                        <a
-                          target="_blank"
-                          rel="noreferrer"
-                          href={orderEntity.orderDeliveryDetails?.driverInformation?.trackOrderUrl}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {orderEntity.orderDeliveryDetails?.driverInformation?.trackOrderUrl}
-                        </a>
-                      </div>
-                      <div>
-                        Expected Arrival At: {formatDateForDisplay(orderEntity.orderDeliveryDetails?.expectedArrivalAt)}
-                      </div>
-                      <div>
-                        {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}
-                        {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId ? `, Trip: ${orderEntity.orderDeliveryDetails.integrationDetails.tripId}` : ''}
-                        {orderEntity.orderDeliveryDetails?.integrationDetails?.jobId ? `, Job: ${orderEntity.orderDeliveryDetails.integrationDetails.jobId}` : ''}
-                        {orderEntity.orderDeliveryDetails?.integrationDetails?.jobToken ? `, Token: ${orderEntity.orderDeliveryDetails.integrationDetails.jobToken}` : ''}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {!orderEntity?.refund && (
-                !orderEntity.orderDeliveryDetails ? (
-                  <Card id="booking">
-                    <CardHeader>
-                      <CardTitle>Create Booking</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3 text-xs">
-                      <div className="flex flex-col gap-1">
-                        <label className="font-medium">Delivery Time</label>
-                        <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="h-8 text-xs" />
-                      </div>
-                      <Button
-                        type="button"
-                        className="h-8 text-xs"
-                        disabled={!deliveryDateTime}
-                        onClick={() => {
-                          dispatch(createBooking({
-                            orderId: orderEntity.id || '',
-                            date: toServerDateTime(deliveryDateTime),
-                          }))
-                        }}
-                      >
-                        Create Booking
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                <Card id="booking">
-                  <CardHeader>
-                    <CardTitle>Update Booking</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-3 text-xs">
-                    <div className="flex flex-col gap-1">
-                      <label className="font-medium">Delivery Time</label>
-                      <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="h-8 text-xs" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-8 text-xs"
-                        onClick={() => setShowCancelBookingConfirm(true)}
-                      >
-                        Cancel Booking
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-8 text-xs"
-                        onClick={() => dispatch(syncBooking(orderEntity.id || ''))}
-                      >
-                        Sync
-                      </Button>
-                      <Button
-                        type="button"
-                        className="h-8 text-xs"
-                        disabled={!deliveryDateTime}
-                        onClick={() => {
-                          dispatch(updateBooking({
-                            orderId: orderEntity.id || '',
-                            date: toServerDateTime(deliveryDateTime),
-                          }))
-                        }}
-                      >
-                        Update
-                      </Button>
-                    </div>
-                    {isTookanBooking && (
-                      <div className="border rounded-md p-2 flex flex-col gap-2">
-                        <label className="font-medium">Assign Tookan Driver</label>
-                        <Select
-                          options={tookanTeams.map(team => ({
-                            label: team.team_name || `Team ${team.team_id}`,
-                            value: String(team.team_id),
-                          }))}
-                          value={selectedTeamId ? {
-                            label: tookanTeams.find(team => String(team.team_id) === selectedTeamId)?.team_name || `Team ${selectedTeamId}`,
-                            value: selectedTeamId,
-                          } : null}
-                          onChange={(option: any) => {
-                            setSelectedTeamId(option?.value);
-                            setSelectedDriverId(undefined);
-                          }}
-                          placeholder="Select team"
-                        />
-                        <Select
-                          options={selectedTeamAgents.map(agent => ({
-                            label: agent.name || agent.username || `Fleet ${agent.fleet_id}`,
-                            value: String(agent.fleet_id),
-                          }))}
-                          value={selectedDriverId ? {
-                            label: selectedTeamAgents.find(agent => String(agent.fleet_id) === selectedDriverId)?.name || `Fleet ${selectedDriverId}`,
-                            value: selectedDriverId,
-                          } : null}
-                          onChange={(option: any) => setSelectedDriverId(option?.value)}
-                          placeholder={selectedTeamId ? 'Select driver' : 'Select team first'}
-                        />
-                        <Button
-                          type="button"
-                          className="h-8 text-xs"
-                          disabled={!selectedTeamId || !selectedDriverId}
-                          onClick={async () => {
-                            if (!selectedTeamId || !selectedDriverId) {
-                              return;
-                            }
-                            try {
-                              await dispatch(assignDriver({
-                                orderId: orderEntity.id || '',
-                                driverId: selectedDriverId,
-                                teamId: selectedTeamId,
-                              })).unwrap();
-                              toast.success('Driver assigned successfully.');
-                            } catch (error: any) {
-                              toast.error(getApiErrorMessage(error, 'Failed to assign driver.'));
-                            }
-                          }}
-                        >
-                          Assign Driver
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                )
-              )}
-            </div>
-          </div>
-          <div className="w-full">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle>Bills</CardTitle>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold ${paymentStatusIsPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                  <span className={`h-2.5 w-2.5 rounded-full ${paymentStatusIsPaid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  {filteredOrderEntity.paymentStatus || '-'}
+                </div>
+                <div className="flex items-center gap-2 rounded-2xl bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700">
+                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+                  {filteredOrderEntity.processingStatus || '-'}
+                </div>
+                {canEditOrder && (
+                  <Button variant="outline" size="sm" onClick={handleEditOrder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                    Edit Order
+                  </Button>
+                )}
                 {!orderEntity?.refund && (
-                  <Button onClick={handleOpenPaymentDialogOrCreateBill} className="h-8 text-xs">
-                    <Plus className="mr-1 h-3 w-3" />
+                  <Button onClick={handleOpenPaymentDialogOrCreateBill} size="sm" className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
                     Add Payment
                   </Button>
                 )}
-              </CardHeader>
-              <CardContent>
-                {filteredOrderEntity?.bills?.length > 0 ? (
-                  <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="w-full">
-                    {filteredOrderEntity?.bills?.map((bill, idx) => {
-                      const billStatus = String(bill.status);
-                      const getBillStatusColor = (status: string) => {
-                        switch (status) {
-                          case 'PAID': return 'bg-green-100 text-green-800';
-                          case 'REFUNDED': return 'bg-orange-100 text-orange-800';
-                          case 'CANCELED': return 'bg-red-100 text-red-800';
-                          case 'DRAFT': return 'bg-gray-100 text-gray-800';
-                          default: return 'bg-blue-100 text-blue-800';
-                        }
-                      };
+              </div>
+            </div>
+          </header>
 
-                      return (
-                        <AccordionItem key={idx} value={idx.toString()} className="w-full border rounded-lg mb-2">
-                          <AccordionTrigger className="hover:no-underline px-4">
-                            <div className="flex justify-between items-center w-full pr-4">
-                              <div className="flex items-center gap-4">
-                                <span className="font-semibold text-sm">Bill #{bill.sequenceNumber}</span>
-                                <Badge className={`${getBillStatusColor(billStatus)} text-xs`}>
-                                  {billStatus}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDateForDisplay(bill.dateTime, 'MMM d, yyyy HH:mm')}
-                                </span>
-                                <span className="font-semibold text-sm">${bill?.total?.toFixed(2)}</span>
-                              </div>
-                              <span id={`actionsTab-${idx}`} className="flex items-center justify-center gap-2">
-                                <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
-                                  <Button variant="link" className="h-8 text-xs p-0">
-                                    Print
-                                  </Button>
-                                </Link>
-                                <Button
-                                  variant="outline"
-                                  className="h-8 text-xs"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+          <div className="grid gap-6 xl:grid-cols-[1.65fr_0.9fr]">
+            <section className="space-y-6">
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-100 px-5 py-4 md:px-6">
+                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-slate-900">Order Items</h2>
+                      <p className="text-sm text-slate-500">Ordered products, quantities, modifiers, and totals.</p>
+                    </div>
+                    <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
+                      <Button variant="outline" className="mt-2 w-fit rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 md:mt-0">
+                        Print Receipt
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
 
-                                    fetch(`${SERVER_API_URL}/api/orders/${orderEntity.id}/send-invoice?billId=${bill.id}`, {
-                                      method: 'POST',
-                                      headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${getCurrentAuthToken()}`
-                                      },
-                                    })
-                                      .then((response) => {
-                                        if (!response.ok) {
-                                          toast.error("An error occurred");
-                                        } else {
-                                          toast.success("Email resent successfully");
-                                        }
-                                      })
-                                  }}
-                                >
-                                  Resend E-mail
-                                </Button>
+                <div className="px-5 py-4 md:px-6">
+                  {dataTableValues && dataTableValues.length > 0 ? (
+                    <OrderedItems dataTableValues={dataTableValues} />
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">No order items available.</div>
+                  )}
+                </div>
+              </div>
 
-                                {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
-                                  <Button
-                                    className="h-8 text-xs"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      openRefundDialog(bill);
-                                    }}
-                                  >
-                                    Refund
-                                  </Button>
-                                )}
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-4">
-                            <div className="space-y-3">
-                              {billStatus === 'DRAFT' && (() => {
-                                const totalPaid = bill.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
-                                const remaining = (bill.total || 0) - totalPaid;
-                                return (
-                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                      <span className="text-xs font-semibold text-blue-900">Remaining Balance</span>
-                                      <span className="text-lg font-bold text-blue-900">${remaining.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-xs text-blue-700">
-                                      <span>Bill Total: ${(bill.total || 0).toFixed(2)}</span>
-                                      <span>Paid: ${totalPaid.toFixed(2)}</span>
-                                    </div>
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">Bills</h2>
+                    <p className="text-sm text-slate-500">Transaction records linked to this order.</p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  {filteredOrderEntity?.bills?.length > 0 ? (
+                    <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="space-y-4">
+                      {filteredOrderEntity?.bills?.map((bill, idx) => {
+                        const billStatus = String(bill.status);
+
+                        return (
+                          <AccordionItem key={idx} value={idx.toString()} className="overflow-hidden rounded-2xl border border-slate-200">
+                            <AccordionTrigger className="px-4 py-4 transition hover:no-underline">
+                              <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <h3 className="text-base font-semibold text-slate-900">Bill #{bill.sequenceNumber}</h3>
+                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getBillStatusColor(billStatus)}`}>{billStatus}</span>
+                                  </div>
+                                  <p className="mt-1 text-sm text-slate-500">{formatDateForDisplay(bill.dateTime, 'MMM d, yyyy HH:mm')}</p>
+                                </div>
+
+                                <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
+                                  <p className="text-lg font-bold text-slate-900">${bill?.total?.toFixed(2)}</p>
+                                  <span id={`actionsTab-${idx}`} className="flex flex-wrap gap-2">
+                                    <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
+                                      <Button variant="outline" className="rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                                        Print
+                                      </Button>
+                                    </Link>
                                     <Button
-                                      className="mt-3 h-8 text-xs w-full"
-                                      disabled={orderEntity?.refund}
-                                      onClick={(e) => {
+                                      variant="outline"
+                                      className="rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                      onClick={e => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        openPaymentDialog(bill);
+
+                                        fetch(`${SERVER_API_URL}/api/orders/${orderEntity.id}/send-invoice?billId=${bill.id}`, {
+                                          method: 'POST',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                            Authorization: `Bearer ${getCurrentAuthToken()}`,
+                                          },
+                                        }).then(response => {
+                                          if (!response.ok) {
+                                            toast.error('An error occurred');
+                                          } else {
+                                            toast.success('Email resent successfully');
+                                          }
+                                        });
                                       }}
                                     >
-                                      Add Payment
+                                      Resend E-mail
                                     </Button>
-                                  </div>
-                                );
-                              })()}
-                              <div className="text-xs font-semibold text-muted-foreground mb-2">Payment Transactions</div>
-                              {bill?.paymentTransactions?.length > 0 ? (
-                                bill.paymentTransactions.map((transaction, txnIdx) => (
-                                  <div key={transaction.id} className="bg-muted/30 rounded-lg p-4 border">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <span className="font-semibold text-sm">Txn {txnIdx + 1}</span>
-                                      <Badge variant="outline" className="text-xs">
-                                        {transaction.status}
-                                      </Badge>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-4">
-                                      <div>
-                                        <div className="text-xs text-muted-foreground mb-1">Amount</div>
-                                        <div className="font-semibold text-sm">${transaction.amount?.toFixed(2)}</div>
-                                      </div>
-                                      <div>
-                                        <div className="text-xs text-muted-foreground mb-1">Method</div>
-                                        <div className="font-medium text-sm">{formatTransactionMethodLabel(transaction.method?.name)}</div>
-                                      </div>
-                                      <div>
-                                        <div className="text-xs text-muted-foreground mb-1">Type</div>
-                                        <div className="font-medium text-sm capitalize">{String(transaction.type || '').toLowerCase()}</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-xs text-muted-foreground text-center py-4">
-                                  No payment transactions
+                                    {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
+                                      <Button
+                                        className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+                                        onClick={e => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          openRefundDialog(bill);
+                                        }}
+                                      >
+                                        Refund
+                                      </Button>
+                                    )}
+                                  </span>
                                 </div>
-                              )}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      )
-                    })}
-                  </Accordion>
-                ) : (
-                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    No bills available
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="border-t border-slate-100 px-4 pb-4 pt-4">
+                              <div className="space-y-4">
+                                {billStatus === 'DRAFT' &&
+                                  (() => {
+                                    const totalPaid = bill.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0;
+                                    const remaining = (bill.total || 0) - totalPaid;
+                                    return (
+                                      <div className="rounded-2xl bg-slate-50 p-4">
+                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                          <div>
+                                            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Remaining Balance</div>
+                                            <div className="mt-1 text-2xl font-bold text-slate-900">${remaining.toFixed(2)}</div>
+                                            <div className="mt-1 text-sm text-slate-500">
+                                              Bill Total: ${(bill.total || 0).toFixed(2)} | Paid: ${totalPaid.toFixed(2)}
+                                            </div>
+                                          </div>
+                                          <Button
+                                            className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                            disabled={orderEntity?.refund}
+                                            onClick={e => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              openPaymentDialog(bill);
+                                            }}
+                                          >
+                                            Add Payment
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+
+                                {bill?.paymentTransactions?.length > 0 ? (
+                                  <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100">
+                                    {bill.paymentTransactions.map((transaction, txnIdx) => (
+                                      <div key={transaction.id} className="grid gap-4 px-4 py-4 md:grid-cols-[minmax(0,1fr)_140px_140px_140px] md:items-center">
+                                        <div className="min-w-0">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-semibold text-slate-900">Transaction {txnIdx + 1}</span>
+                                            <Badge variant="outline" className="text-xs">
+                                              {transaction.status}
+                                            </Badge>
+                                          </div>
+                                          <div className="mt-1 text-sm text-slate-500 capitalize">{String(transaction.type || '').toLowerCase()}</div>
+                                        </div>
+                                        <div className="text-sm">
+                                          <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Amount</div>
+                                          <div className="mt-1 font-medium text-slate-800">${transaction.amount?.toFixed(2)}</div>
+                                        </div>
+                                        <div className="text-sm">
+                                          <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Method</div>
+                                          <div className="mt-1 font-medium text-slate-800">{formatTransactionMethodLabel(transaction.method?.name)}</div>
+                                        </div>
+                                        <div className="text-sm">
+                                          <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Type</div>
+                                          <div className="mt-1 font-medium capitalize text-slate-800">{String(transaction.type || '').toLowerCase()}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No payment transactions.</div>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No bills available</div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <aside className="space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">Financial Snapshot</h2>
+                    <p className="text-sm text-slate-500">At-a-glance payment state.</p>
                   </div>
+                  <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white">
+                    <p className="text-xs uppercase tracking-[0.16em] text-slate-300">Total</p>
+                    <p className="text-xl font-bold">{orderEntity?.total?.toFixed(2) || '0.00'}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {summaryRows.map(row => (
+                    <div key={row.label} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                      <span className="text-sm font-medium text-slate-600">{row.label}</span>
+                      <span className={`text-sm font-semibold ${row.valueClassName === 'text-red-600' ? 'text-rose-600' : 'text-slate-900'}`}>{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="my-5 h-px bg-slate-100" />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-500">Paid</span>
+                    <span className="text-base font-semibold text-emerald-600">
+                      {(
+                        filteredOrderEntity?.bills?.reduce(
+                          (sum, bill) => sum + (bill.paymentTransactions?.reduce((txnSum, txn) => txnSum + (txn.amount || 0), 0) || 0),
+                          0
+                        ) || 0
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-500">Balance</span>
+                    <span className="text-base font-semibold text-slate-900">
+                      {(
+                        (orderEntity?.total || 0) -
+                        (filteredOrderEntity?.bills?.reduce(
+                          (sum, bill) => sum + (bill.paymentTransactions?.reduce((txnSum, txn) => txnSum + (txn.amount || 0), 0) || 0),
+                          0
+                        ) || 0)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <h2 className="text-lg font-semibold text-slate-900">Customer</h2>
+                {filteredOrderEntity.customer ? (
+                  <div className="mt-4 flex items-start gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-lg font-semibold text-white">
+                      {(customerFullName || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 text-left text-base font-semibold text-slate-900 hover:bg-transparent"
+                        onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}?page=1&sort=id,asc`)}
+                      >
+                        {customerFullName || '-'}
+                      </Button>
+                      {filteredOrderEntity.customer.email && <p className="text-sm text-slate-500">{filteredOrderEntity.customer.email}</p>}
+                      {filteredOrderEntity.customer.phone && <p className="text-sm text-slate-500">{filteredOrderEntity.customer.phone}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 text-sm text-slate-500">No customer found.</div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                <h2 className="text-lg font-semibold text-slate-900">Order Status</h2>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3">
+                    <span className="font-medium text-emerald-800">Payment Status</span>
+                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm">
+                      {filteredOrderEntity.paymentStatus || '-'}
+                    </span>
+                  </div>
+                  <div className="space-y-2 rounded-2xl bg-sky-50 px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sky-800">Processing</span>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-sky-700 shadow-sm">
+                        {filteredOrderEntity.processingStatus || '-'}
+                      </span>
+                    </div>
+                    <Select
+                      options={processingStatusOptions}
+                      value={
+                        filteredOrderEntity.processingStatus
+                          ? {
+                              label: filteredOrderEntity.processingStatus,
+                              value: filteredOrderEntity.processingStatus,
+                            }
+                          : null
+                      }
+                      onChange={(option: any) => {
+                        const nextStatus = option?.value as OrderStatus | undefined;
+
+                        if (!nextStatus || nextStatus === filteredOrderEntity.processingStatus) {
+                          return;
+                        }
+
+                        changeProcessingStatusConfirm(nextStatus);
+                      }}
+                      placeholder="Processing Status"
+                      isDisabled={!canManageProcessingStatus}
+                    />
+                  </div>
+                  {orderEntity?.deliveryStatus != null && (
+                    <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                      <span className="font-medium text-slate-700">Delivery Status</span>
+                      <span className="text-sm font-semibold text-slate-900">{filteredOrderEntity.deliveryStatus}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {(filteredOrderEntity?.deliverTo || orderEntity.orderDeliveryDetails) && (
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                  <h2 className="text-lg font-semibold text-slate-900">Delivery</h2>
+                  <div className="mt-4 space-y-4 text-sm text-slate-600">
+                    {filteredOrderEntity?.deliverTo?.address && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Address</p>
+                        <p className="mt-1 text-slate-800">{filteredOrderEntity.deliverTo.address}</p>
+                      </div>
+                    )}
+                    {filteredOrderEntity?.deliverTo?.contactPersonName && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Contact Person</p>
+                        <p className="mt-1 text-slate-800">{filteredOrderEntity.deliverTo.contactPersonName}</p>
+                      </div>
+                    )}
+                    {filteredOrderEntity?.deliverTo?.phoneNumber && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Phone Number</p>
+                        <p className="mt-1 text-slate-800">{filteredOrderEntity.deliverTo.phoneNumber}</p>
+                      </div>
+                    )}
+                    {orderEntity.orderDeliveryDetails?.date && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Scheduled Time</p>
+                        <p className="mt-1 text-slate-800">{formatDateForDisplay(orderEntity.orderDeliveryDetails?.date) || '-'}</p>
+                      </div>
+                    )}
+                    {orderEntity.orderDeliveryDetails?.driverInformation?.name && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Driver</p>
+                        <p className="mt-1 text-slate-800">{orderEntity.orderDeliveryDetails.driverInformation.name}</p>
+                      </div>
+                    )}
+                    {orderEntity.orderDeliveryDetails?.driverInformation?.trackOrderUrl && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Tracking Link</p>
+                        <a
+                          target="_blank"
+                          rel="noreferrer"
+                          href={orderEntity.orderDeliveryDetails.driverInformation.trackOrderUrl}
+                          className="mt-1 block break-all text-sky-700 hover:underline"
+                        >
+                          {orderEntity.orderDeliveryDetails.driverInformation.trackOrderUrl}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!orderEntity?.refund && (
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                  <h2 className="text-lg font-semibold text-slate-900">{orderEntity.orderDeliveryDetails ? 'Manage Booking' : 'Schedule Delivery'}</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {orderEntity.orderDeliveryDetails ? 'Update, sync, or assign the delivery booking.' : 'Optional follow-up action for this order.'}
+                  </p>
+                  <div className="mt-4">
+                    <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="rounded-2xl border-slate-200 px-4 py-3 text-sm text-slate-700" />
+                  </div>
+                  {!orderEntity.orderDeliveryDetails ? (
+                    <Button
+                      type="button"
+                      className="mt-4 h-auto w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      disabled={!deliveryDateTime}
+                      onClick={() => {
+                        dispatch(
+                          createBooking({
+                            orderId: orderEntity.id || '',
+                            date: toServerDateTime(deliveryDateTime),
+                          })
+                        );
+                      }}
+                    >
+                      Create Booking
+                    </Button>
+                  ) : (
+                    <>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                        <Button type="button" variant="outline" className="rounded-2xl border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" onClick={() => setShowCancelBookingConfirm(true)}>
+                          Cancel Booking
+                        </Button>
+                        <Button type="button" variant="outline" className="rounded-2xl border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" onClick={() => dispatch(syncBooking(orderEntity.id || ''))}>
+                          Sync
+                        </Button>
+                        <Button
+                          type="button"
+                          className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                          disabled={!deliveryDateTime}
+                          onClick={() => {
+                            dispatch(
+                              updateBooking({
+                                orderId: orderEntity.id || '',
+                                date: toServerDateTime(deliveryDateTime),
+                              })
+                            );
+                          }}
+                        >
+                          Update
+                        </Button>
+                      </div>
+                      {isTookanBooking && (
+                        <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Tookan Assignment</p>
+                            <p className="mt-1 text-sm text-slate-500">Choose the team and driver before assigning.</p>
+                          </div>
+                          <Select
+                            options={tookanTeams.map(team => ({
+                              label: team.team_name || `Team ${team.team_id}`,
+                              value: String(team.team_id),
+                            }))}
+                            value={
+                              selectedTeamId
+                                ? {
+                                    label: tookanTeams.find(team => String(team.team_id) === selectedTeamId)?.team_name || `Team ${selectedTeamId}`,
+                                    value: selectedTeamId,
+                                  }
+                                : null
+                            }
+                            onChange={(option: any) => {
+                              setSelectedTeamId(option?.value);
+                              setSelectedDriverId(undefined);
+                            }}
+                            placeholder="Select team"
+                          />
+                          <Select
+                            options={selectedTeamAgents.map(agent => ({
+                              label: agent.name || agent.username || `Fleet ${agent.fleet_id}`,
+                              value: String(agent.fleet_id),
+                            }))}
+                            value={
+                              selectedDriverId
+                                ? {
+                                    label: selectedTeamAgents.find(agent => String(agent.fleet_id) === selectedDriverId)?.name || `Fleet ${selectedDriverId}`,
+                                    value: selectedDriverId,
+                                  }
+                                : null
+                            }
+                            onChange={(option: any) => setSelectedDriverId(option?.value)}
+                            placeholder={selectedTeamId ? 'Select driver' : 'Select team first'}
+                          />
+                          <Button
+                            type="button"
+                            className="h-auto w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            disabled={!selectedTeamId || !selectedDriverId}
+                            onClick={async () => {
+                              if (!selectedTeamId || !selectedDriverId) {
+                                return;
+                              }
+                              try {
+                                await dispatch(
+                                  assignDriver({
+                                    orderId: orderEntity.id || '',
+                                    driverId: selectedDriverId,
+                                    teamId: selectedTeamId,
+                                  })
+                                ).unwrap();
+                                toast.success('Driver assigned successfully.');
+                              } catch (error: any) {
+                                toast.error(getApiErrorMessage(error, 'Failed to assign driver.'));
+                              }
+                            }}
+                          >
+                            Assign Driver
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </aside>
           </div>
         </div>
       </div>
@@ -960,6 +1009,7 @@ export const OrderDetail = () => {
                       items.push({
                         id: item.id,
                         itemName: item.itemName,
+                        imageUrl: getOrderItemImageUrl(item),
                         amount: item.amount,
                         price: item.price,
                         taxIdsToValues: item.taxIdsToValues,
@@ -972,6 +1022,7 @@ export const OrderDetail = () => {
                         items.push({
                           id: addon.id,
                           itemName: addon.name,
+                          imageUrl: getOrderItemImageUrl(addon),
                           amount: addon.amount,
                           price: addon.price,
                           taxIdsToValues: addon.taxIdsToValues,
@@ -1036,7 +1087,7 @@ export const OrderDetail = () => {
         submitting={paymentSubmitting}
         submitDisabled={!selectedBillForPayment}
       />
-    </div>
+    </>
   );
 };
 
