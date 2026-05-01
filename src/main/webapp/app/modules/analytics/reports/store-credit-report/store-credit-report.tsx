@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,6 +36,7 @@ type StoreCreditFilters = {
 };
 
 const StoreCreditReport = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<IStoreCreditReportRow[]>([]);
   const [exportRows, setExportRows] = useState<IStoreCreditReportRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,8 +111,8 @@ const StoreCreditReport = () => {
         }),
         fileName
       );
-    } catch (error) {
-      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -132,8 +134,8 @@ const StoreCreditReport = () => {
           orientation: 'portrait',
         });
       }
-    } catch (error) {
-      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -148,10 +150,10 @@ const StoreCreditReport = () => {
       setError(null);
       try {
         await ensureExportRows();
-      } catch (error) {
-        setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+      } catch (err) {
+        setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
         setBusyAction(null);
-        throw error;
+        throw err;
       }
     },
     onAfterPrint: () => {
@@ -280,7 +282,15 @@ const StoreCreditReport = () => {
                 </TableRow>
               ) : (
                 rows.map(row => (
-                  <TableRow key={`${row.customerId}-${row.customerName}`}>
+                  <TableRow
+                    key={`${row.customerId}-${row.customerName}`}
+                    className={row.customerId ? 'cursor-pointer hover:bg-muted/40' : undefined}
+                    onClick={() => {
+                      if (row.customerId) {
+                        navigate(`/customer/${row.customerId}?page=1&sort=id,asc`);
+                      }
+                    }}
+                  >
                     <TableCell className="text-xs">{row.customerName}</TableCell>
                     <TableCell className="text-xs">{row.customerId}</TableCell>
                     <TableCell className="text-xs text-right">{formatAmount(row.creditLimit)}</TableCell>

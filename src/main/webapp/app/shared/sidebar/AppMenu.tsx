@@ -593,7 +593,7 @@ export const model: MenuItem[] = [
       },
       {
         label: 'Customer Balance Report',
-        to: '/analytics/store-credit-report',
+        to: '/analytics/customer-balance-report',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
