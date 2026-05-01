@@ -108,11 +108,6 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
     lines.push({ label: 'Free delivery', value: 'Off' });
   }
 
-  lines.push({
-    label: 'Tagging mode',
-    value: String(dc.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED),
-  });
-
   return lines;
 }
 
@@ -1080,27 +1075,6 @@ export const Branches = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-medium">Delivery tagging mode</Label>
-                          <ShadSelect
-                            value={branch.deliveryConfiguration?.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED}
-                            onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="Select mode" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.values(DeliveryTaggingModeEnum).map(mode => (
-                                <SelectItem key={mode} value={mode} className="text-xs">
-                                  {mode}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </ShadSelect>
-                          <p className="text-[10px] text-muted-foreground">
-                            Restricted vs unrestricted affects how deliveries are grouped or limited in integrations.
-                          </p>
-                        </div>
                       </CardContent>
                     </Card>
 
@@ -1529,6 +1503,26 @@ export const Branches = () => {
                               <dd className="mt-0.5 font-medium text-foreground leading-snug">{row.value}</dd>
                             </div>
                           ))}
+                          <div className="rounded-md border bg-muted/20 px-3 py-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tagging mode</dt>
+                            <dd className="mt-2">
+                              <ShadSelect
+                                value={branch.deliveryConfiguration?.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED}
+                                onValueChange={(value) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', value)}
+                              >
+                                <SelectTrigger className="h-8 text-xs bg-background">
+                                  <SelectValue placeholder="Select mode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.values(DeliveryTaggingModeEnum).map(mode => (
+                                    <SelectItem key={mode} value={mode} className="text-xs">
+                                      {mode}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </ShadSelect>
+                            </dd>
+                          </div>
                         </dl>
                       </CardContent>
                     </Card>
