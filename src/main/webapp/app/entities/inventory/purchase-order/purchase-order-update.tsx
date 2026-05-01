@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useLocation, useNavigate, useParams, useSearchParams} from 'react-router-dom';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileText, Printer, Save, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -26,6 +26,9 @@ import { format } from 'date-fns';
 import { formatVariant } from 'app/shared/util/variant-utils';
 import { Loader2, CalendarIcon } from 'lucide-react';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { useReactToPrint } from 'react-to-print';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
+import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from 'app/shared/util/report-export-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,6 +72,9 @@ export const PurchaseOrderUpdate = () => {
 
   const [purchaseOrderLine, setPurchaseOrderLine] = useState<OrderLine | null>()
   const [purchaseCostLine, setPurchaseCostLine] = useState<CostLine | null>()
+  const [busyAction, setBusyAction] = useState<'pdf' | 'print' | null>(null);
+  const [exportTimestamp, setExportTimestamp] = useState<string | null>(null);
+  const exportContentRef = useRef<HTMLDivElement>(null);
   const supplierList = useAppSelector(state => state.supplier.entities);
   const warehouseList = useAppSelector(state => state.warehouse.entities);
   const inventoryItemList :IInventoryItem[] = useAppSelector(state => state.inventoryItem.entities);
@@ -95,6 +101,43 @@ export const PurchaseOrderUpdate = () => {
   const isOrderReceived = purchaseOrderEntity?.status === "RECEIVED";
   const canSplit = !isOrderReceived && purchaseOrderEntity?.id;
   const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderReceived;
+  const canExportPurchaseOrder = Boolean(purchaseOrderEntity?.id);
+
+  const purchaseOrderFileName = useMemo(
+    () => createReportFileName('purchase-order', [purchaseOrderEntity?.id || purchaseOrder?.id || null]),
+    [purchaseOrderEntity?.id, purchaseOrder?.id]
+  );
+
+  const orderSubtotal = useMemo(
+    () => (purchaseOrder?.orderLines || []).reduce((sum, line) => sum + ((line?.price || 0) * (line?.quantity || 0)), 0),
+    [purchaseOrder?.orderLines]
+  );
+
+  const totalAdditionalCosts = useMemo(
+    () => (purchaseOrder?.costLines || []).reduce((sum, line) => sum + (line?.cost || 0), 0),
+    [purchaseOrder?.costLines]
+  );
+
+  const grandTotal = orderSubtotal + totalAdditionalCosts;
+
+  const formatMoney = (value?: number | null) => (value ?? 0).toFixed(2);
+
+  const getOrderLineItemDetails = (line: OrderLine) => {
+    const itemWithVariantDetails = line.item as IInventoryItemVariant & IInventoryItem;
+    const variantLabel = itemWithVariantDetails?.attributeValues
+      ? formatVariant(itemWithVariantDetails?.name || '', itemWithVariantDetails.attributeValues)
+      : null;
+
+    return {
+      itemName: itemWithVariantDetails?.name || '-',
+      variantLabel,
+    };
+  };
+
+  const prepareExportTimestamp = async () => {
+    setExportTimestamp(new Date().toISOString());
+    await new Promise(resolve => setTimeout(resolve, 0));
+  };
 
   useEffect(() => {
     if (isNew) {
@@ -297,6 +340,36 @@ export const PurchaseOrderUpdate = () => {
         e.stopPropagation();
       }
   };
+
+  const handlePdfExport = async () => {
+    if (!exportContentRef.current || !canExportPurchaseOrder) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      await prepareExportTimestamp();
+      await downloadElementAsPdf(exportContentRef.current, {
+        fileName: purchaseOrderFileName,
+        orientation: 'portrait',
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => exportContentRef.current,
+    documentTitle: purchaseOrderFileName,
+    pageStyle: analyticsReportPrintStyles('portrait'),
+    onBeforeGetContent: async () => {
+      setBusyAction('print');
+      await prepareExportTimestamp();
+    },
+    onAfterPrint: () => {
+      setBusyAction(null);
+    },
+  });
 
   const handleOrderLineEdit = (index: number, field: string, value: any) => {
     if (field === 'received' && (value < 0 || value > purchaseOrder.orderLines[index].quantity)) {
@@ -846,6 +919,34 @@ export const PurchaseOrderUpdate = () => {
                     </Link>
                   </Button>
 
+                  {canExportPurchaseOrder && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        disabled={busyAction !== null}
+                        onClick={handlePrint}
+                      >
+                        {busyAction === 'print' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Printer className="h-3 w-3 mr-1" />}
+                        Print
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        disabled={busyAction !== null}
+                        onClick={handlePdfExport}
+                      >
+                        {busyAction === 'pdf' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <FileText className="h-3 w-3 mr-1" />}
+                        Export PDF
+                      </Button>
+                    </>
+                  )}
+
                   {isOrderReceived && (
                     <Button
                       type="button"
@@ -888,6 +989,113 @@ export const PurchaseOrderUpdate = () => {
           </div>
         </div>
       )}
+
+      <div className="pointer-events-none fixed -left-[10000px] top-0 w-fit max-w-none bg-white p-6" aria-hidden="true">
+        <div ref={exportContentRef} className="report-export-root space-y-4">
+          <ReportExportHeader
+            reportTitle="Purchase Order"
+            hiddenOnScreen
+            forceVisible={busyAction === 'pdf'}
+            meta={[
+              { label: 'PO ID', value: purchaseOrderEntity?.id || purchaseOrder?.id || '-' },
+              { label: 'Status', value: purchaseOrder?.status || '-' },
+            ]}
+            filters={[
+              { label: 'Supplier', value: purchaseOrder?.supplier?.name || '-' },
+              { label: 'Warehouse', value: purchaseOrder?.warehouse?.name || '-' },
+              { label: 'Order Date', value: purchaseOrder?.datePlaced ? formatDateForDisplay(purchaseOrder.datePlaced, 'PP') : '-' },
+              { label: 'Delivery Date', value: purchaseOrder?.dateDelivered ? formatDateForDisplay(purchaseOrder.dateDelivered, 'PP') : '-' },
+              { label: 'Delivery', value: purchaseOrder?.delivery || '-' },
+              { label: 'Address', value: purchaseOrder?.address || '-' },
+              { label: 'Printed', value: exportTimestamp ? formatDateForDisplay(exportTimestamp, 'PPpp') : '-' },
+            ]}
+          />
+
+          <div className="rounded-md border bg-white p-4">
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold">Order Lines</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Item</TableHead>
+                  <TableHead className="text-xs">Description</TableHead>
+                  <TableHead className="text-xs">Qty</TableHead>
+                  <TableHead className="text-xs">Received</TableHead>
+                  <TableHead className="text-xs">Returned</TableHead>
+                  <TableHead className="text-xs">Unit Cost</TableHead>
+                  <TableHead className="text-xs">Delivery Date</TableHead>
+                  <TableHead className="text-xs text-right">Line Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(purchaseOrder?.orderLines || []).map((line, index) => (
+                  <TableRow key={`export-order-line-${index}`}>
+                    <TableCell className="text-xs">
+                      {getOrderLineItemDetails(line).itemName}
+                      {getOrderLineItemDetails(line).variantLabel ? (
+                        <div className="text-[11px] text-muted-foreground">{getOrderLineItemDetails(line).variantLabel}</div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-xs">{line.description || '-'}</TableCell>
+                    <TableCell className="text-xs">{line.quantity || 0}</TableCell>
+                    <TableCell className="text-xs">{line.received || 0}</TableCell>
+                    <TableCell className="text-xs">{line.returnedQuantity || 0}</TableCell>
+                    <TableCell className="text-xs">{formatMoney(line.price)}</TableCell>
+                    <TableCell className="text-xs">{line.deliveryDate ? formatDateForDisplay(line.deliveryDate, 'yyyy-MM-dd') : '-'}</TableCell>
+                    <TableCell className="text-xs text-right">{formatMoney((line.price || 0) * (line.quantity || 0))}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {(purchaseOrder?.costLines?.length || 0) > 0 ? (
+            <div className="rounded-md border bg-white p-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold">Additional Costs</h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Supplier</TableHead>
+                    <TableHead className="text-xs">Cost</TableHead>
+                    <TableHead className="text-xs">Cost Date</TableHead>
+                    <TableHead className="text-xs">Comment</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(purchaseOrder?.costLines || []).map((line, index) => (
+                    <TableRow key={`export-cost-line-${index}`}>
+                      <TableCell className="text-xs">{line.supplier?.name || '-'}</TableCell>
+                      <TableCell className="text-xs">{formatMoney(line.cost)}</TableCell>
+                      <TableCell className="text-xs">{line.costDate ? formatDateForDisplay(line.costDate, 'yyyy-MM-dd') : '-'}</TableCell>
+                      <TableCell className="text-xs">{line.comment || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : null}
+
+          <div className="rounded-md border bg-white p-4">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Items Subtotal</div>
+                <div className="mt-1 text-sm font-medium">{formatMoney(orderSubtotal)}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Additional Costs</div>
+                <div className="mt-1 text-sm font-medium">{formatMoney(totalAdditionalCosts)}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Grand Total</div>
+                <div className="mt-1 text-sm font-semibold">{formatMoney(grandTotal)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
