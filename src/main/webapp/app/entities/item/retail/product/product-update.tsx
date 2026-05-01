@@ -207,6 +207,27 @@ export const ProductUpdate = () => {
     return measureList.filter(m => m.id !== product?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id));
   }, [measureList?.length, product?.baseMeasure?.id, product?.measures?.length]);
 
+  const normalizeVariantsForMeasureRules = useCallback((variants: IVariableItemVariant[] = [], hasBaseMeasure: boolean) => {
+    if (!Array.isArray(variants)) {
+      return [];
+    }
+
+    return variants.map(variant => {
+      if (!variant) {
+        return variant;
+      }
+
+      if (variant?.measureValue?.isBase) {
+        return {
+          ...variant,
+          variantPackage: null,
+        };
+      }
+
+      return variant;
+    });
+  }, []);
+
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
     !itemAttribute ||
@@ -315,7 +336,7 @@ export const ProductUpdate = () => {
       updatedVariants[variantIndex] = updatedVariant;
       return {
         ...prev,
-        variants: updatedVariants,
+        variants: normalizeVariantsForMeasureRules(updatedVariants, Boolean(prev?.baseMeasure)),
       };
     })
   };
@@ -343,7 +364,11 @@ export const ProductUpdate = () => {
   };
 
   const handleBaseMeasureChange = baseMeasure => {
-    setProduct(prev => ({ ...prev, baseMeasure }));
+    setProduct(prev => ({
+      ...prev,
+      baseMeasure,
+      variants: normalizeVariantsForMeasureRules(prev?.variants || [], Boolean(baseMeasure)),
+    }));
   };
 
   const handleAddMeasure = () => {
@@ -700,11 +725,14 @@ export const ProductUpdate = () => {
   useEffect(() => {
     setProduct({
       ...productEntity,
-      variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
+      variants: normalizeVariantsForMeasureRules(
+        productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order) || [],
+        Boolean(productEntity?.baseMeasure)
+      ),
     });
 
     setDefaultPrice(productEntity?.variants?.[0]?.price || 0)
-  }, [productEntity]);
+  }, [normalizeVariantsForMeasureRules, productEntity]);
 
   const handleSupplierChange = (index: number, updatedVariant: IVariableItemVariant) => {
     const updatedProduct = {
@@ -748,7 +776,7 @@ export const ProductUpdate = () => {
       setShowFormErrors(false);
     }
 
-    const updatedVariants = product?.variants.map((variant, index) => {
+    const updatedVariants = normalizeVariantsForMeasureRules(product?.variants, Boolean(product?.baseMeasure)).map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -850,7 +878,7 @@ export const ProductUpdate = () => {
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       })
-    ).then(response => console.log(response, 'responseresponse'));
+    );
   };
 
   const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {

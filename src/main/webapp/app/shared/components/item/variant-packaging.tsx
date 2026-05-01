@@ -1,5 +1,5 @@
 import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import AsyncSelect from 'app/shared/components/select/async-select';
 import { useAppDispatch } from 'app/config/store';
 import { Package, ArrowRight, Trash2, Plus } from 'lucide-react';
@@ -48,11 +48,32 @@ const VariantPackaging = ({
     handleVariantFieldChange: any;
 }) => {
     const [showInputs, setShowInputs] = useState<boolean>(variant?.variantPackage ? true : false);
-
     const dispatch = useAppDispatch();
 
+    const baseVariantOptions = useMemo(() => {
+        return (product?.variants || [])
+            .filter(productVariant => productVariant?.measureValue?.isBase && productVariant?.id)
+            .map(productVariant => ({
+                variantId: productVariant.id,
+                name: `(${product?.name || 'Current item'}) ${productVariant?.name || 'Base variant'}`,
+            }));
+    }, [product?.name, product?.variants]);
+
+    const selectedVariantOption = useMemo(() => {
+        if (!variant?.variantPackage?.variantId) {
+            return null;
+        }
+
+        return (
+            baseVariantOptions.find(option => option.variantId === variant.variantPackage.variantId) || {
+                variantId: variant.variantPackage.variantId,
+                name: variant.variantPackage.name,
+            }
+        );
+    }, [baseVariantOptions, variant?.variantPackage?.name, variant?.variantPackage?.variantId]);
+
     const loadVariantOptions = async (inputValue) => {
-        if (!inputValue) return [];
+        if (!inputValue) return baseVariantOptions;
 
         try {
             const updatedQuery = applyMatchModeMap({
@@ -70,15 +91,25 @@ const VariantPackaging = ({
             );
             const payload = response.payload as any;
             const data = payload?.data;
-            return data?.flatMap(item => (item?.variants?.filter(variant => variant?.measureValue?.isBase)?.map(
-                variant => ({
-                    variantId: variant?.id,
-                    name: `(${item?.name}) ${variant?.name}`
-                })
-            )))
+
+            const remoteOptions =
+                data?.flatMap(item =>
+                    item?.variants
+                        ?.filter(productVariant => productVariant?.measureValue?.isBase)
+                        ?.map(productVariant => ({
+                            variantId: productVariant?.id,
+                            name: `(${item?.name}) ${productVariant?.name}`,
+                        }))
+                ) || [];
+
+            const allOptions = [...baseVariantOptions, ...remoteOptions];
+            const deduped = allOptions.filter(
+                (option, index, array) => option?.variantId && array.findIndex(candidate => candidate.variantId === option.variantId) === index
+            );
+
+            return deduped;
         } catch (error) {
-            console.error('Error loading options:', error);
-            return [];
+            return baseVariantOptions;
         }
     };
 
@@ -122,8 +153,8 @@ const VariantPackaging = ({
                         </div>
                         <div className="flex-1 min-w-[200px]">
                             <AsyncSelect
-                                value={variant?.variantPackage || null}
-                                defaultOptions
+                                value={selectedVariantOption}
+                                defaultOptions={baseVariantOptions}
                                 getOptionLabel={option => option.name}
                                 getOptionValue={option => option.variantId}
                                 loadOptions={loadVariantOptions}
@@ -136,7 +167,7 @@ const VariantPackaging = ({
                                         name: val?.name
                                     })
                                 }}
-                                placeholder="Search to add a product"
+                                placeholder="Search to add a base variant"
                                 styles={customSelectStyles}
                             />
                         </div>
