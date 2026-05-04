@@ -27,6 +27,7 @@ const ChooseBranch = () => {
         .split(',')
         .map(id => id.trim())
         .filter(Boolean);
+    const hasAutoSelectedRegistry = useRef(false);
     
     const [tillList, setTillList] = useState<ITill[]>([]);
     const getOpenTills = (ids: string[]) => {
@@ -76,6 +77,23 @@ const ChooseBranch = () => {
         )
         dispatch(reset())
     }, [])
+
+    useEffect(() => {
+        if (hasAutoSelectedRegistry.current) {
+            return;
+        }
+
+        if (!isWholesaleMode || restrictedBranchIds.length === 0) {
+            return;
+        }
+
+        if (availableRegistries.length !== 1) {
+            return;
+        }
+
+        hasAutoSelectedRegistry.current = true;
+        handleRegistryClick(availableRegistries[0]);
+    }, [availableRegistries, isWholesaleMode, restrictedBranchIds.length]);
 
     return (
         <Container fluid className="d-flex flex-column justify-content-between" style={{
