@@ -297,6 +297,12 @@ export const model: MenuItem[] = [
     to: '/logistics/wholesale-orders',
     items: [
       {
+        label: 'Create Order',
+        to: '/logistics/create-order',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Orders',
         to: '/logistics/wholesale-orders',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],

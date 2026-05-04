@@ -51,7 +51,6 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
-import { isOrderCreateRoleSelectionPending, resolveOrderCreateRoleMode } from './order-create-role-utils';
 import OrderPaymentDialog from './order-payment-dialog';
 import { formatServiceChargeKey } from 'app/shared/util/service-charge-utils';
 
@@ -72,9 +71,9 @@ const OrderCreate = () => {
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
-    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
+    const isWholesaleMode = searchParams.get("mode") === 'wholesale';
     
     // Check if we're in edit mode
     const locationState = (location.state as { editOrder?: IOrder; orderId?: string } | null) || null;
@@ -95,8 +94,6 @@ const OrderCreate = () => {
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
     const [scheduledAtLocal, setScheduledAtLocal] = useState('');
-    const [roleMode, setRoleMode] = useState<'salesman' | 'admin' | null>(null);
-    const [roleChoiceOpen, setRoleChoiceOpen] = useState(false);
     const [addressDialogOpen, setAddressDialogOpen] = useState(false);
     const [addressDialogAddress, setAddressDialogAddress] = useState<IAddress | null>(null);
     const [mobileProductDialogOpen, setMobileProductDialogOpen] = useState(false);
@@ -144,25 +141,12 @@ const OrderCreate = () => {
     const hasInitializedOrder = useRef(false);
     const hasInitializedEditOrder = useRef(false);
     const hasRecalculatedEditTaxes = useRef(false);
-    const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
-    const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
-    const requiresRoleChoice = isSalesmanRole && isAdminRole;
-    const effectiveRoleMode = resolveOrderCreateRoleMode({
-        isAdminRole,
-        isSalesmanRole,
-        roleMode,
-    });
-    const isSalesmanMode = effectiveRoleMode === 'salesman';
-    const isRoleSelectionPending = isOrderCreateRoleSelectionPending({
-        isAdminRole,
-        isSalesmanRole,
-        roleMode,
-    });
+    const isSalesmanMode = isWholesaleMode;
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
     const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
     const isSalesmanFlowReady = !missingSchedule && !missingCustomer && !missingDelivery;
-    const shouldGateSalesman = (isSalesmanMode && !isSalesmanFlowReady) || isRoleSelectionPending;
+    const shouldGateSalesman = isSalesmanMode && !isSalesmanFlowReady;
     const missingSalesmanFields = useMemo(() => {
         const fields: string[] = [];
         if (missingCustomer) fields.push('customer');
@@ -785,7 +769,7 @@ const OrderCreate = () => {
 
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
         if (shouldGateSalesman) {
-            toast.error(`${salesmanGateMessage} before adding items.`);
+            toast.error(`${salesmanGateMessage} before adding items to a wholesale order.`);
             return;
         }
         const currentItems = orderItemsRef.current ?? [];
@@ -855,17 +839,6 @@ const OrderCreate = () => {
         }
         recalculateAllPrices();
     }, [orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, recalculateAllPrices]);
-
-    useEffect(() => {
-        if (requiresRoleChoice) {
-            setRoleChoiceOpen(true);
-            setRoleMode(null);
-        } else if (isSalesmanRole && !isAdminRole) {
-            setRoleMode('salesman');
-        } else {
-            setRoleMode('admin');
-        }
-    }, [requiresRoleChoice, isSalesmanRole, isAdminRole]);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -1012,8 +985,8 @@ const OrderCreate = () => {
         deliverTo: orderEntity?.deliverTo ?? null,
         processingStatus: OrderStatus.PROCESSING,
         tillId: till?.id,
-        ...(includeWholesale && isSalesmanMode ? { wholesale: true } : {}),
-    }), [isEditMode, isSalesmanMode, orderEntity, till?.id]);
+        ...(includeWholesale && isWholesaleMode ? { wholesale: true } : {}),
+    }), [isEditMode, isWholesaleMode, orderEntity, till?.id]);
 
     const buildChargesPreviewPayload = useCallback(
         (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: false, includeWholesale: true }),
@@ -1026,7 +999,7 @@ const OrderCreate = () => {
     );
 
     const buildUpdateStructuredEntity = useCallback(
-        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true }),
+        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true, includeWholesale: true }),
         [buildBaseStructuredEntity]
     );
 
@@ -1054,7 +1027,7 @@ const OrderCreate = () => {
 
     const ensureCreateFlowAllowed = () => {
         if (shouldGateSalesman) {
-            toast.error(`${salesmanGateMessage} before placing the order.`);
+            toast.error(`${salesmanGateMessage} before placing the wholesale order.`);
             return false;
         }
 
@@ -1554,7 +1527,7 @@ const OrderCreate = () => {
             <OrderPaymentDialog
                 open={openPaymentModal}
                 onOpenChange={setOpenPaymentModal}
-                title="Create Order & Payment"
+                title={isWholesaleMode ? 'Create Wholesale Order & Payment' : 'Create Order & Payment'}
                 orderBranchId={orderEntity.branchId}
                 customerId={orderEntity.customer?.id}
                 totalAmount={finalPayableTotal}
@@ -1562,44 +1535,12 @@ const OrderCreate = () => {
                 defaultPaymentAmount={finalPayableTotal}
                 baseOrderTotal={cartTotals.total}
                 chargePreviewRows={previewChargeRows}
-                submitLabel="Create Order & Pay"
+                submitLabel={isWholesaleMode ? 'Create Wholesale Order & Pay' : 'Create Order & Pay'}
                 onSubmit={handleCreateWithPayment}
                 submitting={submittingOrder}
-                secondaryActionLabel="Create Without Payment"
+                secondaryActionLabel={isWholesaleMode ? 'Create Wholesale Order Without Payment' : 'Create Without Payment'}
                 onSecondaryAction={handleCreateWithoutPayment}
             />
-
-            <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Select your mode</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-3 p-2 text-sm text-muted-foreground">
-                        You have both administrator and wholesale salesman roles. Choose how you want to continue.
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setRoleMode('admin');
-                                setRoleChoiceOpen(false);
-                            }}
-                            className="h-9 text-xs"
-                        >
-                            Continue as Admin
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                setRoleMode('salesman');
-                                setRoleChoiceOpen(false);
-                            }}
-                            className="h-9 text-xs"
-                        >
-                            Continue as Salesman
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             <DeliveryAddressDialog
                 open={addressDialogOpen}
@@ -1701,8 +1642,10 @@ const OrderCreate = () => {
                                     <span className="sr-only">Back</span>
                                 </Button>
                                 <div>
-                                    <p className="text-sm font-semibold">Point of Sale</p>
-                                    <p className="text-xs text-muted-foreground">Create a new order</p>
+                                    <p className="text-sm font-semibold">{isWholesaleMode ? 'Wholesale Order' : 'Point of Sale'}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {isWholesaleMode ? 'Create a new wholesale order' : 'Create a new order'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -2107,7 +2050,7 @@ const OrderCreate = () => {
                             <CardContent className="flex flex-col gap-2 p-3">
                                 {isSalesmanMode && !isSalesmanFlowReady && (
                                     <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive mb-1">
-                                        {salesmanGateMessage} before creating an order.
+                                        {salesmanGateMessage} before creating a wholesale order.
                                     </div>
                                 )}
                                 {/* Row 1: Order Method, Customer, Pricing Point */}

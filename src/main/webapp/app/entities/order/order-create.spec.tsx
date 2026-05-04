@@ -331,8 +331,6 @@ describe('OrderCreate payment flow', () => {
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as admin/i }));
-
     fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
 
     expect(screen.getByText('Create Order & Payment')).not.toBeNull();
@@ -389,7 +387,11 @@ describe('OrderCreate payment flow', () => {
     });
   });
 
-  it('sends wholesale when a dual-role user continues as salesman and creates without payment', async () => {
+  it('sends wholesale in wholesale mode when creating without payment', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
     mockState.order.entity.deliverTo = {
       id: 'address-1',
@@ -398,9 +400,8 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as salesman/i }));
     fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
-    fireEvent.click(screen.getByRole('button', { name: /create without payment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create wholesale order without payment/i }));
 
     await waitFor(() => {
       expect(orderReducer.createEntity).toHaveBeenCalled();
@@ -413,7 +414,11 @@ describe('OrderCreate payment flow', () => {
     );
   });
 
-  it('sends wholesale for salesman-only create and pay', async () => {
+  it('sends wholesale for create and pay in wholesale mode', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
     mockState.order.entity.deliverTo = {
       id: 'address-1',
@@ -427,7 +432,7 @@ describe('OrderCreate payment flow', () => {
     const amountInput = screen.getAllByRole('spinbutton')[0];
     fireEvent.change(amountInput, { target: { value: '5' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create wholesale order & pay/i }));
 
     await waitFor(() => {
       expect(orderReducer.createEntity).toHaveBeenCalled();
@@ -442,13 +447,15 @@ describe('OrderCreate payment flow', () => {
     );
   });
 
-  it('keeps salesman validation active when a dual-role user chooses salesman', async () => {
+  it('keeps wholesale validation active in wholesale mode', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as salesman/i }));
-
     await waitFor(() => {
-      expect(screen.getByText(/before creating an order\./i)).not.toBeNull();
+      expect(screen.getByText(/before creating a wholesale order\./i)).not.toBeNull();
     });
 
     expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(true);

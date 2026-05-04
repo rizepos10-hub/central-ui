@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { changeEntityField, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
 import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
@@ -17,9 +17,16 @@ import { Badge } from "primereact/badge";
 const ChooseBranch = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const ORDER_METHOD = 'orderMethod';
     const orderEntity: IOrder = useAppSelector(state => state.order.entity);
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
+    const searchParams = new URLSearchParams(location.search);
+    const isWholesaleMode = searchParams.get('mode') === 'wholesale' || location.pathname.includes('/logistics/create-order');
+    const restrictedBranchIds = (searchParams.get('branchIds') || '')
+        .split(',')
+        .map(id => id.trim())
+        .filter(Boolean);
     
     const [tillList, setTillList] = useState<ITill[]>([]);
     const getOpenTills = (ids: string[]) => {
@@ -36,9 +43,13 @@ const ChooseBranch = () => {
         getOpenTills(branchRegistryIds);
     }, [branchRegistry])
 
+    const availableRegistries = restrictedBranchIds.length > 0
+        ? branchRegistry.filter(registry => restrictedBranchIds.includes(registry?.branch?.id))
+        : branchRegistry;
+
     const handleRegistryClick = (registry) => {
         checkTillStatus(registry); // Call existing function
-        navigate(`/order/create?registerId=${registry?.id}`); // Navigate to new page
+        navigate(`/order/create?registerId=${registry?.id}${isWholesaleMode ? '&mode=wholesale' : ''}`); // Navigate to new page
     };
 
     const checkTillStatus = (registry: IBranchRegistry) => {
@@ -71,10 +82,16 @@ const ChooseBranch = () => {
             maxWidth: '1100px',
             margin: '0 auto'
         }}>
+            <div className="mb-4 text-center">
+                <div className="text-lg font-semibold">{isWholesaleMode ? 'Select Branch For Wholesale Order' : 'Select Branch'}</div>
+                <div className="text-sm text-muted-foreground">
+                    {isWholesaleMode ? 'Choose a branch and continue to wholesale order creation.' : 'Choose a branch to continue.'}
+                </div>
+            </div>
 
             <Row className="h-100">
                 <Col md={12} className="d-flex justify-content-between align-items-center">
-                {branchRegistry.map((registry) => (
+                {availableRegistries.map((registry) => (
                         <div
                             key={registry.id}
                             className={`p-4 ml-5 border rounded-lg cursor-pointer flex flex-col items-center justify-center ${
