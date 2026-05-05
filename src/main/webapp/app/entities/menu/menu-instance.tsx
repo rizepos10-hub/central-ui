@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Edit2, Zap, Copy, ArrowLeftRight, Eye, ShoppingCart } from 'lucide-react';
+import { Edit2, Zap, Copy, ArrowLeftRight, Eye } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { TextFormat } from 'react-jhipster';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
@@ -141,12 +141,6 @@ const MenuInstance = () => {
         setTransferConfirmOpen(false);
     }
 
-    const handleCreateWholesaleOrder = () => {
-        const branchIds = (selectedBranches || []).map(branch => branch?.id).filter(Boolean);
-        const query = branchIds.length > 0 ? `?branchIds=${branchIds.join(',')}` : '';
-        navigate(`/logistics/create-order${query}`);
-    };
-
     return (
         <PageWrapper>
             {menuEntity.id && (
@@ -258,16 +252,6 @@ const MenuInstance = () => {
                             <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={() => setShowVisibility(prev => !prev)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 Visibility
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                className="h-7 text-xs px-2"
-                                onClick={handleCreateWholesaleOrder}
-                                disabled={!selectedBranches?.length}
-                            >
-                                <ShoppingCart className="h-3 w-3 mr-1" />
-                                Create Order
                             </Button>
                         </div>
                     </div>
