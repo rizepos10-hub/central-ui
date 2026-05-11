@@ -145,6 +145,8 @@ export default () => {
         <Route path="custom-definitions/*" element={<CustomDefinition />} />
         <Route path="zones/*" element={<ZonesSettings />} />
         <Route path="import-from-old-system/*" element={<ImportFromOldSystem />} />
+        <Route path="catalog-import/*" element={<CatalogImportWizard />} />
+        <Route path="customer-import/*" element={<CustomerImportWizard />} />
 
         <Route path="tv/*" element={<Tv />} />
         <Route path="tv-display/*" element={<TvDisplay />} />
