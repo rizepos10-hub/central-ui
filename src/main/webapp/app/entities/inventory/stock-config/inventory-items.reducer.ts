@@ -18,16 +18,21 @@ const initialState: EntityState<IInventoryItem> = {
 const apiUrl = 'api/inventory/items';
 
 const apiSearchUrl = 'api/inventory/_search/items';
+const apiFilterUrl = 'api/_search/items/retail';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?${query ? query: ''}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+export const filterEntities = createAsyncThunk('item/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<IInventoryItem[]>(apiFilterUrl, query);
+});
+
+export const searchEntities = createAsyncThunk('item/search_entity', async ({ query, page, size, sort, branchId }: IQueryParams) => {
+  const requestUrl = `${apiSearchUrl}?${query ? query : ''}${branchId ? `${query ? '&' : ''}branchId=${branchId}` : ''}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IInventoryItem[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort, branchId }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}${branchId ? `branchId=${branchId}&` : ''}cacheBuster=${new Date().getTime()}`;
   return axios.get<IInventoryItem[]>(requestUrl);
 });
 
@@ -97,7 +102,7 @@ export const InventoryItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -113,7 +118,7 @@ export const InventoryItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
