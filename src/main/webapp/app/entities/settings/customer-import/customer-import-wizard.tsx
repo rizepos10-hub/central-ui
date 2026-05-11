@@ -17,6 +17,7 @@ const PREVIEW_ROWS = 10;
 const IMPORT_PROGRESS_STORAGE_KEY = 'customer-import-progress-v1';
 
 type CustomerFieldKey =
+  | 'id'
   | 'firstName'
   | 'lastName'
   | 'email'
@@ -27,11 +28,19 @@ type CustomerFieldKey =
   | 'onAccountEnabled'
   | 'onAccountDebitLimit'
   | 'onAccountDebitUsed'
-  | 'businessName';
+  | 'businessName'
+  | 'address'
+  | 'addressType'
+  | 'country'
+  | 'city'
+  | 'street';
+
+type ImportAction = 'created' | 'updated';
 
 type ImportResultRow = {
   rowIndex: number;
   summary: string;
+  action?: ImportAction;
   message?: string;
 };
 
@@ -43,6 +52,7 @@ type StoredImportProgress = {
 };
 
 const CUSTOMER_IMPORT_FIELDS: { key: CustomerFieldKey; label: string; required?: boolean }[] = [
+  { key: 'id', label: 'Customer ID (for updates; blank = create)' },
   { key: 'firstName', label: 'First name' },
   { key: 'lastName', label: 'Last name' },
   { key: 'email', label: 'Email' },
@@ -51,6 +61,11 @@ const CUSTOMER_IMPORT_FIELDS: { key: CustomerFieldKey; label: string; required?:
   { key: 'fax', label: 'Fax' },
   { key: 'accountNumber', label: 'Account number' },
   { key: 'businessName', label: 'Business name' },
+  { key: 'address', label: 'Address' },
+  { key: 'addressType', label: 'Address type (Home/Office/Other)' },
+  { key: 'country', label: 'Country' },
+  { key: 'city', label: 'City' },
+  { key: 'street', label: 'Street' },
   { key: 'onAccountEnabled', label: 'On account enabled (true/false)' },
   { key: 'onAccountDebitLimit', label: 'On account debit limit' },
   { key: 'onAccountDebitUsed', label: 'On account debit used' },
@@ -109,6 +124,15 @@ function parseNumber(value: string): number | undefined {
   return Number.isFinite(num) ? num : undefined;
 }
 
+function parseAddressType(value: string): 'Home' | 'Office' | 'Other' | undefined {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === 'home') return 'Home';
+  if (normalized === 'office' || normalized === 'work') return 'Office';
+  if (normalized === 'other') return 'Other';
+  return undefined;
+}
+
 function buildFileSignature(file: File): string {
   return `${file.name}__${file.size}__${file.lastModified}`;
 }
@@ -157,6 +181,8 @@ function toCustomerPayload(row: string[], headers: string[], mapping: Record<Cus
   };
 
   const payload: Record<string, any> = {};
+  const id = readMappedValue('id');
+  if (id) payload.id = id;
   const firstName = readMappedValue('firstName');
   const lastName = readMappedValue('lastName');
   const email = readMappedValue('email');
@@ -165,6 +191,11 @@ function toCustomerPayload(row: string[], headers: string[], mapping: Record<Cus
   const fax = readMappedValue('fax');
   const accountNumber = readMappedValue('accountNumber');
   const businessName = readMappedValue('businessName');
+  const address = readMappedValue('address');
+  const addressType = parseAddressType(readMappedValue('addressType'));
+  const country = readMappedValue('country');
+  const city = readMappedValue('city');
+  const street = readMappedValue('street');
   const onAccountEnabled = parseBoolean(readMappedValue('onAccountEnabled'));
   const onAccountDebitLimit = parseNumber(readMappedValue('onAccountDebitLimit'));
   const onAccountDebitUsed = parseNumber(readMappedValue('onAccountDebitUsed'));
@@ -177,6 +208,18 @@ function toCustomerPayload(row: string[], headers: string[], mapping: Record<Cus
   if (fax) payload.fax = fax;
   if (accountNumber) payload.accountNumber = accountNumber;
   if (businessName) payload.businessDetails = { businessName };
+  if (address || country || city || street || addressType) {
+    const deliveryAddress: Record<string, unknown> = {
+      addressType: addressType ?? 'Home',
+      contactPersonName: [firstName, lastName].filter(Boolean).join(' ').trim() || undefined,
+      phoneNumber: phone || mobileNumber || undefined,
+    };
+    if (address) deliveryAddress.address = address;
+    if (country) deliveryAddress.country = country;
+    if (city) deliveryAddress.city = city;
+    if (street) deliveryAddress.street = street;
+    payload.deliveryAddresses = [deliveryAddress];
+  }
   if (typeof onAccountEnabled === 'boolean') payload.onAccountEnabled = onAccountEnabled;
   if (typeof onAccountDebitLimit === 'number') payload.onAccountDebitLimit = onAccountDebitLimit;
   if (typeof onAccountDebitUsed === 'number') payload.onAccountDebitUsed = onAccountDebitUsed;
@@ -277,13 +320,20 @@ const CustomerImportWizard = () => {
       const row = rows[i];
       const payload = toCustomerPayload(row, headers, mapping);
       const summary = buildRowSummary(payload, i + 2);
+      const existingId = typeof payload.id === 'string' ? payload.id.trim() : '';
+      const action: ImportAction = existingId ? 'updated' : 'created';
       try {
-        await axios.post('api/customers', cleanEntity(payload));
-        newSuccessRows.push({ rowIndex: i + 2, summary });
+        if (existingId) {
+          await axios.put(`api/customers/${encodeURIComponent(existingId)}`, cleanEntity(payload));
+        } else {
+          await axios.post('api/customers', cleanEntity(payload));
+        }
+        newSuccessRows.push({ rowIndex: i + 2, summary, action });
       } catch (error) {
         newFailedRows.push({
           rowIndex: i + 2,
           summary,
+          action,
           message: getErrorMessage(error),
         });
       }
@@ -306,7 +356,11 @@ const CustomerImportWizard = () => {
     if (!stopRequestedRef.current) {
       clearStoredProgress();
       setResumeIndex(0);
-      toast.success(`Import finished. Success: ${newSuccessRows.length}, Failed: ${newFailedRows.length}`);
+      const createdCount = newSuccessRows.filter(r => r.action === 'created').length;
+      const updatedCount = newSuccessRows.filter(r => r.action === 'updated').length;
+      toast.success(
+        `Import finished. Created: ${createdCount}, Updated: ${updatedCount}, Failed: ${newFailedRows.length}`,
+      );
     }
   };
 
@@ -497,7 +551,7 @@ const CustomerImportWizard = () => {
             </div>
 
             <Progress value={progress} className="h-2" />
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-5">
               <div>
                 <p className="text-xs text-muted-foreground">Processed</p>
                 <p className="text-sm font-medium">
@@ -505,8 +559,16 @@ const CustomerImportWizard = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Imported</p>
-                <p className="text-sm font-medium text-green-700 dark:text-green-400">{successRows.length}</p>
+                <p className="text-xs text-muted-foreground">Created</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                  {successRows.filter(r => r.action !== 'updated').length}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Updated</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                  {successRows.filter(r => r.action === 'updated').length}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Failed</p>
@@ -529,6 +591,17 @@ const CustomerImportWizard = () => {
                   {successRows.map(item => (
                     <div key={`success-${item.rowIndex}-${item.summary}`} className="p-2 text-xs">
                       <span className="font-medium">Row {item.rowIndex}:</span> {item.summary}
+                      {item.action && (
+                        <span
+                          className={
+                            item.action === 'updated'
+                              ? 'ml-2 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                              : 'ml-2 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          }
+                        >
+                          {item.action}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
