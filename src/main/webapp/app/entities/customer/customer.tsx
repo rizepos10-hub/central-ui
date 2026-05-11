@@ -249,6 +249,24 @@ export const Customer = () => {
           </TableBody>
         </Table>
       </div>
+
+      {totalItems ? (
+        <div className={customerList?.length > 0 ? 'mt-3 flex flex-col items-center gap-2' : 'hidden'}>
+          <JhiItemCount
+            page={paginationState.activePage}
+            total={totalItems}
+            itemsPerPage={paginationState.itemsPerPage}
+            i18nEnabled
+          />
+          <JhiPagination
+            activePage={paginationState.activePage}
+            onSelect={handlePagination}
+            maxButtons={5}
+            itemsPerPage={paginationState.itemsPerPage}
+            totalItems={totalItems}
+          />
+        </div>
+      ) : null}
     </PageWrapper>
   );
 };
