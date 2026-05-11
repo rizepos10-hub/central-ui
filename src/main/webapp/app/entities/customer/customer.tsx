@@ -44,7 +44,10 @@ export const Customer = () => {
 
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
-    name: `${customer.firstName} ${customer.lastName}`
+    name: [customer.firstName, customer.lastName]
+      .filter(part => typeof part === 'string' && part.trim().length > 0)
+      .join(' ')
+      .trim(),
   }));
 
   const getAllEntities = () => {
