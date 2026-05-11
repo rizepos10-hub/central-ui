@@ -886,6 +886,18 @@ export const model: MenuItem[] = [
             to: '/import-from-old-system',
             type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
+          {
+            label: 'Catalog import (Excel)',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/catalog-import',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Customer import (Excel)',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/customer-import',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
         ],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },

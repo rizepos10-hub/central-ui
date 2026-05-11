@@ -57,6 +57,8 @@ const Branches = React.lazy(() => import('./branches/branch'));
 const ServiceCharge = React.lazy(() => import('./service-charges/index'));
 const PricingPoint = React.lazy(() => import('./settings/pricing-point/index'));
 const ImportFromOldSystem = React.lazy(() => import('./settings/import-from-old-system/import-from-old-system'));
+const CatalogImportWizard = React.lazy(() => import('./settings/catalog-import'));
+const CustomerImportWizard = React.lazy(() => import('./settings/customer-import'));
 const CustomDefinition = React.lazy(() => import('./settings/custom-definitions/index'));
 const GiftCardsRoutes = React.lazy(() => import('./item/virtual/gift-card'));
 const CourseDefinitionRoutes = React.lazy(() => import('./settings/course-definition'));
@@ -145,6 +147,8 @@ export default () => {
         <Route path="custom-definitions/*" element={<CustomDefinition />} />
         <Route path="zones/*" element={<ZonesSettings />} />
         <Route path="import-from-old-system/*" element={<ImportFromOldSystem />} />
+        <Route path="catalog-import/*" element={<CatalogImportWizard />} />
+        <Route path="customer-import/*" element={<CustomerImportWizard />} />
 
         <Route path="tv/*" element={<Tv />} />
         <Route path="tv-display/*" element={<TvDisplay />} />
