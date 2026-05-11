@@ -4,7 +4,7 @@ import { Translate, translate, getSortState } from 'react-jhipster';
 import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { ASC, DESC, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -29,7 +29,7 @@ export const Customer = () => {
 
   const [search, setSearch] = useState('');
   const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+    overridePaginationStateWithQueryParams(getSortState(location, DEFAULT_PAGE_SIZE, 'id'), location.search)
   );
 
   const customerList = useAppSelector(state => state.customer.entities);
@@ -41,9 +41,6 @@ export const Customer = () => {
     email: '',
     phone: '',
   });
-
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
@@ -111,7 +108,7 @@ export const Customer = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.itemsPerPage, paginationState.order, paginationState.sort, search]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -161,21 +158,30 @@ export const Customer = () => {
     [modifiedCustomerList, filters.name, filters.email, filters.phone]
   );
 
-  const totalFiltered = filteredCustomerList.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageSize = paginationState.itemsPerPage;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(paginationState.activePage, totalPages);
   const pageStartIndex = (safeCurrentPage - 1) * pageSize;
-  const paginatedCustomerList = filteredCustomerList.slice(pageStartIndex, pageStartIndex + pageSize);
+  const pageEndIndex = Math.min(pageStartIndex + pageSize, totalItems);
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
+  const handlePageSizeChange = (newSize: number) =>
+    setPaginationState({
+      ...paginationState,
+      itemsPerPage: newSize,
+      activePage: 1,
+    });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters.name, filters.email, filters.phone, pageSize]);
+  const goToPreviousPage = () =>
+    setPaginationState({
+      ...paginationState,
+      activePage: Math.max(1, paginationState.activePage - 1),
+    });
+
+  const goToNextPage = () =>
+    setPaginationState({
+      ...paginationState,
+      activePage: Math.min(totalPages, paginationState.activePage + 1),
+    });
 
 
   return (
@@ -238,7 +244,7 @@ export const Customer = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedCustomerList.map(customer => (
+            {filteredCustomerList.map(customer => (
               <TableRow key={customer.id}>
                 <TableCell className="text-xs">
                   <Link
@@ -277,13 +283,13 @@ export const Customer = () => {
         </Table>
       </div>
 
-      {totalFiltered > 0 && (
+      {totalItems > 0 && (
         <div className="mt-2 flex items-center justify-between border-t px-2 py-2">
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Rows per page:</span>
             <Select
               value={{ value: pageSize, label: pageSize.toString() }}
-              onChange={(option: any) => setPageSize(option?.value ?? DEFAULT_PAGE_SIZE)}
+              onChange={(option: any) => handlePageSizeChange(option?.value ?? DEFAULT_PAGE_SIZE)}
               options={PAGE_SIZE_OPTIONS.map(val => ({ value: val, label: val.toString() }))}
               isSearchable={false}
               className="w-20"
@@ -291,15 +297,15 @@ export const Customer = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              {pageStartIndex + 1} - {Math.min(pageStartIndex + pageSize, totalFiltered)} of {totalFiltered}
+              {pageStartIndex + 1} - {pageEndIndex} of {totalItems}
             </span>
             <div className="flex gap-1">
               <Button
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 p-0"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={safeCurrentPage === 1}
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage <= 1 || loading}
               >
                 ‹
               </Button>
@@ -307,8 +313,8 @@ export const Customer = () => {
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 p-0"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={safeCurrentPage === totalPages}
+                onClick={goToNextPage}
+                disabled={safeCurrentPage >= totalPages || loading}
               >
                 ›
               </Button>
