@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CalendarIcon, Pencil, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
@@ -41,6 +41,7 @@ const DetailRow = ({ label, value }: { label: string; value?: string | null }) =
 export const CustomerDashboard = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams<'id'>();
+  const navigate = useNavigate();
 
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const customerLoading = useAppSelector(state => state.customer.loading);
@@ -380,9 +381,13 @@ export const CustomerDashboard = () => {
                           <TableHead className="text-xs">Created By</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
-                        {onAccountAudits.map(audit => (
-                          <TableRow key={audit.id || `${audit.createdDate}-${audit.orderId}-${audit.amount}`}>
+                        <TableBody>
+                          {onAccountAudits.map(audit => (
+                          <TableRow
+                            key={audit.id || `${audit.createdDate}-${audit.orderId}-${audit.amount}`}
+                            className={audit.orderId ? 'cursor-pointer hover:bg-muted/50' : undefined}
+                            onClick={audit.orderId ? () => navigate(`/order/${audit.orderId}`) : undefined}
+                          >
                             <TableCell className="text-xs align-top whitespace-nowrap">
                               {audit.createdDate ? formatDateForDisplay(audit.createdDate) : '-'}
                             </TableCell>
