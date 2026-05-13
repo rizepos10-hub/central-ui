@@ -70,7 +70,17 @@ jest.mock('../settings/branch-registry/till/till.reducer', () => ({
 }));
 
 jest.mock('./order.reducer', () => ({
-  calculateItemPrice: jest.fn(payload => ({ type: 'order/calculate_item_price', payload })),
+  calculateItemPrice: jest.fn(payload => ({
+    type: 'order/calculate_item_price/fulfilled',
+    payload: {
+      data: {
+        itemTotal: 9,
+        taxTotal: 0,
+        grandTotal: 9,
+      },
+      ...payload,
+    },
+  })),
   changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
   clearChargesPreview: jest.fn(() => ({ type: 'order/clear_charges_preview' })),
   createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
@@ -117,6 +127,13 @@ jest.mock('@/components/ui/dialog', () => ({
   DialogFooter: ({ children }) => <div>{children}</div>,
 }));
 
+jest.mock('@/components/ui/tooltip', () => ({
+  TooltipProvider: ({ children }) => <div>{children}</div>,
+  Tooltip: ({ children }) => <div>{children}</div>,
+  TooltipTrigger: ({ children }) => <div>{children}</div>,
+  TooltipContent: ({ children }) => <div>{children}</div>,
+}));
+
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -142,6 +159,9 @@ beforeAll(() => {
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
+  (orderReducer.calculateItemPrice as any).fulfilled = {
+    match: action => action?.type === 'order/calculate_item_price/fulfilled',
+  };
   mockLocation = {
     search: '?registerId=reg-1',
     state: null,
@@ -220,6 +240,10 @@ beforeEach(() => {
   };
 
   mockDispatch.mockImplementation(action => {
+    if (action?.type === 'order/calculate_item_price/fulfilled') {
+      return Promise.resolve(action);
+    }
+
     if (action?.type === 'order/create_entity') {
       return {
         unwrap: () =>
@@ -328,6 +352,103 @@ const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderR
 const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
 describe('OrderCreate payment flow', () => {
+  it('always sends priceOverride when recalculating a discounted item with a custom discount', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 9,
+        priceBeforeDiscount: 10,
+        discount: {
+          type: 'PERCENTAGE',
+          value: 10,
+        },
+        customDiscount: 0,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 10,
+            salePrice: 9,
+            attachments: [],
+            discounts: [],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByText('Variant 1'));
+    fireEvent.change(screen.getByPlaceholderText('Discount'), { target: { value: '50' } });
+
+    await waitFor(() => {
+      expect(orderReducer.calculateItemPrice).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          cartId: 'cart-1',
+          payload: expect.objectContaining({
+            itemId: 'item-1',
+            variantId: 'variant-1',
+            priceOverride: 9,
+            discountOverride: {
+              type: 'PERCENTAGE',
+              value: 50,
+            },
+          }),
+        })
+      );
+    });
+  });
+
+  it('shows the original unit price struck through beside the discounted unit price in the cart amount column', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 9,
+        priceBeforeDiscount: 10,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 10,
+            salePrice: 9,
+            attachments: [],
+            discounts: [],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    const originalPrice = await screen.findByText('$10.00');
+    const discountedPrices = await screen.findAllByText('$9.00');
+
+    expect(originalPrice.className).toContain('line-through');
+    expect(discountedPrices.length).toBeGreaterThan(0);
+  });
+
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 

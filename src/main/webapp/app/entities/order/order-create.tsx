@@ -53,6 +53,7 @@ import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
 import OrderPaymentDialog from './order-payment-dialog';
 import { formatServiceChargeKey } from 'app/shared/util/service-charge-utils';
+import { getFinalPrice } from 'app/shared/util/calculations-utils';
 
 type ChargePreviewRow = {
     key: string;
@@ -180,6 +181,38 @@ const OrderCreate = () => {
     }, []);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
+    const productById = useMemo(() => {
+        return new Map(products.map(product => [product.id, product]));
+    }, [products]);
+
+    const getItemPriceDisplayMeta = useCallback((item: IOrder['items'][number]) => {
+        const product = productById.get(item.itemId);
+        const variant = product?.variants?.find(productVariant => productVariant.id === item.variantId) ?? product?.variants?.[0];
+
+        if (!product || !variant) {
+            return {
+                effectivePrice: item.price ?? null,
+                originalPrice: item.priceBeforeDiscount ?? null,
+            };
+        }
+
+        const effectivePrice = getFinalPrice({
+            variantItem: variant,
+            branchId: orderEntity.branchId,
+            item: product,
+            customer: orderEntity.customer,
+            pricingPointId,
+            pricingPoints,
+            selectedOrderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
+        });
+
+        const originalPrice = variant.branchVariantDetails?.[orderEntity.branchId]?.price ?? variant.price ?? null;
+
+        return {
+            effectivePrice: effectivePrice || item.price || null,
+            originalPrice,
+        };
+    }, [orderEntity.branchId, orderEntity.customer, orderEntity.orderMethod, pricingPointId, pricingPoints, productById]);
 
     useEffect(() => {
         orderItemsRef.current = orderEntity.items ?? [];
@@ -711,7 +744,8 @@ const OrderCreate = () => {
         }
 
         // Always call API for price calculation - backend handles priceOverride and discountOverride
-        const priceOverride = item.priceOverridden ? item.price : undefined;
+        const derivedPriceMeta = getItemPriceDisplayMeta(item);
+        const priceOverride = item.price ?? derivedPriceMeta.effectivePrice ?? undefined;
         const discountOverride = item.customDiscount ? {
             type: item?.discount?.type || 'PERCENTAGE',
             value: item.customDiscount,
@@ -731,19 +765,29 @@ const OrderCreate = () => {
             }
         })).then((action) => {
             if (calculateItemPrice.fulfilled.match(action)) {
-                // Use the price from API response, or keep existing price if priceOverridden
-                const computedPrice = item.priceOverridden ? item.price : 
-                    (item.price ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0));
+                const computedPrice = item.price
+                    ?? derivedPriceMeta.effectivePrice
+                    ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0);
+                const hasManualPriceBaseline = item.priceOverridden && item.priceBeforeDiscount != null;
+                const hasDiscountedDisplayBaseline =
+                    derivedPriceMeta.originalPrice != null &&
+                    computedPrice != null &&
+                    derivedPriceMeta.originalPrice > computedPrice;
+
                 updateCartItem(item.cartId, {
                     itemTotal: action.payload.data.itemTotal,
                     taxTotal: action.payload.data.taxTotal,
                     grandTotal: action.payload.data.grandTotal,
                     price: computedPrice,
-                    priceBeforeDiscount: item.priceBeforeDiscount ?? computedPrice,
+                    priceBeforeDiscount: hasManualPriceBaseline
+                        ? item.priceBeforeDiscount
+                        : hasDiscountedDisplayBaseline
+                            ? derivedPriceMeta.originalPrice
+                            : item.priceBeforeDiscount ?? null,
                 });
             }
         });
-    }, [dispatch, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
+    }, [dispatch, getItemPriceDisplayMeta, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
 
     const recalculateAllPrices = useCallback(() => {
         const items = orderItemsRef.current ?? [];
@@ -1189,9 +1233,6 @@ const OrderCreate = () => {
 
     const cartItems = orderEntity.items ?? [];
     const cartItemCount = cartItems.length;
-    const productById = useMemo(() => {
-        return new Map(products.map(product => [product.id, product]));
-    }, [products]);
     const cartQuantityTotal = useMemo(() => {
         return cartItems.reduce((acc, item) => {
             const byWeight = productById.get(item.itemId)?.byWeight;
@@ -2189,6 +2230,11 @@ const OrderCreate = () => {
                                         const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
                                         const unitPrice = product.price ?? 0;
                                         const amountTotal = unitPrice * qtyDisplay;
+                                        const originalUnitPrice = product.priceBeforeDiscount ?? null;
+                                        const showDiscountedUnitPrice =
+                                            originalUnitPrice != null &&
+                                            product.price != null &&
+                                            originalUnitPrice > product.price;
 
                                         return (
                                         <AccordionItem
@@ -2209,6 +2255,13 @@ const OrderCreate = () => {
                                                     <div className="text-right font-semibold">
                                                         {itemPriceLoading?.[product.cartId] ? (
                                                             <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
+                                                        ) : showDiscountedUnitPrice ? (
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <span className="text-[11px] font-normal text-muted-foreground line-through">
+                                                                    ${originalUnitPrice.toFixed(2)}
+                                                                </span>
+                                                                <span>${unitPrice.toFixed(2)}</span>
+                                                            </div>
                                                         ) : (
                                                             `$${amountTotal.toFixed(2)}`
                                                         )}
