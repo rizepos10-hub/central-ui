@@ -1,116 +1,103 @@
-import { Button, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
 import React, { useEffect, useState } from "react";
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
-import { InputNumber } from "primereact/inputnumber";
 import { translate, Translate } from "react-jhipster";
 import { partialUpdateEntity } from "app/entities/inventory/stock-config/stock-quantity.reducer";
-import { useAppDispatch } from "app/config/store";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 type modalProps = {
-  toggle: any,
+  toggle: () => void,
   isOpen: boolean,
-  stockQuantity: IStockQuantity
+  stockQuantity: IStockQuantity,
+  onSaved?: (updatedEntity: IStockQuantity) => void,
 }
 
-const StockQuantityModal = ({ toggle, isOpen, stockQuantity }: modalProps) => {
+const StockQuantityModal = ({ toggle, isOpen, stockQuantity, onSaved }: modalProps) => {
   const dispatch = useAppDispatch();
+  const updating = useAppSelector(state => state.stockQuantity.updating);
 
-  const [modifiedStockQuantity, setModifiedStockQuantity] = useState<number>(0);
-  const [modifiedCost, setModifiedCost] = useState<number>(0);
-
-  const handleQuantityChange = (e) => {
-    setModifiedStockQuantity(() => e.value)
-  };
+  const [modifiedStockQuantity, setModifiedStockQuantity] = useState<number | ''>('');
+  const [modifiedCost, setModifiedCost] = useState<number | ''>('');
 
   const handleClose = () => {
     toggle();
-    setModifiedStockQuantity(0)
-  }
+    setModifiedStockQuantity('');
+    setModifiedCost('');
+  };
 
   useEffect(() => {
-    if (stockQuantity?.unitCost) {
-      setModifiedCost(stockQuantity.unitCost)
-    }
-    if (stockQuantity?.quantity) {
-      setModifiedStockQuantity(stockQuantity.quantity)
-    }
-  }, [stockQuantity?.unitCost, stockQuantity?.quantity])
+    setModifiedCost(stockQuantity?.unitCost ?? '');
+    setModifiedStockQuantity(stockQuantity?.quantity ?? '');
+  }, [stockQuantity?.id, stockQuantity?.unitCost, stockQuantity?.quantity]);
 
   const handleSave = () => {
     const entity = {
       ...stockQuantity,
-      quantity: modifiedStockQuantity,
-      unitCost: modifiedCost
-    }
-    dispatch(partialUpdateEntity(entity));
-    toggle();
-    setModifiedStockQuantity(0);
+      quantity: modifiedStockQuantity === '' ? 0 : Number(modifiedStockQuantity),
+      unitCost: modifiedCost === '' ? 0 : Number(modifiedCost),
+    };
+
+    dispatch(partialUpdateEntity(entity)).then(() => {
+      onSaved?.(entity);
+      toggle();
+      setModifiedStockQuantity('');
+      setModifiedCost('');
+    });
   };
 
   return (
-    <Modal size="l" isOpen={isOpen} toggle={toggle} backdrop="static">
-      <ModalHeader toggle={toggle}>
-        Quantity Config
-      </ModalHeader>
-      <FormGroup>
+    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Quantity Config</DialogTitle>
+        </DialogHeader>
 
-        <ModalBody>
-          <div className={"d-flex gap-3 mt-2"}>
-            <strong>
-              <Label for="location">
-                {translate("common.location")}
-              </Label>
-            </strong>
-            <p id="location">
-              {stockQuantity?.location?.name}
-            </p>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground">{translate("common.location")}</div>
+            <div className="text-sm">{stockQuantity?.location?.name || '-'}</div>
           </div>
 
-          <div className={"d-flex gap-3 mt-2"}>
-            <strong>
-              <Label for="adjusted">
-                {translate("tempApp.stockConfig.adjustedQuantity")}
-              </Label>
-            </strong>
-            <InputNumber
-              value={modifiedStockQuantity}
+          <div className="space-y-2">
+            <label htmlFor="adjusted" className="text-xs font-medium">
+              {translate("tempApp.stockConfig.adjustedQuantity")}
+            </label>
+            <Input
               id="adjusted"
-              onChange={handleQuantityChange}
-              showButtons buttonLayout="horizontal" style={{ width: '4rem' }} size={1}
-              decrementButtonClassName="p-button-secondary" incrementButtonClassName="p-button-secondary"
-              incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus"
+              type="number"
+              step="0.01"
+              value={modifiedStockQuantity}
+              onChange={e => setModifiedStockQuantity(e.target.value === '' ? '' : Number(e.target.value))}
             />
           </div>
 
-          <div className={"d-flex gap-3 mt-2"}>
-            <strong>
-              <Label for="cost">
-                {translate("tempApp.stockConfig.cost")}
-              </Label>
-            </strong>
-            <InputNumber
-              value={modifiedCost}
+          <div className="space-y-2">
+            <label htmlFor="cost" className="text-xs font-medium">
+              {translate("tempApp.stockConfig.cost")}
+            </label>
+            <Input
               id="cost"
-              onChange={e => setModifiedCost(e.value)}
-              showButtons buttonLayout="horizontal" style={{ width: '4rem' }} size={1}
-              decrementButtonClassName="p-button-secondary" incrementButtonClassName="p-button-secondary"
-              incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus"
+              type="number"
+              step="0.01"
+              value={modifiedCost}
+              onChange={e => setModifiedCost(e.target.value === '' ? '' : Number(e.target.value))}
             />
           </div>
-        </ModalBody>
+        </div>
 
-        <ModalFooter>
-          <Button color="secondary" onClick={handleClose}>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={updating}>
             <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
           </Button>
-          <Button color="primary" onClick={handleSave}>
+          <Button onClick={handleSave} disabled={updating}>
             <Translate contentKey={'entity.action.save'}>Save</Translate>
           </Button>
-        </ModalFooter>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
-      </FormGroup>
-    </Modal>
-  )
-}
-
-export default StockQuantityModal
+export default StockQuantityModal;
