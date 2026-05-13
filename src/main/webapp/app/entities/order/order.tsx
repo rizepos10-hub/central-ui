@@ -262,8 +262,11 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   };
 
   const buildOrderQueryParams = () => {
+    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled'].includes(pageType);
+
     const queryParams = {
       ...(wholesale && { wholesale: true }),
+      ...(shouldExcludeWholesaleOrders && { wholesale: false }),
       ...(pageType === 'scheduled' && { scheduled: true }),
       id: lazyState.filters._id?.value || '',
       client: appSourceProp || lazyState.filters.orderSource?.value || '',
