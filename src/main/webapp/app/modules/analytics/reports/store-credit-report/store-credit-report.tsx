@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
-import { fetchStoreCreditReport } from 'app/modules/analytics/api';
+import { fetchOnAccountTotalBalance, fetchStoreCreditReport } from 'app/modules/analytics/api';
 import { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import { reportTableBodyClassName } from 'app/shared/components/report/report-ui';
 import ReportActionBar from 'app/shared/components/report/report-action-bar';
@@ -35,6 +36,7 @@ type StoreCreditFilters = {
 };
 
 const StoreCreditReport = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<IStoreCreditReportRow[]>([]);
   const [exportRows, setExportRows] = useState<IStoreCreditReportRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,11 +46,14 @@ const StoreCreditReport = () => {
   const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
   const [filters, setFilters] = useState<StoreCreditFilters>({ onAccountEnabledOnly: false, accountNumber: '' });
   const [appliedFilters, setAppliedFilters] = useState<StoreCreditFilters>({ onAccountEnabledOnly: false, accountNumber: '' });
+  const [totalBalance, setTotalBalance] = useState<number | null>(null);
+  const [totalBalanceLoading, setTotalBalanceLoading] = useState(false);
   const exportContentRef = useRef<HTMLDivElement>(null);
 
   const canGoNext = rows.length === PAGE_SIZE;
   const canGoPrevious = page > 0 && !loading;
   const hasExportData = hasLoadedReport && rows.length > 0;
+  const totalBalanceExportValue = totalBalance !== null ? formatAmount(totalBalance) : '-';
   const fileName = createReportFileName(REPORT_TITLE, [
     appliedFilters.onAccountEnabledOnly ? 'on-account-enabled' : null,
     appliedFilters.accountNumber || null,
@@ -83,6 +88,22 @@ const StoreCreditReport = () => {
     void loadReport(0, appliedFilters);
   }, []);
 
+  useEffect(() => {
+    const loadTotalBalance = async () => {
+      try {
+        setTotalBalanceLoading(true);
+        const data = await fetchOnAccountTotalBalance();
+        setTotalBalance(data.totalBalance ?? 0);
+      } catch (err) {
+        setTotalBalance(null);
+      } finally {
+        setTotalBalanceLoading(false);
+      }
+    };
+
+    void loadTotalBalance();
+  }, []);
+
   const ensureExportRows = async () => {
     const allRows = await fetchAllStoreCreditRows(fetchStoreCreditReport, {
       onAccountEnabled: appliedFilters.onAccountEnabledOnly ? true : null,
@@ -103,14 +124,15 @@ const StoreCreditReport = () => {
         buildStoreCreditWorkbook(allRows, {
           title: REPORT_TITLE,
           filters: [
+            { label: 'Total Balance', value: totalBalanceExportValue },
             { label: 'On Account Enabled', value: appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All' },
             { label: 'Account Number', value: appliedFilters.accountNumber || 'All' },
           ],
         }),
         fileName
       );
-    } catch (error) {
-      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -132,8 +154,8 @@ const StoreCreditReport = () => {
           orientation: 'portrait',
         });
       }
-    } catch (error) {
-      setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
     } finally {
       setBusyAction(null);
     }
@@ -148,10 +170,10 @@ const StoreCreditReport = () => {
       setError(null);
       try {
         await ensureExportRows();
-      } catch (error) {
-        setError(getReportApiErrorMessage(error, 'Unable to export customer balance report.'));
+      } catch (err) {
+        setError(getReportApiErrorMessage(err, 'Unable to export customer balance report.'));
         setBusyAction(null);
-        throw error;
+        throw err;
       }
     },
     onAfterPrint: () => {
@@ -245,7 +267,18 @@ const StoreCreditReport = () => {
           </Card>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm font-medium">
+            Total Balance:{' '}
+            {totalBalanceLoading ? (
+              <span className="inline-flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Loading...
+              </span>
+            ) : (
+              <span className="font-semibold">{formatAmount(totalBalance)}</span>
+            )}
+          </div>
           <ReportActionBar
             onExcel={handleExcelExport}
             onPdf={handlePdfExport}
@@ -280,7 +313,15 @@ const StoreCreditReport = () => {
                 </TableRow>
               ) : (
                 rows.map(row => (
-                  <TableRow key={`${row.customerId}-${row.customerName}`}>
+                  <TableRow
+                    key={`${row.customerId}-${row.customerName}`}
+                    className={row.customerId ? 'cursor-pointer hover:bg-muted/40' : undefined}
+                    onClick={() => {
+                      if (row.customerId) {
+                        navigate(`/customer/${row.customerId}?page=1&sort=id,asc`);
+                      }
+                    }}
+                  >
                     <TableCell className="text-xs">{row.customerName}</TableCell>
                     <TableCell className="text-xs">{row.customerId}</TableCell>
                     <TableCell className="text-xs text-right">{formatAmount(row.creditLimit)}</TableCell>
@@ -328,6 +369,7 @@ const StoreCreditReport = () => {
               forceVisible={busyAction === 'pdf'}
               meta={[{ label: 'Dataset', value: 'Full export dataset' }]}
               filters={[
+                { label: 'Total Balance', value: totalBalanceExportValue },
                 { label: 'On Account Enabled', value: appliedFilters.onAccountEnabledOnly ? 'Yes' : 'All' },
                 { label: 'Account Number', value: appliedFilters.accountNumber || 'All' },
                 { label: 'Total Records', value: exportRows.length },

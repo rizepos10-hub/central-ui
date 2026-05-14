@@ -27,12 +27,12 @@
       "comments": "Comments",
       "comment": "Comment",
       "costDate": "Cost Date",
-      "cost": "Cost",
-      "costLines": "Cost Lines",
+      "cost": "Additional Cost",
+      "costLines": "Additional Costs",
       "returnItems": "Return Items",
       "splitAndComplete": "Split & Complete Order",
       "PLACED": "PLACED",
-      "RECEIVED": "RECEIVED",
+      "RECEIVED": "RECEIVE",
       "costPrice": "Cost Price",
       "receivedQuantity": "Received Quantity"
     }

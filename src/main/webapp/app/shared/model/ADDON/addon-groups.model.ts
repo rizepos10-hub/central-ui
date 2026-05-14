@@ -16,6 +16,7 @@ export interface IAddonGroups {
   name?: string;
   required?: boolean;
   addAutomatically?: boolean;
+  rootAddonGroup?: boolean;
 }
 
 export const defaultValue: Readonly<IAddonGroup> = {};

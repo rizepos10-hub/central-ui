@@ -241,6 +241,7 @@
       "min": "Min",
       "max": "Max",
       "addAutomatically": "Print",
+      "rootAddonGroup": "Root Addon Group",
       "relatedAddons": "Related Addons",
       "exclude": "Exclude",
       "include": "Include",

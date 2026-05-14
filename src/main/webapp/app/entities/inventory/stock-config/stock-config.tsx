@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { useNavigate } from 'react-router-dom';
+import { Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './inventory-items.reducer';
-import { IQueryParams } from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
 import { formatVariant } from 'app/shared/util/variant-utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Wallet, Ban, Settings, Plus, RefreshCw, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Settings, Plus, RefreshCw, ChevronDown, ChevronRight, Pencil } from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -23,6 +20,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
+import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
+import StockQuantityModal from './stock-quantity-modal';
 
 export const StockConfig = () => {
   const dispatch = useAppDispatch();
@@ -34,8 +34,9 @@ export const StockConfig = () => {
     page: 0,
     sort: 'asc',
     first: 0,
-    query: null
-  })
+    query: null as string | null,
+    branchId: null as string | null,
+  });
 
   const inventoryItemList = useAppSelector(state => state.inventoryItem.entities);
   const loading = useAppSelector(state => state.inventoryItem.loading);
@@ -46,7 +47,10 @@ export const StockConfig = () => {
   });
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [editedStockQuantity, setEditedStockQuantity] = useState<IStockQuantity | null>(null);
+  const [isStockQuantityModalOpen, setIsStockQuantityModalOpen] = useState(false);
 
+  const selectedBranchId = queryParams.branchId;
 
   const getAllEntities = () => {
     if (queryParams?.query) {
@@ -58,7 +62,7 @@ export const StockConfig = () => {
 
   useEffect(() => {
     getAllEntities();
-  }, [queryParams.page, queryParams.sort, queryParams.size, queryParams.query]);
+  }, [queryParams.page, queryParams.sort, queryParams.size, queryParams.query, queryParams.branchId]);
 
   const expandAll = () => {
     const _expandedRows = new Set<string>();
@@ -84,37 +88,53 @@ export const StockConfig = () => {
   const onPage = (page: number) => {
     setQueryParams(prevState => ({
       ...prevState,
-      first: page * queryParams.size,
+      first: page * prevState.size,
       page
     }));
   };
 
-  const onFilterChange = _.debounce((name: string, value: string) => {
-    const newQuery = value ? `name=${value}` : null;
-
+  const onNameFilterChange = _.debounce((value: string) => {
     setQueryParams((prevState) => ({
       ...prevState,
-      query: newQuery
+      first: 0,
+      page: 0,
+      query: value ? `name=${value}` : null,
     }));
   }, 200);
-
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
-
-  const quantityConfigBodyTemplate = (rowData) => {
-    const { stockQuantities: quantity } = rowData;
-    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&variantName=${rowData?.name}&page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
-
-    const icon = quantity?.length > 0 ? <Wallet className="h-4 w-4" /> : <Ban className="h-4 w-4 text-muted-foreground" />;
-    const handleClick = () => {
-      navigate(editUrl)
+  const getBranchStockQuantities = (stockQuantities: IStockQuantity[] = []) => {
+    if (!selectedBranchId) {
+      return [];
     }
-    return quantity?.length > 0 ?
-      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button> :
-      <span className="inline-flex items-center justify-center">{icon}</span>;
+
+    return stockQuantities.filter(stock => (stock.location as any)?.branch?.id === selectedBranchId);
+  };
+
+  const getBranchQuantity = (stockQuantities: IStockQuantity[] = []) => {
+    const filteredStock = getBranchStockQuantities(stockQuantities);
+    if (filteredStock.length === 0) {
+      return '-';
+    }
+
+    const totalQuantity = filteredStock.reduce((sum, stock) => sum + (Number(stock.quantity) || 0), 0);
+    return totalQuantity;
+  };
+
+  const getBranchUnitCost = (stockQuantities: IStockQuantity[] = []) => {
+    const costs = getBranchStockQuantities(stockQuantities)
+      .map(stock => Number(stock.unitCost))
+      .filter(cost => !Number.isNaN(cost));
+
+    if (costs.length === 0) {
+      return '-';
+    }
+
+    const averageCost = costs.reduce((sum, cost) => sum + cost, 0) / costs.length;
+    return averageCost;
   };
 
   const purchaseConfigBodyTemplate = (rowData) => {
@@ -136,6 +156,43 @@ export const StockConfig = () => {
     return <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button>;
   };
 
+  const toggleStockQuantityModal = () => {
+    setIsStockQuantityModalOpen(prevState => {
+      const nextState = !prevState;
+      if (!nextState) {
+        setEditedStockQuantity(null);
+      }
+      return nextState;
+    });
+  };
+
+  const getEditableBranchStockQuantity = (stockQuantities: IStockQuantity[] = []) => {
+    const branchStockQuantities = getBranchStockQuantities(stockQuantities);
+    return branchStockQuantities[0] ?? null;
+  };
+
+  const stockEditBodyTemplate = (rowData) => {
+    const editableStockQuantity = getEditableBranchStockQuantity(rowData.stockQuantities);
+
+    if (!editableStockQuantity) {
+      return '-';
+    }
+
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        onClick={() => {
+          setEditedStockQuantity(editableStockQuantity);
+          setIsStockQuantityModalOpen(true);
+        }}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+    );
+  };
+
   const renderVariantRow = (data) => {
     const variantsWithItemId = data.variants.map(variant => ({
       ...variant,
@@ -144,7 +201,7 @@ export const StockConfig = () => {
 
     return (
       <TableRow>
-        <TableCell colSpan={2} className="bg-muted/50">
+        <TableCell colSpan={3} className="bg-muted/50">
           <div className="p-3">
             <h4 className="text-sm font-semibold mb-2">{data.name} Variants</h4>
             <Table>
@@ -153,7 +210,15 @@ export const StockConfig = () => {
                   <TableHead className="text-xs bg-muted/30">{translate("common.variantName")}</TableHead>
                   <TableHead className="text-xs bg-muted/30">{translate("common.price")}</TableHead>
                   <TableHead className="text-xs bg-muted/30">{translate("common.sku")}</TableHead>
-                  <TableHead className="text-xs bg-muted/30 w-24">{translate("common.details")}</TableHead>
+                  {selectedBranchId && (
+                    <TableHead className="text-xs bg-muted/30">{translate("items.update.stockQuantity.quantity")}</TableHead>
+                  )}
+                  {selectedBranchId && (
+                    <TableHead className="text-xs bg-muted/30">{translate("items.update.stockQuantity.unitCost")}</TableHead>
+                  )}
+                  {selectedBranchId && (
+                    <TableHead className="text-xs bg-muted/30 w-20 text-center">Edit Stock</TableHead>
+                  )}
                   <TableHead className="text-xs bg-muted/30 w-24">{translate("tempApp.stockConfig.purchaseConfig")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -163,7 +228,15 @@ export const StockConfig = () => {
                     <TableCell className="text-xs bg-muted/30">{formatVariant(variant?.name, variant?.attributeValues)}</TableCell>
                     <TableCell className="text-xs bg-muted/30">{variant.price}</TableCell>
                     <TableCell className="text-xs bg-muted/30">{variant.sku}</TableCell>
-                    <TableCell className="text-xs bg-muted/30 text-center">{quantityConfigBodyTemplate(variant)}</TableCell>
+                    {selectedBranchId && (
+                      <TableCell className="text-xs bg-muted/30">{getBranchQuantity(variant.stockQuantities)}</TableCell>
+                    )}
+                    {selectedBranchId && (
+                      <TableCell className="text-xs bg-muted/30">{getBranchUnitCost(variant.stockQuantities)}</TableCell>
+                    )}
+                    {selectedBranchId && (
+                      <TableCell className="text-xs bg-muted/30 text-center">{stockEditBodyTemplate(variant)}</TableCell>
+                    )}
                     <TableCell className="text-xs bg-muted/30 text-center">{purchaseConfigBodyTemplate(variant)}</TableCell>
                   </TableRow>
                 ))}
@@ -200,7 +273,7 @@ export const StockConfig = () => {
           <TableRow>
             <TableHead className="text-xs w-12"></TableHead>
             <TableHead className="text-xs">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div>Item Name</div>
                 <Input
                   type="text"
@@ -209,7 +282,27 @@ export const StockConfig = () => {
                   value={filters.name}
                   onChange={(e) => {
                     setFilters({ ...filters, name: e.target.value });
-                    onFilterChange('name', e.target.value);
+                    onNameFilterChange(e.target.value);
+                  }}
+                />
+              </div>
+            </TableHead>
+            <TableHead className="text-xs min-w-[220px]">
+              <div className="space-y-2">
+                <div>Branch</div>
+                <DropDownFilter
+                  classname={'w-full'}
+                  placeholder={'Select Branch'}
+                  dropDownOptionType={'BRANCH'}
+                  selectedOption={selectedBranchId}
+                  fieldName={'branchId'}
+                  handleDropdownChange={(fieldName, value) => {
+                    setQueryParams(prevState => ({
+                      ...prevState,
+                      first: 0,
+                      page: 0,
+                      branchId: value?.value || null,
+                    }));
                   }}
                 />
               </div>
@@ -231,6 +324,7 @@ export const StockConfig = () => {
                   </Button>
                 </TableCell>
                 <TableCell className="text-xs">{item.name}</TableCell>
+                <TableCell className="text-xs"></TableCell>
               </TableRow>
               {expandedRows.has(item.id) && renderVariantRow(item)}
             </React.Fragment>
@@ -316,6 +410,17 @@ export const StockConfig = () => {
           </Pagination>
         </div>
       )}
+
+      {editedStockQuantity ? (
+        <StockQuantityModal
+          isOpen={isStockQuantityModalOpen}
+          stockQuantity={editedStockQuantity}
+          toggle={toggleStockQuantityModal}
+          onSaved={() => {
+            getAllEntities();
+          }}
+        />
+      ) : null}
     </PageWrapper>
   );
 };

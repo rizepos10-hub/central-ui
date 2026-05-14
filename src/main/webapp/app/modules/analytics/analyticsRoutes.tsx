@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import TopItems from "app/modules/analytics/TopItems";
@@ -41,7 +41,8 @@ export default () => {
         <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />
         <Route path="/sales-report/print" element={<SalesReportPrint />} />
         <Route path="/inventory-report" element={<InventoryReport />} />
-        <Route path="/store-credit-report" element={<StoreCreditReport />} />
+        <Route path="/customer-balance-report" element={<StoreCreditReport />} />
+        <Route path="/store-credit-report" element={<Navigate to="/analytics/customer-balance-report" replace />} />
         <Route path="/house-charges-report" element={<HouseChargesReport />} />
         <Route path="/commission-fees-report" element={<CommissionFeesReport />} />
         <Route path="/sales-activity-summary-report" element={<SalesActivitySummaryReport />} />

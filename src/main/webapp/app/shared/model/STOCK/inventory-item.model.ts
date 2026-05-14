@@ -1,6 +1,7 @@
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IStockOrderedItem} from "app/shared/model/STOCK/order-Item.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
+import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
 
 export interface IInventoryItem {
   id?: string;
@@ -19,7 +20,7 @@ export interface IInventoryItemVariant {
   attributeValues?: any;
   attachments?: IAttachment[];
   itemPurchasingConfig?: IPurchaseConfig;
-
+  stockQuantities?: IStockQuantity[];
 }
 
 export const defaultValue: Readonly<IStockOrderedItem> = {};

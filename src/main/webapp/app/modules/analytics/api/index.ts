@@ -300,6 +300,16 @@ export const fetchStoreCreditReport = async ({
   }
 };
 
+export const fetchOnAccountTotalBalance = async () => {
+  try {
+    const response = await axios.get<{ totalBalance: number }>('/api/report/on-account/total-balance');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching on-account total balance:', error);
+    throw error;
+  }
+};
+
 export const fetchHouseChargesReport = async ({
   fromDate,
   toDate,

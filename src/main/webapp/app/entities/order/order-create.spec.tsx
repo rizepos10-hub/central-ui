@@ -70,7 +70,17 @@ jest.mock('../settings/branch-registry/till/till.reducer', () => ({
 }));
 
 jest.mock('./order.reducer', () => ({
-  calculateItemPrice: jest.fn(payload => ({ type: 'order/calculate_item_price', payload })),
+  calculateItemPrice: jest.fn(payload => ({
+    type: 'order/calculate_item_price/fulfilled',
+    payload: {
+      data: {
+        itemTotal: 9,
+        taxTotal: 0,
+        grandTotal: 9,
+      },
+      ...payload,
+    },
+  })),
   changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
   clearChargesPreview: jest.fn(() => ({ type: 'order/clear_charges_preview' })),
   createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
@@ -117,6 +127,13 @@ jest.mock('@/components/ui/dialog', () => ({
   DialogFooter: ({ children }) => <div>{children}</div>,
 }));
 
+jest.mock('@/components/ui/tooltip', () => ({
+  TooltipProvider: ({ children }) => <div>{children}</div>,
+  Tooltip: ({ children }) => <div>{children}</div>,
+  TooltipTrigger: ({ children }) => <div>{children}</div>,
+  TooltipContent: ({ children }) => <div>{children}</div>,
+}));
+
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -142,6 +159,9 @@ beforeAll(() => {
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
+  (orderReducer.calculateItemPrice as any).fulfilled = {
+    match: action => action?.type === 'order/calculate_item_price/fulfilled',
+  };
   mockLocation = {
     search: '?registerId=reg-1',
     state: null,
@@ -220,6 +240,10 @@ beforeEach(() => {
   };
 
   mockDispatch.mockImplementation(action => {
+    if (action?.type === 'order/calculate_item_price/fulfilled') {
+      return Promise.resolve(action);
+    }
+
     if (action?.type === 'order/create_entity') {
       return {
         unwrap: () =>
@@ -328,10 +352,120 @@ const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderR
 const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
 describe('OrderCreate payment flow', () => {
+  it('does not send priceOverride for built-in discounted items unless the user overrides the price', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 10,
+        customDiscount: 0,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 10,
+            salePrice: null,
+            attachments: [],
+            discounts: [
+              {
+                type: 'PERCENTAGE',
+                value: 50,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByText('Variant 1'));
+    fireEvent.change(screen.getByPlaceholderText('Discount'), { target: { value: '50' } });
+
+    await waitFor(() => {
+      expect(orderReducer.calculateItemPrice).toHaveBeenCalled();
+    });
+
+    const lastPayload = orderReducer.calculateItemPrice.mock.calls[orderReducer.calculateItemPrice.mock.calls.length - 1][0];
+    expect(lastPayload).toEqual(
+      expect.objectContaining({
+        cartId: 'cart-1',
+        payload: expect.objectContaining({
+          itemId: 'item-1',
+          variantId: 'variant-1',
+          discountOverride: {
+            type: 'PERCENTAGE',
+            value: 50,
+          },
+        }),
+      })
+    );
+    expect(lastPayload.payload).not.toHaveProperty('priceOverride');
+  });
+
+  it('shows the base price in the unit-price input while displaying the built-in discounted price in the amount column', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 10,
+        customDiscount: 0,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 10,
+            salePrice: null,
+            attachments: [],
+            discounts: [
+              {
+                type: 'PERCENTAGE',
+                value: 50,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByText('Variant 1'));
+
+    const originalPrices = await screen.findAllByText('$10.00');
+    const discountedPrices = await screen.findAllByText('$5.00');
+    const unitPriceInput = screen.getByPlaceholderText('Price');
+    const discountInput = screen.getByPlaceholderText('Discount');
+    const struckThroughOriginalPrice = originalPrices.find(node => node.className.includes('line-through'));
+
+    expect(struckThroughOriginalPrice?.className).toContain('line-through');
+    expect(discountedPrices.length).toBeGreaterThan(0);
+    expect(unitPriceInput.value).toBe('10');
+    expect(discountInput.value).toBe('0');
+  });
+
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
-
-    fireEvent.click(screen.getByRole('button', { name: /continue as admin/i }));
 
     fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
 
@@ -389,7 +523,11 @@ describe('OrderCreate payment flow', () => {
     });
   });
 
-  it('sends wholesale when a dual-role user continues as salesman and creates without payment', async () => {
+  it('sends wholesale in wholesale mode when creating without payment', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
     mockState.order.entity.deliverTo = {
       id: 'address-1',
@@ -398,9 +536,8 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as salesman/i }));
     fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
-    fireEvent.click(screen.getByRole('button', { name: /create without payment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create wholesale order without payment/i }));
 
     await waitFor(() => {
       expect(orderReducer.createEntity).toHaveBeenCalled();
@@ -413,7 +550,11 @@ describe('OrderCreate payment flow', () => {
     );
   });
 
-  it('sends wholesale for salesman-only create and pay', async () => {
+  it('sends wholesale for create and pay in wholesale mode', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
     mockState.order.entity.deliverTo = {
       id: 'address-1',
@@ -427,7 +568,7 @@ describe('OrderCreate payment flow', () => {
     const amountInput = screen.getAllByRole('spinbutton')[0];
     fireEvent.change(amountInput, { target: { value: '5' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create wholesale order & pay/i }));
 
     await waitFor(() => {
       expect(orderReducer.createEntity).toHaveBeenCalled();
@@ -442,13 +583,15 @@ describe('OrderCreate payment flow', () => {
     );
   });
 
-  it('keeps salesman validation active when a dual-role user chooses salesman', async () => {
+  it('keeps wholesale validation active in wholesale mode', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as salesman/i }));
-
     await waitFor(() => {
-      expect(screen.getByText(/before creating an order\./i)).not.toBeNull();
+      expect(screen.getByText(/before creating a wholesale order\./i)).not.toBeNull();
     });
 
     expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(true);

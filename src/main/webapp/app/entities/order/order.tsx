@@ -64,7 +64,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       storageKey: 'order-columns',
       title: 'Orders',
       sortField: 'createdDate',
-      sortOrder: 'asc' as any,
+      sortOrder: -1 as any,
       dateFrom: '',
       dateTo: '',
       modifiedDate: false,
@@ -74,7 +74,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       storageKey: 'order-history-columns',
       title: 'Order History',
       sortField: 'createdDate',
-      sortOrder: 'asc' as any,
+      sortOrder: -1 as any,
       dateFrom: '',
       dateTo: '',
       modifiedDate: false,
@@ -83,8 +83,8 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     today: {
       storageKey: 'order-today-columns',
       title: "Today's Orders",
-      sortField: null,
-      sortOrder: null,
+      sortField: 'createdDate',
+      sortOrder: -1 as any,
       dateFrom: from.toISOString(),
       dateTo: to.toISOString(),
       modifiedDate: true,
@@ -93,12 +93,12 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     scheduled: {
       storageKey: 'order-scheduled-columns',
       title: 'Scheduled Orders',
-      sortField: null,
-      sortOrder: null,
-      dateFrom: from.toISOString(),
-      dateTo: to.toISOString(),
-      modifiedDate: true,
-      showDatePicker: false,
+      sortField: 'createdDate',
+      sortOrder: -1 as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
     },
   };
 
@@ -143,8 +143,8 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
 
 
   const getBranchName = (branchId) => {
-    const branch = branchList.find(branch => branch.id === branchId);
-    return branch ? branch.name : 'Unknown Branch';
+    const matchedBranch = branchList.find(item => item.id === branchId);
+    return matchedBranch ? matchedBranch.name : 'Unknown Branch';
   };
 
   const filteredBranchOptions = branchList
@@ -166,54 +166,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const handleDeleteOrder = async (orderId: string, sequenceNumber: string) => {
     try {
       await dispatch(deleteEntity(orderId));
-
-      // Refetch orders using the current filters
-      const queryParams = {
-        id: lazyState.filters._id?.value || '',
-        client: appSourceProp || lazyState.filters.orderSource?.value || '',
-        orderProcessingStatus: lazyState.filters.status?.value || '',
-        first: lazyState.first,
-        sequenceId: lazyState.filters.id?.value || '',
-        page: lazyState.page,
-        customerPhone: lazyState.filters['customer.phone']?.value || '',
-        customerEmail: lazyState.filters['customer.email']?.value || '',
-        customerId: lazyState.filters['customer.id']?.value || '',
-        branchId: lazyState.filters.branchId?.value || '',
-        tables: lazyState.filters.tables?.value || '',
-        total: lazyState.filters.total?.value,
-        discount: lazyState.filters.discount?.value,
-        refund: lazyState.filters.refund?.value,
-        createdBy: lazyState.filters.createdBy?.value || '',
-        size: lazyState.rows,
-        fromDate: isEndOfDayMode
-          ? (externalFromDate || '')
-          : pageConfig.showDatePicker
-          ? (dateRange?.from ? (() => {
-              const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
-              const dateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
-              return fromZonedTime(`${dateStr} 00:00:00`, targetTimeZone).toISOString();
-            })() : '')
-          : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
-        toDate: isEndOfDayMode
-          ? (externalToDate || '')
-          : pageConfig.showDatePicker
-          ? (dateRange?.to ? (() => {
-              const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
-              const dateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
-              return fromZonedTime(`${dateStr} 23:59:59`, targetTimeZone).toISOString();
-            })() : '')
-          : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
-        modifiedDate: pageConfig.modifiedDate,
-        sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
-      };
-
-      const filteredQueryParams = Object.fromEntries(
-        Object.entries(queryParams).filter(
-          ([_, value]) => value !== '' && value !== null && value !== undefined
-        )
-      );
-
-      await dispatch(filterOrders(filteredQueryParams));
+      await dispatch(filterOrders(buildOrderQueryParams()));
       toast.success(`Order ${sequenceNumber} deleted successfully`, { autoClose: 3000 });
     } catch (error) {
       toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
@@ -272,7 +225,6 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       // Update or set the 'orderToday' key with the new column visibility
       visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
       
-      console.log(visibleColumnsData);
       // Save the updated data back to localStorage
       localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
   
@@ -302,6 +254,57 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     return lazyState.sortOrder === 1 ? '↑' : '↓';
   };
 
+  const getSelectedDateRangeBoundary = (value: Date, boundary: 'start' | 'end') => {
+    const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
+    const dateStr = `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+    const time = boundary === 'start' ? '00:00:00' : '23:59:59';
+    return fromZonedTime(`${dateStr} ${time}`, targetTimeZone).toISOString();
+  };
+
+  const buildOrderQueryParams = () => {
+    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled'].includes(pageType);
+
+    const queryParams = {
+      ...(wholesale && { wholesale: true }),
+      ...(shouldExcludeWholesaleOrders && { wholesale: false }),
+      ...(pageType === 'scheduled' && { scheduled: true }),
+      id: lazyState.filters._id?.value || '',
+      client: appSourceProp || lazyState.filters.orderSource?.value || '',
+      orderProcessingStatus: lazyState.filters.status?.value || '',
+      first: lazyState.first,
+      sequenceId: lazyState.filters.id?.value || '',
+      page: lazyState.page,
+      customerPhone: lazyState.filters['customer.phone']?.value || '',
+      customerEmail: lazyState.filters['customer.email']?.value || '',
+      customerId: lazyState.filters['customer.id']?.value || '',
+      branchId: lazyState.filters.branchId?.value || '',
+      tables: lazyState.filters.tables?.value || '',
+      total: lazyState.filters.total?.value,
+      discount: lazyState.filters.discount?.value,
+      refund: lazyState.filters.refund?.value,
+      createdBy: lazyState.filters.createdBy?.value || '',
+      size: lazyState.rows,
+      fromDate: isEndOfDayMode
+        ? (externalFromDate || '')
+        : pageConfig.showDatePicker
+        ? (dateRange?.from ? getSelectedDateRangeBoundary(dateRange.from, 'start') : '')
+        : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
+      toDate: isEndOfDayMode
+        ? (externalToDate || '')
+        : pageConfig.showDatePicker
+        ? (dateRange?.to ? getSelectedDateRangeBoundary(dateRange.to, 'end') : '')
+        : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
+      modifiedDate: pageConfig.modifiedDate,
+      sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : 'createdDate,desc'
+    };
+
+    return Object.fromEntries(
+      Object.entries(queryParams).filter(
+        ([_, value]) => value !== '' && value !== null && value !== undefined
+      )
+    );
+  };
+
   useEffect(() => {
     const handleFilterOrders = debounce(() => {
       if (
@@ -325,53 +328,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
         (!isEndOfDayMode && (dateRange?.from || dateRange?.to)) ||
         (isEndOfDayMode && externalFromDate && externalToDate)
       ) {
-        const queryParams = {
-          ...(wholesale && { wholesale: true }),
-          id: lazyState.filters._id?.value || '',
-          client: appSourceProp || lazyState.filters.orderSource?.value || '',
-          orderProcessingStatus: lazyState.filters.status?.value || '',
-          first: lazyState.first,
-          sequenceId: lazyState.filters.id?.value || '',
-          page: lazyState.page,
-          customerPhone: lazyState.filters['customer.phone']?.value || '',
-          customerEmail: lazyState.filters['customer.email']?.value || '',
-          customerId: lazyState.filters['customer.id']?.value || '',
-          branchId: lazyState.filters.branchId?.value || '',
-          tables: lazyState.filters.tables?.value || '',
-          total: lazyState.filters.total?.value,
-          discount: lazyState.filters.discount?.value,
-          refund: lazyState.filters.refund?.value,
-          createdBy: lazyState.filters.createdBy?.value || '',
-          size: lazyState.rows,
-          fromDate: isEndOfDayMode
-            ? (externalFromDate || '')
-            : pageConfig.showDatePicker
-            ? (dateRange?.from ? (() => {
-                const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
-                const dateStr = `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`;
-                return fromZonedTime(`${dateStr} 00:00:00`, targetTimeZone).toISOString();
-              })() : '')
-            : (lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : ''),
-          toDate: isEndOfDayMode
-            ? (externalToDate || '')
-            : pageConfig.showDatePicker
-            ? (dateRange?.to ? (() => {
-                const targetTimeZone = (externalBranchId ? branchList.find(b => b.id === externalBranchId)?.timezone : null) || businessTimeZone;
-                const dateStr = `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`;
-                return fromZonedTime(`${dateStr} 23:59:59`, targetTimeZone).toISOString();
-              })() : '')
-            : (lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : ''),
-          modifiedDate: pageConfig.modifiedDate,
-          sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : '_id,asc'
-        };
-
-        const filteredQueryParams = Object.fromEntries(
-          Object.entries(queryParams).filter(
-            ([_, value]) => value !== '' && value !== null && value !== undefined
-          )
-        );
-
-        dispatch(filterOrders(filteredQueryParams));
+        dispatch(filterOrders(buildOrderQueryParams()));
       } else {
         dispatch(getEntities({}));
       }

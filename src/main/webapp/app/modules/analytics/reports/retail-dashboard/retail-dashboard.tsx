@@ -182,9 +182,9 @@ const RetialDashboard: React.FC = () => {
                 if (cancelled || myGen !== fetchGenerationRef.current) return;
 
                 const updatedData: { [key: string]: IRetailDashboard } = {};
-                results.forEach(({ reportType, data }) => {
+                results.forEach(({ reportType, data: reportData }) => {
                     const camelCaseKey = toCamelCase(reportType) + 'Data';
-                    updatedData[camelCaseKey] = data as IRetailDashboard;
+                    updatedData[camelCaseKey] = reportData as IRetailDashboard;
                 });
                 setData(updatedData);
             } catch {
@@ -449,7 +449,7 @@ interface GeneralChartProps {
 }
 
 const GeneralChart: React.FC<GeneralChartProps> = ({ title, labels, dataset }) => {
-    const data = useMemo(
+    const chartConfig = useMemo(
         () => ({
             labels,
             datasets: [
@@ -491,7 +491,7 @@ const GeneralChart: React.FC<GeneralChartProps> = ({ title, labels, dataset }) =
     return (
         <div>
             <h3 className="text-sm font-semibold mb-2">{title}</h3>
-            <Chart type="line" data={data} options={options} />
+            <Chart type="line" data={chartConfig} options={options} />
         </div>
     );
 };

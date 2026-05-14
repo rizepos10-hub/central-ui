@@ -5,6 +5,7 @@ import type { ChartDataState, ChartOptionsState, Demo } from '../../sidebar/type
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import {
   fetchOrdersByYear,
+  fetchOnAccountTotalBalance,
   fetchRecentSales,
   fetchTopCategories,
   fetchTopFields,
@@ -50,11 +51,13 @@ export default function Home() {
   const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [topFields, setTopFields]:any = useState({})
+  const [onAccountTotalBalance, setOnAccountTotalBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState({
     chartsData: false,
     topFieldsData: false,
     topItemsData: false,
     recentSalesData: false,
+    onAccountTotalBalanceData: false,
   });
 
 
@@ -227,11 +230,12 @@ export default function Home() {
       topFieldsData: value,
       topItemsData: value,
       recentSalesData: value,
+      onAccountTotalBalanceData: value,
     }));
   };
 
   const setSingleLoading = (index, value) => {
-    const keys = ['chartsData', 'topFieldsData', 'topItemsData', 'recentSalesData'];
+    const keys = ['chartsData', 'topFieldsData', 'topItemsData', 'recentSalesData', 'onAccountTotalBalanceData'];
     setLoading((prev) => ({
       ...prev,
       [keys[index]]: value,
@@ -248,6 +252,7 @@ export default function Home() {
           fetchTopFields(fromDate, toDate),
           fetchTopItems(5),
           fetchRecentSales(),
+          fetchOnAccountTotalBalance(),
         ];
 
         const results = await Promise.allSettled(promises);
@@ -266,6 +271,9 @@ export default function Home() {
                 break;
               case 3:
                 setRecentSales(result.value);
+                break;
+              case 4:
+                setOnAccountTotalBalance(result.value?.totalBalance ?? 0);
                 break;
               default:
                 break;
@@ -365,7 +373,7 @@ export default function Home() {
 
 
   const onYearChange = (value: string) => {
-    setSelectedYear(parseInt(value));
+    setSelectedYear(parseInt(value, 10));
   };
 
 
@@ -373,7 +381,7 @@ export default function Home() {
     <PageWrapper>
       <div className="grid grid-cols-1 gap-2">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
         <Card>
           <CardContent className="p-2">
             <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.sales'}/></span>
@@ -475,6 +483,31 @@ export default function Home() {
                   <path
                     d="M0.5 22.7464L2 23C3.40972 23.1524 5.42201 18.0581 8.95833 16.9517C12 16 14.5972 23.4341 17.4167 20.4309C20.2361 17.4277 19 9.50002 25.5 9.50002C31 9.50002 30 4.00002 33 4.00002C35.8428 4.00002 40 13 42.7917 11.0655C47.3252 7.92391 48.4306 14.016 51.25 11.4384C54.0694 8.86075 56.5 12.5 59.7083 8.22399C63.3559 3.36252 65.4888 0.499985 68.5 0.499985C73 0.499985 73.5 7.00001 78.5 6.5C84.9677 5.85322 82.2931 2.58281 85 1.50002C87.5 0.500003 90.7222 11.8656 93.5417 8.93639C97.5 4.00002 99.1806 7.12226 100.59 7.6798L102 8.23734"
                     stroke="#6366F1"
+                  />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-2">
+            <span className="font-semibold text-sm block mb-1">On Account Total</span>
+            <div className="flex justify-between items-start">
+              {loading.onAccountTotalBalanceData ? (
+                <Skeleton className="h-12 w-32" />
+              ) : (
+                <div className="flex-1">
+                  <span className="text-2xl font-bold block">
+                    {onAccountTotalBalance !== null ? formatCurrency(onAccountTotalBalance) : '-'}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1">
+                <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M1 35.6498L2.24444 32.4319C3.48889 29.214 5.97778 22.7782 8.46667 20.3627C10.9556 17.9473 13.4444 19.5522 15.9333 21.7663C18.4222 23.9803 20.9111 26.8035 23.4 30.6606C25.8889 34.5176 28.3778 39.4085 30.8667 37.2137C33.3556 35.0189 35.8444 25.7383 38.3333 26.3765C40.8222 27.0146 43.3111 37.5714 45.8 38.9013C48.2889 40.2311 50.7778 32.3341 53.2667 31.692C55.7556 31.0499 58.2444 37.6628 60.7333 39.4617C63.2222 41.2607 65.7111 38.2458 68.2 34.9205C70.6889 31.5953 73.1778 27.9597 75.6667 23.5955C78.1556 19.2313 80.6444 14.1385 83.1333 13.8875C85.6222 13.6365 88.1111 18.2272 90.6 20.2425C93.0889 22.2578 95.5778 21.6977 98.0667 18.8159C100.556 15.9341 103.044 10.7306 105.533 7.37432C108.022 4.01806 110.511 2.50903 111.756 1.75451L113 1"
+                    style={{ strokeWidth: '1px', stroke: 'hsl(var(--primary))' }}
                   />
                 </svg>
               </div>

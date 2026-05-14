@@ -51,9 +51,9 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from 'primereact/api';
 import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddressDialog';
-import { isOrderCreateRoleSelectionPending, resolveOrderCreateRoleMode } from './order-create-role-utils';
 import OrderPaymentDialog from './order-payment-dialog';
 import { formatServiceChargeKey } from 'app/shared/util/service-charge-utils';
+import { getFinalPrice } from 'app/shared/util/calculations-utils';
 
 type ChargePreviewRow = {
     key: string;
@@ -72,9 +72,9 @@ const OrderCreate = () => {
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
-    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
+    const isWholesaleMode = searchParams.get("mode") === 'wholesale';
     
     // Check if we're in edit mode
     const locationState = (location.state as { editOrder?: IOrder; orderId?: string } | null) || null;
@@ -95,8 +95,6 @@ const OrderCreate = () => {
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
     const [scheduledAtLocal, setScheduledAtLocal] = useState('');
-    const [roleMode, setRoleMode] = useState<'salesman' | 'admin' | null>(null);
-    const [roleChoiceOpen, setRoleChoiceOpen] = useState(false);
     const [addressDialogOpen, setAddressDialogOpen] = useState(false);
     const [addressDialogAddress, setAddressDialogAddress] = useState<IAddress | null>(null);
     const [mobileProductDialogOpen, setMobileProductDialogOpen] = useState(false);
@@ -144,25 +142,12 @@ const OrderCreate = () => {
     const hasInitializedOrder = useRef(false);
     const hasInitializedEditOrder = useRef(false);
     const hasRecalculatedEditTaxes = useRef(false);
-    const isSalesmanRole = authorities.includes('ROLE_WHOLESALE_SALESMAN');
-    const isAdminRole = authorities.includes('ROLE_ADMINISTRATOR');
-    const requiresRoleChoice = isSalesmanRole && isAdminRole;
-    const effectiveRoleMode = resolveOrderCreateRoleMode({
-        isAdminRole,
-        isSalesmanRole,
-        roleMode,
-    });
-    const isSalesmanMode = effectiveRoleMode === 'salesman';
-    const isRoleSelectionPending = isOrderCreateRoleSelectionPending({
-        isAdminRole,
-        isSalesmanRole,
-        roleMode,
-    });
+    const isSalesmanMode = isWholesaleMode;
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
     const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
     const isSalesmanFlowReady = !missingSchedule && !missingCustomer && !missingDelivery;
-    const shouldGateSalesman = (isSalesmanMode && !isSalesmanFlowReady) || isRoleSelectionPending;
+    const shouldGateSalesman = isSalesmanMode && !isSalesmanFlowReady;
     const missingSalesmanFields = useMemo(() => {
         const fields: string[] = [];
         if (missingCustomer) fields.push('customer');
@@ -196,6 +181,38 @@ const OrderCreate = () => {
     }, []);
 
     const orderItemsRef = useRef(orderEntity.items ?? []);
+    const productById = useMemo(() => {
+        return new Map(products.map(product => [product.id, product]));
+    }, [products]);
+
+    const getItemPriceDisplayMeta = useCallback((item: IOrder['items'][number]) => {
+        const product = productById.get(item.itemId);
+        const variant = product?.variants?.find(productVariant => productVariant.id === item.variantId) ?? product?.variants?.[0];
+
+        if (!product || !variant) {
+            return {
+                effectivePrice: item.price ?? null,
+                originalPrice: item.priceBeforeDiscount ?? null,
+            };
+        }
+
+        const effectivePrice = getFinalPrice({
+            variantItem: variant,
+            branchId: orderEntity.branchId,
+            item: product,
+            customer: orderEntity.customer,
+            pricingPointId,
+            pricingPoints,
+            selectedOrderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
+        });
+
+        const originalPrice = variant.branchVariantDetails?.[orderEntity.branchId]?.price ?? variant.price ?? null;
+
+        return {
+            effectivePrice: effectivePrice || item.price || null,
+            originalPrice,
+        };
+    }, [orderEntity.branchId, orderEntity.customer, orderEntity.orderMethod, pricingPointId, pricingPoints, productById]);
 
     useEffect(() => {
         orderItemsRef.current = orderEntity.items ?? [];
@@ -726,8 +743,9 @@ const OrderCreate = () => {
             return;
         }
 
-        // Always call API for price calculation - backend handles priceOverride and discountOverride
-        const priceOverride = item.priceOverridden ? item.price : undefined;
+        // Send priceOverride only for manual unit-price overrides. Built-in discounts stay backend-driven.
+        const derivedPriceMeta = getItemPriceDisplayMeta(item);
+        const priceOverride = item.priceOverridden ? (item.price ?? undefined) : undefined;
         const discountOverride = item.customDiscount ? {
             type: item?.discount?.type || 'PERCENTAGE',
             value: item.customDiscount,
@@ -742,28 +760,34 @@ const OrderCreate = () => {
                 branchId: orderEntity.branchId,
                 orderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
                 customerId: orderEntity.customer?.id,
-                priceOverride,
-                discountOverride,
+                ...(priceOverride != null ? { priceOverride } : {}),
+                ...(discountOverride ? { discountOverride } : {}),
             }
         })).then((action) => {
             if (calculateItemPrice.fulfilled.match(action)) {
-                // Use the price from API response, or keep existing price if priceOverridden
-                const computedPrice = item.priceOverridden ? item.price : 
-                    (item.price ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0));
+                const computedPrice = item.priceOverridden
+                    ? item.price
+                    : derivedPriceMeta.originalPrice
+                        ?? item.price
+                        ?? derivedPriceMeta.effectivePrice
+                    ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0);
+
                 updateCartItem(item.cartId, {
                     itemTotal: action.payload.data.itemTotal,
                     taxTotal: action.payload.data.taxTotal,
                     grandTotal: action.payload.data.grandTotal,
                     price: computedPrice,
-                    priceBeforeDiscount: item.priceBeforeDiscount ?? computedPrice,
+                    priceBeforeDiscount: item.priceOverridden
+                        ? (item.priceBeforeDiscount ?? item.price ?? null)
+                        : null,
                 });
             }
         });
-    }, [dispatch, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
+    }, [dispatch, getItemPriceDisplayMeta, orderEntity.branchId, orderEntity.orderMethod, orderEntity.customer?.id, updateCartItem]);
 
     const recalculateAllPrices = useCallback(() => {
         const items = orderItemsRef.current ?? [];
-        // Always recalculate all items - API handles priceOverride and discountOverride
+        // Recalculate all items while preserving manual override behavior.
         items?.forEach(item => {
             recalculateItemTotals(item);
         });
@@ -785,7 +809,7 @@ const OrderCreate = () => {
 
     const addCartItem = useCallback((item: IOrder['items'][number] & { shouldFetchPrice?: boolean }, shouldFetchPrice = true) => {
         if (shouldGateSalesman) {
-            toast.error(`${salesmanGateMessage} before adding items.`);
+            toast.error(`${salesmanGateMessage} before adding items to a wholesale order.`);
             return;
         }
         const currentItems = orderItemsRef.current ?? [];
@@ -855,17 +879,6 @@ const OrderCreate = () => {
         }
         recalculateAllPrices();
     }, [orderEntity.customer?.id, orderEntity.orderMethod, pricingPointId, recalculateAllPrices]);
-
-    useEffect(() => {
-        if (requiresRoleChoice) {
-            setRoleChoiceOpen(true);
-            setRoleMode(null);
-        } else if (isSalesmanRole && !isAdminRole) {
-            setRoleMode('salesman');
-        } else {
-            setRoleMode('admin');
-        }
-    }, [requiresRoleChoice, isSalesmanRole, isAdminRole]);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -1012,8 +1025,8 @@ const OrderCreate = () => {
         deliverTo: orderEntity?.deliverTo ?? null,
         processingStatus: OrderStatus.PROCESSING,
         tillId: till?.id,
-        ...(includeWholesale && isSalesmanMode ? { wholesale: true } : {}),
-    }), [isEditMode, isSalesmanMode, orderEntity, till?.id]);
+        ...(includeWholesale && isWholesaleMode ? { wholesale: true } : {}),
+    }), [isEditMode, isWholesaleMode, orderEntity, till?.id]);
 
     const buildChargesPreviewPayload = useCallback(
         (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: false, includeWholesale: true }),
@@ -1026,7 +1039,7 @@ const OrderCreate = () => {
     );
 
     const buildUpdateStructuredEntity = useCallback(
-        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true }),
+        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true, includeWholesale: true }),
         [buildBaseStructuredEntity]
     );
 
@@ -1054,7 +1067,7 @@ const OrderCreate = () => {
 
     const ensureCreateFlowAllowed = () => {
         if (shouldGateSalesman) {
-            toast.error(`${salesmanGateMessage} before placing the order.`);
+            toast.error(`${salesmanGateMessage} before placing the wholesale order.`);
             return false;
         }
 
@@ -1216,9 +1229,6 @@ const OrderCreate = () => {
 
     const cartItems = orderEntity.items ?? [];
     const cartItemCount = cartItems.length;
-    const productById = useMemo(() => {
-        return new Map(products.map(product => [product.id, product]));
-    }, [products]);
     const cartQuantityTotal = useMemo(() => {
         return cartItems.reduce((acc, item) => {
             const byWeight = productById.get(item.itemId)?.byWeight;
@@ -1554,7 +1564,7 @@ const OrderCreate = () => {
             <OrderPaymentDialog
                 open={openPaymentModal}
                 onOpenChange={setOpenPaymentModal}
-                title="Create Order & Payment"
+                title={isWholesaleMode ? 'Create Wholesale Order & Payment' : 'Create Order & Payment'}
                 orderBranchId={orderEntity.branchId}
                 customerId={orderEntity.customer?.id}
                 totalAmount={finalPayableTotal}
@@ -1562,44 +1572,12 @@ const OrderCreate = () => {
                 defaultPaymentAmount={finalPayableTotal}
                 baseOrderTotal={cartTotals.total}
                 chargePreviewRows={previewChargeRows}
-                submitLabel="Create Order & Pay"
+                submitLabel={isWholesaleMode ? 'Create Wholesale Order & Pay' : 'Create Order & Pay'}
                 onSubmit={handleCreateWithPayment}
                 submitting={submittingOrder}
-                secondaryActionLabel="Create Without Payment"
+                secondaryActionLabel={isWholesaleMode ? 'Create Wholesale Order Without Payment' : 'Create Without Payment'}
                 onSecondaryAction={handleCreateWithoutPayment}
             />
-
-            <Dialog open={roleChoiceOpen} onOpenChange={() => {}}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Select your mode</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-3 p-2 text-sm text-muted-foreground">
-                        You have both administrator and wholesale salesman roles. Choose how you want to continue.
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setRoleMode('admin');
-                                setRoleChoiceOpen(false);
-                            }}
-                            className="h-9 text-xs"
-                        >
-                            Continue as Admin
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                setRoleMode('salesman');
-                                setRoleChoiceOpen(false);
-                            }}
-                            className="h-9 text-xs"
-                        >
-                            Continue as Salesman
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             <DeliveryAddressDialog
                 open={addressDialogOpen}
@@ -1701,8 +1679,10 @@ const OrderCreate = () => {
                                     <span className="sr-only">Back</span>
                                 </Button>
                                 <div>
-                                    <p className="text-sm font-semibold">Point of Sale</p>
-                                    <p className="text-xs text-muted-foreground">Create a new order</p>
+                                    <p className="text-sm font-semibold">{isWholesaleMode ? 'Wholesale Order' : 'Point of Sale'}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {isWholesaleMode ? 'Create a new wholesale order' : 'Create a new order'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -2107,7 +2087,7 @@ const OrderCreate = () => {
                             <CardContent className="flex flex-col gap-2 p-3">
                                 {isSalesmanMode && !isSalesmanFlowReady && (
                                     <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive mb-1">
-                                        {salesmanGateMessage} before creating an order.
+                                        {salesmanGateMessage} before creating a wholesale order.
                                     </div>
                                 )}
                                 {/* Row 1: Order Method, Customer, Pricing Point */}
@@ -2243,9 +2223,22 @@ const OrderCreate = () => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
                                         const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
                                         const byWeight = productById.get(product.itemId)?.byWeight;
+                                        const derivedPriceMeta = getItemPriceDisplayMeta(product);
                                         const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
-                                        const unitPrice = product.price ?? 0;
-                                        const amountTotal = unitPrice * qtyDisplay;
+                                        const inputUnitPrice = product.priceOverridden
+                                            ? (product.price ?? '')
+                                            : (product.price ?? derivedPriceMeta.originalPrice ?? '');
+                                        const effectiveUnitPrice = product.priceOverridden
+                                            ? (product.price ?? 0)
+                                            : (derivedPriceMeta.effectivePrice ?? product.price ?? 0);
+                                        const amountTotal = effectiveUnitPrice * qtyDisplay;
+                                        const originalUnitPrice = product.priceOverridden
+                                            ? product.priceBeforeDiscount ?? null
+                                            : derivedPriceMeta.originalPrice ?? product.price ?? null;
+                                        const showDiscountedUnitPrice =
+                                            originalUnitPrice != null &&
+                                            effectiveUnitPrice != null &&
+                                            originalUnitPrice > effectiveUnitPrice;
 
                                         return (
                                         <AccordionItem
@@ -2266,6 +2259,13 @@ const OrderCreate = () => {
                                                     <div className="text-right font-semibold">
                                                         {itemPriceLoading?.[product.cartId] ? (
                                                             <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
+                                                        ) : showDiscountedUnitPrice ? (
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <span className="text-[11px] font-normal text-muted-foreground line-through">
+                                                                    ${originalUnitPrice.toFixed(2)}
+                                                                </span>
+                                                                <span>${effectiveUnitPrice.toFixed(2)}</span>
+                                                            </div>
                                                         ) : (
                                                             `$${amountTotal.toFixed(2)}`
                                                         )}
@@ -2311,7 +2311,7 @@ const OrderCreate = () => {
                                                         <Input
                                                             type="number"
                                                             placeholder="Price"
-                                                            value={product.price ?? ''}
+                                                            value={inputUnitPrice}
                                                             onChange={e => {
                                                                 const value = e.target.value;
                                                                 const numericValue = value === '' ? null : Number(value);

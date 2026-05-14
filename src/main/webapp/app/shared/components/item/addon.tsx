@@ -26,6 +26,7 @@ import { DraggableList } from 'app/shared/components/draggable-list/draggable-li
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, FileDown } from 'lucide-react';
+import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -81,6 +82,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
       minQuantity: null,
       maxQuantity: null,
       addAutomatically: false,
+      rootAddonGroup: false,
       addonPriceOverrides: [],
       excluded: [],
       name: null,
@@ -265,6 +267,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   const selectedItemAddonGroupIds = item?.addonGroups?.map(group => group.addonGroup.id) ?? [];
   const selectedVariantAddonGroupIds = item?.variants?.flatMap(variant => variant.addonGroups?.map(group => group.addonGroup.id) ?? []) ?? [];
   const allSelectedAddonGroupIds = [...selectedItemAddonGroupIds, ...selectedVariantAddonGroupIds];
+  const isPizzaItemUpdate = item?.itemVariantType === ItemVariantType.RESTAURANT_PIZZA;
 
   // filter out selected addon group ids
   const filteredAddonGroupsOptions = addonGroupsOptions.filter(group => !allSelectedAddonGroupIds.includes(group.id));
@@ -334,13 +337,25 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                         />
                       </div>
                     </div>
-                    <div className='flex flex-col gap-1 items-center'>
-                      <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
-                      <Checkbox
-                        checked={addonGroups[index]?.addAutomatically}
-                        onCheckedChange={checked => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
-                        className="mt-1"
-                      />
+                    <div className='flex gap-3 items-start'>
+                      <div className='flex flex-col gap-1 items-center'>
+                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
+                        <Checkbox
+                          checked={addonGroups[index]?.addAutomatically}
+                          onCheckedChange={checked => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
+                          className="mt-1"
+                        />
+                      </div>
+                      {isPizzaItemUpdate ? (
+                        <div className='flex flex-col gap-1 items-center'>
+                          <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.rootAddonGroup')}</Label>
+                          <Checkbox
+                            checked={addonGroups[index]?.rootAddonGroup || false}
+                            onCheckedChange={checked => handleAddonGroupFieldChange(index, 'rootAddonGroup', checked)}
+                            className="mt-1"
+                          />
+                        </div>
+                      ) : null}
                     </div>
                     <Button
                       variant="destructive"

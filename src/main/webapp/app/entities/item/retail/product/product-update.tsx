@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getSortState, Storage, translate, Translate } from 'react-jhipster';
+import { components as selectComponents } from 'react-select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
 import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
@@ -8,7 +9,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'app/shared/components/select/select';
-import { getEntities as getAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
+import { getEntities as getAttributes, searchEntities as searchAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
 import { getEntities as getSuppliers } from 'app/entities/inventory/supplier/supplier.reducer';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { ITerm } from 'app/shared/model/term.model';
@@ -35,6 +36,7 @@ import ProductImageGallery from 'app/shared/components/item/product-image-galler
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { IMeasureValue, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
@@ -50,6 +52,7 @@ import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branche
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FilterMatchMode } from 'primereact/api';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -84,6 +87,8 @@ const defaultSpecialPrices = {
   WHOLE_SALE: { ...defaultItemPriceNumber },
   RETAIL: { ...defaultItemPriceNumber },
 };
+
+const ATTRIBUTE_PAGE_SIZE = 25;
 
 const itemTypes = [
   {
@@ -137,7 +142,6 @@ export const ProductUpdate = () => {
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
-  const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
@@ -170,6 +174,13 @@ export const ProductUpdate = () => {
   const [defaultPrice, setDefaultPrice] = useState(0);
   const [formIsValid, setFormIsValid] = useState(false);
   const [showFormErrors, setShowFormErrors] = useState(false);
+  const attributeSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [attributeOptions, setAttributeOptions] = useState<ITaxonomy[]>([]);
+  const [attributeSearchTerm, setAttributeSearchTerm] = useState('');
+  const [attributePage, setAttributePage] = useState(0);
+  const [attributeHasMore, setAttributeHasMore] = useState(true);
+  const [attributeLoading, setAttributeLoading] = useState(false);
+  const [attributeLoadingMore, setAttributeLoadingMore] = useState(false);
 
   // Alert dialog states
   const [deleteVariantDialog, setDeleteVariantDialog] = useState<{ open: boolean; index: number | null }>({ open: false, index: null });
@@ -197,18 +208,130 @@ export const ProductUpdate = () => {
     }
   }, [product, isSingleItem])
 
-  const filteredAvailableAttributes = () => {
-    const existingAttributeIds = product?.attributes?.map(attr => attr.attributeTax.id);
-    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
-  };
+  const availableAttributes = useMemo(() => {
+    const existingAttributeIds = new Set(product?.attributes?.map(attr => attr.attributeTax.id) || []);
+    return attributeOptions.filter(attr => !existingAttributeIds.has(attr.id));
+  }, [attributeOptions, product?.attributes]);
+
+  const fetchAttributeOptionsPage = useCallback(
+    async (searchTerm: string, page: number, append = false) => {
+      if ((append && (attributeLoading || attributeLoadingMore || !attributeHasMore)) || (!append && attributeLoading)) {
+        return;
+      }
+
+      const normalizedSearchTerm = searchTerm.trim();
+
+      if (append) {
+        setAttributeLoadingMore(true);
+      } else {
+        setAttributeLoading(true);
+      }
+
+      try {
+        const response = normalizedSearchTerm
+          ? await dispatch(
+              searchAttributes({
+                query: applyMatchModeMap({
+                  first: page * ATTRIBUTE_PAGE_SIZE,
+                  rows: ATTRIBUTE_PAGE_SIZE,
+                  page,
+                  sortField: null,
+                  sortOrder: null,
+                  query: '',
+                  filters: {
+                    name: {
+                      value: normalizedSearchTerm,
+                      matchMode: FilterMatchMode.CONTAINS,
+                    },
+                  },
+                }),
+              })
+            )
+          : await dispatch(
+              getAttributes({
+                page,
+                size: ATTRIBUTE_PAGE_SIZE,
+                sort: `name,asc`,
+              })
+            );
+
+        const payload = response.payload as any;
+        const fetchedAttributes = (payload?.data || []) as ITaxonomy[];
+        const totalItems = parseInt(payload?.headers?.['x-total-count'], 10);
+
+        setAttributeOptions(prevOptions => {
+          const mergedOptions = append
+            ? [...prevOptions, ...fetchedAttributes].filter(
+                (attribute, index, options) => options.findIndex(option => option.id === attribute.id) === index
+              )
+            : fetchedAttributes;
+
+          const resolvedTotalItems = Number.isNaN(totalItems) ? mergedOptions.length + (fetchedAttributes.length === ATTRIBUTE_PAGE_SIZE ? 1 : 0) : totalItems;
+          setAttributeHasMore(mergedOptions.length < resolvedTotalItems);
+          return mergedOptions;
+        });
+
+        setAttributePage(page);
+        setAttributeSearchTerm(normalizedSearchTerm);
+      } catch (error) {
+        if (!append) {
+          setAttributeOptions([]);
+        }
+        setAttributeHasMore(false);
+      } finally {
+        setAttributeLoading(false);
+        setAttributeLoadingMore(false);
+      }
+    },
+    [attributeHasMore, attributeLoading, attributeLoadingMore, dispatch]
+  );
+
+  const handleAttributeInputChange = useCallback(
+    (inputValue: string, { action }) => {
+      if (action !== 'input-change') {
+        return inputValue;
+      }
+
+      if (attributeSearchTimeoutRef.current) {
+        clearTimeout(attributeSearchTimeoutRef.current);
+      }
+
+      attributeSearchTimeoutRef.current = setTimeout(() => {
+        void fetchAttributeOptionsPage(inputValue, 0, false);
+      }, 300);
+
+      return inputValue;
+    },
+    [fetchAttributeOptionsPage]
+  );
 
   const filteredMeasures = useMemo(() => {
     const exchangeMeasuresIds = product?.measures?.map(exMeasure => exMeasure.itemMeasure.id);
     return measureList.filter(m => m.id !== product?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id));
   }, [measureList?.length, product?.baseMeasure?.id, product?.measures?.length]);
 
+  const normalizeVariantsForMeasureRules = useCallback((variants: IVariableItemVariant[] = [], hasBaseMeasure: boolean) => {
+    if (!Array.isArray(variants)) {
+      return [];
+    }
+
+    return variants.map(variant => {
+      if (!variant) {
+        return variant;
+      }
+
+      if (variant?.measureValue?.isBase) {
+        return {
+          ...variant,
+          variantPackage: null,
+        };
+      }
+
+      return variant;
+    });
+  }, []);
+
   const isAttributeAddButtonDisabled =
-    filteredAvailableAttributes()?.length === 0 ||
     !itemAttribute ||
     (itemAttribute?.attributeTax && Object.keys(itemAttribute?.attributeTax)?.length === 0 && itemAttribute?.attributeTerms?.length === 0);
 
@@ -315,7 +438,7 @@ export const ProductUpdate = () => {
       updatedVariants[variantIndex] = updatedVariant;
       return {
         ...prev,
-        variants: updatedVariants,
+        variants: normalizeVariantsForMeasureRules(updatedVariants, Boolean(prev?.baseMeasure)),
       };
     })
   };
@@ -343,7 +466,11 @@ export const ProductUpdate = () => {
   };
 
   const handleBaseMeasureChange = baseMeasure => {
-    setProduct(prev => ({ ...prev, baseMeasure }));
+    setProduct(prev => ({
+      ...prev,
+      baseMeasure,
+      variants: normalizeVariantsForMeasureRules(prev?.variants || [], Boolean(baseMeasure)),
+    }));
   };
 
   const handleAddMeasure = () => {
@@ -658,14 +785,6 @@ export const ProductUpdate = () => {
     );
 
     dispatch(
-      getAttributes({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
-
-    dispatch(
       getMeasures({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
@@ -698,13 +817,24 @@ export const ProductUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
+    return () => {
+      if (attributeSearchTimeoutRef.current) {
+        clearTimeout(attributeSearchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     setProduct({
       ...productEntity,
-      variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
+      variants: normalizeVariantsForMeasureRules(
+        productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order) || [],
+        Boolean(productEntity?.baseMeasure)
+      ),
     });
 
     setDefaultPrice(productEntity?.variants?.[0]?.price || 0)
-  }, [productEntity]);
+  }, [normalizeVariantsForMeasureRules, productEntity]);
 
   const handleSupplierChange = (index: number, updatedVariant: IVariableItemVariant) => {
     const updatedProduct = {
@@ -748,7 +878,7 @@ export const ProductUpdate = () => {
       setShowFormErrors(false);
     }
 
-    const updatedVariants = product?.variants.map((variant, index) => {
+    const updatedVariants = normalizeVariantsForMeasureRules(product?.variants, Boolean(product?.baseMeasure)).map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -850,7 +980,7 @@ export const ProductUpdate = () => {
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       })
-    ).then(response => console.log(response, 'responseresponse'));
+    );
   };
 
   const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {
@@ -1427,12 +1557,46 @@ export const ProductUpdate = () => {
                                 </label>
                                 <Select
                                   value={itemAttribute?.attributeTax || null}
-                                  options={filteredAvailableAttributes()}
+                                  options={availableAttributes}
                                   isClearable
+                                  isLoading={attributeLoading || attributeLoadingMore}
                                   getOptionValue={option => option.id}
                                   getOptionLabel={option => option.name}
                                   onChange={attribute => handleItemAttributeSelect(attribute)}
+                                  onInputChange={handleAttributeInputChange}
+                                  onMenuOpen={() => {
+                                    if (attributeOptions.length === 0) {
+                                      void fetchAttributeOptionsPage(attributeSearchTerm, 0, false);
+                                    }
+                                  }}
+                                  onMenuScrollToBottom={() => {
+                                    if (attributeHasMore && !attributeLoading && !attributeLoadingMore) {
+                                      void fetchAttributeOptionsPage(attributeSearchTerm, attributePage + 1, true);
+                                    }
+                                  }}
+                                  filterOption={() => true}
+                                  components={{
+                                    LoadingIndicator: props => (
+                                      <selectComponents.LoadingIndicator {...props}>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      </selectComponents.LoadingIndicator>
+                                    ),
+                                  }}
+                                  loadingMessage={() => (
+                                    <span className="inline-flex items-center gap-2">
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      Loading attributes...
+                                    </span>
+                                  )}
+                                  noOptionsMessage={() =>
+                                    attributeLoading || attributeLoadingMore
+                                      ? 'Loading attributes...'
+                                      : attributeSearchTerm
+                                      ? 'No attributes found.'
+                                      : 'No more attributes available.'
+                                  }
                                   styles={customSelectStyles}
+                                  placeholder="Search attribute"
                                 />
                               </div>
 
