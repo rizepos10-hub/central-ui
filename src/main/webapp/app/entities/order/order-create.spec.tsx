@@ -352,7 +352,7 @@ const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderR
 const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
 describe('OrderCreate payment flow', () => {
-  it('always sends priceOverride when recalculating a discounted item with a custom discount', async () => {
+  it('does not send priceOverride for built-in discounted items unless the user overrides the price', async () => {
     mockState.order.entity.items = [
       {
         cartId: 'cart-1',
@@ -360,12 +360,7 @@ describe('OrderCreate payment flow', () => {
         variantId: 'variant-1',
         variantName: 'Variant 1',
         amount: 1,
-        price: 9,
-        priceBeforeDiscount: 10,
-        discount: {
-          type: 'PERCENTAGE',
-          value: 10,
-        },
+        price: 10,
         customDiscount: 0,
       },
     ];
@@ -379,9 +374,14 @@ describe('OrderCreate payment flow', () => {
             id: 'variant-1',
             name: 'Variant 1',
             price: 10,
-            salePrice: 9,
+            salePrice: null,
             attachments: [],
-            discounts: [],
+            discounts: [
+              {
+                type: 'PERCENTAGE',
+                value: 50,
+              },
+            ],
           },
         ],
       },
@@ -393,24 +393,27 @@ describe('OrderCreate payment flow', () => {
     fireEvent.change(screen.getByPlaceholderText('Discount'), { target: { value: '50' } });
 
     await waitFor(() => {
-      expect(orderReducer.calculateItemPrice).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          cartId: 'cart-1',
-          payload: expect.objectContaining({
-            itemId: 'item-1',
-            variantId: 'variant-1',
-            priceOverride: 9,
-            discountOverride: {
-              type: 'PERCENTAGE',
-              value: 50,
-            },
-          }),
-        })
-      );
+      expect(orderReducer.calculateItemPrice).toHaveBeenCalled();
     });
+
+    const lastPayload = orderReducer.calculateItemPrice.mock.calls[orderReducer.calculateItemPrice.mock.calls.length - 1][0];
+    expect(lastPayload).toEqual(
+      expect.objectContaining({
+        cartId: 'cart-1',
+        payload: expect.objectContaining({
+          itemId: 'item-1',
+          variantId: 'variant-1',
+          discountOverride: {
+            type: 'PERCENTAGE',
+            value: 50,
+          },
+        }),
+      })
+    );
+    expect(lastPayload.payload).not.toHaveProperty('priceOverride');
   });
 
-  it('shows the original unit price struck through beside the discounted unit price in the cart amount column', async () => {
+  it('shows the base price in the unit-price input while displaying the built-in discounted price in the amount column', async () => {
     mockState.order.entity.items = [
       {
         cartId: 'cart-1',
@@ -418,8 +421,8 @@ describe('OrderCreate payment flow', () => {
         variantId: 'variant-1',
         variantName: 'Variant 1',
         amount: 1,
-        price: 9,
-        priceBeforeDiscount: 10,
+        price: 10,
+        customDiscount: 0,
       },
     ];
     mockState.product.entities = [
@@ -432,9 +435,14 @@ describe('OrderCreate payment flow', () => {
             id: 'variant-1',
             name: 'Variant 1',
             price: 10,
-            salePrice: 9,
+            salePrice: null,
             attachments: [],
-            discounts: [],
+            discounts: [
+              {
+                type: 'PERCENTAGE',
+                value: 50,
+              },
+            ],
           },
         ],
       },
@@ -442,11 +450,18 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
-    const originalPrice = await screen.findByText('$10.00');
-    const discountedPrices = await screen.findAllByText('$9.00');
+    fireEvent.click(await screen.findByText('Variant 1'));
 
-    expect(originalPrice.className).toContain('line-through');
+    const originalPrices = await screen.findAllByText('$10.00');
+    const discountedPrices = await screen.findAllByText('$5.00');
+    const unitPriceInput = screen.getByPlaceholderText('Price');
+    const discountInput = screen.getByPlaceholderText('Discount');
+    const struckThroughOriginalPrice = originalPrices.find(node => node.className.includes('line-through'));
+
+    expect(struckThroughOriginalPrice?.className).toContain('line-through');
     expect(discountedPrices.length).toBeGreaterThan(0);
+    expect(unitPriceInput.value).toBe('10');
+    expect(discountInput.value).toBe('0');
   });
 
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {

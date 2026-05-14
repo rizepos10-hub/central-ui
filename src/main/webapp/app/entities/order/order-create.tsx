@@ -743,9 +743,9 @@ const OrderCreate = () => {
             return;
         }
 
-        // Always call API for price calculation - backend handles priceOverride and discountOverride
+        // Send priceOverride only for manual unit-price overrides. Built-in discounts stay backend-driven.
         const derivedPriceMeta = getItemPriceDisplayMeta(item);
-        const priceOverride = item.price ?? derivedPriceMeta.effectivePrice ?? undefined;
+        const priceOverride = item.priceOverridden ? (item.price ?? undefined) : undefined;
         const discountOverride = item.customDiscount ? {
             type: item?.discount?.type || 'PERCENTAGE',
             value: item.customDiscount,
@@ -760,30 +760,26 @@ const OrderCreate = () => {
                 branchId: orderEntity.branchId,
                 orderMethod: orderEntity.orderMethod || OrderMethod.PickUp,
                 customerId: orderEntity.customer?.id,
-                priceOverride,
-                discountOverride,
+                ...(priceOverride != null ? { priceOverride } : {}),
+                ...(discountOverride ? { discountOverride } : {}),
             }
         })).then((action) => {
             if (calculateItemPrice.fulfilled.match(action)) {
-                const computedPrice = item.price
-                    ?? derivedPriceMeta.effectivePrice
+                const computedPrice = item.priceOverridden
+                    ? item.price
+                    : derivedPriceMeta.originalPrice
+                        ?? item.price
+                        ?? derivedPriceMeta.effectivePrice
                     ?? ((item.amount ?? 1) > 0 ? action.payload.data.itemTotal / (item.amount ?? 1) : 0);
-                const hasManualPriceBaseline = item.priceOverridden && item.priceBeforeDiscount != null;
-                const hasDiscountedDisplayBaseline =
-                    derivedPriceMeta.originalPrice != null &&
-                    computedPrice != null &&
-                    derivedPriceMeta.originalPrice > computedPrice;
 
                 updateCartItem(item.cartId, {
                     itemTotal: action.payload.data.itemTotal,
                     taxTotal: action.payload.data.taxTotal,
                     grandTotal: action.payload.data.grandTotal,
                     price: computedPrice,
-                    priceBeforeDiscount: hasManualPriceBaseline
-                        ? item.priceBeforeDiscount
-                        : hasDiscountedDisplayBaseline
-                            ? derivedPriceMeta.originalPrice
-                            : item.priceBeforeDiscount ?? null,
+                    priceBeforeDiscount: item.priceOverridden
+                        ? (item.priceBeforeDiscount ?? item.price ?? null)
+                        : null,
                 });
             }
         });
@@ -791,7 +787,7 @@ const OrderCreate = () => {
 
     const recalculateAllPrices = useCallback(() => {
         const items = orderItemsRef.current ?? [];
-        // Always recalculate all items - API handles priceOverride and discountOverride
+        // Recalculate all items while preserving manual override behavior.
         items?.forEach(item => {
             recalculateItemTotals(item);
         });
@@ -2227,14 +2223,22 @@ const OrderCreate = () => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
                                         const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
                                         const byWeight = productById.get(product.itemId)?.byWeight;
+                                        const derivedPriceMeta = getItemPriceDisplayMeta(product);
                                         const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
-                                        const unitPrice = product.price ?? 0;
-                                        const amountTotal = unitPrice * qtyDisplay;
-                                        const originalUnitPrice = product.priceBeforeDiscount ?? null;
+                                        const inputUnitPrice = product.priceOverridden
+                                            ? (product.price ?? '')
+                                            : (product.price ?? derivedPriceMeta.originalPrice ?? '');
+                                        const effectiveUnitPrice = product.priceOverridden
+                                            ? (product.price ?? 0)
+                                            : (derivedPriceMeta.effectivePrice ?? product.price ?? 0);
+                                        const amountTotal = effectiveUnitPrice * qtyDisplay;
+                                        const originalUnitPrice = product.priceOverridden
+                                            ? product.priceBeforeDiscount ?? null
+                                            : derivedPriceMeta.originalPrice ?? product.price ?? null;
                                         const showDiscountedUnitPrice =
                                             originalUnitPrice != null &&
-                                            product.price != null &&
-                                            originalUnitPrice > product.price;
+                                            effectiveUnitPrice != null &&
+                                            originalUnitPrice > effectiveUnitPrice;
 
                                         return (
                                         <AccordionItem
@@ -2260,7 +2264,7 @@ const OrderCreate = () => {
                                                                 <span className="text-[11px] font-normal text-muted-foreground line-through">
                                                                     ${originalUnitPrice.toFixed(2)}
                                                                 </span>
-                                                                <span>${unitPrice.toFixed(2)}</span>
+                                                                <span>${effectiveUnitPrice.toFixed(2)}</span>
                                                             </div>
                                                         ) : (
                                                             `$${amountTotal.toFixed(2)}`
@@ -2307,7 +2311,7 @@ const OrderCreate = () => {
                                                         <Input
                                                             type="number"
                                                             placeholder="Price"
-                                                            value={product.price ?? ''}
+                                                            value={inputUnitPrice}
                                                             onChange={e => {
                                                                 const value = e.target.value;
                                                                 const numericValue = value === '' ? null : Number(value);
