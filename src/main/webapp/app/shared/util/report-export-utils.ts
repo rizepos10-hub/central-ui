@@ -1,6 +1,7 @@
 import type { IStoreCreditReportRow } from 'app/shared/model/store-credit-report.model';
 import type { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
 import type { ICommissionFeesReport } from 'app/shared/model/commission-fees-report.model';
+import type { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import type {
   ICashierNegativeRow,
   ICollectedSalesTaxRow,
@@ -559,6 +560,50 @@ export const buildStoreCreditWorkbook = (rows: IStoreCreditReportRow[], options:
         name: 'Customer Balance',
         rows: sheetRows,
         columnWidths: [30, 24, 14, 14],
+        titleRowIndices: workbookHeader.titleRowIndices,
+        headerRowIndices: [headerRowIndex],
+        totalRowIndices: [totalRowIndex],
+      },
+    ],
+  };
+};
+
+export const buildCustomerWorkbook = (rows: ICustomer[], options: ExportWorkbookOptions): ExportWorkbook => {
+  const workbookHeader = getWorkbookHeader(options);
+  const totalDebitLimit = rows.reduce((sum, row) => sum + (row.onAccountDebitLimit || 0), 0);
+  const totalDebitUsed = rows.reduce((sum, row) => sum + (row.onAccountDebitUsed || 0), 0);
+  const sheetRows = [...workbookHeader.rows];
+  const headerRowIndex = sheetRows.length;
+
+  sheetRows.push(['Name', 'Email', 'Phone', 'Account Number', 'Business Name', 'On Account', 'Debit Limit', 'Debit Used']);
+
+  rows.forEach(row => {
+    const displayName = [row.firstName, row.lastName]
+      .filter(part => typeof part === 'string' && part.trim().length > 0)
+      .join(' ')
+      .trim();
+
+    sheetRows.push([
+      displayName || '-',
+      row.email || '-',
+      row.phone || '-',
+      row.accountNumber || '-',
+      row.businessDetails?.businessName || '-',
+      row.onAccountEnabled ? 'Active' : 'Inactive',
+      formatAmount(row.onAccountDebitLimit),
+      formatAmount(row.onAccountDebitUsed),
+    ]);
+  });
+
+  const totalRowIndex = sheetRows.length;
+  sheetRows.push(['Totals', '', '', '', '', '', formatAmount(totalDebitLimit), formatAmount(totalDebitUsed)]);
+
+  return {
+    sheets: [
+      {
+        name: 'Customers',
+        rows: sheetRows,
+        columnWidths: [28, 28, 18, 18, 24, 14, 14, 14],
         titleRowIndices: workbookHeader.titleRowIndices,
         headerRowIndices: [headerRowIndex],
         totalRowIndices: [totalRowIndex],
