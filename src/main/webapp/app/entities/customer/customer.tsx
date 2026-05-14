@@ -1,46 +1,78 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState } from 'react-jhipster';
-import { Pencil, Trash2, RefreshCw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Translate, translate } from 'react-jhipster';
+import { Pencil, Trash2, RefreshCw, ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { FilterMatchMode } from 'primereact/api';
+import axios from 'axios';
+import { useReactToPrint } from 'react-to-print';
 
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
-import { ASC, DESC, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
-import { searchEntities, getEntities } from './customer.reducer';
+import { searchCustomers } from './customer.reducer';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import Select from 'app/shared/components/select/select';
+import ReportActionBar from 'app/shared/components/report/report-action-bar';
+import ReportExportHeader from 'app/shared/components/report/report-export-header';
+import {
+  analyticsReportPrintStyles,
+  buildCustomerWorkbook,
+  createReportFileName,
+  downloadElementAsPdf,
+  fetchAllPaginatedRows,
+  ReportFilterInfo,
+  saveWorkbookAsExcel,
+} from 'app/shared/util/report-export-utils';
+import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100, 200];
 const DEFAULT_PAGE_SIZE = 20;
+const EXPORT_PAGE_SIZE = 250;
+const REPORT_TITLE = 'Customers';
+const apiSearchUrl = 'api/_search/customers';
+
+const initialState = {
+  first: 0,
+  rows: DEFAULT_PAGE_SIZE,
+  page: 0,
+  sortField: null,
+  sortOrder: null,
+  query: '',
+  filters: {
+    firstName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    phone: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    accountNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    'businessDetails.businessName': { value: null, matchMode: FilterMatchMode.CONTAINS },
+    onAccountEnabled: { value: null, matchMode: FilterMatchMode.EQUALS },
+  },
+};
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
 
+const onAccountOptions = [
+  { label: 'All', value: '' },
+  { label: 'Active', value: true },
+  { label: 'Inactive', value: false },
+];
+
 export const Customer = () => {
   const dispatch = useAppDispatch();
-
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, DEFAULT_PAGE_SIZE, 'id'), location.search)
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const exportContentRef = useRef<HTMLDivElement>(null);
 
   const customerList = useAppSelector(state => state.customer.entities);
   const loading = useAppSelector(state => state.customer.loading);
   const totalItems = useAppSelector(state => state.customer.totalItems);
+  const [exportRows, setExportRows] = useState<ICustomer[]>([]);
+  const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [filters, setFilters] = useState({
-    name: '',
-    email: '',
-    phone: '',
-  });
+  const query = JSON.parse(searchParams.get('query') || 'null') || initialState;
 
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
@@ -51,147 +83,244 @@ export const Customer = () => {
   }));
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search || '',
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-          query: search || '',
-        })
-      );
-    }
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(
+      searchCustomers(updatedQuery)
+    );
   };
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search || '',
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
+  const exportFilters: ReportFilterInfo[] = [
+    { label: 'Name', value: query.filters.firstName?.value || 'All' },
+    { label: 'Email', value: query.filters.email?.value || 'All' },
+    { label: 'Phone', value: query.filters.phone?.value || 'All' },
+    { label: 'Account Number', value: query.filters.accountNumber?.value || 'All' },
+    { label: 'Business Name', value: query.filters['businessDetails.businessName']?.value || 'All' },
+    {
+      label: 'On Account',
+      value:
+        query.filters.onAccountEnabled?.value === true
+          ? 'Active'
+          : query.filters.onAccountEnabled?.value === false
+            ? 'Inactive'
+            : 'All',
+    },
+  ];
 
-  const clear = () => {
-    setSearch('');
-    setPaginationState({
-      ...paginationState,
-      activePage: 1,
-    });
-    dispatch(getEntities({}));
-  };
+  const fileName = createReportFileName(REPORT_TITLE, [
+    query.filters.firstName?.value,
+    query.filters.accountNumber?.value,
+    query.filters.onAccountEnabled?.value === true
+      ? 'active'
+      : query.filters.onAccountEnabled?.value === false
+        ? 'inactive'
+        : null,
+  ]);
 
-  const handleSearch = event => setSearch(event.target.value);
-
-  const sortEntities = () => {
+  useEffect(() => {
     getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
-  useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.itemsPerPage, paginationState.order, paginationState.sort, search]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-  const sort = p => () => {
-    setPaginationState({
-      ...paginationState,
-      order: paginationState.order === ASC ? DESC : ASC,
-      sort: p,
-    });
-  };
-
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
+  }, [searchParams]);
 
   const handleSyncList = () => {
-    sortEntities();
+    setError(null);
+    getAllEntities();
   };
 
   const handleCreate = () => {
-    navigate('/customer/new')
-  }
+    navigate('/customer/new');
+  };
 
-  const filteredCustomerList = useMemo(
-    () =>
-      modifiedCustomerList.filter(customer => {
-        const matchesName = !filters.name || customer.name?.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesEmail = !filters.email || customer.email?.toLowerCase().includes(filters.email.toLowerCase());
-        const matchesPhone = !filters.phone || customer.phone?.includes(filters.phone);
-        return matchesName && matchesEmail && matchesPhone;
-      }),
-    [modifiedCustomerList, filters.name, filters.email, filters.phone]
-  );
+  const handleFilterChange = (field: string, value: string | boolean | null) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      first: 0,
+      page: 0,
+      filters: {
+        ...query.filters,
+        [field]: {
+          ...query.filters[field],
+          value,
+        },
+      },
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
-  const pageSize = paginationState.itemsPerPage;
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+    }
+
+    const queryParams = JSON.stringify({
+      ...query,
+      sortField: newSortOrder === null ? null : field,
+      sortOrder: newSortOrder,
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="ml-1 inline h-3 w-3" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="ml-1 inline h-3 w-3" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="ml-1 inline h-3 w-3" />;
+    }
+    return <ArrowUpDown className="ml-1 inline h-3 w-3" />;
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      rows: newSize,
+      first: 0,
+      page: 0,
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const goToPreviousPage = () => {
+    const nextPage = Math.max(0, query.page - 1);
+    const queryParams = JSON.stringify({
+      ...query,
+      page: nextPage,
+      first: nextPage * query.rows,
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const goToNextPage = () => {
+    const totalPages = Math.max(1, Math.ceil(totalItems / query.rows));
+    const nextPage = Math.min(totalPages - 1, query.page + 1);
+    const queryParams = JSON.stringify({
+      ...query,
+      page: nextPage,
+      first: nextPage * query.rows,
+    });
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const pageSize = query.rows;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const safeCurrentPage = Math.min(paginationState.activePage, totalPages);
-  const pageStartIndex = (safeCurrentPage - 1) * pageSize;
-  const pageEndIndex = Math.min(pageStartIndex + pageSize, totalItems);
+  const safeCurrentPage = Math.min(query.page + 1, totalPages);
+  const pageStartIndex = totalItems === 0 ? 0 : query.page * pageSize + 1;
+  const pageEndIndex = Math.min(query.page * pageSize + pageSize, totalItems);
+  const hasExportData = totalItems > 0 && modifiedCustomerList.length > 0;
 
-  const handlePageSizeChange = (newSize: number) =>
-    setPaginationState({
-      ...paginationState,
-      itemsPerPage: newSize,
-      activePage: 1,
-    });
+  const ensureExportRows = async () => {
+    const updatedQuery = applyMatchModeMap(query);
+    const allRows = await fetchAllPaginatedRows<ICustomer, Record<string, unknown>>(
+      async ({ page, size, ...requestArgs }) => {
+        const response = await axios.post<ICustomer[]>(
+          apiSearchUrl,
+          {
+            ...requestArgs,
+            page,
+            first: page * size,
+            rows: size,
+          }
+        );
 
-  const goToPreviousPage = () =>
-    setPaginationState({
-      ...paginationState,
-      activePage: Math.max(1, paginationState.activePage - 1),
-    });
+        return {
+          rows: response.data,
+          totalCount: parseInt(response.headers['x-total-count'] || `${response.data.length}`, 10),
+        };
+      },
+      {
+        requestArgs: {
+          ...updatedQuery,
+          page: 0,
+          first: 0,
+          rows: EXPORT_PAGE_SIZE,
+        },
+        size: EXPORT_PAGE_SIZE,
+        getRowSignature: row => `${row.id || row.accountNumber || `${row.firstName}-${row.lastName}-${row.email}`}`,
+      }
+    );
 
-  const goToNextPage = () =>
-    setPaginationState({
-      ...paginationState,
-      activePage: Math.min(totalPages, paginationState.activePage + 1),
-    });
+    setExportRows(allRows);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return allRows;
+  };
 
+  const handleExcelExport = async () => {
+    try {
+      setBusyAction('excel');
+      setError(null);
+      const allRows = await ensureExportRows();
+      await saveWorkbookAsExcel(
+        buildCustomerWorkbook(allRows, {
+          title: REPORT_TITLE,
+          filters: [...exportFilters, { label: 'Total Records', value: allRows.length }],
+        }),
+        fileName
+      );
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customers.'));
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePdfExport = async () => {
+    if (!exportContentRef.current) {
+      return;
+    }
+
+    try {
+      setBusyAction('pdf');
+      setError(null);
+      await ensureExportRows();
+
+      if (exportContentRef.current) {
+        await downloadElementAsPdf(exportContentRef.current, {
+          fileName,
+          orientation: 'landscape',
+        });
+      }
+    } catch (err) {
+      setError(getReportApiErrorMessage(err, 'Unable to export customers.'));
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => exportContentRef.current,
+    documentTitle: fileName,
+    pageStyle: analyticsReportPrintStyles('landscape'),
+    onBeforeGetContent: async () => {
+      setBusyAction('print');
+      setError(null);
+
+      try {
+        await ensureExportRows();
+      } catch (err) {
+        setError(getReportApiErrorMessage(err, 'Unable to export customers.'));
+        setBusyAction(null);
+        throw err;
+      }
+    },
+    onAfterPrint: () => {
+      setBusyAction(null);
+    },
+  });
 
   return (
     <PageWrapper>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xl font-bold"><Translate contentKey={'customers.view.table.title'}>Customers</Translate></span>
         <div className="flex gap-2">
+          <ReportActionBar
+            onExcel={handleExcelExport}
+            onPdf={handlePdfExport}
+            onPrint={handlePrint}
+            disabled={!hasExportData || loading || busyAction !== null}
+            busyAction={busyAction}
+          />
           <Button variant="secondary" size="sm" onClick={handleSyncList} disabled={loading} className="h-8 text-xs">
             <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
             {translate('customers.view.table.buttons.refreshList')}
@@ -202,44 +331,101 @@ export const Customer = () => {
         </div>
       </div>
 
+      {error && (
+        <div
+          className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          data-testid="customer-export-error"
+        >
+          {error}
+        </div>
+      )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('firstName')}>
                 <div className="space-y-1">
-                  <div>{translate('common.name')}</div>
+                  <div>
+                    {translate('common.name')}
+                    {getSortIcon('firstName')}
+                  </div>
                   <Input
                     placeholder={translate('common.search.name')}
-                    value={filters.name}
-                    onChange={(e) => setFilters({...filters, name: e.target.value})}
+                    value={query.filters.firstName?.value || ''}
+                    onChange={e => handleFilterChange('firstName', e.target.value || null)}
                     className="h-8 text-xs"
                   />
                 </div>
               </TableHead>
-              <TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('email')}>
                 <div className="space-y-1">
-                  <div>{translate('common.email')}</div>
+                  <div>
+                    {translate('common.email')}
+                    {getSortIcon('email')}
+                  </div>
                   <Input
                     placeholder={translate('common.search.email')}
-                    value={filters.email}
-                    onChange={(e) => setFilters({...filters, email: e.target.value})}
+                    value={query.filters.email?.value || ''}
+                    onChange={e => handleFilterChange('email', e.target.value || null)}
                     className="h-8 text-xs"
                   />
                 </div>
               </TableHead>
-              <TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('phone')}>
                 <div className="space-y-1">
-                  <div>{translate('common.phone')}</div>
+                  <div>
+                    {translate('common.phone')}
+                    {getSortIcon('phone')}
+                  </div>
                   <Input
-                    placeholder={translate('common..search.phone')}
-                    value={filters.phone}
-                    onChange={(e) => setFilters({...filters, phone: e.target.value})}
+                    placeholder={translate('common.phone')}
+                    value={query.filters.phone?.value || ''}
+                    onChange={e => handleFilterChange('phone', e.target.value || null)}
                     className="h-8 text-xs"
                   />
                 </div>
               </TableHead>
-              <TableHead className="min-w-[110px]">On Account</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('accountNumber')}>
+                <div className="space-y-1">
+                  <div>
+                    Account Number
+                    {getSortIcon('accountNumber')}
+                  </div>
+                  <Input
+                    placeholder="Search account number"
+                    value={query.filters.accountNumber?.value || ''}
+                    onChange={e => handleFilterChange('accountNumber', e.target.value || null)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('businessDetails.businessName')}>
+                <div className="space-y-1">
+                  <div>
+                    Business Name
+                    {getSortIcon('businessDetails.businessName')}
+                  </div>
+                  <Input
+                    placeholder="Search business name"
+                    value={query.filters['businessDetails.businessName']?.value || ''}
+                    onChange={e => handleFilterChange('businessDetails.businessName', e.target.value || null)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[140px]">
+                <div className="space-y-1">
+                  <div>On Account</div>
+                  <Select
+                    value={onAccountOptions.find(option => option.value === (query.filters.onAccountEnabled?.value ?? '')) || onAccountOptions[0]}
+                    onChange={(option: any) => handleFilterChange('onAccountEnabled', option?.value === '' ? null : option?.value)}
+                    options={onAccountOptions}
+                    isSearchable={false}
+                    className="text-xs"
+                  />
+                </div>
+              </TableHead>
               <TableHead className="min-w-[110px] text-right">Debit Limit</TableHead>
               <TableHead className="min-w-[110px] text-right">Debit Used</TableHead>
               <TableHead className="w-[50px]">{translate('common.edit')}</TableHead>
@@ -247,18 +433,20 @@ export const Customer = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCustomerList.map(customer => (
+            {modifiedCustomerList.map(customer => (
               <TableRow key={customer.id}>
                 <TableCell className="text-xs">
                   <Link
-                    to={`/customer/${customer.id}?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                    to={`/customer/${customer.id}`}
                     className="hover:underline"
                   >
-                    {customer.name}
+                    {customer.name || '-'}
                   </Link>
                 </TableCell>
-                <TableCell className="text-xs">{customer.email}</TableCell>
-                <TableCell className="text-xs">{customer.phone}</TableCell>
+                <TableCell className="text-xs">{customer.email || '-'}</TableCell>
+                <TableCell className="text-xs">{customer.phone || '-'}</TableCell>
+                <TableCell className="text-xs">{customer.accountNumber || '-'}</TableCell>
+                <TableCell className="text-xs">{customer.businessDetails?.businessName || '-'}</TableCell>
                 <TableCell className="text-xs">
                   <span className={customer.onAccountEnabled ? 'font-medium text-emerald-600' : 'text-muted-foreground'}>
                     {customer.onAccountEnabled ? 'Active' : 'Inactive'}
@@ -267,14 +455,14 @@ export const Customer = () => {
                 <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitLimit)}</TableCell>
                 <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitUsed)}</TableCell>
                 <TableCell>
-                  <Link to={`/customer/${customer.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                  <Link to={`/customer/${customer.id}/edit`}>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
                       <Pencil className="h-3 w-3 text-gray-400" />
                     </Button>
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link to={`/customer/${customer.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
+                  <Link to={`/customer/${customer.id}/delete`}>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
                       <Trash2 className="h-3 w-3 text-red-500" />
                     </Button>
@@ -300,7 +488,7 @@ export const Customer = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              {pageStartIndex + 1} - {pageEndIndex} of {totalItems}
+              {pageStartIndex} - {pageEndIndex} of {totalItems}
             </span>
             <div className="flex gap-1">
               <Button
@@ -325,6 +513,56 @@ export const Customer = () => {
           </div>
         </div>
       )}
+
+      <div className="pointer-events-none fixed -left-[10000px] top-0 w-fit max-w-none bg-white p-6" aria-hidden="true">
+        <div ref={exportContentRef} className="report-export-root space-y-4">
+          <ReportExportHeader
+            reportTitle={REPORT_TITLE}
+            hiddenOnScreen
+            forceVisible={busyAction === 'pdf'}
+            meta={[{ label: 'Dataset', value: 'Full export dataset' }]}
+            filters={[...exportFilters, { label: 'Total Records', value: exportRows.length }]}
+          />
+
+          <div className="rounded-md border bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Name</TableHead>
+                  <TableHead className="text-xs">Email</TableHead>
+                  <TableHead className="text-xs">Phone</TableHead>
+                  <TableHead className="text-xs">Account Number</TableHead>
+                  <TableHead className="text-xs">Business Name</TableHead>
+                  <TableHead className="text-xs">On Account</TableHead>
+                  <TableHead className="text-xs text-right">Debit Limit</TableHead>
+                  <TableHead className="text-xs text-right">Debit Used</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {exportRows.map(customer => {
+                  const displayName = [customer.firstName, customer.lastName]
+                    .filter(part => typeof part === 'string' && part.trim().length > 0)
+                    .join(' ')
+                    .trim();
+
+                  return (
+                    <TableRow key={`export-${customer.id || customer.accountNumber || displayName}`}>
+                      <TableCell className="text-xs">{displayName || '-'}</TableCell>
+                      <TableCell className="text-xs">{customer.email || '-'}</TableCell>
+                      <TableCell className="text-xs">{customer.phone || '-'}</TableCell>
+                      <TableCell className="text-xs">{customer.accountNumber || '-'}</TableCell>
+                      <TableCell className="text-xs">{customer.businessDetails?.businessName || '-'}</TableCell>
+                      <TableCell className="text-xs">{customer.onAccountEnabled ? 'Active' : 'Inactive'}</TableCell>
+                      <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitLimit)}</TableCell>
+                      <TableCell className="text-right text-xs whitespace-nowrap">{formatAmount(customer.onAccountDebitUsed)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
     </PageWrapper>
   );
 };
