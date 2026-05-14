@@ -8,6 +8,7 @@ import CustomerDashboard from './customer-dashboard';
 import CustomerUpdate from './customer-update';
 import CustomerDeleteDialog from './customer-delete-dialog';
 
+
 const CustomerRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<Customer />} />
