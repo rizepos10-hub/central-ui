@@ -164,6 +164,23 @@ export const Supplier = () => {
 
   // Debounce filter changes
   useEffect(() => {
+    const currentFilterValues = {
+      name: query.filters.name.value || '',
+      address: query.filters.address.value || '',
+      email: query.filters.email.value || '',
+      phoneNumber: query.filters.phoneNumber.value || '',
+    };
+
+    const filtersChanged =
+      filterValues.name !== currentFilterValues.name ||
+      filterValues.address !== currentFilterValues.address ||
+      filterValues.email !== currentFilterValues.email ||
+      filterValues.phoneNumber !== currentFilterValues.phoneNumber;
+
+    if (!filtersChanged) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       const newFilters = {
         ...query.filters,
@@ -185,7 +202,7 @@ export const Supplier = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [filterValues]);
+  }, [filterValues, query.filters]);
 
   const handlePageChange = (newPage: number) => {
     const newQuery = {
