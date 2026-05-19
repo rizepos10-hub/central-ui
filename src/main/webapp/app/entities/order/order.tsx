@@ -735,55 +735,51 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                     />
                   </div>
 
-                  {visibleColumns.orderId && (
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Sequence Number
-                      </Label>
-                      <Input
-                        className="h-7 text-[11px]"
-                        value={lazyState.filters._id?.value || ''}
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            first: 0,
-                            page: 0,
-                            filters: {
-                              ...prevState.filters,
-                              _id: { value: e.target.value, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder={translate('orders.view.table.filters.id')}
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Sequence Number
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters._id?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            _id: { value: e.target.value, matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder={translate('orders.view.table.filters.id')}
+                    />
+                  </div>
 
-                  {visibleColumns.orderTable && (
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        {translate('orders.view.table.fields.tables')}
-                      </Label>
-                      <Input
-                        className="h-7 text-[11px]"
-                        value={lazyState.filters.tables?.value || ''}
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            first: 0,
-                            page: 0,
-                            filters: {
-                              ...prevState.filters,
-                              tables: { value: e.target.value, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder={translate('orders.view.table.filters.tables')}
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      {translate('orders.view.table.fields.tables')}
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters.tables?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            tables: { value: e.target.value, matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder={translate('orders.view.table.filters.tables')}
+                    />
+                  </div>
 
-                  {!customer && visibleColumns.customerEmail && (
+                  {!customer && (
                     <div className="space-y-1">
                       <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                         {translate('orders.view.table.fields.customerEmail')}
@@ -807,7 +803,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                     </div>
                   )}
 
-                  {!customer && visibleColumns.customerPhone && (
+                  {!customer && (
                     <div className="space-y-1">
                       <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                         {translate('orders.view.table.fields.customerPhone')}
@@ -831,29 +827,27 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                     </div>
                   )}
 
-                  {visibleColumns.createdBy && (
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Created By
-                      </Label>
-                      <Input
-                        className="h-7 text-[11px]"
-                        value={lazyState.filters.createdBy?.value || ''}
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            first: 0,
-                            page: 0,
-                            filters: {
-                              ...prevState.filters,
-                              createdBy: { value: e.target.value, matchMode: 'contains' },
-                            },
-                          }))
-                        }
-                        placeholder="Filter by creator"
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Created By
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters.createdBy?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            createdBy: { value: e.target.value, matchMode: 'contains' },
+                          },
+                        }))
+                      }
+                      placeholder="Filter by creator"
+                    />
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
