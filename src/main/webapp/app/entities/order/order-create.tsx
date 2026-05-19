@@ -72,6 +72,7 @@ const OrderCreate = () => {
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
+    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
     const isWholesaleMode = searchParams.get("mode") === 'wholesale';
@@ -142,7 +143,8 @@ const OrderCreate = () => {
     const hasInitializedOrder = useRef(false);
     const hasInitializedEditOrder = useRef(false);
     const hasRecalculatedEditTaxes = useRef(false);
-    const isSalesmanMode = isWholesaleMode;
+    const skipNextCartPersistRef = useRef(false);
+    const isSalesmanMode = isWholesaleMode && authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
     const missingDelivery = isSalesmanMode && orderEntity.orderMethod === OrderMethod.Delivery && !orderEntity.deliverTo;
@@ -278,10 +280,10 @@ const OrderCreate = () => {
                     value: parsed.items,
                 }));
             }
-            if (parsed?.customerId) {
+            if (parsed?.customer || parsed?.customerId) {
                 dispatch(changeEntityField({
                     name: 'customer',
-                    value: { id: parsed.customerId },
+                    value: parsed.customer ?? { id: parsed.customerId },
                 }));
             }
             if (parsed?.orderMethod) {
@@ -497,9 +499,14 @@ const OrderCreate = () => {
         if (!selectedRegistryId || !hasHydratedCart.current) {
             return;
         }
+        if (skipNextCartPersistRef.current) {
+            skipNextCartPersistRef.current = false;
+            return;
+        }
         const payload = {
             items: orderEntity.items ?? [],
             customerId: orderEntity.customer?.id ?? null,
+            customer: orderEntity.customer ?? null,
             orderMethod: orderEntity.orderMethod ?? null,
             pricingPointId: pricingPointId || null,
             scheduledAtLocal: scheduledAtLocal || null,
@@ -1054,7 +1061,26 @@ const OrderCreate = () => {
 
     const finalizeCreatedOrder = (createdOrderId?: string | null) => {
         resetVariantDialogState();
-        localStorage.removeItem(cartStorageKey);
+        if (isWholesaleMode) {
+            const preservedWholesalePayload = {
+                items: [],
+                customerId: orderEntity.customer?.id ?? null,
+                customer: orderEntity.customer ?? null,
+                orderMethod: orderEntity.orderMethod ?? null,
+                pricingPointId: pricingPointId || null,
+                scheduledAtLocal: scheduledAtLocal || null,
+                scheduledAt: orderEntity.scheduledAt ?? null,
+                deliverTo: orderEntity.deliverTo ?? null,
+            };
+            if (isSalesmanMode) {
+                localStorage.setItem(cartStorageKey, JSON.stringify(preservedWholesalePayload));
+                skipNextCartPersistRef.current = true;
+            } else {
+                localStorage.removeItem(cartStorageKey);
+            }
+        } else {
+            localStorage.removeItem(cartStorageKey);
+        }
         dispatch(reset());
         setOpenPaymentModal(false);
 
@@ -1208,7 +1234,6 @@ const OrderCreate = () => {
                     placeholder="Pricing point"
                     className="text-xs"
                     isClearable
-                    isDisabled={shouldGateSalesman}
                 />
             );
         }
@@ -1316,8 +1341,8 @@ const OrderCreate = () => {
     );
 
     const selectedCustomer = useMemo(
-        () => customers.find(customer => customer.id === orderEntity.customer?.id) || null,
-        [customers, orderEntity.customer?.id]
+        () => customers.find(customer => customer.id === orderEntity.customer?.id) || orderEntity.customer || null,
+        [customers, orderEntity.customer]
     );
 
     const deliveryAddressOptions = useMemo(() => {
@@ -2113,7 +2138,13 @@ const OrderCreate = () => {
                                     />
                                     <Select
                                         options={customerOptions}
-                                        value={customerOptions.find(option => option.value === orderEntity?.customer?.id) || null}
+                                        value={
+                                            customerOptions.find(option => option.value === orderEntity?.customer?.id)
+                                            || (orderEntity?.customer?.id ? {
+                                                value: orderEntity.customer.id,
+                                                label: `${orderEntity.customer.firstName ? orderEntity.customer.firstName : ''} ${orderEntity.customer.lastName ? orderEntity.customer.lastName : ''}`.trim() || 'Unnamed customer',
+                                            } : null)
+                                        }
                                         onChange={(option) => {
                                             dispatch(changeEntityField({
                                                 name: 'customer',

@@ -19,10 +19,12 @@ const ChooseBranch = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const ORDER_METHOD = 'orderMethod';
+    const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
     const orderEntity: IOrder = useAppSelector(state => state.order.entity);
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
     const searchParams = new URLSearchParams(location.search);
     const isWholesaleMode = searchParams.get('mode') === 'wholesale' || location.pathname.includes('/logistics/create-order');
+    const isWholesaleSalesmanMode = isWholesaleMode && authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const restrictedBranchIds = (searchParams.get('branchIds') || '')
         .split(',')
         .map(id => id.trim())
@@ -75,8 +77,10 @@ const ChooseBranch = () => {
                 type: RegisterType.ONLINE,
             })
         )
-        dispatch(reset())
-    }, [])
+        if (!isWholesaleSalesmanMode) {
+            dispatch(reset())
+        }
+    }, [dispatch, isWholesaleSalesmanMode])
 
     useEffect(() => {
         if (hasAutoSelectedRegistry.current) {
