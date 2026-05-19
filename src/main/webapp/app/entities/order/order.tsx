@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities, filterOrders, getOrderSources, getOrderStatuses, deleteEntity, reset } from './order.reducer';
 import { getEntities as getBranches } from '../branch/branch.reducer';
+import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
 import { format } from "date-fns";
 import { fromZonedTime } from 'date-fns-tz';
 import { debounce } from "lodash";
@@ -25,10 +26,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Copy } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import { formatNumber } from 'app/shared/util/price-utils';
+import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
+import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 
 interface LazyTableState {
   first?: number;
@@ -102,6 +106,37 @@ const getSourceBadgeClassName = (source?: string | null) => {
     default:
       return 'border-slate-200 bg-slate-50 text-slate-700';
   }
+};
+
+const transformOrderForReorder = (order: IOrder): IOrder => {
+  const transformedItems = order.items?.map((item, index) => {
+    const cartId = `${item.id || item.itemId || 'item'}-${Date.now()}-${index}`;
+
+    return {
+      ...item,
+      cartId,
+      itemId: item.itemId || item.id,
+      variantId: item.variantId || '',
+      amount: item.amount || 1,
+      price: item.price || 0,
+      selectedRetailAttributes: item.selectedRetailAttributes || [],
+      discount: item.discount || {},
+      customDiscount: item.discount?.value || 0,
+    };
+  }) || [];
+
+  return {
+    ...order,
+    id: undefined,
+    items: transformedItems,
+    branchId: order.branchId,
+    customer: order.customer,
+    orderMethod: order.orderMethod,
+    scheduledAt: order.scheduledAt,
+    deliverTo: order.deliverTo,
+    orderCharges: order.orderCharges || [],
+    customDiscount: order.customDiscount,
+  };
 };
 
 export const Order = ({ pageType = '', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false, wholesale = false }: OrderProps) => {
@@ -193,6 +228,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const totalOrders = useAppSelector(state => state.order.totalOrders);
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
+  const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
   const orderSources = useAppSelector(state => state.order.orderSources);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
@@ -237,6 +273,31 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     } catch (error) {
       toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
     }
+  };
+
+  const handleReorder = (order: IOrder) => {
+    if (!order?.items?.length) {
+      toast.warn(`No Order Items - Order ID: ${order.sequenceNumber}`, { autoClose: 3000 });
+      return;
+    }
+
+    const transformedOrder = transformOrderForReorder(order);
+    const matchingRegistry = branchRegistry.find(record => record.branch?.id === order.branchId);
+    const search = new URLSearchParams();
+
+    if (matchingRegistry?.id) {
+      search.set('registerId', matchingRegistry.id);
+    }
+
+    if (order.wholesale) {
+      search.set('mode', 'wholesale');
+    }
+
+    navigate(`/order/create${search.toString() ? `?${search.toString()}` : ''}`, {
+      state: {
+        prefillOrder: transformedOrder,
+      },
+    });
   };
 
   const handleRefresh = () => {
@@ -443,6 +504,11 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
 
   useEffect(() => {
     dispatch(getBranches({}))
+    dispatch(
+      getEntitiesByType({
+        type: RegisterType.ONLINE,
+      })
+    )
     dispatch(getOrderSources())
     dispatch(getUiSettings())
     dispatch(getOrderStatuses())
@@ -1095,34 +1161,60 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                       </TableCell>
                     )} */}
                     <TableCell className={cellClass} onClick={(e) => e.stopPropagation()}>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                            className="h-8 w-8 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Order actions</span>
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Order</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
-                              className="bg-red-600 hover:bg-red-700"
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-44 p-1.5">
+                          <div className="space-y-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-xs font-medium"
+                              onClick={() => handleReorder(order)}
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Copy className="mr-2 h-3.5 w-3.5" />
+                              Re-order
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 w-full justify-start rounded-lg px-2 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Order</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     </TableCell>
                   </TableRow>
                 ))

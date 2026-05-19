@@ -78,10 +78,13 @@ const OrderCreate = () => {
     const isWholesaleMode = searchParams.get("mode") === 'wholesale';
     
     // Check if we're in edit mode
-    const locationState = (location.state as { editOrder?: IOrder; orderId?: string } | null) || null;
+    const locationState = (location.state as { editOrder?: IOrder; orderId?: string; prefillOrder?: IOrder } | null) || null;
     const editOrderData = locationState?.editOrder;
+    const prefillOrderData = locationState?.prefillOrder;
     const editOrderId = locationState?.orderId;
     const isEditMode = !!editOrderId && !!editOrderData;
+    const hasInitialOrderState = isEditMode || !!prefillOrderData;
+    const initialOrderData = editOrderData || prefillOrderData;
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
@@ -222,7 +225,7 @@ const OrderCreate = () => {
 
     useEffect(() => {
         // Skip reset logic in edit mode - edit mode handles its own initialization
-        if (isEditMode) {
+        if (hasInitialOrderState) {
             console.log('fixing branch... skipping reset in edit mode');
             hasInitializedOrder.current = true;
             return;
@@ -236,11 +239,11 @@ const OrderCreate = () => {
             console.log('fixing branch... calling reset() - this should not happen in edit mode');
             dispatch(reset());
         }
-    }, [cartStorageKey, dispatch, selectedRegistryId, isEditMode]);
+    }, [cartStorageKey, dispatch, selectedRegistryId, hasInitialOrderState]);
 
     useEffect(() => {
         // Skip cart hydration in edit mode - we load data from location state instead
-        if (isEditMode) {
+        if (hasInitialOrderState) {
             console.log('fixing branch... skipping cart hydration in edit mode');
             hasHydratedCart.current = true;
             return;
@@ -334,17 +337,17 @@ const OrderCreate = () => {
         } finally {
             hasHydratedCart.current = true;
         }
-    }, [cartStorageKey, dispatch, selectedRegistryId, isEditMode]);
+    }, [cartStorageKey, dispatch, selectedRegistryId, hasInitialOrderState]);
 
-    // Load edit order data when in edit mode
+    // Load initial order data for edit/reorder flows
     useEffect(() => {
         console.log('fixing branch... edit mode useEffect triggered:', {
             isEditMode,
-            hasEditOrderData: !!editOrderData,
+            hasEditOrderData: !!initialOrderData,
             hasInitializedEditOrder: hasInitializedEditOrder.current,
-            editOrderBranchId: editOrderData?.branchId
+            editOrderBranchId: initialOrderData?.branchId
         });
-        if (isEditMode && editOrderData && !hasInitializedEditOrder.current) {
+        if (hasInitialOrderState && initialOrderData && !hasInitializedEditOrder.current) {
             console.log('fixing branch... initializing edit order data');
             hasInitializedEditOrder.current = true;
             // Set flag early to prevent other initialization logic from running
@@ -361,72 +364,72 @@ const OrderCreate = () => {
             }
             
             // Set branch - will be properly initialized with till status once branchRegistry is loaded
-            if (editOrderData.branchId) {
-                console.log('fixing branch... setting branchId in edit mode:', editOrderData.branchId);
+            if (initialOrderData.branchId) {
+                console.log('fixing branch... setting branchId in edit mode:', initialOrderData.branchId);
                 dispatch(changeEntityField({
                     name: 'branchId',
-                    value: editOrderData.branchId,
+                    value: initialOrderData.branchId,
                 }));
             } else {
-                console.log('fixing branch... editOrderData.branchId is missing:', editOrderData);
+                console.log('fixing branch... editOrderData.branchId is missing:', initialOrderData);
             }
             
             // Set customer
-            if (editOrderData.customer) {
+            if (initialOrderData.customer) {
                 dispatch(changeEntityField({
                     name: 'customer',
-                    value: editOrderData.customer,
+                    value: initialOrderData.customer,
                 }));
             }
             
             // Set order method
-            if (editOrderData.orderMethod) {
+            if (initialOrderData.orderMethod) {
                 dispatch(changeEntityField({
                     name: 'orderMethod',
-                    value: editOrderData.orderMethod,
+                    value: initialOrderData.orderMethod,
                 }));
-                localStorage.setItem(ORDER_METHOD, editOrderData.orderMethod);
+                localStorage.setItem(ORDER_METHOD, initialOrderData.orderMethod);
             }
             
             // Set scheduled date
-            if (editOrderData.scheduledAt) {
+            if (initialOrderData.scheduledAt) {
                 dispatch(changeEntityField({
                     name: 'scheduledAt',
-                    value: editOrderData.scheduledAt,
+                    value: initialOrderData.scheduledAt,
                 }));
-                const date = new Date(editOrderData.scheduledAt);
+                const date = new Date(initialOrderData.scheduledAt);
                 const localDateTimeString = date.toISOString().slice(0, 16);
                 setScheduledAtLocal(localDateTimeString);
             }
             
             // Set delivery address
-            if (editOrderData.deliverTo) {
+            if (initialOrderData.deliverTo) {
                 dispatch(changeEntityField({
                     name: 'deliverTo',
-                    value: editOrderData.deliverTo,
+                    value: initialOrderData.deliverTo,
                 }));
             }
             
             // Set order charges
-            if (editOrderData.orderCharges) {
+            if (initialOrderData.orderCharges) {
                 dispatch(changeEntityField({
                     name: 'orderCharges',
-                    value: editOrderData.orderCharges,
+                    value: initialOrderData.orderCharges,
                 }));
             }
             
             // Set custom discount
-            if (editOrderData.customDiscount) {
+            if (initialOrderData.customDiscount) {
                 dispatch(changeEntityField({
                     name: 'customDiscount',
-                    value: editOrderData.customDiscount,
+                    value: initialOrderData.customDiscount,
                 }));
             }
             
             // Set items - API will recalculate totals including taxes
-            if (editOrderData.items && editOrderData.items.length > 0) {
+            if (initialOrderData.items && initialOrderData.items.length > 0) {
                 // Mark items with custom prices as priceOverridden so API receives priceOverride
-                const itemsWithPriceOverrideFlag = editOrderData.items.map(item => {
+                const itemsWithPriceOverrideFlag = initialOrderData.items.map(item => {
                     // If item has a price set, mark it as priceOverridden so API receives priceOverride
                     const hasCustomPrice = item.price !== undefined && item.price !== null && item.price > 0;
                     return {
@@ -441,41 +444,41 @@ const OrderCreate = () => {
                 }));
             }
         }
-    }, [isEditMode, editOrderData, editOrderId, dispatch]);
+    }, [hasInitialOrderState, initialOrderData, isEditMode, editOrderId, dispatch]);
 
-    // Initialize branch registry and till status for edit mode
+    // Initialize branch registry and till status for edit/reorder flows
     useEffect(() => {
-        if (isEditMode && editOrderData?.branchId && branchRegistry.length > 0 && tillList.length >= 0) {
-            const matchingRegistry = branchRegistry.find(record => record.branch?.id === editOrderData.branchId);
+        if (hasInitialOrderState && initialOrderData?.branchId && branchRegistry.length > 0 && tillList.length >= 0) {
+            const matchingRegistry = branchRegistry.find(record => record.branch?.id === initialOrderData.branchId);
             console.log('fixing branch... initializing branch registry and till status:', {
                 isEditMode,
-                branchId: editOrderData.branchId,
+                branchId: initialOrderData.branchId,
                 branchRegistryLength: branchRegistry.length,
                 tillListLength: tillList.length,
                 matchingRegistry: matchingRegistry ? 'found' : 'not found'
             });
             if (matchingRegistry) {
                 // Set branchId first (checkTillStatus will also set it, but this ensures it's set immediately)
-                console.log('fixing branch... setting branchId again before checkTillStatus:', editOrderData.branchId);
+                console.log('fixing branch... setting branchId again before checkTillStatus:', initialOrderData.branchId);
                 dispatch(changeEntityField({
                     name: 'branchId',
-                    value: editOrderData.branchId,
+                    value: initialOrderData.branchId,
                 }));
                 // Then check till status - pass skipClosedStatus=true in edit mode to allow editing even if till is closed
                 console.log('fixing branch... calling checkTillStatus');
                 checkTillStatus(matchingRegistry, true);
             } else {
-                console.log('fixing branch... matching registry not found for branchId:', editOrderData.branchId);
+                console.log('fixing branch... matching registry not found for branchId:', initialOrderData.branchId);
             }
         } else {
             console.log('fixing branch... conditions not met for branch registry init:', {
                 isEditMode,
-                hasBranchId: !!editOrderData?.branchId,
+                hasBranchId: !!initialOrderData?.branchId,
                 branchRegistryLength: branchRegistry.length,
                 tillListLength: tillList.length
             });
         }
-    }, [isEditMode, editOrderData?.branchId, branchRegistry, tillList, dispatch]);
+    }, [hasInitialOrderState, isEditMode, initialOrderData?.branchId, branchRegistry, tillList, dispatch]);
 
     // Sync scheduledAtLocal with orderEntity.scheduledAt when entity changes (e.g., after reset)
     useEffect(() => {
@@ -1389,16 +1392,16 @@ const OrderCreate = () => {
             if (selectedRegistryId) {
                 return res.id === selectedRegistryId;
             } else {
-                // In edit mode, include the branch that matches the order's branchId
-                if (isEditMode && orderEntity?.branchId && res.branch?.id === orderEntity.branchId) {
+                // In prefilled flows, include the branch that matches the order's branchId
+                if (hasInitialOrderState && orderEntity?.branchId && res.branch?.id === orderEntity.branchId) {
                     return true;
                 }
                 return res.type === RegisterType.ONLINE;
             }
         });
         
-        // Ensure we have the branch in edit mode even if it doesn't match the filter
-        if (isEditMode && orderEntity?.branchId && !filtered.some(reg => reg.branch?.id === orderEntity.branchId)) {
+        // Ensure we have the branch in prefilled flows even if it doesn't match the filter
+        if (hasInitialOrderState && orderEntity?.branchId && !filtered.some(reg => reg.branch?.id === orderEntity.branchId)) {
             const matchingRegistry = branchRegistry.find(reg => reg.branch?.id === orderEntity.branchId);
             if (matchingRegistry) {
                 filtered.push(matchingRegistry);
@@ -1410,7 +1413,7 @@ const OrderCreate = () => {
             label: registry?.branch?.name || 'Unknown Branch',
             registry,
         }));
-    }, [branchRegistry, selectedRegistryId, isEditMode, orderEntity?.branchId]);
+    }, [branchRegistry, selectedRegistryId, hasInitialOrderState, orderEntity?.branchId]);
 
     const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
         if (action === 'input-change') {
@@ -1837,7 +1840,7 @@ const OrderCreate = () => {
             </Dialog>
 
 
-            {(till || isEditMode) && (
+            {(till || hasInitialOrderState) && (
                 <div className="grid flex-1 gap-4 lg:grid-cols-12">
                     {!isMobile ? (
                         <div className="flex min-h-0 flex-col gap-4 lg:col-span-8 lg:h-[72vh]">
