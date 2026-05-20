@@ -46,6 +46,7 @@ import businessDetail from 'app/entities/settings/business-details/business-deta
 import businessTimeZone from 'app/entities/settings/business-details/business-timezone.reducer';
 import businessType from 'app/entities/settings/business-type/business-type.reducer';
 import onAccountSettings from 'app/entities/settings/on-account/on-account-settings.reducer';
+import inventoryPurchaseOrderSettings from 'app/entities/inventory/settings/inventory-settings.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
@@ -91,6 +92,8 @@ import supplier from "app/entities/inventory/supplier/supplier.reducer"
 import salesLocation from "app/entities/inventory/sales-location/sales-location.reducer"
 import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
 import purchaseOrder from "app/entities/inventory/purchase-order/purchase-order.reducer"
+import purchaseOrderOrderableItems from "app/entities/inventory/purchase-order/purchase-order-orderable-items.reducer"
+import purchaseOrderSupplierItems from "app/entities/inventory/purchase-order/purchase-order-supplier-items.reducer"
 import itemForStock from "app/entities/inventory/stock-config/items-stock-config.reducer"
 import purchaseConfig from "app/entities/inventory/stock-config/purchase-config.reducer"
 import inventoryItem from "app/entities/inventory/stock-config/inventory-items.reducer"
@@ -141,6 +144,7 @@ const entitiesReducers = {
   businessTimeZone,
   businessType,
   onAccountSettings,
+  inventoryPurchaseOrderSettings,
   voidReason,
   printer,
   printingProfiles,
@@ -188,6 +192,8 @@ const entitiesReducers = {
   salesLocation,
   warehouse,
   purchaseOrder,
+  purchaseOrderOrderableItems,
+  purchaseOrderSupplierItems,
   itemForStock,
   purchaseConfig,
   stockQuantity,

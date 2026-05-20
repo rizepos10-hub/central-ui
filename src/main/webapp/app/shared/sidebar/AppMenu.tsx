@@ -354,6 +354,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Settings',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
+        to: '/inventory/settings',
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Transfers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/transfer-request',
