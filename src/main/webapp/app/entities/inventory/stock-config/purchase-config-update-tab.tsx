@@ -5,11 +5,11 @@ import { Trash2 } from 'lucide-react';
 import { useAppSelector } from 'app/config/store';
 import { IPurchaseConfig } from 'app/shared/model/STOCK/purchase-config.model';
 import { translate } from 'react-jhipster';
-import { Dropdown } from 'primereact/dropdown';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Select from 'app/shared/components/select/select';
 
 interface PurchaseConfigUpdateTabProps {
   id?: string;
@@ -37,6 +37,11 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     );
   }, [purchaseConfig?.supplierConfigurations, suppliers]);
 
+  const configuredSuppliers = useMemo(
+    () => purchaseConfig?.supplierConfigurations?.map(config => config.supplier).filter(Boolean) || [],
+    [purchaseConfig?.supplierConfigurations]
+  );
+
   const handleNumberChange = (field: string, value: string) => {
     const num = value === '' ? null : parseFloat(value);
     const newConfig = { ...purchaseConfig, [field]: num };
@@ -44,14 +49,26 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
   };
 
   const handleAddSupplier = (selectedSupplier: any) => {
+    if (!selectedSupplier?.id) {
+      return;
+    }
     const newEntry = {
-      supplier: selectedSupplier.value,
+      supplier: selectedSupplier,
       defaultPrice: null,
       code: ''
     };
     const newConfig = {
       ...purchaseConfig,
-      supplierConfigurations: [...(purchaseConfig?.supplierConfigurations || []), newEntry]
+      supplierConfigurations: [...(purchaseConfig?.supplierConfigurations || []), newEntry],
+      defaultSupplier: purchaseConfig?.defaultSupplier?.id ? purchaseConfig.defaultSupplier : selectedSupplier
+    };
+    onConfigChange(newConfig, variantIndex);
+  };
+
+  const handleDefaultSupplierChange = (selectedSupplier: any) => {
+    const newConfig = {
+      ...purchaseConfig,
+      defaultSupplier: selectedSupplier?.id ? selectedSupplier : null
     };
     onConfigChange(newConfig, variantIndex);
   };
@@ -75,7 +92,13 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
 
   const handleDeleteSupplier = (configIndex: number) => {
     const updatedConfigurations = purchaseConfig?.supplierConfigurations?.filter((_, index) => index !== configIndex);
-    const newConfig = { ...purchaseConfig, supplierConfigurations: updatedConfigurations };
+    const removedSupplierId = purchaseConfig?.supplierConfigurations?.[configIndex]?.supplier?.id;
+    const newConfig = {
+      ...purchaseConfig,
+      supplierConfigurations: updatedConfigurations,
+      defaultSupplier:
+        purchaseConfig?.defaultSupplier?.id === removedSupplierId ? null : purchaseConfig?.defaultSupplier
+    };
     onConfigChange(newConfig, variantIndex);
   };
 
@@ -114,24 +137,46 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
       </div>
 
       <div className="space-y-2">
-        <Label className="font-semibold">{translate('tempApp.stockConfig.supplierConfig')}</Label>
-        <div className="border rounded-md p-4 space-y-3">
+        <Label className="font-semibold text-sm">{translate('tempApp.stockConfig.supplierConfig')}</Label>
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
           <div className="space-y-2">
-            <Label className="text-xs">{translate('tempApp.stockConfig.selectSupplier')}</Label>
-            <Dropdown
-              options={filteredSuppliers}
-              placeholder={translate('tempApp.stockConfig.selectSupplier')}
-              className="w-full"
-              optionLabel="name"
-              filter
-              onChange={handleAddSupplier}
+            <Label className="text-xs font-medium text-muted-foreground">
+              {translate('tempApp.stockConfig.defaultSupplier')}
+            </Label>
+            <Select
+              options={configuredSuppliers}
+              placeholder={translate('tempApp.stockConfig.selectDefaultSupplier')}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.id}
+              onChange={handleDefaultSupplierChange}
+              value={purchaseConfig?.defaultSupplier?.id ? purchaseConfig.defaultSupplier : null}
+              isSearchable
+              isDisabled={configuredSuppliers.length === 0}
             />
           </div>
 
-          <div className="rounded-md border">
+          <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground">
+              {translate('tempApp.stockConfig.selectSupplier')}
+            </Label>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+              <div className="flex-1">
+                <Select
+                  options={filteredSuppliers}
+                  placeholder={translate('tempApp.stockConfig.selectSupplier')}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={handleAddSupplier}
+                  isSearchable
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-border/60 bg-background">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/30">
                   <TableHead className="text-xs">{translate('common.supplier')}</TableHead>
                   <TableHead className="text-xs">{translate('common.costPrice')}</TableHead>
                   <TableHead className="text-xs">{translate('common.supplierCode')}</TableHead>
@@ -146,7 +191,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                       <Input
                         type="number"
                         step="0.01"
-                        className="h-7 text-xs w-32"
+                        className="h-8 text-xs min-w-[120px] rounded-lg"
                         required
                         value={supConfig?.defaultPrice ?? ''}
                         onChange={(e) => handleSupplierConfigChange(index, e.target.value)}
@@ -155,16 +200,16 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                     <TableCell>
                       <Input
                         type="text"
-                        className="h-7 text-xs w-32"
+                        className="h-8 text-xs min-w-[120px] rounded-lg"
                         value={supConfig.code ?? ''}
                         onChange={(e) => handleSupplierCodeChange(index, e.target.value)}
                       />
                     </TableCell>
                     <TableCell>
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         size="sm"
-                        className="h-7 text-xs"
+                        className="h-8 text-xs border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => handleDeleteSupplier(index)}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
