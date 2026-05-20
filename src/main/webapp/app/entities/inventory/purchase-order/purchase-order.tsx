@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { RefreshCw, Plus, Pencil, Trash2, Eye, Handshake, CalendarIcon } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Trash2, Eye, Handshake, CalendarIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -32,8 +32,8 @@ const initialState = {
   first: 0,
   rows: 20,
   page: 0,
-  sortField: null,
-  sortOrder: null,
+  sortField: 'datePlaced',
+  sortOrder: -1,
   query: '',
   filters: {
     "warehouse.id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -131,6 +131,39 @@ export const PurchaseOrder = () => {
     setSearchParams({ query: queryParams }, { replace: true });
   };
 
+  const handleSort = (field: string) => {
+    let newSortOrder = 1;
+    let newSortField = field;
+
+    if (query.sortField === field) {
+      newSortOrder = query.sortOrder === 1 ? -1 : query.sortOrder === -1 ? null : 1;
+      newSortField = newSortOrder === null ? null : field;
+    }
+
+    const newQuery = {
+      ...query,
+      sortField: newSortField,
+      sortOrder: newSortOrder,
+      page: 0,
+      first: 0,
+    };
+    const queryParams = JSON.stringify(newQuery);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (query.sortField !== field) {
+      return <ArrowUpDown className="ml-1 inline h-3 w-3" />;
+    }
+    if (query.sortOrder === 1) {
+      return <ArrowUp className="ml-1 inline h-3 w-3" />;
+    }
+    if (query.sortOrder === -1) {
+      return <ArrowDown className="ml-1 inline h-3 w-3" />;
+    }
+    return <ArrowUpDown className="ml-1 inline h-3 w-3" />;
+  };
+
   const getSeverity = (status: string) => {
     switch (status) {
       case 'PLACED':
@@ -145,6 +178,8 @@ export const PurchaseOrder = () => {
   const handleFilterDateChange = (date: Date, field: string) => {
     const newQueryWithStatus = JSON.stringify({
       ...query,
+      first: 0,
+      page: 0,
       filters: {
         ...query.filters,
         [field]: { value: toLocalISOString(date), matchMode: 'startsWith' }
@@ -230,96 +265,168 @@ export const PurchaseOrder = () => {
               <TableRow>
                 <TableHead className="text-xs">
                   <div className="space-y-1">
-                    <div>{translate('tempApp.purchaseOrder.warehouse')}</div>
-                    <Select
-                      options={warehouseList}
-                      value={warehouseList.find(w => w.id === query?.filters?.['warehouse.id']?.value) || null}
-                      onChange={selectedWarehouse => onFilter('warehouse.id', selectedWarehouse?.id || null)}
-                      getOptionLabel={(option) => option.name}
-                      getOptionValue={(option) => option.id}
-                      isClearable
-                      placeholder={translate('tempApp.purchaseOrder.search.warehouse')}
-                      onInputChange={(value) => setSearchTermWarehouse(value)}
-                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center font-medium hover:text-foreground"
+                      onClick={() => handleSort('warehouse.name')}
+                    >
+                      {translate('tempApp.purchaseOrder.warehouse')}
+                      {getSortIcon('warehouse.name')}
+                    </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <Select
+                        options={warehouseList}
+                        value={warehouseList.find(w => w.id === query?.filters?.['warehouse.id']?.value) || null}
+                        onChange={selectedWarehouse => onFilter('warehouse.id', selectedWarehouse?.id || null)}
+                        getOptionLabel={(option) => option.name}
+                        getOptionValue={(option) => option.id}
+                        isClearable
+                        placeholder={translate('tempApp.purchaseOrder.search.warehouse')}
+                        onInputChange={(value) => setSearchTermWarehouse(value)}
+                      />
+                    </div>
                   </div>
                 </TableHead>
 
                 <TableHead className="text-xs">
                   <div className="space-y-1">
-                    <div>{translate('tempApp.purchaseOrder.supplier')}</div>
-                    <Select
-                      options={supplierList}
-                      value={supplierList.find(s => s.id === query?.filters?.['supplier.id']?.value) || null}
-                      onChange={selectedSupplier => onFilter('supplier.id', selectedSupplier?.id || null)}
-                      getOptionLabel={(option) => option.name}
-                      getOptionValue={(option) => option.id}
-                      isClearable
-                      placeholder={translate('tempApp.purchaseOrder.search.supplier')}
-                      onInputChange={(value) => setSearchTermSupplier(value)}
-                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center font-medium hover:text-foreground"
+                      onClick={() => handleSort('supplier.name')}
+                    >
+                      {translate('tempApp.purchaseOrder.supplier')}
+                      {getSortIcon('supplier.name')}
+                    </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <Select
+                        options={supplierList}
+                        value={supplierList.find(s => s.id === query?.filters?.['supplier.id']?.value) || null}
+                        onChange={selectedSupplier => onFilter('supplier.id', selectedSupplier?.id || null)}
+                        getOptionLabel={(option) => option.name}
+                        getOptionValue={(option) => option.id}
+                        isClearable
+                        placeholder={translate('tempApp.purchaseOrder.search.supplier')}
+                        onInputChange={(value) => setSearchTermSupplier(value)}
+                      />
+                    </div>
                   </div>
                 </TableHead>
 
                 <TableHead className="text-xs">
                   <div className="space-y-1">
-                    <div>{translate('common.datePlaced')}</div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
-                          <CalendarIcon className="h-3 w-3 mr-1" />
-                          {query?.filters?.datePlaced?.value ? formatDateForDisplay(query.filters.datePlaced.value, 'PP') : translate('common.search.datePlaced')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={query?.filters?.datePlaced?.value ? new Date(query.filters.datePlaced.value) : undefined}
-                          onSelect={(date) => date && handleFilterDateChange(date, 'datePlaced')}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <button
+                      type="button"
+                      className="inline-flex items-center font-medium hover:text-foreground"
+                      onClick={() => handleSort('datePlaced')}
+                    >
+                      {translate('common.datePlaced')}
+                      {getSortIcon('datePlaced')}
+                    </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
+                            <CalendarIcon className="h-3 w-3 mr-1" />
+                            {query?.filters?.datePlaced?.value ? formatDateForDisplay(query.filters.datePlaced.value, 'PP') : translate('common.search.datePlaced')}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={query?.filters?.datePlaced?.value ? new Date(query.filters.datePlaced.value) : undefined}
+                            onSelect={(date) => date && handleFilterDateChange(date, 'datePlaced')}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </TableHead>
 
                 <TableHead className="text-xs">
                   <div className="space-y-1">
-                    <div>{translate('common.dateDelivered')}</div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
-                          <CalendarIcon className="h-3 w-3 mr-1" />
-                          {query?.filters?.dateDelivered?.value ? formatDateForDisplay(query.filters.dateDelivered.value, 'PP') : translate('common.search.dateDelivered')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={query?.filters?.dateDelivered?.value ? new Date(query.filters.dateDelivered.value) : undefined}
-                          onSelect={(date) => date && handleFilterDateChange(date, 'dateDelivered')}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <button
+                      type="button"
+                      className="inline-flex items-center font-medium hover:text-foreground"
+                      onClick={() => handleSort('dateDelivered')}
+                    >
+                      {translate('common.dateDelivered')}
+                      {getSortIcon('dateDelivered')}
+                    </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-7 text-xs w-full justify-start">
+                            <CalendarIcon className="h-3 w-3 mr-1" />
+                            {query?.filters?.dateDelivered?.value ? formatDateForDisplay(query.filters.dateDelivered.value, 'PP') : translate('common.search.dateDelivered')}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={query?.filters?.dateDelivered?.value ? new Date(query.filters.dateDelivered.value) : undefined}
+                            onSelect={(date) => date && handleFilterDateChange(date, 'dateDelivered')}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </TableHead>
 
                 <TableHead className="text-xs">
                   <div className="space-y-1">
-                    <div>{translate('common.status')}</div>
-                    <Select
-                      options={statusDropdownItems}
-                      value={statusDropdownItems.find(s => s.id === query?.filters?.status?.value) || null}
-                      onChange={selectedStatus => onFilter('status', selectedStatus?.id || null)}
-                      getOptionLabel={(option) => option.name}
-                      getOptionValue={(option) => option.id}
-                      isClearable
-                      placeholder={translate("common.search.points")}
-                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center font-medium hover:text-foreground"
+                      onClick={() => handleSort('status')}
+                    >
+                      {translate('common.status')}
+                      {getSortIcon('status')}
+                    </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <Select
+                        options={statusDropdownItems}
+                        value={statusDropdownItems.find(s => s.id === query?.filters?.status?.value) || null}
+                        onChange={selectedStatus => onFilter('status', selectedStatus?.id || null)}
+                        getOptionLabel={(option) => option.name}
+                        getOptionValue={(option) => option.id}
+                        isClearable
+                        placeholder={translate("common.search.points")}
+                      />
+                    </div>
                   </div>
                 </TableHead>
 
-                <TableHead className="text-xs">Order Lines Total</TableHead>
-                <TableHead className="text-xs">Cost Lines Total</TableHead>
-                <TableHead className="text-xs">Item Name</TableHead>
+                <TableHead className="text-xs">
+                  <button
+                    type="button"
+                    className="inline-flex items-center font-medium hover:text-foreground"
+                    onClick={() => handleSort('orderLinesTotal')}
+                  >
+                    Order Lines Total
+                    {getSortIcon('orderLinesTotal')}
+                  </button>
+                </TableHead>
+                <TableHead className="text-xs">
+                  <button
+                    type="button"
+                    className="inline-flex items-center font-medium hover:text-foreground"
+                    onClick={() => handleSort('costLinesTotal')}
+                  >
+                    Cost Lines Total
+                    {getSortIcon('costLinesTotal')}
+                  </button>
+                </TableHead>
+                <TableHead className="text-xs">
+                  <button
+                    type="button"
+                    className="inline-flex items-center font-medium hover:text-foreground"
+                    onClick={() => handleSort('itemName')}
+                  >
+                    Item Name
+                    {getSortIcon('itemName')}
+                  </button>
+                </TableHead>
                 <TableHead className="text-xs w-16 text-center">{translate('common.return')}</TableHead>
                 <TableHead className="text-xs w-16 text-center">{translate('common.view')}</TableHead>
                 <TableHead className="text-xs w-16 text-center">{translate('common.delete')}</TableHead>
