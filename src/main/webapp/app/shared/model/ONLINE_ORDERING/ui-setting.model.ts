@@ -16,6 +16,16 @@ export enum Language {
   FR = "FR"
 }
 
+export enum AddonOptionsVisibility {
+  HIDDEN = "HIDDEN",
+  SHOW = "SHOW",
+}
+
+export enum VariantsUiLayout {
+  HORIZONTAL = "HORIZONTAL",
+  VERTICAL = "VERTICAL",
+}
+
 export interface ILanguages {
   defaultLanguage: Language;
   enabledLanguages: Language[];
@@ -56,6 +66,8 @@ export interface IUiSettings {
   hideBranchesSection?: boolean
   scriptSnippets?: IScriptSnippet[]
   languages?: ILanguages
+  addonOptionsVisibility?: AddonOptionsVisibility
+  variantsUiLayout?: VariantsUiLayout
 }
 
 export interface IOnlineOrderingLogo {
@@ -107,9 +119,13 @@ export type IFontSetting = {
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT", "HIDDEN"];
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY", "ALL"];
 export const languageOptions: Language[] = [Language.EN, Language.AR, Language.FR];
+export const addonOptionsVisibilityOptions: AddonOptionsVisibility[] = [AddonOptionsVisibility.HIDDEN, AddonOptionsVisibility.SHOW];
+export const variantsUiLayoutOptions: VariantsUiLayout[] = [VariantsUiLayout.HORIZONTAL, VariantsUiLayout.VERTICAL];
 
 
 export const defaultValue: Readonly<IUiSettings> = {
   homePageSetting: defaultLayoutValue,
-  scriptSnippets: []
+  scriptSnippets: [],
+  addonOptionsVisibility: AddonOptionsVisibility.HIDDEN,
+  variantsUiLayout: VariantsUiLayout.HORIZONTAL,
 };
