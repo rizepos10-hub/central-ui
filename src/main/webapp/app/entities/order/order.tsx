@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities, filterOrders, getOrderSources, getOrderStatuses, deleteEntity, reset } from './order.reducer';
 import { getEntities as getBranches } from '../branch/branch.reducer';
+import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
 import { format } from "date-fns";
 import { fromZonedTime } from 'date-fns-tz';
 import { debounce } from "lodash";
@@ -14,6 +15,8 @@ import { getEntity as getUiSettings } from 'app/entities/online-ordering/setting
 import { toast } from 'react-toastify';
 import Select from 'app/shared/components/select/select';
 import { Calendar } from '@/components/ui/calendar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,11 +24,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2 } from 'lucide-react';
+import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X, Trash2, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Copy } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import { formatNumber } from 'app/shared/util/price-utils';
+import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
+import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 
 interface LazyTableState {
   first?: number;
@@ -47,6 +54,90 @@ type OrderProps = {
   isEndOfDayMode?: boolean;
   wholesale?: boolean;
 }
+
+const ALL_STATUS_TAB = '__all__';
+
+const formatStatusLabel = (value?: string | null) => {
+  if (!value) {
+    return '-';
+  }
+
+  return value
+    .toLowerCase()
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const formatSourceLabel = (value?: string | null) => formatStatusLabel(value);
+
+const getStatusBadgeClassName = (status?: string | null) => {
+  switch (status) {
+    case OrderStatus.DRAFT:
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    case OrderStatus.CONFIRMED:
+    case OrderStatus.READY_FOR_PROCESSING:
+      return 'border-sky-200 bg-sky-50 text-sky-700';
+    case OrderStatus.PROCESSING:
+      return 'border-violet-200 bg-violet-50 text-violet-700';
+    case OrderStatus.READY:
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case OrderStatus.IN_DELIVERY:
+      return 'border-indigo-200 bg-indigo-50 text-indigo-700';
+    case OrderStatus.CLOSED:
+      return 'border-emerald-200 bg-emerald-100 text-emerald-800';
+    case OrderStatus.REJECTED:
+      return 'border-rose-200 bg-rose-50 text-rose-700';
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-700';
+  }
+};
+
+const getSourceBadgeClassName = (source?: string | null) => {
+  switch (source) {
+    case 'ONLINE_ORDERING':
+      return 'border-blue-200 bg-blue-50 text-blue-700';
+    case 'BRANCH_POS':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case 'BUSINESS_ADMIN':
+      return 'border-purple-200 bg-purple-50 text-purple-700';
+    case 'CENTRAL_APP':
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-700';
+  }
+};
+
+const transformOrderForReorder = (order: IOrder): IOrder => {
+  const transformedItems = order.items?.map((item, index) => {
+    const cartId = `${item.id || item.itemId || 'item'}-${Date.now()}-${index}`;
+
+    return {
+      ...item,
+      cartId,
+      itemId: item.itemId || item.id,
+      variantId: item.variantId || '',
+      amount: item.amount || 1,
+      price: item.price || 0,
+      selectedRetailAttributes: item.selectedRetailAttributes || [],
+      discount: item.discount || {},
+      customDiscount: item.discount?.value || 0,
+    };
+  }) || [];
+
+  return {
+    ...order,
+    id: undefined,
+    items: transformedItems,
+    branchId: order.branchId,
+    customer: order.customer,
+    orderMethod: order.orderMethod,
+    scheduledAt: order.scheduledAt,
+    deliverTo: order.deliverTo,
+    orderCharges: order.orderCharges || [],
+    customDiscount: order.customDiscount,
+  };
+};
 
 export const Order = ({ pageType = '', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false, wholesale = false }: OrderProps) => {
   const dispatch = useAppDispatch();
@@ -106,7 +197,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const LOCAL_STORAGE_KEY = pageConfig.storageKey;
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [orderStatuses, setOrderStatuses]: any = useState([]);
+  const [orderStatuses, setOrderStatuses] = useState<Array<{ label: string; value: string }>>([]);
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
@@ -137,6 +228,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const totalOrders = useAppSelector(state => state.order.totalOrders);
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
+  const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
   const orderSources = useAppSelector(state => state.order.orderSources);
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
@@ -152,6 +244,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       label: branch.name,
       value: branch.id,
     }));
+
+  const statusTabs = [
+    { label: 'All', value: ALL_STATUS_TAB },
+    ...orderStatuses.map(status => ({
+      label: formatStatusLabel(status.value),
+      value: status.value,
+    })),
+  ];
+
+  const activeStatusTab = lazyState.filters.status?.value || ALL_STATUS_TAB;
 
 
 
@@ -171,6 +273,35 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     } catch (error) {
       toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
     }
+  };
+
+  const handleReorder = (order: IOrder) => {
+    if (!order?.items?.length) {
+      toast.warn(`No Order Items - Order ID: ${order.sequenceNumber}`, { autoClose: 3000 });
+      return;
+    }
+
+    const transformedOrder = transformOrderForReorder(order);
+    const matchingRegistry = branchRegistry.find(record => record.branch?.id === order.branchId);
+    const search = new URLSearchParams();
+
+    if (matchingRegistry?.id) {
+      search.set('registerId', matchingRegistry.id);
+    }
+
+    if (order.wholesale) {
+      search.set('mode', 'wholesale');
+    }
+
+    navigate(`/order/create${search.toString() ? `?${search.toString()}` : ''}`, {
+      state: {
+        prefillOrder: transformedOrder,
+      },
+    });
+  };
+
+  const handleRefresh = () => {
+    dispatch(filterOrders(buildOrderQueryParams()));
   };
 
 
@@ -239,6 +370,22 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   }));
 
   const shouldShowLoadingState = loading && !(isEndOfDayMode && orderList.length > 0);
+  const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length + 1;
+
+  const handleStatusTabChange = (value: string) => {
+    setLazyState(prevState => ({
+      ...prevState,
+      first: 0,
+      page: 0,
+      filters: {
+        ...prevState.filters,
+        status: {
+          value: value === ALL_STATUS_TAB ? '' : value,
+          matchMode: 'equals',
+        },
+      },
+    }));
+  };
 
   const handleSort = (field: string) => {
     const isAsc = lazyState.sortField === field && lazyState.sortOrder === 1;
@@ -247,6 +394,18 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       sortField: field,
       sortOrder: isAsc ? -1 : 1
     }));
+  };
+
+  const renderSortIcon = (field: string) => {
+    if (lazyState.sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 text-muted-foreground" />;
+    }
+
+    return lazyState.sortOrder === 1 ? (
+      <ArrowUp className="h-3 w-3 text-foreground" />
+    ) : (
+      <ArrowDown className="h-3 w-3 text-foreground" />
+    );
   };
 
   const getSortIcon = (field: string) => {
@@ -345,6 +504,11 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
 
   useEffect(() => {
     dispatch(getBranches({}))
+    dispatch(
+      getEntitiesByType({
+        type: RegisterType.ONLINE,
+      })
+    )
     dispatch(getOrderSources())
     dispatch(getUiSettings())
     dispatch(getOrderStatuses())
@@ -377,14 +541,14 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const selectStyles = {
     control: (base: any) => ({
       ...base,
-      minHeight: '28px',
-      height: '28px',
-      fontSize: '0.75rem',
+      minHeight: '26px',
+      height: '26px',
+      fontSize: '0.7rem',
       borderRadius: '0.375rem',
     }),
     valueContainer: (base: any) => ({
       ...base,
-      height: '28px',
+      height: '26px',
       padding: '0 6px',
     }),
     input: (base: any) => ({
@@ -397,69 +561,57 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     }),
     indicatorsContainer: (base: any) => ({
       ...base,
-      height: '28px',
+      height: '26px',
     }),
     option: (base: any) => ({
       ...base,
-      fontSize: '0.75rem',
+      fontSize: '0.7rem',
       padding: '4px 8px',
     }),
     placeholder: (base: any) => ({
       ...base,
-      fontSize: '0.75rem',
+      fontSize: '0.7rem',
     }),
     singleValue: (base: any) => ({
       ...base,
-      fontSize: '0.75rem',
+      fontSize: '0.7rem',
     }),
   };
 
   const cellClass = 'text-xs break-words whitespace-normal';
 
   return (
-    <Card className={`${isEndOfDayMode ? 'p-0 w-full max-w-full' : 'p-4'}`}>
-      <CardHeader className={`${isEndOfDayMode ? 'pb-2 px-2 pt-2' : 'pb-4'}`}>
-        <div className="flex justify-between items-center min-w-0">
-          <CardTitle className="text-lg truncate">{pageConfig.title}</CardTitle>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {UiSettingsEntity.orderConfirmation && (
-              <div className="flex items-center gap-2">
-                <Label className="text-xs">Filter By Awaiting Confirmation</Label>
-                <Checkbox
-                  checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
-                  onCheckedChange={(checked) => {
-                    if (checked === true) {
-                      setLazyState((prevState) => ({
-                        ...prevState,
-                        filters: {
-                          ...prevState.filters,
-                          orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
-                          status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
-                        },
-                      }));
-                    } else {
-                      setLazyState((prevState) => ({
-                        ...prevState,
-                        filters: {
-                          ...prevState.filters,
-                          orderSource: { value: null, matchMode: 'equals' },
-                          status: { value: null, matchMode: 'equals' },
-                        },
-                      }));
-                    }
-                  }}
-                />
-              </div>
-            )}
+    <Card className={cn('w-full border-border/70 shadow-sm', isEndOfDayMode ? 'p-0' : 'overflow-hidden')}>
+      <CardHeader className={cn('space-y-4 border-b bg-muted/20', isEndOfDayMode ? 'px-2 pb-3 pt-2' : 'px-4 pb-4 pt-4')}>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="truncate text-xl font-semibold">{pageConfig.title}</CardTitle>
+              {pageType === 'today' && <Badge variant="secondary" className="rounded-full">Today</Badge>}
+              {pageType === 'scheduled' && <Badge variant="secondary" className="rounded-full">Scheduled</Badge>}
+              {!!wholesale && <Badge variant="outline" className="rounded-full">Wholesale</Badge>}
+              {!!customer && <Badge variant="outline" className="rounded-full">Customer Orders</Badge>}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {totalOrders || 0} order{totalOrders === 1 ? '' : 's'} across the current filters.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleRefresh} disabled={loading}>
+              <RefreshCw className={cn('mr-1 h-3.5 w-3.5', loading && 'animate-spin')} />
+              Refresh
+            </Button>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7">
-                  <Settings className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Settings className="mr-1 h-3.5 w-3.5" />
+                  Columns
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64">
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm mb-3">Select Columns</h4>
+                  <h4 className="mb-3 text-sm font-medium">Select Columns</h4>
                   {columnOptions.map((col) => (
                     <div key={col.field} className="flex items-center space-x-2">
                       <Checkbox
@@ -469,7 +621,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                       />
                       <label
                         htmlFor={col.field}
-                        className="text-xs cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-xs leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
                         {col.header}
                       </label>
@@ -480,309 +632,396 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
             </Popover>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className={`overflow-hidden ${isEndOfDayMode ? 'px-2 pb-2' : ''}`}>
-        <div className="border rounded-md overflow-x-auto max-w-full">
-          <Table className={`w-full table-fixed ${isEndOfDayMode ? 'min-w-full' : 'min-w-[1200px]'}`}>
-            <TableHeader>
-              <TableRow>
-                {visibleColumns.orderId && (
-                  <TableHead className="w-24">
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('sequenceNumber')}
+        <div className="space-y-3 rounded-xl border bg-background p-3">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="relative w-full">
+              <div className="w-full overflow-x-auto pb-1">
+                <Tabs value={activeStatusTab} onValueChange={handleStatusTabChange}>
+                  <TabsList className="h-auto w-max min-w-full justify-start gap-1.5 rounded-xl border bg-muted/40 p-1 pr-7">
+                    {statusTabs.map(tab => (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="h-7 rounded-lg border border-transparent bg-transparent px-2.5 text-xs data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground"
                       >
-                        Sequence Number {getSortIcon('sequenceNumber')}
-                      </div>
-                      <Input
-                        className="h-7 text-xs"
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              _id: { value: e.target.value, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder={translate('orders.view.table.filters.id')}
-                      />
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+              <div className="pointer-events-none absolute inset-y-1 right-0 w-6 rounded-r-xl bg-gradient-to-l from-background via-background/85 to-transparent" />
+            </div>
+
+            {UiSettingsEntity.orderConfirmation && (
+              <div className="flex items-center gap-2 rounded-full border px-3 py-1.5">
+                <Checkbox
+                  checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
+                  onCheckedChange={(checked) => {
+                    if (checked === true) {
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        first: 0,
+                        page: 0,
+                        filters: {
+                          ...prevState.filters,
+                          orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
+                          status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
+                        },
+                      }));
+                    } else {
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        first: 0,
+                        page: 0,
+                        filters: {
+                          ...prevState.filters,
+                          orderSource: { value: null, matchMode: 'equals' },
+                          status: { value: null, matchMode: 'equals' },
+                        },
+                      }));
+                    }
+                  }}
+                />
+                <Label className="text-xs">Awaiting Confirmation</Label>
+              </div>
+            )}
+          </div>
+
+          <Accordion type="single" collapsible defaultValue="filters" className="rounded-xl border px-3">
+            <AccordionItem value="filters" className="border-b-0">
+              <AccordionTrigger className="py-2 text-xs font-medium hover:no-underline">
+                Filters
+              </AccordionTrigger>
+              <AccordionContent className="pb-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+                  {pageConfig.showDatePicker && !isEndOfDayMode && (
+                    <div className="col-span-2 space-y-1 sm:col-span-3 xl:col-span-2">
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Date Range</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="h-7 w-full justify-start text-[11px] font-normal">
+                            <CalendarIcon className="mr-1.5 h-3 w-3" />
+                            {dateRange?.from ? (
+                              dateRange.to ? `${format(dateRange.from, 'PP')} - ${format(dateRange.to, 'PP')}` : format(dateRange.from, 'PP')
+                            ) : (
+                              <span>{translate('orders.view.table.filters.date')}</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="range"
+                            selected={dateRange}
+                            onSelect={(range) => setDateRange(range)}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderBranch && (
-                  <TableHead>
+                  )}
+
+                  {!isEndOfDayMode && (
                     <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => !isEndOfDayMode && handleSort('branchId')}
-                      >
-                        {translate('orders.view.table.fields.branch')} {!isEndOfDayMode && getSortIcon('branchId')}
-                      </div>
-                      {!isEndOfDayMode && (
-                        <Select
-                          styles={selectStyles}
-                          value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
-                          options={filteredBranchOptions}
-                          isClearable
-                          onChange={(option) =>
-                            setLazyState((prevState) => ({
-                              ...prevState,
-                              filters: {
-                                ...prevState.filters,
-                                branchId: { value: option?.value || '', matchMode: 'equals' },
-                              },
-                            }))
-                          }
-                          placeholder={translate('orders.view.table.filters.branch')}
-                        />
-                      )}
-                      {isEndOfDayMode && externalBranchId && (
-                        <div className="text-xs text-muted-foreground">
-                          {getBranchName(externalBranchId)}
-                        </div>
-                      )}
-                    </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderTotal && (
-                  <TableHead>
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium">Total</div>
-                    </div>
-                  </TableHead>
-                )}
-                {visibleColumns.OrderDate && (
-                  <TableHead className="min-w-[140px]">
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => pageConfig.showDatePicker && !isEndOfDayMode && handleSort('createdDate')}
-                      >
-                        {translate('orders.view.table.fields.date')} {pageConfig.showDatePicker && !isEndOfDayMode && getSortIcon('createdDate')}
-                      </div>
-                      {pageConfig.showDatePicker && !isEndOfDayMode && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="h-7 text-xs w-full justify-start">
-                              <CalendarIcon className="mr-2 h-3 w-3" />
-                              {dateRange?.from ? (
-                                dateRange.to ? (
-                                  <>
-                                    {format(dateRange.from, "PP")} - {format(dateRange.to, "PP")}
-                                  </>
-                                ) : (
-                                  format(dateRange.from, "PP")
-                                )
-                              ) : (
-                                <span>{translate('orders.view.table.filters.date')}</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="range"
-                              selected={dateRange}
-                              onSelect={(range) => setDateRange(range)}
-                              numberOfMonths={2}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                      {isEndOfDayMode && externalFromDate && externalToDate && (
-                        <div className="text-[10px] text-muted-foreground leading-tight whitespace-nowrap">
-                          {format(new Date(externalFromDate), "MMM dd")} - {format(new Date(externalToDate), "MMM dd, yyyy")}
-                        </div>
-                      )}
-                    </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderStatus && (
-                  <TableHead>
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('processingStatus')}
-                      >
-                        {translate('orders.view.table.fields.status')} {getSortIcon('processingStatus')}
-                      </div>
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{translate('orders.view.table.fields.branch')}</Label>
                       <Select
                         styles={selectStyles}
-                        value={orderStatuses.find((opt: any) => opt.value === lazyState.filters.status?.value) || null}
-                        options={orderStatuses}
+                        value={filteredBranchOptions.find(opt => opt.value === lazyState.filters.branchId?.value) || null}
+                        options={filteredBranchOptions}
                         isClearable
                         onChange={(option) =>
                           setLazyState((prevState) => ({
                             ...prevState,
+                            first: 0,
+                            page: 0,
                             filters: {
                               ...prevState.filters,
-                              status: { value: option?.value || '', matchMode: 'equals' },
+                              branchId: { value: option?.value || '', matchMode: 'equals' },
                             },
                           }))
                         }
-                        placeholder={translate('orders.view.table.filters.status')}
+                        placeholder={translate('orders.view.table.filters.branch')}
                       />
                     </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderRefund && (
-                  <TableHead>
+                  )}
+
+                  {!appSourceProp && (
                     <div className="space-y-1">
-                      <div className="text-xs font-medium">Refund</div>
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{translate('orders.view.table.fields.source')}</Label>
                       <Select
                         styles={selectStyles}
-                        value={
-                          lazyState.filters.refund?.value === true
-                            ? { label: 'Yes', value: true }
-                            : lazyState.filters.refund?.value === false
+                        value={orderSources?.map((source) => ({ label: formatSourceLabel(source), value: source }))?.find((opt: any) => opt.value === lazyState.filters.orderSource?.value) || null}
+                        options={orderSources?.map((source) => ({ label: formatSourceLabel(source), value: source }))}
+                        isClearable
+                        onChange={(option) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            first: 0,
+                            page: 0,
+                            filters: {
+                              ...prevState.filters,
+                              orderSource: { value: option?.value || '', matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder={translate('orders.view.table.filters.source')}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Refund</Label>
+                    <Select
+                      styles={selectStyles}
+                      value={
+                        lazyState.filters.refund?.value === true
+                          ? { label: 'Yes', value: true }
+                          : lazyState.filters.refund?.value === false
                             ? { label: 'No', value: false }
                             : null
-                        }
-                        options={[
-                          { label: 'Yes', value: true },
-                          { label: 'No', value: false }
-                        ]}
-                        isClearable
-                        onChange={(selected) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              refund: { value: selected?.value ?? null, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder="Filter"
-                      />
-                    </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderSource && (
-                  <TableHead>
+                      }
+                      options={[
+                        { label: 'Yes', value: true },
+                        { label: 'No', value: false }
+                      ]}
+                      isClearable
+                      onChange={(selected) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            refund: { value: selected?.value ?? null, matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder="Refund"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Sequence Number
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters._id?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            _id: { value: e.target.value, matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder={translate('orders.view.table.filters.id')}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      {translate('orders.view.table.fields.tables')}
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters.tables?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            tables: { value: e.target.value, matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder={translate('orders.view.table.filters.tables')}
+                    />
+                  </div>
+
+                  {!customer && (
                     <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('sourceApp.type')}
-                      >
-                        {translate('orders.view.table.fields.source')} {getSortIcon('sourceApp.type')}
-                      </div>
-                      {!appSourceProp && (
-                        <Select
-                          styles={selectStyles}
-                          value={orderSources?.map((source) => ({ label: source, value: source }))?.find((opt: any) => opt.value === lazyState.filters.orderSource?.value) || null}
-                          options={orderSources?.map((source) => ({ label: source, value: source }))}
-                          isClearable
-                          onChange={(option) =>
-                            setLazyState((prevState) => ({
-                              ...prevState,
-                              filters: {
-                                ...prevState.filters,
-                                orderSource: { value: option?.value || '', matchMode: 'equals' },
-                              },
-                            }))
-                          }
-                          placeholder={translate('orders.view.table.filters.source')}
-                        />
-                      )}
-                    </div>
-                  </TableHead>
-                )}
-                {visibleColumns.orderTable && (
-                  <TableHead>
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('tables')}
-                      >
-                        {translate('orders.view.table.fields.tables')} {getSortIcon('tables')}
-                      </div>
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {translate('orders.view.table.fields.customerEmail')}
+                      </Label>
                       <Input
-                        className="h-7 text-xs"
+                        className="h-7 text-[11px]"
+                        value={lazyState.filters['customer.email']?.value || ''}
                         onChange={(e) =>
                           setLazyState((prevState) => ({
                             ...prevState,
+                            first: 0,
+                            page: 0,
                             filters: {
                               ...prevState.filters,
-                              tables: { value: e.target.value, matchMode: 'equals' },
-                            },
-                          }))
-                        }
-                        placeholder={translate('orders.view.table.filters.tables')}
-                      />
-                    </div>
-                  </TableHead>
-                )}
-                {!customer && visibleColumns.customerEmail && (
-                  <TableHead>
-                    <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('customer.email')}
-                      >
-                        {translate('orders.view.table.fields.customerEmail')} {getSortIcon('customer.email')}
-                      </div>
-                      <Input
-                        className="h-7 text-xs"
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              "customer.email": { value: e.target.value, matchMode: 'equals' },
+                              'customer.email': { value: e.target.value, matchMode: 'equals' },
                             },
                           }))
                         }
                         placeholder={translate('orders.view.table.filters.customerEmail')}
                       />
                     </div>
-                  </TableHead>
-                )}
-                {!customer && visibleColumns.customerPhone && (
-                  <TableHead>
+                  )}
+
+                  {!customer && (
                     <div className="space-y-1">
-                      <div
-                        className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
-                        onClick={() => handleSort('customer.phone')}
-                      >
-                        {translate('orders.view.table.fields.customerPhone')} {getSortIcon('customer.phone')}
-                      </div>
+                      <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {translate('orders.view.table.fields.customerPhone')}
+                      </Label>
                       <Input
-                        className="h-7 text-xs"
+                        className="h-7 text-[11px]"
+                        value={lazyState.filters['customer.phone']?.value || ''}
                         onChange={(e) =>
                           setLazyState((prevState) => ({
                             ...prevState,
+                            first: 0,
+                            page: 0,
                             filters: {
                               ...prevState.filters,
-                              "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                              'customer.phone': { value: e.target.value, matchMode: 'equals' },
                             },
                           }))
                         }
                         placeholder={translate('orders.view.table.filters.customerPhone')}
                       />
                     </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Created By
+                    </Label>
+                    <Input
+                      className="h-7 text-[11px]"
+                      value={lazyState.filters.createdBy?.value || ''}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            createdBy: { value: e.target.value, matchMode: 'contains' },
+                          },
+                        }))
+                      }
+                      placeholder="Filter by creator"
+                    />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </CardHeader>
+
+      <CardContent className={cn('space-y-0 px-0 pb-0', isEndOfDayMode ? 'pt-0' : 'pt-0')}>
+        <div className="border-t" />
+        <div className="p-3">
+        <div className="overflow-hidden rounded-xl border bg-white">
+        <div className="overflow-x-auto">
+          <Table className={cn('w-full table-fixed', isEndOfDayMode ? 'min-w-full' : 'min-w-[1200px]')}>
+            <TableHeader>
+              <TableRow className="border-b bg-muted/30">
+                {visibleColumns.orderId && (
+                  <TableHead className="w-24">
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('sequenceNumber')}
+                    >
+                      Sequence Number {renderSortIcon('sequenceNumber')}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderBranch && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => !isEndOfDayMode && handleSort('branchId')}
+                    >
+                      {translate('orders.view.table.fields.branch')} {!isEndOfDayMode && renderSortIcon('branchId')}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderTotal && (
+                  <TableHead>
+                    <div className="text-xs font-medium">Total</div>
+                  </TableHead>
+                )}
+                {visibleColumns.OrderDate && (
+                  <TableHead className="min-w-[140px]">
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => pageConfig.showDatePicker && !isEndOfDayMode && handleSort('createdDate')}
+                    >
+                      {translate('orders.view.table.fields.date')} {pageConfig.showDatePicker && !isEndOfDayMode && renderSortIcon('createdDate')}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderStatus && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('processingStatus')}
+                    >
+                      {translate('orders.view.table.fields.status')} {renderSortIcon('processingStatus')}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderRefund && (
+                  <TableHead>
+                    <div className="text-xs font-medium">Refund</div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderSource && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('sourceApp.type')}
+                    >
+                      {translate('orders.view.table.fields.source')} {renderSortIcon('sourceApp.type')}
+                    </div>
+                  </TableHead>
+                )}
+                {visibleColumns.orderTable && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('tables')}
+                    >
+                      {translate('orders.view.table.fields.tables')} {renderSortIcon('tables')}
+                    </div>
+                  </TableHead>
+                )}
+                {!customer && visibleColumns.customerEmail && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('customer.email')}
+                    >
+                      {translate('orders.view.table.fields.customerEmail')} {renderSortIcon('customer.email')}
+                    </div>
+                  </TableHead>
+                )}
+                {!customer && visibleColumns.customerPhone && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('customer.phone')}
+                    >
+                      {translate('orders.view.table.fields.customerPhone')} {renderSortIcon('customer.phone')}
+                    </div>
                   </TableHead>
                 )}
                 {visibleColumns.createdBy && (
                   <TableHead>
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium">Created By</div>
-                      <Input
-                        className="h-7 text-xs"
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              createdBy: { value: e.target.value, matchMode: 'contains' },
-                            },
-                          }))
-                        }
-                        value={lazyState.filters.createdBy?.value || ''}
-                        placeholder="Filter by creator"
-                      />
-                    </div>
+                    <div className="text-xs font-medium">Created By</div>
                   </TableHead>
                 )}
                 {/* {visibleColumns.orderDiscount && (
@@ -825,13 +1064,13 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
             <TableBody>
               {shouldShowLoadingState ? (
                 <TableRow>
-                  <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
+                  <TableCell colSpan={visibleColumnCount} className="h-24 text-center text-xs">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : orderList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="h-24 text-center text-xs">
+                  <TableCell colSpan={visibleColumnCount} className="h-24 text-center text-xs">
                     {translate('orders.view.table.emptyMessage')}
                   </TableCell>
                 </TableRow>
@@ -839,53 +1078,78 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                 orderList.map((order) => (
                   <TableRow
                     key={order.id}
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="cursor-pointer border-b border-border/60 transition-colors hover:bg-muted/40"
                     onClick={() => handleRowClick(order.id, order.items, order.sequenceNumber)}
                   >
                     {visibleColumns.orderId && (
                       <TableCell className={cellClass}>
-                        <Link to={`/order/${order.id}`} className="text-blue-600 hover:underline">
-                          {order.sequenceNumber}
+                        <Link to={`/order/${order.id}`} className="font-medium text-primary hover:underline">
+                          #{order.sequenceNumber}
                         </Link>
                       </TableCell>
                     )}
                     {visibleColumns.orderBranch && (
-                      <TableCell className={cellClass}>{getBranchName(order.branchId)}</TableCell>
+                      <TableCell className={cellClass}>
+                        <Badge variant="outline" className="rounded-md">
+                          {getBranchName(order.branchId)}
+                        </Badge>
+                      </TableCell>
                     )}
                     {visibleColumns.orderTotal && (
-                      <TableCell className={cellClass}>{formatNumber(order.total)}</TableCell>
+                      <TableCell className={cn(cellClass, 'font-semibold')}>{formatNumber(order.total)}</TableCell>
                     )}
                     {visibleColumns.OrderDate && (
                       <TableCell className={cellClass}>
-                        {order.createdDate && formatDateForDisplay(order.createdDate)}
+                        <div className="space-y-0.5">
+                          <div>{order.createdDate && formatDateForDisplay(order.createdDate)}</div>
+                          {order.scheduledAt && (
+                            <div className="text-[11px] text-muted-foreground">
+                              Scheduled: {formatDateForDisplay(order.scheduledAt)}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                     )}
                     {visibleColumns.orderStatus && (
-                      <TableCell className={cellClass}>{order.processingStatus}</TableCell>
+                      <TableCell className={cellClass}>
+                        <Badge variant="outline" className={cn('rounded-full', getStatusBadgeClassName(order.processingStatus))}>
+                          {formatStatusLabel(order.processingStatus)}
+                        </Badge>
+                      </TableCell>
                     )}
                     {visibleColumns.orderRefund && (
                       <TableCell className={`${cellClass} text-center`}>
-                        {order.refund ? (
-                          <Check className="h-4 w-4 text-green-600 inline" />
-                        ) : (
-                          <X className="h-4 w-4 text-red-600 inline" />
-                        )}
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'rounded-full',
+                            order.refund
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : 'border-slate-200 bg-slate-50 text-slate-600'
+                          )}
+                        >
+                          {order.refund ? 'Refunded' : 'No'}
+                        </Badge>
                       </TableCell>
                     )}
                     {visibleColumns.orderSource && (
-                      <TableCell className={cellClass}>{order.sourceApp?.type}</TableCell>
+                      <TableCell className={cellClass}>
+                        <Badge variant="outline" className={cn('rounded-full', getSourceBadgeClassName(order.sourceApp?.type))}>
+                          {formatSourceLabel(order.sourceApp?.type)}
+                        </Badge>
+                      </TableCell>
                     )}
                     {visibleColumns.orderTable && (
-                      <TableCell className={cellClass}>{order.tables}</TableCell>
+                      <TableCell className={cellClass}>{order.tables || '-'}</TableCell>
                     )}
                     {!customer && visibleColumns.customerEmail && (
-                      <TableCell className={cellClass}>{order.customer?.email}</TableCell>
+                      <TableCell className={cn(cellClass, 'text-muted-foreground')}>{order.customer?.email || '-'}</TableCell>
                     )}
                     {!customer && visibleColumns.customerPhone && (
-                      <TableCell className={cellClass}>{order.customer?.phone}</TableCell>
+                      <TableCell className={cn(cellClass, 'text-muted-foreground')}>{order.customer?.phone || '-'}</TableCell>
                     )}
                     {visibleColumns.createdBy && (
-                      <TableCell className={cellClass}>{order.createdBy || '-'}</TableCell>
+                      <TableCell className={cn(cellClass, 'text-muted-foreground')}>{order.createdBy || '-'}</TableCell>
                     )}
                     {/* {visibleColumns.orderDiscount && (
                       <TableCell className="text-xs text-center">
@@ -897,34 +1161,60 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                       </TableCell>
                     )} */}
                     <TableCell className={cellClass} onClick={(e) => e.stopPropagation()}>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                            className="h-8 w-8 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Order actions</span>
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Order</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
-                              className="bg-red-600 hover:bg-red-700"
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-44 p-1.5">
+                          <div className="space-y-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-full justify-start rounded-lg px-2 text-xs font-medium"
+                              onClick={() => handleReorder(order)}
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Copy className="mr-2 h-3.5 w-3.5" />
+                              Re-order
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 w-full justify-start rounded-lg px-2 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Order</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     </TableCell>
                   </TableRow>
                 ))
@@ -932,9 +1222,10 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
             </TableBody>
           </Table>
         </div>
+        </div>
 
         {/* Custom Pagination */}
-        <div className="flex items-center justify-between px-2 py-4">
+        <div className="flex flex-col gap-3 border-t bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center space-x-2">
             <Label className="text-xs">Rows per page:</Label>
             <Select
@@ -951,10 +1242,10 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-muted-foreground">
-              {lazyState.first + 1}-{Math.min(lazyState.first + lazyState.rows, totalOrders)} of {totalOrders}
-            </span>
+          <div className="flex items-center space-x-3">
+            <Badge variant="outline" className="rounded-full text-[11px]">
+              {totalOrders === 0 ? 0 : lazyState.first + 1}-{Math.min(lazyState.first + lazyState.rows, totalOrders)} of {totalOrders}
+            </Badge>
             <div className="flex space-x-1">
               <Button
                 variant="outline"
@@ -987,7 +1278,8 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+        </div>
+        </div>
         </div>
       </CardContent>
     </Card>
@@ -997,4 +1289,3 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
 
 
 export default Order;
-

@@ -10,6 +10,7 @@ export interface IPurchaseConfig {
   defaultPrice?: number; // initial model for creation
   minOrderQuantity?: number; // initial model for creation
   supplierConfigurations?: ISupplierConfiguration[]; // initial model for creation
+  defaultSupplier?: ISupplier;
   item?: IStockConfigItem;
   stockQuantities?: IStockQuantity[];
 }

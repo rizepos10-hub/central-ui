@@ -15,10 +15,7 @@ import {  getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import AsyncSelect from 'app/shared/components/select/async-select';
-import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
-import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
 import {toLocalISOString} from "app/shared/util/date-utils";
-import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
 import _ from "lodash";
 import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 import AuditLogs from "app/shared/components/logs/audit-logs";
@@ -38,12 +35,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getEntities as getOrderableItems, reset as resetOrderableItems } from './purchase-order-orderable-items.reducer';
+import { IPurchaseOrderOrderableItem } from 'app/shared/model/STOCK/purchase-order-orderable-item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
+import { getEntities as getSupplierItems, reset as resetSupplierItems } from './purchase-order-supplier-items.reducer';
+import { IPurchaseOrderSupplierItem } from 'app/shared/model/STOCK/purchase-order-supplier-item.model';
 
 
 const statusOptions = [
   "PLACED",
   "RECEIVED"
 ]
+
+const SUPPLIER_ITEMS_PAGE_SIZE = 20;
+
+type ISupplierItemGroup = {
+  id?: string;
+  name?: string;
+  variants: IPurchaseOrderSupplierItem[];
+};
+
+type IOrderLineItemDetails = IItem & {
+  itemId?: string;
+  variantId?: string;
+  variantName?: string;
+  supplierCode?: string | null;
+  stockAtLocation?: IPurchaseOrderOrderableItem['stockAtLocation'];
+  minOrderQuantity?: number | null;
+};
 
 export const PurchaseOrderUpdate = () => {
   const dispatch = useAppDispatch();
@@ -67,8 +86,11 @@ export const PurchaseOrderUpdate = () => {
     status: "PLACED"
   });
 
-  const [selectedItem, setSelectedItem] = useState<IInventoryItem>();
-  const [selectedVariant, setSelectedVariant] = useState<IInventoryItemVariant>();
+  const [selectedItem, setSelectedItem] = useState<ISupplierItemGroup | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<IPurchaseOrderSupplierItem | null>(null);
+  const [selectedVariantDefaults, setSelectedVariantDefaults] = useState<IPurchaseOrderOrderableItem | null>(null);
+  const [supplierItemsSearch, setSupplierItemsSearch] = useState('');
+  const [supplierItemsPage, setSupplierItemsPage] = useState(0);
 
   const [purchaseOrderLine, setPurchaseOrderLine] = useState<OrderLine | null>()
   const [purchaseCostLine, setPurchaseCostLine] = useState<CostLine | null>()
@@ -77,9 +99,11 @@ export const PurchaseOrderUpdate = () => {
   const exportContentRef = useRef<HTMLDivElement>(null);
   const supplierList = useAppSelector(state => state.supplier.entities);
   const warehouseList = useAppSelector(state => state.warehouse.entities);
-  const inventoryItemList :IInventoryItem[] = useAppSelector(state => state.inventoryItem.entities);
-  const loadingItems  = useAppSelector(state => state.inventoryItem.loading);
-
+  const supplierItems = useAppSelector(state => state.purchaseOrderSupplierItems.entities);
+  const loadingItems  = useAppSelector(state => state.purchaseOrderSupplierItems.loading);
+  const loadingMoreItems  = useAppSelector((state: any) => state.purchaseOrderSupplierItems.loadingMore);
+  const totalSupplierItems  = useAppSelector(state => state.purchaseOrderSupplierItems.totalItems || 0);
+  const orderableItemRows: IPurchaseOrderOrderableItem[] = useAppSelector(state => state.purchaseOrderOrderableItems.entities);
 
 
   const purchaseOrderEntity = !items ? useAppSelector(state => state.purchaseOrder.entity) : {};
@@ -101,7 +125,11 @@ export const PurchaseOrderUpdate = () => {
   const isOrderReceived = purchaseOrderEntity?.status === "RECEIVED";
   const canSplit = !isOrderReceived && purchaseOrderEntity?.id;
   const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderReceived;
+  const isItemPickerDisabled = isOrderReceived || !purchaseOrder?.supplier;
+  const isOrderLineEditorDisabled = isOrderReceived || !purchaseOrder?.supplier;
   const canExportPurchaseOrder = Boolean(purchaseOrderEntity?.id);
+  const canLoadOrderableItems = Boolean(purchaseOrder?.supplier?.id && purchaseOrder?.warehouse?.id);
+  const hasMoreSupplierItems = supplierItems.length < totalSupplierItems;
 
   const purchaseOrderFileName = useMemo(
     () => createReportFileName('purchase-order', [purchaseOrderEntity?.id || purchaseOrder?.id || null]),
@@ -122,17 +150,69 @@ export const PurchaseOrderUpdate = () => {
 
   const formatMoney = (value?: number | null) => (value ?? 0).toFixed(2);
 
+  const orderableItemMap = useMemo(() => {
+    const variantMap = new Map<string, IPurchaseOrderOrderableItem>();
+    orderableItemRows.forEach(row => {
+      if (row?.variantId) {
+        variantMap.set(row.variantId, row);
+      }
+    });
+    return variantMap;
+  }, [orderableItemRows]);
+
+  const groupedSupplierItems = useMemo<ISupplierItemGroup[]>(() => {
+    const itemMap = new Map<string, ISupplierItemGroup>();
+
+    supplierItems.forEach(row => {
+      if (!row?.itemId) {
+        return;
+      }
+
+      if (!itemMap.has(row.itemId)) {
+        itemMap.set(row.itemId, {
+          id: row.itemId,
+          name: row.itemName || '-',
+          variants: [],
+        });
+      }
+
+      itemMap.get(row.itemId).variants.push(row);
+    });
+
+    return Array.from(itemMap.values());
+  }, [supplierItems]);
+
   const getOrderLineItemDetails = (line: OrderLine) => {
-    const itemWithVariantDetails = line.item as IInventoryItemVariant & IInventoryItem;
-    const variantLabel = itemWithVariantDetails?.attributeValues
-      ? formatVariant(itemWithVariantDetails?.name || '', itemWithVariantDetails.attributeValues)
-      : null;
+    const itemWithVariantDetails = line.item as IOrderLineItemDetails;
+    const variantLabel = itemWithVariantDetails?.variantName
+      || ((itemWithVariantDetails as any)?.attributeValues
+        ? formatVariant(itemWithVariantDetails?.name || '', (itemWithVariantDetails as any).attributeValues)
+        : null);
 
     return {
       itemName: itemWithVariantDetails?.name || '-',
-      variantLabel,
+      variantLabel: variantLabel === itemWithVariantDetails?.name ? null : variantLabel,
     };
   };
+
+  const selectedVariantStock = selectedVariantDefaults?.stockAtLocation;
+
+  const buildOrderLineFromOrderableItem = (variant: IPurchaseOrderOrderableItem): OrderLine => ({
+    item: {
+      id: variant.itemId,
+      itemId: variant.itemId,
+      variantId: variant.variantId,
+      name: variant.itemName,
+      variantName: variant.variantName,
+      supplierCode: variant.supplierCode,
+      stockAtLocation: variant.stockAtLocation,
+      minOrderQuantity: variant.minOrderQuantity,
+    } as IOrderLineItemDetails,
+    price: variant?.supplierPrice ?? variant?.defaultPrice ?? 0,
+    quantity: variant?.minOrderQuantity || 1,
+    received: 0,
+    returnedQuantity: 0,
+  });
 
   const prepareExportTimestamp = async () => {
     setExportTimestamp(new Date().toISOString());
@@ -164,12 +244,6 @@ export const PurchaseOrderUpdate = () => {
       sort: 'asc',
     }));
 
-    dispatch(getInventoryItems({
-      page: 0,
-      size: 500,
-      sort: 'asc',
-    }));
-
   }, []);
 
   useEffect(() => {
@@ -184,20 +258,33 @@ export const PurchaseOrderUpdate = () => {
     }
   }, [updateSuccess, purchaseOrderEntity, items]);
 
+  const loadSupplierItems = (page = 0, name = '', append = false) => {
+    if (!purchaseOrder?.supplier?.id) {
+      return;
+    }
 
-  const filterItems = (inputValue: string) => {
-    return inventoryItemList.filter((i) => {
-        return (
-          i.name.toLowerCase().includes(inputValue.toLowerCase())
-        )
-      }
-    );
+    dispatch(getSupplierItems({
+      supplierId: purchaseOrder.supplier.id,
+      page,
+      size: SUPPLIER_ITEMS_PAGE_SIZE,
+      name,
+      append,
+    }));
   };
 
-  const loadItems = _.debounce((inputValue: string, e) => {
-    if(e.action !== 'input-change') return;
-    dispatch(searchInventoryItems({query: `name=${inputValue}`}));
-  }, 300);
+  const loadItems = useMemo(
+    () =>
+      _.debounce((inputValue: string, e) => {
+        if (e.action !== 'input-change' || !purchaseOrder?.supplier?.id) {
+          return;
+        }
+
+        setSupplierItemsSearch(inputValue || '');
+        setSupplierItemsPage(0);
+        loadSupplierItems(0, inputValue || '', false);
+      }, 300),
+    [purchaseOrder?.supplier?.id]
+  );
 
   const filterSuppliers = (inputValue: string) => {
     return supplierList.filter((sup) => {
@@ -207,6 +294,99 @@ export const PurchaseOrderUpdate = () => {
       }
     );
   };
+
+  useEffect(() => {
+    if (!canLoadOrderableItems) {
+      dispatch(resetOrderableItems());
+      if (isNew && !items) {
+        setPurchaseOrder(prevState => ({
+          ...prevState,
+          orderLines: [],
+        }));
+      }
+      return;
+    }
+
+    dispatch(getOrderableItems({
+      supplierId: purchaseOrder.supplier.id,
+      locationId: purchaseOrder.warehouse.id,
+      query: '',
+      page: 0,
+      size: 500,
+    }));
+  }, [canLoadOrderableItems, dispatch, purchaseOrder?.supplier?.id, purchaseOrder?.warehouse?.id]);
+
+  useEffect(() => {
+    if (!isNew || items || !canLoadOrderableItems) {
+      return;
+    }
+
+    setPurchaseOrder(prevState => ({
+      ...prevState,
+      orderLines: orderableItemRows.map(buildOrderLineFromOrderableItem),
+    }));
+  }, [orderableItemRows, isNew, items, canLoadOrderableItems]);
+
+  useEffect(() => {
+    if (!purchaseOrder?.supplier?.id) {
+      dispatch(resetSupplierItems());
+      setSupplierItemsSearch('');
+      setSupplierItemsPage(0);
+      setSelectedItem(null);
+      setSelectedVariant(null);
+      setSelectedVariantDefaults(null);
+      setPurchaseOrderLine(null);
+      return;
+    }
+
+    setSupplierItemsSearch('');
+    setSupplierItemsPage(0);
+    setSelectedItem(null);
+    setSelectedVariant(null);
+    setSelectedVariantDefaults(null);
+    setPurchaseOrderLine(null);
+    loadSupplierItems(0, '', false);
+  }, [dispatch, purchaseOrder?.supplier?.id]);
+
+  useEffect(() => {
+    if (!selectedVariant) {
+      return;
+    }
+
+    const orderableVariantDefaults = orderableItemMap.get(selectedVariant?.variantId);
+    setSelectedVariantDefaults(orderableVariantDefaults || null);
+
+    const price =
+      orderableVariantDefaults?.supplierPrice
+      ?? selectedVariant?.supplierPrice
+      ?? orderableVariantDefaults?.defaultPrice
+      ?? selectedVariant?.defaultPrice
+      ?? 0;
+
+    setPurchaseOrderLine(prevState => ({
+      ...prevState,
+      item: {
+        id: selectedItem?.id,
+        itemId: selectedItem?.id,
+        variantId: selectedVariant.variantId,
+        name: selectedItem?.name,
+        variantName: selectedVariant.variantName,
+        supplierCode: orderableVariantDefaults?.supplierCode ?? selectedVariant?.supplierCode ?? '',
+        stockAtLocation: orderableVariantDefaults?.stockAtLocation,
+        minOrderQuantity: orderableVariantDefaults?.minOrderQuantity ?? selectedVariant?.minOrderQuantity,
+      } as IOrderLineItemDetails,
+      price,
+      quantity: orderableVariantDefaults?.minOrderQuantity || selectedVariant?.minOrderQuantity || 1,
+      received: 0,
+      returnedQuantity: 0,
+    }));
+  }, [orderableItemMap, selectedItem, selectedVariant]);
+
+  useEffect(() => {
+    return () => {
+      loadItems.cancel();
+    };
+  }, [loadItems]);
 
   const handleDateChange = (field, date: Date) => {
     const isoDateString = toLocalISOString(date);
@@ -260,27 +440,9 @@ export const PurchaseOrderUpdate = () => {
     setPurchaseOrderLine(prevState => ({ ...prevState, [field]: value }));
   };
 
-  const handleSelectVariant = (variant: IInventoryItemVariant) => {
+  const handleSelectVariant = (variant: IPurchaseOrderSupplierItem) => {
     setSelectedVariant(variant);
-
-    const {itemPurchasingConfig: purchasingConfig } = variant;
-    const itemSupplierConfig = purchasingConfig?.supplierConfigurations?.find((supConfig) =>
-    supConfig.supplier?.id === purchaseOrder?.supplier?.id);
-
-    const price = itemSupplierConfig ? itemSupplierConfig?.defaultPrice : purchasingConfig?.defaultPrice ?  purchasingConfig?.defaultPrice  : 0;
-    const newItem = {
-      item: {...variant, itemId: selectedItem.id, variantId: variant.id},
-      price,
-      quantity: purchasingConfig?.minOrderQuantity || 1,
-      received: 0,
-      returnedQuantity: 0
-    }
-
-    setPurchaseOrderLine(prevState => ({
-      ...prevState,
-      ...newItem
-    }))
-  }
+  };
 
   const handleAdd = (type) => {
     if(type === "orderLine"){
@@ -291,6 +453,7 @@ export const PurchaseOrderUpdate = () => {
       setPurchaseOrderLine(null);
       setSelectedItem(null);
       setSelectedVariant(null);
+      setSelectedVariantDefaults(null);
     }else{
       setPurchaseOrder((prevState) => ({
         ...prevState,
@@ -396,10 +559,20 @@ export const PurchaseOrderUpdate = () => {
     const handleClick = () =>  {
       setPurchaseOrder((prevState) => {
         if (field === 'orderLines') {
-          const updatedField = (prevState?.orderLines || []).filter((_, i) => i !== rowIndex);
+          const updatedField = (prevState?.orderLines || []).reduce((acc, line, i) => {
+            if (i !== rowIndex) {
+              acc.push(line);
+            }
+            return acc;
+          }, []);
           return { ...prevState, orderLines: updatedField };
         } else {
-          const updatedField = (prevState?.costLines || []).filter((_, i) => i !== rowIndex);
+          const updatedField = (prevState?.costLines || []).reduce((acc, line, i) => {
+            if (i !== rowIndex) {
+              acc.push(line);
+            }
+            return acc;
+          }, []);
           return { ...prevState, costLines: updatedField };
         }
       })
@@ -420,61 +593,104 @@ export const PurchaseOrderUpdate = () => {
   }
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
-        <h2 className="text-lg font-bold">
-          {isNew ?
-          `${translate("tempApp.purchaseOrder.addNew")}`
-            :
-          isDisabled ?
-        `${translate("tempApp.purchaseOrder.view")}`
-            :
-        `${translate("tempApp..purchaseOrder.edit")}`}
-        </h2>
+    <div className="min-h-screen bg-slate-50/70 p-4 md:p-6">
+      <div className="mx-auto max-w-[1500px] space-y-4">
+        <div className="rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-sm backdrop-blur">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                  Inventory
+                </span>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                  Purchase Order
+                </span>
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+                {isNew
+                  ? `${translate("tempApp.purchaseOrder.addNew")}`
+                  : isDisabled
+                    ? `${translate("tempApp.purchaseOrder.view")}`
+                    : `${translate("tempApp..purchaseOrder.edit")}`}
+              </h2>
+              <p className="text-sm text-slate-500">
+                Build supplier orders with warehouse-aware availability and compact line management.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Supplier</div>
+                <div className="mt-1 truncate text-sm font-medium text-slate-900">{purchaseOrder?.supplier?.name || '-'}</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Warehouse</div>
+                <div className="mt-1 truncate text-sm font-medium text-slate-900">{purchaseOrder?.warehouse?.name || '-'}</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Lines</div>
+                <div className="mt-1 text-sm font-medium text-slate-900">{purchaseOrder?.orderLines?.length || 0}</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Total</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900">${formatMoney(grandTotal)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div className="flex gap-4">
-          <form  className="flex-1">
-            <Card>
-              <CardContent className="p-4">
+        <div className="mx-auto mt-4 grid max-w-[1500px] gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <form className="min-w-0">
+            <Card className="overflow-hidden rounded-2xl border-slate-200 shadow-sm">
+              <CardContent className="space-y-6 p-4 md:p-5">
                 {/* Supplier, Warehouse, Delivery Info */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="space-y-2">
+                <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                    <div className="mb-3">
+                      <h3 className="text-sm font-semibold text-slate-900">Order Context</h3>
+                      <p className="text-xs text-slate-500">Choose the supplier and warehouse before adding lines.</p>
+                    </div>
+                    <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="supplier" className="text-xs whitespace-nowrap">
+                      <Label htmlFor="supplier" className="w-24 text-xs font-medium whitespace-nowrap text-slate-600">
                         <Translate contentKey={"tempApp.purchaseOrder.supplier"} />
                       </Label>
-                      <Select
-                        options={supplierList}
-                        name="supplier"
-                        id="supplier"
-                        placeholder={translate("tempApp.purchaseOrder.selectSupplier")}
-                        value={purchaseOrder?.supplier}
-                        isDisabled={isOrderReceived}
-                        getOptionLabel={(option: ISupplier) => option.name}
-                        getOptionValue={option => option.id}
-                        onChange={selectedSupplier => setPurchaseOrder(prev => ({ ...prev, supplier: selectedSupplier }))}
-                      />
+                      <div className="flex-1">
+                        <Select
+                          options={supplierList}
+                          name="supplier"
+                          id="supplier"
+                          placeholder={translate("tempApp.purchaseOrder.selectSupplier")}
+                          value={purchaseOrder?.supplier}
+                          isDisabled={isOrderReceived}
+                          getOptionLabel={(option: ISupplier) => option.name}
+                          getOptionValue={option => option.id}
+                          onChange={selectedSupplier => setPurchaseOrder(prev => ({ ...prev, supplier: selectedSupplier }))}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="warehouse" className="text-xs whitespace-nowrap">
+                      <Label htmlFor="warehouse" className="w-24 text-xs font-medium whitespace-nowrap text-slate-600">
                         <Translate contentKey={"tempApp.purchaseOrder.warehouse"} />
                       </Label>
-                      <Select
-                        name="warehouse"
-                        id="warehouse"
-                        placeholder={translate("tempApp.purchaseOrder.selectWarehouse")}
-                        options={warehouseList}
-                        value={purchaseOrder?.warehouse}
-                        isDisabled={isOrderReceived || !purchaseOrder?.supplier}
-                        getOptionLabel={(option: IWarehouse) => option.name}
-                        getOptionValue={option => option.id}
-                        onChange={selectedWarehouse => setPurchaseOrder(prev => ({ ...prev, warehouse: selectedWarehouse }))}
-                      />
+                      <div className="flex-1">
+                        <Select
+                          name="warehouse"
+                          id="warehouse"
+                          placeholder={translate("tempApp.purchaseOrder.selectWarehouse")}
+                          options={warehouseList}
+                          value={purchaseOrder?.warehouse}
+                          isDisabled={isOrderReceived || !purchaseOrder?.supplier}
+                          getOptionLabel={(option: IWarehouse) => option.name}
+                          getOptionValue={option => option.id}
+                          onChange={selectedWarehouse => setPurchaseOrder(prev => ({ ...prev, warehouse: selectedWarehouse }))}
+                        />
+                      </div>
                     </div>
+                  </div>
                   </div>
 {/* 
                   <div className="space-y-2">
@@ -507,14 +723,19 @@ export const PurchaseOrderUpdate = () => {
                     </div>
                   </div> */}
 
-                  <div className="space-y-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                    <div className="mb-3">
+                      <h3 className="text-sm font-semibold text-slate-900">Scheduling</h3>
+                      <p className="text-xs text-slate-500">Track when the order is placed and expected to arrive.</p>
+                    </div>
+                    <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="datePlaced" className="text-xs whitespace-nowrap">
+                      <Label htmlFor="datePlaced" className="w-24 text-xs font-medium whitespace-nowrap text-slate-600">
                         <Translate contentKey={"tempApp.purchaseOrder.orderDate"} />
                       </Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
+                          <Button variant="outline" size="sm" className="h-9 text-xs justify-start flex-1 rounded-xl bg-white" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
                             {purchaseOrder.datePlaced ? formatDateForDisplay(purchaseOrder.datePlaced, 'PP') : 'Pick date'}
                           </Button>
@@ -530,12 +751,12 @@ export const PurchaseOrderUpdate = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="dateDelivered" className="text-xs whitespace-nowrap">
+                      <Label htmlFor="dateDelivered" className="w-24 text-xs font-medium whitespace-nowrap text-slate-600">
                         <Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} />
                       </Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
+                          <Button variant="outline" size="sm" className="h-9 text-xs justify-start flex-1 rounded-xl bg-white" disabled={isDisabled}>
                             <CalendarIcon className="h-3 w-3 mr-1" />
                             {purchaseOrder.dateDelivered ? formatDateForDisplay(purchaseOrder.dateDelivered, 'PP') : 'Pick date'}
                           </Button>
@@ -550,36 +771,60 @@ export const PurchaseOrderUpdate = () => {
                       </Popover>
                     </div>
                   </div>
+                  </div>
                 </div>
 
                 {/* Order Lines */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-bold mb-2">
-                    <Translate contentKey={"tempApp.purchaseOrder.orderLines"} />
-                  </h3>
-                  {!isDisabled && (
-                    <div className="mb-2 border rounded-md p-2">
-                      <div className="grid grid-cols-8 gap-2 items-end">
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        <Translate contentKey={"tempApp.purchaseOrder.orderLines"} />
+                      </h3>
+                      <p className="text-xs text-slate-500">Add supplier-approved variants and fine-tune quantity, price, and delivery dates.</p>
+                    </div>
+                    {!canLoadOrderableItems && !isOrderReceived ? (
+                      <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-700">
+                        Select supplier and warehouse to auto-fill draft lines
+                      </div>
+                    ) : null}
+                  </div>
+                  {!isOrderReceived && (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-8 xl:items-end">
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"common.item"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"common.item"} /></Label>
                           <Select
                             onInputChange={loadItems}
-                            options={inventoryItemList}
+                            onMenuScrollToBottom={() => {
+                              if (!purchaseOrder?.supplier?.id || loadingMoreItems || loadingItems || !hasMoreSupplierItems) {
+                                return;
+                              }
+                              const nextPage = supplierItemsPage + 1;
+                              setSupplierItemsPage(nextPage);
+                              loadSupplierItems(nextPage, supplierItemsSearch, true);
+                            }}
+                            options={groupedSupplierItems}
                             getOptionValue={option => option.id}
                             getOptionLabel={option => option.name}
-                            onChange={item => setSelectedItem(item)}
+                            onChange={item => {
+                              setSelectedItem(item);
+                              setSelectedVariant(null);
+                              setSelectedVariantDefaults(null);
+                              setPurchaseOrderLine(null);
+                            }}
                             value={selectedItem || null}
-                            isDisabled={isDisabled}
-                            isLoading={loadingItems}
+                            isDisabled={isItemPickerDisabled}
+                            isLoading={loadingItems || loadingMoreItems}
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"common.variant"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"common.variant"} /></Label>
                           <Select
-                            options={selectedItem?.variants}
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => formatVariant(option.name, option.attributeValues)}
+                            options={selectedItem?.variants || []}
+                            getOptionValue={option => option.variantId}
+                            getOptionLabel={option => option.variantName || '-'}
                             onChange={handleSelectVariant}
                             isDisabled={isDisabled || !selectedItem}
                             value={selectedVariant || null}
@@ -587,42 +832,42 @@ export const PurchaseOrderUpdate = () => {
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"common.description"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"common.description"} /></Label>
                           <Textarea
                             value={purchaseOrderLine?.description || ''}
-                            disabled={isDisabled}
+                            disabled={isOrderLineEditorDisabled}
                             onChange={e => handleOrderLineChange('description', e.target.value)}
-                            className="h-8 text-xs resize-none"
+                            className="min-h-[36px] text-xs resize-none rounded-xl bg-white"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"common.quantity"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"common.quantity"} /></Label>
                           <Input
                             type="number"
                             value={purchaseOrderLine?.quantity ?? ''}
-                            disabled={isDisabled}
+                            disabled={isOrderLineEditorDisabled}
                             onChange={e => handleOrderLineChange('quantity', Number(e.target.value))}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs rounded-xl bg-white"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.costPrice"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.costPrice"} /></Label>
                           <Input
                             type="number"
                             value={purchaseOrderLine?.price ?? ''}
-                            disabled={isDisabled}
+                            disabled={isOrderLineEditorDisabled}
                             onChange={e => handleOrderLineChange('price', Number(e.target.value))}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs rounded-xl bg-white"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} /></Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
+                              <Button variant="outline" size="sm" className="h-9 text-xs w-full justify-start rounded-xl bg-white" disabled={isOrderLineEditorDisabled}>
                                 <CalendarIcon className="h-3 w-3 mr-1" />
                                 {purchaseOrderLine?.deliveryDate ? formatDateForDisplay(purchaseOrderLine.deliveryDate, 'PP') : 'Pick'}
                               </Button>
@@ -638,34 +883,54 @@ export const PurchaseOrderUpdate = () => {
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"common.subtotal"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"common.subtotal"} /></Label>
                           <Input
                             type="number"
                             disabled
                             value={purchaseOrderLine?.price * purchaseOrderLine?.quantity || 0}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs rounded-xl bg-white"
                           />
                         </div>
 
-                        <div>
+                        <div className="xl:justify-self-end">
                           <Button
                             type="button"
-                            disabled={!purchaseOrderLine?.item}
+                            disabled={isOrderLineEditorDisabled || !purchaseOrderLine?.item}
                             size="sm"
-                            className="h-8 text-xs"
+                            className="h-9 w-full text-xs rounded-xl xl:w-auto"
                             onClick={() => handleAdd('orderLine')}
                           >
                             Add
                           </Button>
                         </div>
                       </div>
+                      {selectedVariant && (
+                        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Supplier Code</div>
+                            <div className="mt-1 text-xs font-medium text-slate-900">{selectedVariantDefaults?.supplierCode || '-'}</div>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Stock</div>
+                            <div className="mt-1 text-xs font-medium text-slate-900">{selectedVariantStock?.quantity ?? 0}</div>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Min Stock</div>
+                            <div className="mt-1 text-xs font-medium text-slate-900">{selectedVariantStock?.minimumStockLevel ?? 0}</div>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Min Order Qty</div>
+                            <div className="mt-1 text-xs font-medium text-slate-900">{selectedVariantDefaults?.minOrderQuantity ?? selectedVariant?.minOrderQuantity ?? 1}</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  <div className="rounded-md border">
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="bg-slate-50/80">
                           <TableHead className="text-xs">{translate("common.item")}</TableHead>
                           <TableHead className="text-xs">{translate("common.description")}</TableHead>
                           <TableHead className="text-xs">{translate("common.quantity")}</TableHead>
@@ -680,7 +945,12 @@ export const PurchaseOrderUpdate = () => {
                       <TableBody>
                         {purchaseOrder?.orderLines?.map((line, index) => (
                           <TableRow key={index}>
-                            <TableCell className="text-xs">{line.item?.name}</TableCell>
+                            <TableCell className="text-xs">
+                              {getOrderLineItemDetails(line).itemName}
+                              {getOrderLineItemDetails(line).variantLabel ? (
+                                <div className="text-[11px] text-muted-foreground">{getOrderLineItemDetails(line).variantLabel}</div>
+                              ) : null}
+                            </TableCell>
                             <TableCell className="text-xs">
                               {!isDisabled ? (
                                 <Input
@@ -759,15 +1029,18 @@ export const PurchaseOrderUpdate = () => {
                 </div>
 
                 {/* Cost Lines */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-bold mb-2">
-                    <Translate contentKey={"tempApp.purchaseOrder.costLines"} />
-                  </h3>
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      <Translate contentKey={"tempApp.purchaseOrder.costLines"} />
+                    </h3>
+                    <p className="text-xs text-slate-500">Track additional supplier or logistics costs alongside the order.</p>
+                  </div>
                   {!isDisabled && (
-                    <div className="mb-2 border rounded-md p-2">
-                      <div className="grid grid-cols-5 gap-2 items-end">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5 xl:items-end">
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.supplier"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.supplier"} /></Label>
                           <AsyncSelect
                             cacheOptions
                             loadOptions={loadSuppliers}
@@ -781,7 +1054,7 @@ export const PurchaseOrderUpdate = () => {
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.cost"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.cost"} /></Label>
                           <Input
                             type="number"
                             value={purchaseCostLine?.cost ?? ''}
@@ -792,15 +1065,15 @@ export const PurchaseOrderUpdate = () => {
                                 cost: Number(e.target.value),
                               }))
                             }
-                            className="h-8 text-xs"
+                            className="h-9 text-xs rounded-xl bg-white"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.costDate"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.costDate"} /></Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
+                              <Button variant="outline" size="sm" className="h-9 text-xs w-full justify-start rounded-xl bg-white" disabled={isDisabled}>
                                 <CalendarIcon className="h-3 w-3 mr-1" />
                                 {purchaseCostLine?.costDate ? format(new Date(purchaseCostLine.costDate), 'PP') : 'Pick'}
                               </Button>
@@ -816,22 +1089,22 @@ export const PurchaseOrderUpdate = () => {
                         </div>
 
                         <div>
-                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.comments"} /></Label>
+                          <Label className="text-xs font-medium text-slate-600"><Translate contentKey={"tempApp.purchaseOrder.comments"} /></Label>
                           <Textarea
                             name="comment"
                             disabled={isDisabled}
                             value={purchaseCostLine?.comment || ''}
                             onChange={handleCostLineChange}
-                            className="h-8 text-xs resize-none"
+                            className="min-h-[36px] text-xs resize-none rounded-xl bg-white"
                           />
                         </div>
 
-                        <div>
+                        <div className="xl:justify-self-end">
                           <Button
                             type="button"
                             disabled={!purchaseCostLine}
                             size="sm"
-                            className="h-8 text-xs"
+                            className="h-9 w-full text-xs rounded-xl xl:w-auto"
                             onClick={() => handleAdd('costLine')}
                           >
                             <Translate contentKey={"common.add"} />
@@ -841,10 +1114,10 @@ export const PurchaseOrderUpdate = () => {
                     </div>
                   )}
 
-                  <div className="rounded-md border">
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="bg-slate-50/80">
                           <TableHead className="text-xs">{translate("tempApp.purchaseOrder.supplier")}</TableHead>
                           <TableHead className="text-xs">{translate("tempApp.purchaseOrder.cost")}</TableHead>
                           <TableHead className="text-xs">{translate("tempApp.purchaseOrder.costDate")}</TableHead>
@@ -876,14 +1149,30 @@ export const PurchaseOrderUpdate = () => {
             </Card>
           </form>
 
-          <div className="w-80">
-            <Card>
-              <CardHeader className="p-4">
+          <div className="w-full xl:w-80">
+            <Card className="sticky top-4 rounded-2xl border-slate-200 shadow-sm">
+              <CardHeader className="p-4 pb-2">
                 <CardTitle className="text-sm">
                   <Translate contentKey={"common.actions"} />
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-2">
+              <CardContent className="space-y-4 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Items Subtotal</div>
+                      <div className="mt-1 text-sm font-medium text-slate-900">${formatMoney(orderSubtotal)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Extra Costs</div>
+                      <div className="mt-1 text-sm font-medium text-slate-900">${formatMoney(totalAdditionalCosts)}</div>
+                    </div>
+                    <div className="col-span-2 rounded-xl bg-white px-3 py-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Grand Total</div>
+                      <div className="mt-1 text-lg font-semibold text-slate-950">${formatMoney(grandTotal)}</div>
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="status" className="text-xs">
                     <Translate contentKey={"common.status"} />
@@ -905,12 +1194,12 @@ export const PurchaseOrderUpdate = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 pt-4">
+                <div className="flex flex-col gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs"
+                    className="h-9 text-xs rounded-xl"
                     asChild
                   >
                     <Link to="/inventory/purchase-order">
@@ -925,7 +1214,7 @@ export const PurchaseOrderUpdate = () => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-9 text-xs rounded-xl"
                         disabled={busyAction !== null}
                         onClick={handlePrint}
                       >
@@ -937,7 +1226,7 @@ export const PurchaseOrderUpdate = () => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-9 text-xs rounded-xl"
                         disabled={busyAction !== null}
                         onClick={handlePdfExport}
                       >
@@ -951,7 +1240,7 @@ export const PurchaseOrderUpdate = () => {
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 text-xs"
+                      className="h-9 text-xs rounded-xl"
                       onClick={handleSupplierReturn}
                     >
                       <Translate contentKey={"tempApp.purchaseOrder.returnItems"} />
@@ -962,7 +1251,7 @@ export const PurchaseOrderUpdate = () => {
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 text-xs"
+                      className="h-9 text-xs rounded-xl"
                       onClick={handleOrderSplit}
                     >
                       <Translate contentKey={"tempApp.purchaseOrder.splitAndComplete"} />
@@ -973,7 +1262,7 @@ export const PurchaseOrderUpdate = () => {
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 text-xs"
+                      className="h-9 text-xs rounded-xl"
                       disabled={updating || isDisabled}
                       onClick={saveEntity}
                     >

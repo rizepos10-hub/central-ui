@@ -548,6 +548,20 @@ describe('OrderCreate payment flow', () => {
         wholesale: true,
       })
     );
+
+    expect(JSON.parse(localStorage.getItem('pos-cart:reg-1'))).toEqual(
+      expect.objectContaining({
+        items: [],
+        customerId: 'customer-1',
+        orderMethod: OrderMethod.Delivery,
+        scheduledAt: '2026-03-30T10:00:00.000Z',
+        scheduledAtLocal: expect.any(String),
+        deliverTo: {
+          id: 'address-1',
+          address: 'Warehouse Street',
+        },
+      })
+    );
   });
 
   it('sends wholesale for create and pay in wholesale mode', async () => {
@@ -581,6 +595,67 @@ describe('OrderCreate payment flow', () => {
         wholesale: true,
       })
     );
+
+    expect(JSON.parse(localStorage.getItem('pos-cart:reg-1'))).toEqual(
+      expect.objectContaining({
+        items: [],
+        customerId: 'customer-1',
+        orderMethod: OrderMethod.Delivery,
+        scheduledAt: '2026-03-30T10:00:00.000Z',
+        scheduledAtLocal: expect.any(String),
+        deliverTo: {
+          id: 'address-1',
+          address: 'Warehouse Street',
+        },
+      })
+    );
+  });
+
+  it('clears wholesale storage for non-salesman wholesale users after create', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
+    mockState.order.entity.scheduledAt = '2026-03-30T10:00:00.000Z';
+    mockState.order.entity.deliverTo = {
+      id: 'address-1',
+      address: 'Warehouse Street',
+    };
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create wholesale order without payment/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.createEntity).toHaveBeenCalled();
+    });
+
+    expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
+  });
+
+  it('keeps pricing point enabled for wholesale salesman even before required fields are complete', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: null,
+    };
+    mockState.order.entity.customer = null;
+    mockState.order.entity.scheduledAt = null;
+    mockState.order.entity.deliverTo = null;
+    mockState.pricingPoint.entities = [
+      {
+        id: 'pricing-point-1',
+        name: 'VIP',
+        type: 'USER_SELECTED',
+        applicableBranches: [{ id: 'branch-1' }],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_WHOLESALE_SALESMAN']);
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /pricing point/i }).hasAttribute('disabled')).toBe(false);
+    });
   });
 
   it('keeps wholesale validation active in wholesale mode', async () => {

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,9 @@ import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import OrderPaymentDialog from './order-payment-dialog';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
+import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
+import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -61,6 +64,7 @@ export const OrderDetail = () => {
   const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
   const tookanTeams = useAppSelector(state => state.delivery.teams || []);
   const tookanAgents = useAppSelector(state => state.delivery.agents || []);
+  const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
 
   const filteredOrderEntity = {
     ...orderEntity,
@@ -164,6 +168,11 @@ export const OrderDetail = () => {
   useEffect(() => {
     dispatch(getEntity(id));
     dispatch(getUiSettings());
+    dispatch(
+      getEntitiesByType({
+        type: RegisterType.ONLINE,
+      })
+    );
   }, [dispatch, id]);
 
 
@@ -354,6 +363,26 @@ export const OrderDetail = () => {
     });
   };
 
+  const handleReorder = () => {
+    const transformedOrder = transformOrderForEdit(filteredOrderEntity);
+    const matchingRegistry = branchRegistry.find(record => record.branch?.id === filteredOrderEntity.branchId);
+    const search = new URLSearchParams();
+
+    if (matchingRegistry?.id) {
+      search.set('registerId', matchingRegistry.id);
+    }
+
+    if (filteredOrderEntity.wholesale) {
+      search.set('mode', 'wholesale');
+    }
+
+    navigate(`/order/create${search.toString() ? `?${search.toString()}` : ''}`, {
+      state: {
+        prefillOrder: transformedOrder,
+      },
+    });
+  };
+
   const customerFullName = [filteredOrderEntity?.customer?.firstName, filteredOrderEntity?.customer?.lastName].filter(Boolean).join(' ');
   const orderCreatedOn = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : '';
   const orderCreatedAt = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy HH:mm') : '';
@@ -466,6 +495,12 @@ export const OrderDetail = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
                   {filteredOrderEntity.processingStatus || '-'}
                 </div>
+                {filteredOrderEntity?.items?.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleReorder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    Re-order
+                  </Button>
+                )}
                 {canEditOrder && (
                   <Button variant="outline" size="sm" onClick={handleEditOrder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                     <Pencil className="mr-1.5 h-3.5 w-3.5" />

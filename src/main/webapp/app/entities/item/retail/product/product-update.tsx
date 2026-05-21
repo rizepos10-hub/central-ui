@@ -888,7 +888,13 @@ export const ProductUpdate = () => {
       return {
         ...variant,
         price: product.askForPrice ? 0 : variant.price ? variant.price : 0,
-        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig,
+        purchaseConfig:
+          ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) &&
+            (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) &&
+            variant?.purchaseConfig?.supplierConfigurations?.length === 0 &&
+            !variant?.purchaseConfig?.defaultSupplier?.id)
+            ? null
+            : variant?.purchaseConfig,
         variantPackage: variant?.measureValue?.isBase ? null : variant?.variantPackage
       };
     });
