@@ -13,7 +13,6 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import Select from 'app/shared/components/select/select';
 
 export const ToBeStocked = () => {
@@ -21,7 +20,6 @@ export const ToBeStocked = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedItems, setSelectedItems] = useState<IStockQuantity[]>([]);
   const [searchSupplier, setSearchSupplier] = useState('');
   const [supplierId, setSupplierId] = useState(null);
   const [paginationState, setPaginationState] = useState(
@@ -45,7 +43,7 @@ export const ToBeStocked = () => {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-        supplierId: supplierId || null
+        supplierId: supplierId || undefined
       })
     );
   };
@@ -92,7 +90,7 @@ export const ToBeStocked = () => {
   };
 
   const handleCreatePurchaseOrder = () => {
-    const serializedItems = encodeURIComponent(JSON.stringify(selectedItems));
+    const serializedItems = encodeURIComponent(JSON.stringify(filteredList));
     const navigateUrl = `/inventory/purchase-order/new?items=${serializedItems}`;
     navigate(navigateUrl)
   }
@@ -115,32 +113,10 @@ export const ToBeStocked = () => {
     );
   };
 
-  const dropdownItems = [
-    { label: 'All Suppliers', value: null },
-    ...supplierList.map(supplier => ({
-      label: supplier.name,
-      value: supplier.id,
-    })),
-  ];
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedItems(filteredList);
-    } else {
-      setSelectedItems([]);
-    }
-  };
-
-  const handleSelectItem = (item: IStockQuantity, checked: boolean) => {
-    if (checked) {
-      setSelectedItems([...selectedItems, item]);
-    } else {
-      setSelectedItems(selectedItems.filter(i => i.id !== item.id));
-    }
-  };
-
-  const isAllSelected = filteredList.length > 0 && selectedItems.length === filteredList.length;
-  const isIndeterminate = selectedItems.length > 0 && selectedItems.length < filteredList.length;
+  const dropdownItems = supplierList.map(supplier => ({
+    label: supplier.name,
+    value: supplier.id,
+  }));
 
   return (
     <PageWrapper>
@@ -154,7 +130,7 @@ export const ToBeStocked = () => {
               <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
               {translate("common.refreshList")}
             </Button>
-            {selectedItems.length > 0 && (
+            {filteredList.length > 0 && (
               <Button size="sm" className="h-8 text-xs" onClick={handleCreatePurchaseOrder} disabled={loading}>
                 <Plus className="h-4 w-4 mr-1" />
                 {translate("tempApp.purchaseOrder.addNew")}
@@ -167,19 +143,11 @@ export const ToBeStocked = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs w-12 text-center">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={handleSelectAll}
-                    className="h-4 w-4"
-                  />
-                </TableHead>
                 <TableHead className="text-xs">{translate('common.search.name')}</TableHead>
                 <TableHead className="text-xs">{translate('tempApp.stockConfig.view.table.search.location')}</TableHead>
                 <TableHead className="text-xs">{translate('tempApp.supplierReturn.supplier')}</TableHead>
               </TableRow>
               <TableRow>
-                <TableHead className="text-xs"></TableHead>
                 <TableHead className="text-xs">
                   <Input
                     type="text"
@@ -201,8 +169,8 @@ export const ToBeStocked = () => {
                 <TableHead className="text-xs">
                   <Select
                     options={dropdownItems}
-                    value={dropdownItems.find(opt => opt.value === supplierId)}
-                    onChange={(selected) => setSupplierId(selected?.value)}
+                    value={dropdownItems.find(opt => opt.value === supplierId) || null}
+                    onChange={(selected) => setSupplierId(selected?.value ?? null)}
                     onInputChange={(inputValue) => setSearchSupplier(inputValue)}
                     placeholder="Select Supplier"
                     isClearable
@@ -213,20 +181,13 @@ export const ToBeStocked = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-xs text-center">
+                  <TableCell colSpan={3} className="text-xs text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : filteredList.length > 0 ? (
                 filteredList.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="text-xs text-center">
-                      <Checkbox
-                        checked={selectedItems.some(i => i.id === item.id)}
-                        onCheckedChange={(checked) => handleSelectItem(item, checked === true)}
-                        className="h-4 w-4"
-                      />
-                    </TableCell>
                     <TableCell className="text-xs">
                       <Link
                         to={`/product/${item.itemId}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
@@ -241,7 +202,7 @@ export const ToBeStocked = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-xs text-center text-muted-foreground">
+                  <TableCell colSpan={3} className="text-xs text-center text-muted-foreground">
                     <Translate contentKey="tempApp.stockConfig.noData">No items to be stocked</Translate>
                   </TableCell>
                 </TableRow>
