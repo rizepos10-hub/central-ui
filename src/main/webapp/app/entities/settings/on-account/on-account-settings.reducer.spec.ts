@@ -107,9 +107,13 @@ describe('On-account settings reducer tests', () => {
       expect((axios.get as any).calledWith('api/settings/by-key?key=ON_ACCOUNT_DEBIT')).toBe(true);
       expect((axios.put as any).calledWith('api/settings/by-key?key=ON_ACCOUNT_DEBIT')).toBe(true);
       expect((axios.put as any).firstCall.args[1]).toEqual({
-        onAccountBalanceType: OnAccountBalanceType.BY_BRANCH,
-        warningThreshold: 10,
-        criticalThreshold: 20,
+        key: 'ON_ACCOUNT_DEBIT',
+        value: {
+          key: 'ON_ACCOUNT_DEBIT',
+          onAccountBalanceType: OnAccountBalanceType.BY_BRANCH,
+          warningThreshold: 10,
+          criticalThreshold: 20,
+        },
       });
     });
 
@@ -124,9 +128,13 @@ describe('On-account settings reducer tests', () => {
       );
 
       expect((axios.put as any).firstCall.args[1]).toEqual({
-        onAccountBalanceType: OnAccountBalanceType.BY_BUSINESS,
-        warningThreshold: 10,
-        criticalThreshold: 20,
+        key: 'ON_ACCOUNT_DEBIT',
+        value: {
+          key: 'ON_ACCOUNT_DEBIT',
+          onAccountBalanceType: OnAccountBalanceType.BY_BUSINESS,
+          warningThreshold: 10,
+          criticalThreshold: 20,
+        },
       });
     });
   });

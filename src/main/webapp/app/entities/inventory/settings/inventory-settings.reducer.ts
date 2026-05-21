@@ -51,10 +51,14 @@ const normalizeSettings = (
 });
 
 const buildSettingsPayload = (settings: IPurchaseOrderQuantitySuggestionSettings) => ({
-  purchaseOrderSuggestedQuantitySource:
-    settings?.purchaseOrderSuggestedQuantitySource ?? PurchaseOrderSuggestedQuantitySource.RESTOCK,
-  purchaseOrderSalesHistoryWindow:
-    settings?.purchaseOrderSalesHistoryWindow ?? PurchaseOrderSalesHistoryWindow.LAST_30_DAYS,
+  key: SettingKey.PURCHASE_ORDER_QUANTITY_SUGGESTION,
+  value: {
+    key: SettingKey.PURCHASE_ORDER_QUANTITY_SUGGESTION,
+    purchaseOrderSuggestedQuantitySource:
+      settings?.purchaseOrderSuggestedQuantitySource ?? PurchaseOrderSuggestedQuantitySource.RESTOCK,
+    purchaseOrderSalesHistoryWindow:
+      settings?.purchaseOrderSalesHistoryWindow ?? PurchaseOrderSalesHistoryWindow.LAST_30_DAYS,
+  },
 });
 
 export const getInventoryPurchaseOrderSettings = createAsyncThunk(

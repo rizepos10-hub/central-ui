@@ -50,9 +50,13 @@ const normalizeOnAccountSettings = (settings?: IOnAccountSettings): IOnAccountSe
 
 const buildOnAccountSettingsPayload = (settings: IOnAccountSettings) => {
   return {
-    onAccountBalanceType: settings?.onAccountBalanceType ?? OnAccountBalanceType.BY_BRANCH,
-    warningThreshold: settings?.warningThreshold ?? 0,
-    criticalThreshold: settings?.criticalThreshold ?? 0,
+    key: SettingKey.ON_ACCOUNT_DEBIT,
+    value: {
+      key: SettingKey.ON_ACCOUNT_DEBIT,
+      onAccountBalanceType: settings?.onAccountBalanceType ?? OnAccountBalanceType.BY_BRANCH,
+      warningThreshold: settings?.warningThreshold ?? 0,
+      criticalThreshold: settings?.criticalThreshold ?? 0,
+    },
   };
 };
 
