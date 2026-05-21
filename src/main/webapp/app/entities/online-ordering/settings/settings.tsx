@@ -5,15 +5,17 @@ import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, reset, changeEntityField } from './settings.reducer';
+import { getEntity, updateEntity, changeEntityField } from './settings.reducer';
 import {
+  addonOptionsVisibilityOptions,
   currencySymbolPositionOptions,
   IFontSetting,
   ISocialProfiles,
   IUiSettings,
   orderTakingOptions,
   Language,
-  languageOptions
+  languageOptions,
+  variantsUiLayoutOptions,
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -598,6 +600,25 @@ export const UiSettingsUpdate = () => {
                     </Select>
                   </div>
 
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-variantsUiLayout" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.variantsUiLayout')}
+                    </Label>
+                    <div className="flex gap-2">
+                      {variantsUiLayoutOptions.map(option => (
+                        <Button
+                          key={option}
+                          type="button"
+                          variant={UiSettingsEntity.variantsUiLayout === option ? 'default' : 'outline'}
+                          className="h-8 text-xs"
+                          onClick={() => dispatch(changeEntityField({ name: 'variantsUiLayout', value: option }))}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="bg-muted rounded-lg p-4 border space-y-3">
                     <h5 className="text-sm font-semibold text-primary flex items-center gap-2">
                       <i className="fas fa-palette"></i>
@@ -725,6 +746,25 @@ export const UiSettingsUpdate = () => {
                           variant={UiSettingsEntity.currencySymbolPosition === option ? 'default' : 'outline'}
                           className="h-8 text-xs"
                           onClick={() => dispatch(changeEntityField({ name: 'currencySymbolPosition', value: option }))}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-addonOptionsVisibility" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.addonOptionsVisibility')}
+                    </Label>
+                    <div className="flex gap-2">
+                      {addonOptionsVisibilityOptions.map(option => (
+                        <Button
+                          key={option}
+                          type="button"
+                          variant={UiSettingsEntity.addonOptionsVisibility === option ? 'default' : 'outline'}
+                          className="h-8 text-xs"
+                          onClick={() => dispatch(changeEntityField({ name: 'addonOptionsVisibility', value: option }))}
                         >
                           {option}
                         </Button>

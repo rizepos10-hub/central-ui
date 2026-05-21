@@ -6,12 +6,14 @@ import sinon from 'sinon';
 
 import reducer, {
   clearChargesPreview,
+  createDraftEntity,
   createEntity,
   deleteEntity,
   getEntities,
   searchEntities,
   getEntity,
   previewCharges,
+  updateDraftEntity,
   updateEntity,
   partialUpdateEntity,
   reset,
@@ -80,7 +82,7 @@ describe('Entities reducer tests', () => {
 
     it('should set state to updating', () => {
       testMultipleTypes(
-        [createEntity.pending.type, updateEntity.pending.type, partialUpdateEntity.pending.type, deleteEntity.pending.type],
+        [createEntity.pending.type, createDraftEntity.pending.type, updateEntity.pending.type, updateDraftEntity.pending.type, partialUpdateEntity.pending.type, deleteEntity.pending.type],
         {},
         state => {
           expect(state).toMatchObject({
@@ -123,7 +125,9 @@ describe('Entities reducer tests', () => {
           searchEntities.rejected.type,
           getEntity.rejected.type,
           createEntity.rejected.type,
+          createDraftEntity.rejected.type,
           updateEntity.rejected.type,
+          updateDraftEntity.rejected.type,
           partialUpdateEntity.rejected.type,
           deleteEntity.rejected.type,
         ],
@@ -210,6 +214,21 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: createEntity.fulfilled.type,
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        updating: false,
+        updateSuccess: true,
+        entity: payload.data,
+      });
+    });
+
+    it('should create/update draft entity', () => {
+      const payload = { data: 'fake payload' };
+      expect(
+        reducer(undefined, {
+          type: createDraftEntity.fulfilled.type,
           payload,
         })
       ).toEqual({
@@ -386,6 +405,20 @@ describe('Entities reducer tests', () => {
       const expectedActions = [reset()];
       await store.dispatch(reset());
       expect(store.getActions()).toEqual(expectedActions);
+    });
+
+    it('dispatches CREATE_DRAFT_ENTITY actions', async () => {
+      await store.dispatch(createDraftEntity({} as IOrder));
+      const actionTypes = store.getActions().map(action => action.type);
+      expect((axios.post as sinon.SinonStub).getCall(0).args[0]).toEqual('api/orders/save-draft');
+      expect(actionTypes).toEqual(expect.arrayContaining([createDraftEntity.pending.type, createDraftEntity.fulfilled.type]));
+    });
+
+    it('dispatches UPDATE_DRAFT_ENTITY actions', async () => {
+      await store.dispatch(updateDraftEntity({ id: 123 } as IOrder));
+      const actionTypes = store.getActions().map(action => action.type);
+      expect((axios.put as sinon.SinonStub).getCall(0).args[0]).toEqual('api/orders/123/save-draft');
+      expect(actionTypes).toEqual(expect.arrayContaining([updateDraftEntity.pending.type, updateDraftEntity.fulfilled.type]));
     });
   });
 });

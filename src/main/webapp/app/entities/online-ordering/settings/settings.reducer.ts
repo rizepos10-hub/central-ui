@@ -70,7 +70,10 @@ export const UiSettingsSlice = createEntitySlice({
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
-        state.entity = action.payload.data;
+        state.entity = {
+          ...defaultValue,
+          ...action.payload.data,
+        };
         if (action.payload.data.homePageSetting === null) {
           state.entity.homePageSetting = defaultValue.homePageSetting;
         }
@@ -79,7 +82,10 @@ export const UiSettingsSlice = createEntitySlice({
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
-        state.entity = action.payload.data;
+        state.entity = {
+          ...defaultValue,
+          ...action.payload.data,
+        };
       })
       .addMatcher(isPending(getEntity), state => {
         state.errorMessage = null;

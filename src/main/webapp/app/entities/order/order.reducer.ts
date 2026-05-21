@@ -167,10 +167,30 @@ export const createEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const createDraftEntity = createAsyncThunk(
+  'order/create_draft_entity',
+  async (entity: IOrder, thunkAPI) => {
+    const result = await axios.post<IOrder>(`${apiUrl}/save-draft`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const updateEntity = createAsyncThunk(
   'order/update_entity',
   async (entity: IOrder, thunkAPI) => {
     const result = await axios.put<IOrder>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const updateDraftEntity = createAsyncThunk(
+  'order/update_draft_entity',
+  async (entity: IOrder, thunkAPI) => {
+    const result = await axios.put<IOrder>(`${apiUrl}/${entity.id}/save-draft`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -360,7 +380,7 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, {
           orderSources: data,
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, deleteEntities, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, createDraftEntity, updateEntity, updateDraftEntity, deleteEntities, partialUpdateEntity), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -371,7 +391,7 @@ export const OrderSlice = createEntitySlice<IOrder, OrderState, {
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, createDraftBill, addPaymentToBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
+      .addMatcher(isPending(createEntity, createDraftEntity, updateEntity, updateDraftEntity, deleteEntities, partialUpdateEntity, deleteEntity, filterOrders, filterAssignedOrders, createBill, createDraftBill, addPaymentToBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
