@@ -309,6 +309,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Saved Orders',
+        to: '/logistics/saved-orders',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Routes',
         to: '/logistics/routes',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
@@ -423,6 +429,12 @@ export const model: MenuItem[] = [
         label: 'Scheduled',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
         to: '/order/scheduled',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Saved',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        to: '/order/saved',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {

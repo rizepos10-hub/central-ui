@@ -116,6 +116,9 @@ beforeEach(() => {
       teams: [],
       agents: [],
     },
+    branchRegistry: {
+      entities: [],
+    },
   };
 
   mockDispatch.mockImplementation(action => {
@@ -213,6 +216,24 @@ describe('OrderDetail primary actions', () => {
       expect.objectContaining({
         state: expect.objectContaining({
           orderId: 'order-1',
+        }),
+      })
+    );
+  });
+
+  it('marks draft orders as draft-edit when navigating to edit', () => {
+    mockState.order.entity.processingStatus = 'DRAFT';
+
+    renderOrderDetail();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Order' }));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/order/create',
+      expect.objectContaining({
+        state: expect.objectContaining({
+          orderId: 'order-1',
+          isDraftEdit: true,
         }),
       })
     );
