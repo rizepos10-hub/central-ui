@@ -1582,7 +1582,7 @@ const OrderCreate = () => {
     // );
 
     return (
-        <div className="flex min-h-screen flex-col bg-muted-foreground/10">
+        <div className="flex h-[calc(100dvh-3rem)] min-h-0 flex-col overflow-hidden bg-muted-foreground/10">
             <Dialog open={visible} onOpenChange={setVisible}>
                 <DialogContent className="max-w-[50vw]">
                     <CustomerUpdate firstName={filterValue} isPopUp closePopUp={closePopUp} />
@@ -1697,65 +1697,87 @@ const OrderCreate = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-4 pb-6 pt-4">
+            <div className="mx-auto flex h-full min-h-0 w-full max-w-[1600px] flex-1 flex-col gap-2 overflow-hidden px-3 pb-2 pt-2">
                 <Card className="border-border/60 bg-white/80 shadow-sm">
-                    <CardContent className="flex flex-col gap-4 p-4">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex items-center gap-3">
-                                <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="h-9 w-9 p-0">
+                    <CardContent className="p-2">
+                        <div
+                            className={cn(
+                                "grid min-w-0 items-center gap-1.5",
+                                isMobile
+                                    ? "grid-cols-[auto,minmax(120px,150px),auto]"
+                                    : "grid-cols-[auto,minmax(0,1fr),minmax(120px,160px),minmax(120px,150px),minmax(120px,150px),auto]"
+                            )}
+                        >
+                            <div className="flex min-w-0 items-center gap-2">
+                                <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="h-7 w-7 shrink-0 p-0">
                                     <ArrowLeft className="h-4 w-4" />
                                     <span className="sr-only">Back</span>
                                 </Button>
-                                <div>
-                                    <p className="text-sm font-semibold">{isWholesaleMode ? 'Wholesale Order' : 'Point of Sale'}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {isWholesaleMode ? 'Create a new wholesale order' : 'Create a new order'}
-                                    </p>
+                                <div className="min-w-0">
+                                    <p className="truncate text-xs font-semibold leading-none">{isWholesaleMode ? 'Wholesale Order' : 'Point of Sale'}</p>
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Select
-                                    options={branchSelectOptions}
-                                    value={branchSelectOptions.find(opt => opt.registry?.branch?.id === orderEntity?.branchId) || null}
-                                    onChange={(option: any) => {
-                                        if (option?.registry) {
-                                            checkTillStatus(option.registry);
-                                        }
-                                    }}
-                                    placeholder="Select Branch"
-                                    className="text-xs min-w-[140px]"
-                                    isClearable={false}
-                                />
-                                {orderEntity?.branchId && (
-                                    <>
-                                        <Badge
-                                            className={cn(
-                                                "rounded-full px-3 py-1 text-[10px] uppercase tracking-wider",
-                                                tillStatus === "OPENED" ? "bg-emerald-600 text-white" : "bg-rose-500 text-white"
-                                            )}
+                            {!isMobile && (
+                                <>
+                                    <div className="relative min-w-0">
+                                        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search"
+                                            value={searchParams.get("name")}
+                                            onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                                            disabled={shouldGateSalesman}
+                                            className="h-7 min-w-0 pl-8 text-xs"
+                                        />
+                                    </div>
+                                    <div className={cn("min-w-0", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
+                                        <DropDownFilter
+                                            placeholder={'Category'}
+                                            dropDownOptionType={'RETAIL_CATEGORY'}
+                                            selectedOption={searchParams.get("categoryId")}
+                                            fieldName={'categories.id'}
+                                            handleDropdownChange={(f, v) => {
+                                                if (!v.value) {
+                                                    navigate(deleteQueryString('categoryId'));
+                                                } else {
+                                                    navigate(createQueryString('categoryId', v.value))
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            <Select
+                                options={branchSelectOptions}
+                                value={branchSelectOptions.find(opt => opt.registry?.branch?.id === orderEntity?.branchId) || null}
+                                onChange={(option: any) => {
+                                    if (option?.registry) {
+                                        checkTillStatus(option.registry);
+                                    }
+                                }}
+                                placeholder="Branch"
+                                className="min-w-0 text-xs"
+                                isClearable={false}
+                            />
+                            <div className="flex min-w-0 justify-end">
+                                {orderEntity?.branchId ? (
+                                    tillStatus !== "OPENED" ? (
+                                        <Button onClick={() => setDialogTillOpen(true)} className="h-7 px-2.5 text-xs">
+                                            Open Till
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={() => setCloseTillDialog(true)}
+                                            variant="destructive"
+                                            className="h-7 px-2.5 text-xs"
                                         >
-                                            {tillStatus === "OPENED" ? "Till Open" : "Till Closed"}
-                                        </Badge>
-                                        {tillStatus !== "OPENED" ? (
-                                            <Button onClick={() => setDialogTillOpen(true)} className="h-9 text-xs">
-                                                Open Till
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                onClick={() => setCloseTillDialog(true)}
-                                                variant="destructive"
-                                                className="h-9 text-xs"
-                                            >
-                                                Close Till
-                                            </Button>
-                                        )}
-                                    </>
-                                )}
-                                {!orderEntity?.branchId && orderEntity?.items?.length > 0 && !isEditMode && (
-                                    <span className="text-xs text-destructive">
-                                        Please select a branch
+                                            Close Till
+                                        </Button>
+                                    )
+                                ) : orderEntity?.items?.length > 0 && !isEditMode ? (
+                                    <span className="truncate text-[11px] text-destructive">
+                                        Select a branch
                                     </span>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </CardContent>
@@ -1839,175 +1861,120 @@ const OrderCreate = () => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog
+                open={variantDialog.visible}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setVariantDialog({
+                            visible: false,
+                            product: {},
+                            selectedRetailAttributes: [],
+                            chosenVariant: null,
+                            availableVariants: []
+                        });
+                    }
+                }}
+            >
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Select Attributes</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 p-2">
+                        {variantDialog.product?.attributes?.map((attr, idx) => {
+                            return (
+                                <div className="space-y-2" key={idx}>
+                                    <Label className="font-semibold">{attr.attributeTax.name}</Label>
+                                    <RadioGroup
+                                        value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
+                                        onValueChange={(value) => {
+                                            const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
+                                            const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
+
+                                            if (taxonomyExistInFormValues) {
+                                                const index = variantDialog.selectedRetailAttributes.findIndex(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
+                                                variantDialog.selectedRetailAttributes[index] = {
+                                                    id: selectedValue.id,
+                                                    name: selectedValue.name,
+                                                    taxonomy: {
+                                                        id: selectedValue.taxonomy.id,
+                                                        name: selectedValue.taxonomy.name
+                                                    }
+                                                }
+                                            } else {
+                                                variantDialog.selectedRetailAttributes.push({
+                                                    id: selectedValue.id,
+                                                    name: selectedValue.name,
+                                                    taxonomy: {
+                                                        id: selectedValue.taxonomy.id,
+                                                        name: selectedValue.taxonomy.name
+                                                    }
+                                                })
+                                            }
+                                            setVariantDialog({
+                                                ...variantDialog,
+                                                selectedRetailAttributes: variantDialog.selectedRetailAttributes
+                                            })
+                                        }}
+                                        className="flex gap-3 pl-3"
+                                    >
+                                        {attr?.attributeTerms?.map((variant, idx) => (
+                                            <div className="flex items-center space-x-2" key={idx}>
+                                                <RadioGroupItem value={variant.id} id={variant.id} />
+                                                <Label htmlFor={variant.id} className="font-normal cursor-pointer">
+                                                    {variant.name}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            )
+                        })}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {variantDialog.availableVariants.map((variant, idx) => (
+                                <Button
+                                    key={idx}
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                    disabled={shouldGateSalesman}
+                                    onClick={() => {
+                                        addCartItem({
+                                            cartId: variantDialog.product.id + new Date().getTime().toString(),
+                                            itemId: variantDialog.product.id,
+                                            variantId: variant.id,
+                                            itemName: variantDialog.product.name,
+                                            variantName: variant.name,
+                                            price: null,
+                                            amount: 1,
+                                            discount: {},
+                                            selectedRetailAttributes: variantDialog.selectedRetailAttributes,
+                                            customDiscount: 0,
+                                            accountingGroups: variantDialog.product.accountingGroups,
+                                        });
+                                        setVariantDialog({
+                                            visible: false,
+                                            chosenVariant: null,
+                                            selectedRetailAttributes: [],
+                                            product: {},
+                                            availableVariants: []
+                                        });
+                                    }}
+                                >
+                                    {variant.name}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
 
             {(till || hasInitialOrderState) && (
-                <div className="grid flex-1 gap-4 lg:grid-cols-12">
+                <div className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-12">
                     {!isMobile ? (
-                        <div className="flex min-h-0 flex-col gap-4 lg:col-span-8 lg:h-[72vh]">
-                            <Card className="border-border/60 bg-white/90 shadow-sm">
-                                <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
-                                    <div className="flex flex-1 flex-wrap items-center gap-3">
-                                        <div className="relative flex-1 min-w-[220px]">
-                                            <Search className="absolute left-3 top-1/3 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Search for products"
-                                                value={searchParams.get("name")}
-                                                onChange={(e) => navigate(createQueryString('name', e.target.value))}
-                                                disabled={shouldGateSalesman}
-                                                className="h-10 pl-10 text-xs"
-                                            />
-                                        </div>
-                                        <div className={cn("min-w-[220px]", shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
-                                            <DropDownFilter
-                                                placeholder={'Select Category'}
-                                                dropDownOptionType={'RETAIL_CATEGORY'}
-                                                selectedOption={searchParams.get("categoryId")}
-                                                fieldName={'categories.id'}
-                                                handleDropdownChange={(f, v) => {
-                                                    if (!v.value) {
-                                                        navigate(deleteQueryString('categoryId'));
-                                                    } else {
-                                                        navigate(createQueryString('categoryId', v.value))
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* <div className="flex flex-wrap gap-2">
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button disabled variant="secondary" className="h-8 text-xs">More Actions</Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-48">
-                                                <div className="flex flex-col gap-2">
-                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Create quote</Button>
-                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Mark as unfulfilled...</Button>
-                                                    <Button variant="secondary" className='w-full h-7 text-xs'>Discard sale</Button>
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                        <Button disabled variant="secondary" className="h-8 text-xs">Retrieve Sale</Button>
-                                        <Button disabled variant="secondary" className="h-8 text-xs">Park Sale</Button>
-                                    </div> */}
-                                </CardContent>
-                            </Card>
-                            <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
-                                <CardContent className="flex items-center justify-between p-4 pb-2">
-                                    <div>
-                                        <p className="text-sm font-semibold">Products</p>
-                                        <p className="text-xs text-muted-foreground">Tap a tile to add it to the cart</p>
-                                    </div>
-                                    <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
-                                        {totalItems} items
-                                    </Badge>
-                                </CardContent>
-                                <Separator />
-                                <ScrollArea className="flex-1 px-4 py-3">
-                                    <Dialog
-                                        open={variantDialog.visible}
-                                        onOpenChange={(open) => {
-                                            if (!open) {
-                                                setVariantDialog({
-                                                    visible: false,
-                                                    product: {},
-                                                    selectedRetailAttributes: [],
-                                                    chosenVariant: null,
-                                                    availableVariants: []
-                                                });
-                                            }
-                                        }}
-                                    >
-                                        <DialogContent className="max-w-2xl">
-                                            <DialogHeader>
-                                                <DialogTitle>Select Attributes</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-4 p-2">
-                                                {variantDialog.product?.attributes?.map((attr, idx) => {
-                                                    return (
-                                                        <div className="space-y-2" key={idx}>
-                                                            <Label className="font-semibold">{attr.attributeTax.name}</Label>
-                                                            <RadioGroup
-                                                                value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
-                                                                onValueChange={(value) => {
-                                                                    const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
-                                                                    const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
-
-                                                                    if (taxonomyExistInFormValues) {
-                                                                    const index = variantDialog.selectedRetailAttributes.findIndex(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
-                                                                    variantDialog.selectedRetailAttributes[index] = {
-                                                                        id: selectedValue.id,
-                                                                        name: selectedValue.name,
-                                                                        taxonomy: {
-                                                                            id: selectedValue.taxonomy.id,
-                                                                            name: selectedValue.taxonomy.name
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    variantDialog.selectedRetailAttributes.push({
-                                                                        id: selectedValue.id,
-                                                                        name: selectedValue.name,
-                                                                        taxonomy: {
-                                                                            id: selectedValue.taxonomy.id,
-                                                                            name: selectedValue.taxonomy.name
-                                                                        }
-                                                                    })
-                                                                }
-                                                                setVariantDialog({
-                                                                    ...variantDialog,
-                                                                    selectedRetailAttributes: variantDialog.selectedRetailAttributes
-                                                                })
-                                                            }}
-                                                            className="flex gap-3 pl-3"
-                                                        >
-                                                            {attr?.attributeTerms?.map((variant, idx) => (
-                                                                <div className="flex items-center space-x-2" key={idx}>
-                                                                    <RadioGroupItem value={variant.id} id={variant.id} />
-                                                                    <Label htmlFor={variant.id} className="font-normal cursor-pointer">
-                                                                        {variant.name}
-                                                                    </Label>
-                                                                </div>
-                                                            ))}
-                                                        </RadioGroup>
-                                                    </div>
-                                                )
-                                            })}
-                                            <div className="flex flex-wrap gap-2 mt-4">
-                                                {variantDialog.availableVariants.map((variant, idx) => (
-                                                    <Button
-                                                        key={idx}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 text-xs"
-                                                        disabled={shouldGateSalesman}
-                                                        onClick={() => {
-                                                            addCartItem({
-                                                                cartId: variantDialog.product.id + new Date().getTime().toString(),
-                                                                itemId: variantDialog.product.id,
-                                                                variantId: variant.id,
-                                                                itemName: variantDialog.product.name,
-                                                                variantName: variant.name,
-                                                                price: null,
-                                                                amount: 1,
-                                                                discount: {},
-                                                                selectedRetailAttributes: variantDialog.selectedRetailAttributes,
-                                                                customDiscount: 0,
-                                                                accountingGroups: variantDialog.product.accountingGroups,
-                                                            });
-                                                            setVariantDialog({
-                                                                visible: false,
-                                                                chosenVariant: null,
-                                                                selectedRetailAttributes: [],
-                                                                product: {},
-                                                                availableVariants: []
-                                                            })
-                                                        }}>
-                                                        {variant.name}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                        <div className="flex min-h-0 flex-col gap-4 overflow-hidden lg:col-span-8">
+                            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-border/60 bg-white/95 shadow-sm">
+                                <ScrollArea className="h-0 flex-1 px-4 py-3">
                                 <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6")}>
                                     {products.map((product, index) => (
                                         <Tooltip key={index}>
@@ -2090,14 +2057,17 @@ const OrderCreate = () => {
                                 </div>
                             </ScrollArea>
                             <div className="border-t border-border/60 p-3">
-                                <div className="flex justify-center items-center">
+                                <div className="flex items-center justify-between gap-3">
+                                    <Badge className="rounded-full px-2 py-1 text-[10px] uppercase tracking-wider">
+                                        {totalItems} items
+                                    </Badge>
                                     <PaginationFilter totalPages={Math.ceil(totalItems / 24)} />
                                 </div>
                             </div>
                         </Card>
                     </div>
                     ) : null}
-                    <div className="flex min-h-0 flex-col gap-4 lg:col-span-4 lg:h-[72vh]">
+                    <div className="flex min-h-0 flex-col gap-4 overflow-hidden lg:col-span-4">
                         {isMobile && (
                             <div className="flex justify-end">
                                 <Button
@@ -2111,7 +2081,7 @@ const OrderCreate = () => {
                                 </Button>
                             </div>
                         )}
-                        <Card className="flex min-h-0 flex-1 flex-col border-border/60 bg-white/95 shadow-sm">
+                        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-border/60 bg-white/95 shadow-sm">
                             <CardContent className="flex flex-col gap-2 p-3">
                                 {isSalesmanMode && !isSalesmanFlowReady && (
                                     <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive mb-1">
@@ -2251,7 +2221,7 @@ const OrderCreate = () => {
                                     <div />
                                 </div>
                             </div>
-                            <ScrollArea className="flex-1 px-2 py-3">
+                            <ScrollArea className="h-0 flex-1 px-2 py-3">
                                 <Accordion type="multiple" className="space-y-2">
                                     {orderEntity?.items?.map((product, idx) => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
@@ -2535,7 +2505,7 @@ const OrderCreate = () => {
                     <DialogHeader className="p-4 pb-2 flex-shrink-0">
                         <DialogTitle>Add Item</DialogTitle>
                     </DialogHeader>
-                    <div className="px-4 pb-2 flex-shrink-0">
+                    <div className="px-4 pb-2 flex-shrink-0 space-y-2">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -2543,6 +2513,21 @@ const OrderCreate = () => {
                                 value={searchParams.get("name") || ''}
                                 onChange={(e) => navigate(createQueryString('name', e.target.value))}
                                 className="h-10 pl-10 text-xs"
+                            />
+                        </div>
+                        <div className={cn(shouldGateSalesman ? "pointer-events-none opacity-60" : undefined)}>
+                            <DropDownFilter
+                                placeholder={'Select Category'}
+                                dropDownOptionType={'RETAIL_CATEGORY'}
+                                selectedOption={searchParams.get("categoryId")}
+                                fieldName={'categories.id'}
+                                handleDropdownChange={(f, v) => {
+                                    if (!v.value) {
+                                        navigate(deleteQueryString('categoryId'));
+                                    } else {
+                                        navigate(createQueryString('categoryId', v.value))
+                                    }
+                                }}
                             />
                         </div>
                     </div>
