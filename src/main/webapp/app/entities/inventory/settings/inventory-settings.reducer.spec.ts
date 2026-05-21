@@ -113,8 +113,12 @@ describe('Inventory purchase order settings reducer tests', () => {
       expect((axios.get as any).calledWith('api/settings/by-key?key=PURCHASE_ORDER_QUANTITY_SUGGESTION')).toBe(true);
       expect((axios.put as any).calledWith('api/settings/by-key?key=PURCHASE_ORDER_QUANTITY_SUGGESTION')).toBe(true);
       expect((axios.put as any).firstCall.args[1]).toEqual({
-        purchaseOrderSuggestedQuantitySource: PurchaseOrderSuggestedQuantitySource.SALES_ORDER_COUNT,
-        purchaseOrderSalesHistoryWindow: PurchaseOrderSalesHistoryWindow.LAST_7_DAYS,
+        key: 'PURCHASE_ORDER_QUANTITY_SUGGESTION',
+        value: {
+          key: 'PURCHASE_ORDER_QUANTITY_SUGGESTION',
+          purchaseOrderSuggestedQuantitySource: PurchaseOrderSuggestedQuantitySource.SALES_ORDER_COUNT,
+          purchaseOrderSalesHistoryWindow: PurchaseOrderSalesHistoryWindow.LAST_7_DAYS,
+        },
       });
     });
   });
