@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { addPaymentToBill, calculateItemPrice, changeEntityField, clearChargesPreview, createDraftBill, createEntity, previewCharges, updateEntity, reset } from './order.reducer';
+import { addPaymentToBill, calculateItemPrice, changeEntityField, clearChargesPreview, createDraftBill, createDraftEntity, createEntity, previewCharges, updateDraftEntity, updateEntity, reset } from './order.reducer';
 import { IOrder, IOrderCharge } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
@@ -78,11 +78,12 @@ const OrderCreate = () => {
     const isWholesaleMode = searchParams.get("mode") === 'wholesale';
     
     // Check if we're in edit mode
-    const locationState = (location.state as { editOrder?: IOrder; orderId?: string; prefillOrder?: IOrder } | null) || null;
+    const locationState = (location.state as { editOrder?: IOrder; orderId?: string; prefillOrder?: IOrder; isDraftEdit?: boolean } | null) || null;
     const editOrderData = locationState?.editOrder;
     const prefillOrderData = locationState?.prefillOrder;
     const editOrderId = locationState?.orderId;
     const isEditMode = !!editOrderId && !!editOrderData;
+    const isDraftEditMode = isEditMode && (locationState?.isDraftEdit === true || editOrderData?.processingStatus === OrderStatus.DRAFT);
     const hasInitialOrderState = isEditMode || !!prefillOrderData;
     const initialOrderData = editOrderData || prefillOrderData;
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
@@ -1008,10 +1009,12 @@ const OrderCreate = () => {
         includeId = false,
         includeOrderCharges = true,
         includeWholesale = false,
+        processingStatus = OrderStatus.PROCESSING,
     }: {
         includeId?: boolean;
         includeOrderCharges?: boolean;
         includeWholesale?: boolean;
+        processingStatus?: OrderStatus;
     } = {}): IOrder => ({
         ...(includeId && isEditMode && orderEntity?.id ? { id: orderEntity.id } : {}),
         items: orderEntity?.items?.map(item => ({
@@ -1033,7 +1036,7 @@ const OrderCreate = () => {
         scheduledAt: orderEntity?.scheduledAt ?? null,
         orderMethod: orderEntity?.orderMethod,
         deliverTo: orderEntity?.deliverTo ?? null,
-        processingStatus: OrderStatus.PROCESSING,
+        processingStatus,
         tillId: till?.id,
         ...(includeWholesale && isWholesaleMode ? { wholesale: true } : {}),
     }), [isEditMode, isWholesaleMode, orderEntity, till?.id]);
@@ -1050,6 +1053,16 @@ const OrderCreate = () => {
 
     const buildUpdateStructuredEntity = useCallback(
         (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true, includeWholesale: true }),
+        [buildBaseStructuredEntity]
+    );
+
+    const buildCreateDraftStructuredEntity = useCallback(
+        (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: true, includeWholesale: true, processingStatus: OrderStatus.DRAFT }),
+        [buildBaseStructuredEntity]
+    );
+
+    const buildUpdateDraftStructuredEntity = useCallback(
+        (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true, includeWholesale: true, processingStatus: OrderStatus.DRAFT }),
         [buildBaseStructuredEntity]
     );
 
@@ -1133,6 +1146,32 @@ const OrderCreate = () => {
             finalizeCreatedOrder(response.data?.id || orderEntity.id);
         } catch (error) {
             toast.error(getApiErrorMessage(error, 'Failed to create order'));
+        } finally {
+            setSubmittingOrder(false);
+        }
+    };
+
+    const handleSaveDraft = async () => {
+        if (!ensureCreateFlowAllowed()) {
+            return;
+        }
+
+        try {
+            setSubmittingOrder(true);
+
+            if (isDraftEditMode && orderEntity?.id) {
+                const response = await dispatch(updateDraftEntity(buildUpdateDraftStructuredEntity())).unwrap();
+                resetVariantDialogState();
+                toast.success('Draft order updated successfully!');
+                navigate(`/order/${response.data?.id || orderEntity.id}`);
+                return;
+            }
+
+            const response = await dispatch(createDraftEntity(buildCreateDraftStructuredEntity())).unwrap();
+            toast.success('Draft order saved successfully!');
+            finalizeCreatedOrder(response.data?.id || orderEntity.id);
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, isDraftEditMode ? 'Failed to update draft order' : 'Failed to save draft order'));
         } finally {
             setSubmittingOrder(false);
         }
@@ -2475,6 +2514,10 @@ const OrderCreate = () => {
                                     <Button
                                         className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                         onClick={() => {
+                                            if (isDraftEditMode) {
+                                                void handleSaveDraft();
+                                                return;
+                                            }
                                             if (isEditMode) {
                                                 void handleUpdateOrder();
                                                 return;
@@ -2486,12 +2529,31 @@ const OrderCreate = () => {
                                         {submittingOrder ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                <span>{isEditMode ? 'Updating...' : 'Processing...'}</span>
+                                                <span>{isDraftEditMode ? 'Saving Draft...' : isEditMode ? 'Updating...' : 'Processing...'}</span>
                                             </>
                                         ) : (
-                                            <span>{isEditMode ? 'Update Order' : 'Place Order'}</span>
+                                            <span>{isDraftEditMode ? 'Save Draft' : isEditMode ? 'Update Order' : 'Place Order'}</span>
                                         )}
                                     </Button>
+                                    {!isEditMode && (
+                                        <Button
+                                            variant="outline"
+                                            className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm"
+                                            onClick={() => {
+                                                void handleSaveDraft();
+                                            }}
+                                            disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                        >
+                                            {submittingOrder ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    <span>Saving Draft...</span>
+                                                </>
+                                            ) : (
+                                                <span>Save Draft</span>
+                                            )}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </Card>

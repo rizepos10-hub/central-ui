@@ -45,7 +45,7 @@ interface LazyTableState {
 }
 
 type OrderProps = {
-  pageType?: 'history' | 'today' | 'scheduled' | '';
+  pageType?: 'history' | 'today' | 'scheduled' | 'saved' | '';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
   externalFromDate?: string;
@@ -191,6 +191,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       modifiedDate: false,
       showDatePicker: true,
     },
+    saved: {
+      storageKey: 'order-saved-columns',
+      title: 'Saved Orders',
+      sortField: 'createdDate',
+      sortOrder: -1 as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
+    },
   };
 
   const pageConfig = config[pageType];
@@ -212,7 +222,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       },
       id: { value: '', matchMode: 'contains' },
       byClient: { value: '', matchMode: 'contains' },
-      status: { value: '', matchMode: 'contains' },
+      status: { value: pageType === 'saved' ? OrderStatus.DRAFT : '', matchMode: pageType === 'saved' ? 'equals' : 'contains' },
       "customer.email": { value: '', matchMode: 'contains' },
       "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
@@ -254,6 +264,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   ];
 
   const activeStatusTab = lazyState.filters.status?.value || ALL_STATUS_TAB;
+  const isSavedOrdersPage = pageType === 'saved';
 
 
 
@@ -373,6 +384,10 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length + 1;
 
   const handleStatusTabChange = (value: string) => {
+    if (isSavedOrdersPage) {
+      return;
+    }
+
     setLazyState(prevState => ({
       ...prevState,
       first: 0,
@@ -421,15 +436,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   };
 
   const buildOrderQueryParams = () => {
-    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled'].includes(pageType);
+    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled', 'saved'].includes(pageType);
 
     const queryParams = {
       ...(wholesale && { wholesale: true }),
       ...(shouldExcludeWholesaleOrders && { wholesale: false }),
       ...(pageType === 'scheduled' && { scheduled: true }),
+      ...(isSavedOrdersPage && { orderProcessingStatus: OrderStatus.DRAFT }),
       id: lazyState.filters._id?.value || '',
       client: appSourceProp || lazyState.filters.orderSource?.value || '',
-      orderProcessingStatus: lazyState.filters.status?.value || '',
+      ...(!isSavedOrdersPage && { orderProcessingStatus: lazyState.filters.status?.value || '' }),
       first: lazyState.first,
       sequenceId: lazyState.filters.id?.value || '',
       page: lazyState.page,
@@ -589,6 +605,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
               <CardTitle className="truncate text-xl font-semibold">{pageConfig.title}</CardTitle>
               {pageType === 'today' && <Badge variant="secondary" className="rounded-full">Today</Badge>}
               {pageType === 'scheduled' && <Badge variant="secondary" className="rounded-full">Scheduled</Badge>}
+              {pageType === 'saved' && <Badge variant="secondary" className="rounded-full">Draft Only</Badge>}
               {!!wholesale && <Badge variant="outline" className="rounded-full">Wholesale</Badge>}
               {!!customer && <Badge variant="outline" className="rounded-full">Customer Orders</Badge>}
             </div>
@@ -637,9 +654,9 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="relative w-full">
               <div className="w-full overflow-x-auto pb-1">
-                <Tabs value={activeStatusTab} onValueChange={handleStatusTabChange}>
+                <Tabs value={isSavedOrdersPage ? OrderStatus.DRAFT : activeStatusTab} onValueChange={handleStatusTabChange}>
                   <TabsList className="h-auto w-max min-w-full justify-start gap-1.5 rounded-xl border bg-muted/40 p-1 pr-7">
-                    {statusTabs.map(tab => (
+                    {(isSavedOrdersPage ? [{ label: 'Draft', value: OrderStatus.DRAFT }] : statusTabs).map(tab => (
                       <TabsTrigger
                         key={tab.value}
                         value={tab.value}
@@ -654,7 +671,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
               <div className="pointer-events-none absolute inset-y-1 right-0 w-6 rounded-r-xl bg-gradient-to-l from-background via-background/85 to-transparent" />
             </div>
 
-            {UiSettingsEntity.orderConfirmation && (
+            {UiSettingsEntity.orderConfirmation && !isSavedOrdersPage && (
               <div className="flex items-center gap-2 rounded-full border px-3 py-1.5">
                 <Checkbox
                   checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}

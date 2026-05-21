@@ -83,7 +83,9 @@ jest.mock('./order.reducer', () => ({
   })),
   changeEntityField: jest.fn(payload => ({ type: 'order/changeEntityField', payload })),
   clearChargesPreview: jest.fn(() => ({ type: 'order/clear_charges_preview' })),
+  createDraftEntity: jest.fn(entity => ({ type: 'order/create_draft_entity', payload: entity })),
   createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
+  updateDraftEntity: jest.fn(entity => ({ type: 'order/update_draft_entity', payload: entity })),
   updateEntity: jest.fn(entity => ({ type: 'order/update_entity', payload: entity })),
   createDraftBill: jest.fn(payload => ({ type: 'order/create_draft_bill', payload })),
   addPaymentToBill: jest.fn(payload => ({ type: 'order/add_payment_to_bill', payload })),
@@ -255,12 +257,34 @@ beforeEach(() => {
       };
     }
 
+    if (action?.type === 'order/create_draft_entity') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'draft-order-id',
+            },
+          }),
+      };
+    }
+
     if (action?.type === 'order/update_entity') {
       return {
         unwrap: () =>
           Promise.resolve({
             data: {
               id: 'updated-order-id',
+            },
+          }),
+      };
+    }
+
+    if (action?.type === 'order/update_draft_entity') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'updated-draft-order-id',
             },
           }),
       };
@@ -348,7 +372,9 @@ const renderOrderCreate = authorities => {
   return render(<OrderCreate />);
 };
 
+const getLatestCreateDraftPayload = () => orderReducer.createDraftEntity.mock.calls[orderReducer.createDraftEntity.mock.calls.length - 1][0];
 const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderReducer.createEntity.mock.calls.length - 1][0];
+const getLatestUpdateDraftPayload = () => orderReducer.updateDraftEntity.mock.calls[orderReducer.updateDraftEntity.mock.calls.length - 1][0];
 const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
 describe('OrderCreate payment flow', () => {
@@ -486,6 +512,30 @@ describe('OrderCreate payment flow', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/order/created-order-id');
+    });
+  });
+
+  it('saves a new order as draft without opening the payment dialog', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /save draft/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.createDraftEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branchId: 'branch-1',
+          orderMethod: OrderMethod.Delivery,
+          processingStatus: 'DRAFT',
+        })
+      );
+    });
+
+    expect(orderReducer.createEntity).not.toHaveBeenCalled();
+    expect(screen.queryByText('Create Order & Payment')).toBeNull();
+    expect(getLatestCreateDraftPayload().wholesale).toBeUndefined();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/draft-order-id');
     });
   });
 
@@ -670,7 +720,7 @@ describe('OrderCreate payment flow', () => {
     });
 
     expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(true);
-    expect(screen.getByPlaceholderText('Search for products').disabled).toBe(true);
+    expect(screen.getByPlaceholderText('Search').disabled).toBe(true);
   });
 
   it('updates existing orders directly without opening the payment dialog', async () => {
@@ -701,6 +751,47 @@ describe('OrderCreate payment flow', () => {
     expect(getLatestUpdatePayload().wholesale).toBeUndefined();
 
     expect(screen.queryByText('Create Order & Payment')).toBeNull();
+  });
+
+  it('shows only the draft save action when editing an existing draft', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1',
+      state: {
+        editOrder: {
+          id: 'existing-draft-order-id',
+          branchId: 'branch-1',
+          processingStatus: 'DRAFT',
+        },
+        orderId: 'existing-draft-order-id',
+        isDraftEdit: true,
+      },
+    };
+    mockState.order.entity.id = 'existing-draft-order-id';
+    mockState.order.entity.processingStatus = 'DRAFT';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    expect(await screen.findByRole('button', { name: /save draft/i })).not.toBeNull();
+    expect(screen.queryByRole('button', { name: /update order/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /place order/i })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /save draft/i }));
+
+    await waitFor(() => {
+      expect(orderReducer.updateDraftEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'existing-draft-order-id',
+          processingStatus: 'DRAFT',
+        })
+      );
+    });
+
+    expect(orderReducer.updateEntity).not.toHaveBeenCalled();
+    expect(getLatestUpdateDraftPayload().wholesale).toBeUndefined();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/updated-draft-order-id');
+    });
   });
 
   it('requests a charge preview when the order has enough data and shows the previewed total', async () => {

@@ -355,10 +355,22 @@ export const OrderDetail = () => {
 
   const handleEditOrder = () => {
     const transformedOrder = transformOrderForEdit(filteredOrderEntity);
-    navigate('/order/create', {
+    const matchingRegistry = branchRegistry.find(record => record.branch?.id === filteredOrderEntity.branchId);
+    const search = new URLSearchParams();
+
+    if (matchingRegistry?.id) {
+      search.set('registerId', matchingRegistry.id);
+    }
+
+    if (filteredOrderEntity.wholesale) {
+      search.set('mode', 'wholesale');
+    }
+
+    navigate(`/order/create${search.toString() ? `?${search.toString()}` : ''}`, {
       state: {
         editOrder: transformedOrder,
         orderId: filteredOrderEntity.id,
+        isDraftEdit: filteredOrderEntity.processingStatus === OrderStatus.DRAFT,
       },
     });
   };
