@@ -68,6 +68,39 @@ type PrintSettings = {
     priceFontSize: string
 }
 
+const BARCODE_PRINT_SETTINGS_STORAGE_KEY = 'barcode-print-settings'
+
+const DEFAULT_PRINT_SETTINGS: PrintSettings = {
+    showSku: true,
+    skuHeight: '5mm',
+    showName: true,
+    nameHeight: '5mm',
+    showBarcodeValue: true,
+    labelWidth: '50mm',
+    labelHeight: '30mm',
+    barcodeHeight: '20mm',
+    barcodeWidth: 1,
+    barcodePosition: 'BOTTOM',
+    barcodeFormat: 'CODE128',
+    nameFontSize: '14px',
+    skuFontSize: '12px',
+    showPrice: true,
+    priceHeight: '5mm',
+    priceFontSize: '12px',
+}
+
+const loadPrintSettingsFromStorage = (): PrintSettings => {
+    try {
+        const stored = localStorage.getItem(BARCODE_PRINT_SETTINGS_STORAGE_KEY)
+        if (stored) {
+            return { ...DEFAULT_PRINT_SETTINGS, ...JSON.parse(stored) }
+        }
+    } catch {
+        // ignore invalid stored data
+    }
+    return DEFAULT_PRINT_SETTINGS
+}
+
 const Barcode = () => {
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
@@ -75,24 +108,11 @@ const Barcode = () => {
     const [variantsSkus, setVariantsSkus] = useState<VariantSkus[]>([])
     const [variantsSkusToPrint, setVariantsSkusToPrint] = useState<VariantSkus[]>([])
     const [showPrintDialog, setShowPrintDialog] = useState(false)
-    const [printSettings, setPrintSettings] = useState<PrintSettings>({
-        showSku: true,
-        skuHeight: '5mm',
-        showName: true,
-        nameHeight: '5mm',
-        showBarcodeValue: true,
-        labelWidth: '50mm',
-        labelHeight: '30mm',
-        barcodeHeight: '20mm',
-        barcodeWidth: 1,
-        barcodePosition: 'BOTTOM',
-        barcodeFormat: 'CODE128',
-        nameFontSize: '14px',
-        skuFontSize: '12px',
-        showPrice: true,
-        priceHeight: '5mm',
-        priceFontSize: '12px',
-    })
+    const [printSettings, setPrintSettings] = useState<PrintSettings>(loadPrintSettingsFromStorage)
+
+    useEffect(() => {
+        localStorage.setItem(BARCODE_PRINT_SETTINGS_STORAGE_KEY, JSON.stringify(printSettings))
+    }, [printSettings])
 
     // For warning color about height sum vs label height
     const [heightValidationColor, setHeightValidationColor] = useState<'red' | 'green'>('red')
