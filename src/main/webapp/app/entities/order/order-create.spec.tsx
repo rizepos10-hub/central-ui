@@ -50,6 +50,10 @@ jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => 
   getOnAccountSettings: jest.fn(() => ({ type: 'onAccountSettings/get' })),
 }));
 
+jest.mock('app/entities/settings/payment-method-setting/payment-method-setting.reducer', () => ({
+  getAllEntities: jest.fn(() => ({ type: 'paymentMethodSetting/getAllEntities' })),
+}));
+
 jest.mock('app/entities/term/retail-item-category/retail-item-category.reducer', () => ({
   getEntities: jest.fn(() => ({ type: 'category/getEntities' })),
 }));
@@ -221,6 +225,13 @@ beforeEach(() => {
       entity: {
         onAccountBalanceType: 'BY_BUSINESS',
       },
+      loading: false,
+    },
+    paymentMethodSetting: {
+      entities: [
+        { id: 'cash-id', transactionMethod: 'cash', name: 'Cash', show: true, order: 0 },
+        { id: 'on-account-id', transactionMethod: 'onAccount', name: 'On Account', show: true, order: 1 },
+      ],
       loading: false,
     },
     branchRegistry: {
