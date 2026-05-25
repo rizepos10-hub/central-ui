@@ -20,9 +20,12 @@ const apiSearchUrl = 'api/inventory/_search/suppliers';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('supplier/filter_entity_list', async ({ query }: IQueryParams) => {
+export const searchEntities = createAsyncThunk(
+  'supplier/filter_entity_list',
+  async ({ query }: IQueryParams & { query?: string | Record<string, unknown> }) => {
   return axios.post<ISupplier[]>(apiSearchUrl, query);
-});
+  }
+);
 
 export const getEntities = createAsyncThunk('supplier/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
