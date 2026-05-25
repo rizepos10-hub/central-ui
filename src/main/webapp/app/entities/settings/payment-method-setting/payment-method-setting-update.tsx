@@ -197,12 +197,33 @@ export const PaymentMethodSettingUpdate = () => {
                   </span>
                 </label>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="order" className="text-xs">
+                  Order
+                </Label>
+                <Input
+                  id="order"
+                  type="number"
+                  value={paymentMethodSettingEntity.order ?? ''}
+                  onChange={(e) =>
+                    dispatch(
+                      changeEntityField({
+                        name: 'order',
+                        value: e.target.value === '' ? null : Number(e.target.value),
+                      })
+                    )
+                  }
+                  className="h-9 text-xs"
+                  placeholder="Enter display order"
+                />
+              </div>
             </div>
 
             {!isNew && !isCustomMethod && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                 <p className="text-xs text-yellow-800">
-                  <strong>Note:</strong> This payment method cannot be deleted. Only the name and visibility can be edited.
+                  <strong>Note:</strong> This payment method cannot be deleted. Only the name, visibility, and order can be edited.
                 </p>
               </div>
             )}
