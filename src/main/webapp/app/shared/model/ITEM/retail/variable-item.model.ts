@@ -13,12 +13,19 @@ import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { ShippingDimension } from "app/shared/model/shipping-dimension.model";
 import { IPricingPoint } from "../../PRICING-POINT/pricing-point";
 
+export interface IScheduledBranchPrice {
+  startAt: string;
+  endAt: string;
+  price: number | null;
+}
+
 export interface IBranchVariantDetails {
   [key: string]: {
     branch: IBranch;
     price: number;
     salePrice: number;
     wholesalePrices?: IItemPriceNumber;
+    scheduledPrices?: IScheduledBranchPrice[];
     hideItem?: boolean;
     hideOnline?: boolean;
   };

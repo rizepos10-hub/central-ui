@@ -34,7 +34,7 @@ import VariantBranchPrice from 'app/shared/components/item/variant-branch-price'
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
 import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
-import { IMeasureValue, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { IMeasureValue, IScheduledBranchPrice, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
@@ -541,6 +541,28 @@ export const ProductUpdate = () => {
           },
         },
       };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setProduct(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+
       return {
         ...prev,
         variants: updatedVariants,
@@ -1543,6 +1565,7 @@ export const ProductUpdate = () => {
                                     variantIndex={0}
                                     branchList={branchList}
                                     handleBranchPriceChange={handleBranchPriceChange}
+                                    handleSaveScheduledPrices={handleSaveScheduledPrices}
                                     handleHideItemPerBranch={handleHideItemPerBranch}
                                     variant={product?.variants?.[0]}
                                     setItem={setProduct}
@@ -1867,6 +1890,7 @@ export const ProductUpdate = () => {
                                                       variantIndex={variantIndex}
                                                       branchVariantDetails={variant.branchVariantDetails}
                                                       itemVariantType={'RETAIL'}
+                                                      handleSaveScheduledPrices={handleSaveScheduledPrices}
                                                       handleHideItemPerBranch={handleHideItemPerBranch}
                                                       variant={variant}
                                                       setItem={setProduct}
