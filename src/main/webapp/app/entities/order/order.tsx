@@ -58,11 +58,11 @@ type OrderProps = {
 const ALL_STATUS_TAB = '__all__';
 
 const formatStatusLabel = (value?: string | null) => {
-  if (!value) {
+  if (value === null || value === undefined || value === '') {
     return '-';
   }
 
-  return value
+  return String(value)
     .toLowerCase()
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))

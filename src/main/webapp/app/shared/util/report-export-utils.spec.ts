@@ -119,6 +119,10 @@ describe('report export utils', () => {
     );
   });
 
+  it('createReportFileName coerces numeric details', () => {
+    expect(createReportFileName('End Of Day Report', ['Main Branch', 42])).toBe('end-of-day-report-main-branch-42');
+  });
+
   it('analyticsReportPrintStyles includes export-safe page-break and no-hyphen rules', () => {
     const styles = analyticsReportPrintStyles('portrait');
 
