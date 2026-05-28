@@ -1,6 +1,25 @@
 import { ISalesSummary, ISummaryReport } from '../model/report-summary.model';
 import { formatDateForDisplay } from './timezone-utils';
 
+/** Unwrap SalesSummaryReport from an EndOfDay entity (`report` JSON field) or return as-is. */
+export const parseSalesSummaryFromEndOfDay = (data: any) => {
+  if (!data) {
+    return null;
+  }
+  if (data.totalSales || data.totalReceived) {
+    return data;
+  }
+  const report = data.report;
+  if (!report) {
+    return data;
+  }
+  try {
+    return typeof report === 'string' ? JSON.parse(report) : report;
+  } catch {
+    return data;
+  }
+};
+
 export const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
         if (module && module.default) {
@@ -155,6 +174,11 @@ export const exportExcelEodSummaryReport = async (
 ) => {
   const xlsx = await import('xlsx-js-style');
 
+  const normalizedDataArr = excelDataArr.map(({ branch, data }) => ({
+    branch,
+    data: parseSalesSummaryFromEndOfDay(data) ?? data,
+  }));
+
   // Helper to safely parse and format numeric values.
   // Returns an empty string if the numeric value is 0.
   const cellVal = (val: any, decimals = 2) => {
@@ -164,7 +188,7 @@ export const exportExcelEodSummaryReport = async (
 
   // 1. Sum payment amounts across all branches for each payment type
   const paymentSums: { [key: string]: number } = {};
-  excelDataArr.forEach(({ data }) => {
+  normalizedDataArr.forEach(({ data }) => {
     const payments = data?.totalReceived || [];
     payments.forEach((p: any) => {
       if (p.paymentType) {
@@ -207,7 +231,7 @@ export const exportExcelEodSummaryReport = async (
   sheetData.push(headerRow);
 
   // 5. Build each row for each branch
-  excelDataArr.forEach(({ branch, data }) => {
+  normalizedDataArr.forEach(({ branch, data }) => {
     const storeName = branch?.name || '';
     const dateAndDay =
       fromDate && toDate
@@ -263,7 +287,7 @@ export const exportExcelEodSummaryReport = async (
     'walletCredits'
   ];
 
-  excelDataArr.forEach(({ data }) => {
+  normalizedDataArr.forEach(({ data }) => {
     const catalogRecords = data?.catalogSection?.catalogRecords || [];
     catalogRecords.forEach((record: any) => {
       const groupName = record.name?.toUpperCase();

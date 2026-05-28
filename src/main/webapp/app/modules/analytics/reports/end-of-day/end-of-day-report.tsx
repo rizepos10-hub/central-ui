@@ -48,10 +48,17 @@ const EndOfDayReportContainer = () => {
   };
 
   const handleExcelExport = () => {
-    exportExcelEodSummaryReport([{
-      branch,
-      data: salesData,
-    }], null, null, 'End of Day Report');
+    exportExcelEodSummaryReport(
+      [
+        {
+          branch,
+          data: salesData,
+        },
+      ],
+      endOfDay?.fromDate ?? null,
+      endOfDay?.toDate ?? null,
+      'End of Day Report',
+    );
   };
 
   const handlePrint = useReactToPrint({
