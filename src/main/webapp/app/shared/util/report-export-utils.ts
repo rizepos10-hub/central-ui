@@ -132,16 +132,19 @@ const getWorkbookHeader = ({ title, filters = [] }: ExportWorkbookOptions) => {
   return { rows, titleRowIndices };
 };
 
-const slugify = (value: string) =>
-  value
+const slugify = (value: string | number) =>
+  String(value)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-');
 
-export const createReportFileName = (reportName: string, details: Array<string | null | undefined> = []) => {
+export const createReportFileName = (
+  reportName: string,
+  details: Array<string | number | null | undefined> = [],
+) => {
   const parts = [reportName, ...details]
-    .map(part => (part ? slugify(part) : ''))
+    .map(part => (part !== null && part !== undefined && part !== '' ? slugify(part) : ''))
     .filter(Boolean);
 
   return parts.join('-') || 'report';
