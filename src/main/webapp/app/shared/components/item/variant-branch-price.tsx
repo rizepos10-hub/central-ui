@@ -9,7 +9,7 @@ import { IRegularItemVariant } from 'app/shared/model/ITEM/restaurant/regular-it
 import { translate, Translate } from 'react-jhipster';
 import { IBranch } from 'app/shared/model/branch.model';
 import PricingPointModal from './pricing-point-modal';
-import ScheduledBranchPricesModal from './scheduled-branch-prices-modal';
+import ScheduledBranchPricesModal from './scheduled-branch-prices-dialog';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
