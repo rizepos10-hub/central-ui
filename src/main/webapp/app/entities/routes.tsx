@@ -71,6 +71,7 @@ const PaymentMethodSetting = React.lazy(() => import('./settings/payment-method-
 const TookanSettings = React.lazy(() => import('./settings/tookan'));
 const KioskSlidesSettings = React.lazy(() => import('./settings/kiosk-slides'));
 const OnAccountSettings = React.lazy(() => import('./settings/on-account'));
+const Flyers = React.lazy(() => import('./flyers'));
 
 export default () => {
   return (
@@ -165,6 +166,7 @@ export default () => {
         <Route path="tookan-settings/*" element={<TookanSettings />} />
         <Route path="kiosk-slides-settings/*" element={<KioskSlidesSettings />} />
         <Route path="on-account-settings/*" element={<OnAccountSettings />} />
+        <Route path="flyers/*" element={<Flyers />} />
       </ErrorBoundaryRoutes>
     </Suspense>
   );

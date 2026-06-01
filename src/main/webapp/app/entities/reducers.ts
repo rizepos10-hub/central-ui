@@ -81,6 +81,7 @@ import paymentMethodSetting from "app/entities/settings/payment-method-setting/p
 import tookanSetting from "app/entities/settings/tookan/tookan.reducer";
 import kioskSlidesSetting from "app/entities/settings/kiosk-slides/kiosk-slides.reducer";
 import variant from "app/entities/variant/variant.reducer";
+import flyer from "app/entities/flyers/flyer.reducer";
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
@@ -213,6 +214,7 @@ const entitiesReducers = {
   tookanSetting,
   kioskSlidesSetting,
   variant,
+  flyer,
   GiftCardItem,
   GiftCardCoupon,
   ReportSummary,

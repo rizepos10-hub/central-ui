@@ -15,13 +15,17 @@ import {
 import { Card } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { getEntities as getFlyers } from 'app/entities/flyers/flyer.reducer';
 import { DayOfWeek } from 'app/shared/model/ENUMS/day-of-week.model';
 import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { IScheduledBranchPrice, IScheduledPriceSchedule } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { IFlyer } from 'app/shared/model/flyer.model';
 import { CalendarClock, Plus, X } from 'lucide-react';
 
 type ScheduledBranchPricesDialogProps = {
   isOpen: boolean;
+  branchId: string;
   branchName: string;
   scheduledPrices: IScheduledBranchPrice[];
   onClose: () => void;
@@ -37,6 +41,8 @@ type ScheduleDraft = {
   startAt: string;
   endAt: string;
   price: number | null;
+  flyerId: string;
+  flyerName: string;
   application: SourceType | 'ALL_APPLICATIONS';
   useDateRange: boolean;
   schedule: Partial<Record<DayOfWeek, TimeRangeDraft[]>>;
@@ -57,6 +63,8 @@ const createEmptySchedule = (
   startAt: '',
   endAt: '',
   price: null,
+  flyerId: '',
+  flyerName: '',
   application,
   useDateRange: false,
   schedule: {},
@@ -133,6 +141,8 @@ const toDraftSchedule = (schedule: IScheduledBranchPrice): ScheduleDraft => ({
   startAt: toDateValue(schedule.startAt),
   endAt: toDateValue(schedule.endAt),
   price: schedule.price,
+  flyerId: schedule.flyer?.id || schedule.flyerId || '',
+  flyerName: schedule.flyer?.name || '',
   application: schedule.application ?? allApplicationsValue,
   useDateRange: Boolean(schedule.startAt || schedule.endAt),
   schedule: toScheduleDraft(schedule.schedule),
@@ -159,11 +169,14 @@ const normalizeScheduleForSave = (schedule: ScheduleDraft['schedule']): ISchedul
 
 const ScheduledBranchPricesDialog = ({
   isOpen,
+  branchId,
   branchName,
   scheduledPrices,
   onClose,
   onSave,
 }: ScheduledBranchPricesDialogProps) => {
+  const dispatch = useAppDispatch();
+  const flyers: IFlyer[] = useAppSelector(state => state.flyer.entities);
   const [draftSchedules, setDraftSchedules] = useState<ScheduleDraft[]>([]);
 
   useEffect(() => {
@@ -171,12 +184,19 @@ const ScheduledBranchPricesDialog = ({
       return;
     }
 
+    dispatch(getFlyers({ page: 0, size: 500, sort: 'name,asc' }));
+
     setDraftSchedules(
       scheduledPrices.length > 0
         ? scheduledPrices.map(toDraftSchedule)
         : [createEmptySchedule(allApplicationsValue)]
     );
-  }, [isOpen, scheduledPrices]);
+  }, [dispatch, isOpen, scheduledPrices]);
+
+  const availableFlyers = useMemo(
+    () => flyers.filter(flyer => !branchId || flyer.branch?.id === branchId),
+    [branchId, flyers]
+  );
 
   const remainingApplicationOptions = useMemo(() => {
     const used = new Set(draftSchedules.map(schedule => schedule.application));
@@ -245,6 +265,16 @@ const ScheduledBranchPricesDialog = ({
     return applicationOptions.filter(
       application => application === currentApplication || !usedByOthers.has(application)
     );
+  };
+
+  const getFlyerOptionsForSchedule = (scheduleIndex: number) => {
+    const currentFlyerId = draftSchedules[scheduleIndex]?.flyerId;
+    const currentFlyerName = draftSchedules[scheduleIndex]?.flyerName;
+    if (currentFlyerId && !availableFlyers.some(flyer => flyer.id === currentFlyerId)) {
+      return [...availableFlyers, { id: currentFlyerId, name: currentFlyerName || currentFlyerId }];
+    }
+
+    return availableFlyers;
   };
 
   const isDaySelected = (scheduleIndex: number, day: DayOfWeek) =>
@@ -319,7 +349,7 @@ const ScheduledBranchPricesDialog = ({
         price: schedule.price,
         application: schedule.application === allApplicationsValue ? null : schedule.application,
         schedule: normalizeScheduleForSave(schedule.schedule),
-        flyerId: null,
+        flyerId: schedule.flyerId || null,
       }))
     );
     onClose();
@@ -367,7 +397,7 @@ const ScheduledBranchPricesDialog = ({
               </div>
 
               <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold">Application</Label>
                     <Select
@@ -385,6 +415,37 @@ const ScheduledBranchPricesDialog = ({
                         {getApplicationOptionsForSchedule(scheduleIndex).map(application => (
                           <SelectItem key={application} value={application} className="text-xs">
                             {formatApplicationLabel(application)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Flyer</Label>
+                    <Select
+                      value={schedule.flyerId || 'none'}
+                      onValueChange={value =>
+                        {
+                          const selectedFlyer = availableFlyers.find(flyer => flyer.id === value);
+                          updateSchedule(scheduleIndex, {
+                            flyerId: value === 'none' ? '' : value,
+                            flyerName: value === 'none' ? '' : selectedFlyer?.name || '',
+                          });
+                        }
+                      }
+                    >
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="No flyer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none" className="text-xs">
+                          No flyer
+                        </SelectItem>
+                        {getFlyerOptionsForSchedule(scheduleIndex)
+                          .filter(flyer => flyer.id)
+                          .map(flyer => (
+                          <SelectItem key={flyer.id} value={flyer.id} className="text-xs">
+                            {flyer.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
