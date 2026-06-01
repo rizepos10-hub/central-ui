@@ -20,6 +20,7 @@ import {
   buildInventoryOnHandWorkbook,
   createReportFileName,
   downloadElementAsPdf,
+  fetchAllPaginatedRows,
   saveWorkbookAsExcel,
 } from 'app/shared/util/report-export-utils';
 import { formatVariant } from 'app/shared/util/variant-utils';
@@ -30,6 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FilterMatchMode } from 'primereact/api';
 import SelectInput from 'app/shared/components/select/select';
+import PaginationFilterStateVals from 'app/shared/components/pagination/pagination-filter-state-vals';
 
 type OnHandReportRow = IInventoryItemVariant & {
   itemName?: string;
@@ -52,6 +54,7 @@ const REPORT_TITLE = 'On Hand Report';
 const REPORT_API_URL = 'api/inventory/_search/variants';
 const SUPPLIER_PAGE_SIZE = 20;
 const CATEGORY_PAGE_SIZE = 20;
+const REPORT_PAGE_SIZE = 50;
 
 type SelectOption = {
   value: string;
@@ -108,8 +111,8 @@ const buildWorkbookRows = (rows: DisplayRow[]) =>
     itemNumber: row.itemNumber,
     description: row.description,
     costBase: row.costBase.toString(),
-    costReal: row.costReal.toString(),
     onHandQuantity: row.onHandQuantity.toString(),
+    costReal: row.costReal.toString(),
   }));
 
 const OnHandReport = () => {
@@ -122,10 +125,13 @@ const OnHandReport = () => {
   const [selectedCategoryOption, setSelectedCategoryOption] = useState<SelectOption | null>(null);
   const [nameFilter, setNameFilter] = useState('');
   const [rows, setRows] = useState<OnHandReportRow[]>([]);
+  const [exportRows, setExportRows] = useState<OnHandReportRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [supplierOptions, setSupplierOptions] = useState<SelectOption[]>([]);
   const [supplierPage, setSupplierPage] = useState(0);
   const [supplierHasMore, setSupplierHasMore] = useState(true);
@@ -137,6 +143,25 @@ const OnHandReport = () => {
   const [categoryLoading, setCategoryLoading] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
   const reportContentRef = useRef<HTMLDivElement>(null);
+
+  const fetchReportPage = async (page: number, size: number) => {
+    const response = await axios.get<OnHandReportRow[]>(REPORT_API_URL, {
+      params: {
+        branchId: selectedBranchId,
+        ...(selectedSupplierOption?.value ? { supplierId: selectedSupplierOption.value } : {}),
+        ...(selectedCategoryOption?.value ? { categoryId: selectedCategoryOption.value } : {}),
+        name: nameFilter.trim(),
+        page,
+        size,
+        sort: 'id,asc',
+      },
+    });
+
+    return {
+      rows: Array.isArray(response.data) ? response.data : [],
+      totalCount: Number(response.headers?.['x-total-count']),
+    };
+  };
 
   useEffect(() => {
     dispatch(getBranches({ page: 0, size: 500, sort: 'name,asc' }));
@@ -349,8 +374,10 @@ const OnHandReport = () => {
   useEffect(() => {
     if (!selectedBranchId) {
       setRows([]);
+      setExportRows(null);
       setLoading(false);
       setError(null);
+      setTotalItems(0);
       return;
     }
 
@@ -360,20 +387,15 @@ const OnHandReport = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get<OnHandReportRow[]>(REPORT_API_URL, {
-          params: {
-            branchId: selectedBranchId,
-            ...(selectedSupplierOption?.value ? { supplierId: selectedSupplierOption.value } : {}),
-            ...(selectedCategoryOption?.value ? { categoryId: selectedCategoryOption.value } : {}),
-            name: nameFilter.trim(),
-          },
-        });
+        const response = await fetchReportPage(currentPage - 1, REPORT_PAGE_SIZE);
 
         if (ignore) {
           return;
         }
 
-        setRows(Array.isArray(response.data) ? response.data : []);
+        setRows(response.rows);
+        setExportRows(null);
+        setTotalItems(Number.isFinite(response.totalCount) ? response.totalCount : response.rows.length);
         setLastLoadedAt(new Date());
       } catch (_error) {
         if (ignore) {
@@ -381,6 +403,8 @@ const OnHandReport = () => {
         }
 
         setRows([]);
+        setExportRows(null);
+        setTotalItems(0);
         setError('Unable to load on hand report.');
       } finally {
         if (!ignore) {
@@ -394,20 +418,23 @@ const OnHandReport = () => {
     return () => {
       ignore = true;
     };
+  }, [currentPage, selectedBranchId, selectedSupplierOption?.value, selectedCategoryOption?.value, nameFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [selectedBranchId, selectedSupplierOption?.value, selectedCategoryOption?.value, nameFilter]);
 
-  const displayRows = useMemo(() => rows.map(row => buildDisplayRow(row, selectedBranchId)), [rows, selectedBranchId]);
+  const sourceRows = exportRows || rows;
+  const displayRows = useMemo(() => sourceRows.map(row => buildDisplayRow(row, selectedBranchId)), [sourceRows, selectedBranchId]);
 
   const totals = useMemo(
     () =>
       displayRows.reduce(
         (acc, row) => ({
-          costBase: acc.costBase + row.costBase,
           costReal: acc.costReal + row.costReal,
           onHandQuantity: acc.onHandQuantity + row.onHandQuantity,
         }),
         {
-          costBase: 0,
           costReal: 0,
           onHandQuantity: 0,
         }
@@ -422,6 +449,17 @@ const OnHandReport = () => {
   const exportedAt = lastLoadedAt || new Date();
   const fileName = createReportFileName(REPORT_TITLE, [selectedBranchName, selectedSupplierName, selectedCategoryName, selectedNameLabel]);
   const exportDisabled = loading || busyAction !== null || displayRows.length === 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / REPORT_PAGE_SIZE));
+
+  const loadAllReportRows = async () =>
+    fetchAllPaginatedRows(
+      async ({ page, size }) => fetchReportPage(page, size),
+      {
+        requestArgs: {},
+        size: REPORT_PAGE_SIZE,
+        getRowSignature: row => row.id || `${row.sku || ''}|${row.name || ''}|${row.itemNumber || ''}`,
+      }
+    );
 
   const handleExcelExport = async () => {
     if (displayRows.length === 0) {
@@ -430,8 +468,10 @@ const OnHandReport = () => {
 
     try {
       setBusyAction('excel');
+      const allRows = await loadAllReportRows();
+      const allDisplayRows = allRows.map(row => buildDisplayRow(row, selectedBranchId));
       await saveWorkbookAsExcel(
-        buildInventoryOnHandWorkbook(buildWorkbookRows(displayRows), {
+        buildInventoryOnHandWorkbook(buildWorkbookRows(allDisplayRows), {
           title: REPORT_TITLE,
           filters: [
             { label: 'Branch', value: selectedBranchName },
@@ -454,8 +494,12 @@ const OnHandReport = () => {
 
     try {
       setBusyAction('pdf');
+      const allRows = await loadAllReportRows();
+      setExportRows(allRows);
+      await new Promise(resolve => window.setTimeout(resolve, 0));
       await downloadElementAsPdf(reportContentRef.current, { fileName, orientation: 'landscape' });
     } finally {
+      setExportRows(null);
       setBusyAction(null);
     }
   };
@@ -464,10 +508,14 @@ const OnHandReport = () => {
     content: () => reportContentRef.current,
     documentTitle: fileName,
     pageStyle: analyticsReportPrintStyles('landscape'),
-    onBeforeGetContent: () => {
+    onBeforeGetContent: async () => {
       setBusyAction('print');
+      const allRows = await loadAllReportRows();
+      setExportRows(allRows);
+      await new Promise(resolve => window.setTimeout(resolve, 0));
     },
     onAfterPrint: () => {
+      setExportRows(null);
       setBusyAction(null);
     },
   });
@@ -476,13 +524,13 @@ const OnHandReport = () => {
     <div className="rounded-sm border border-black bg-white">
       <Table className="min-w-full border-collapse">
         <TableHeader>
-          <TableRow className="border-black hover:bg-transparent">
-            <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Item Number</TableHead>
-            <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Description</TableHead>
-            <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Cost: Base</TableHead>
-            <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Cost: Real</TableHead>
-            <TableHead className="px-2 py-1 text-center text-[11px] font-normal text-black">On Hand Quantity</TableHead>
-          </TableRow>
+            <TableRow className="border-black hover:bg-transparent">
+              <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Item Number</TableHead>
+              <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Description</TableHead>
+              <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">Cost: Base</TableHead>
+              <TableHead className="border-r border-black px-2 py-1 text-center text-[11px] font-normal text-black">On Hand Quantity</TableHead>
+              <TableHead className="px-2 py-1 text-center text-[11px] font-normal text-black">Cost: Real</TableHead>
+            </TableRow>
         </TableHeader>
         <TableBody>
           {displayRows.map(row => (
@@ -490,21 +538,21 @@ const OnHandReport = () => {
               <TableCell className="border-r border-black px-2 py-1 text-[11px] text-black">{row.itemNumber}</TableCell>
               <TableCell className="border-r border-black px-2 py-1 text-[11px] text-black">{row.description}</TableCell>
               <TableCell className="border-r border-black px-2 py-1 text-right text-[11px] text-black">{formatDecimal(row.costBase)}</TableCell>
-              <TableCell className="border-r border-black px-2 py-1 text-right text-[11px] text-black">{formatDecimal(row.costReal)}</TableCell>
-              <TableCell className="px-2 py-1 text-right text-[11px] text-black">{formatDecimal(row.onHandQuantity)}</TableCell>
+              <TableCell className="border-r border-black px-2 py-1 text-right text-[11px] text-black">{formatDecimal(row.onHandQuantity)}</TableCell>
+              <TableCell className="px-2 py-1 text-right text-[11px] text-black">{formatDecimal(row.costReal)}</TableCell>
             </TableRow>
           ))}
           <TableRow className="border-black bg-slate-50 hover:bg-slate-50">
             <TableCell className="border-r border-t border-black px-2 py-1 text-[11px] font-semibold text-black">Totals:</TableCell>
             <TableCell className="border-r border-t border-black px-2 py-1 text-[11px] text-black" />
             <TableCell className="border-r border-t border-black px-2 py-1 text-right text-[11px] font-semibold text-black">
-              {formatDecimal(totals.costBase)}
+              -
             </TableCell>
             <TableCell className="border-r border-t border-black px-2 py-1 text-right text-[11px] font-semibold text-black">
-              {formatDecimal(totals.costReal)}
+              {formatDecimal(totals.onHandQuantity)}
             </TableCell>
             <TableCell className="border-t border-black px-2 py-1 text-right text-[11px] font-semibold text-black">
-              {formatDecimal(totals.onHandQuantity)}
+              {formatDecimal(totals.costReal)}
             </TableCell>
           </TableRow>
         </TableBody>
@@ -648,7 +696,14 @@ const OnHandReport = () => {
                 ) : displayRows.length === 0 ? (
                   <div className="py-10 text-center text-xs text-muted-foreground">No on hand inventory found for the selected filters.</div>
                 ) : (
-                  renderReportTable()
+                  <>
+                    {renderReportTable()}
+                    {!exportRows && totalPages > 1 ? (
+                      <div className="pt-2">
+                        <PaginationFilterStateVals totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                      </div>
+                    ) : null}
+                  </>
                 )}
               </CardContent>
             </Card>
