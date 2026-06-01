@@ -120,6 +120,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
       {scheduledPricesModal.show && (
         <ScheduledBranchPricesModal
           isOpen={scheduledPricesModal.show}
+          branchId={scheduledPricesModal.branchId}
           branchName={scheduledPricesModal.branchName}
           scheduledPrices={branchVariantDetails?.[scheduledPricesModal.branchId]?.scheduledPrices || []}
           onClose={() => handleScheduledPricesModal()}
