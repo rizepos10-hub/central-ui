@@ -11,6 +11,7 @@ interface DraggableListProps {
   dragdrop?: boolean;
   showArrows?: boolean;
   selectable?: boolean;
+  disabled?: boolean;
 }
 
 export const DraggableList: React.FC<DraggableListProps> = ({
@@ -22,6 +23,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   dragdrop = true,
   showArrows = true,
   selectable = false,
+  disabled = false,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -29,12 +31,14 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     if (!dragdrop) return;
+    if (disabled) return;
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     if (!dragdrop) return;
+    if (disabled) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDragOverIndex(index);
@@ -42,11 +46,13 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
   const handleDragLeave = () => {
     if (!dragdrop) return;
+    if (disabled) return;
     setDragOverIndex(null);
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     if (!dragdrop) return;
+    if (disabled) return;
     e.preventDefault();
 
     if (draggedIndex === null || draggedIndex === dropIndex) {
@@ -68,12 +74,14 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
   const handleDragEnd = () => {
     if (!dragdrop) return;
+    if (disabled) return;
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
 
   const moveUp = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
+    if (disabled) return;
     if (index === 0) return;
 
     const newValue = [...value];
@@ -86,6 +94,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
 
   const moveDown = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
+    if (disabled) return;
     if (index === value.length - 1) return;
 
     const newValue = [...value];
@@ -101,7 +110,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
   };
 
   return (
-    <div className="border rounded">
+    <div className={`border rounded ${disabled ? 'opacity-70' : ''}`}>
       {header && (
         <div className="p-2 border-b bg-muted/30">
           {header}
@@ -111,7 +120,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
         {value.map((item, index) => (
           <div
             key={item[dataKey]}
-            draggable={dragdrop}
+            draggable={dragdrop && !disabled}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDragLeave={handleDragLeave}
@@ -120,7 +129,8 @@ export const DraggableList: React.FC<DraggableListProps> = ({
             onClick={selectable ? () => handleRowClick(index) : undefined}
             className={`
               p-2 transition-colors
-              ${dragdrop ? 'cursor-move' : selectable ? 'cursor-pointer' : ''}
+              ${dragdrop && !disabled ? 'cursor-move' : selectable ? 'cursor-pointer' : ''}
+              ${disabled ? 'pointer-events-none' : ''}
               ${selectable && selectedIndex === index ? 'bg-primary/10 border-l-4 border-l-primary' : 'hover:bg-muted/50'}
               ${draggedIndex === index ? 'opacity-50' : ''}
               ${dragOverIndex === index ? 'border-t-2 border-primary' : ''}
@@ -134,7 +144,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-muted"
                     onClick={(e) => moveUp(e, index)}
-                    disabled={index === 0}
+                    disabled={disabled || index === 0}
                     type="button"
                   >
                     <ChevronUp className="h-3 w-3" />
@@ -144,7 +154,7 @@ export const DraggableList: React.FC<DraggableListProps> = ({
                     size="sm"
                     className="h-4 w-4 p-0 hover:bg-muted"
                     onClick={(e) => moveDown(e, index)}
-                    disabled={index === value.length - 1}
+                    disabled={disabled || index === value.length - 1}
                     type="button"
                   >
                     <ChevronDown className="h-3 w-3" />

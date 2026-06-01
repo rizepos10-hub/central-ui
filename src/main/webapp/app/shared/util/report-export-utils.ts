@@ -38,6 +38,14 @@ export type InventoryWorkbookRow = {
   unitCost: string;
 };
 
+export type InventoryOnHandWorkbookRow = {
+  itemNumber: string;
+  description: string;
+  costBase: string;
+  costReal: string;
+  onHandQuantity: string;
+};
+
 type PdfExportOptions = {
   fileName: string;
   orientation?: ReportOrientation;
@@ -644,6 +652,81 @@ export const buildInventoryWorkbook = (rows: InventoryWorkbookRow[], options: Ex
         name: 'Inventory Report',
         rows: sheetRows,
         columnWidths: [28, 24, 12, 20, 18, 12, 12],
+        titleRowIndices: workbookHeader.titleRowIndices,
+        headerRowIndices: [headerRowIndex],
+      },
+    ],
+  };
+};
+
+export const buildInventoryOnHandWorkbook = (rows: InventoryOnHandWorkbookRow[], options: ExportWorkbookOptions): ExportWorkbook => {
+  const workbookHeader = getWorkbookHeader(options);
+  const sheetRows = [...workbookHeader.rows];
+  const headerRowIndex = sheetRows.length;
+
+  sheetRows.push([
+    'Item Number',
+    'Description',
+    'Cost Base',
+    'Cost Real',
+    'On Hand Quantity',
+  ]);
+
+  if (rows.length === 0) {
+    sheetRows.push(['No on hand records found']);
+  } else {
+    rows.forEach(row => {
+      sheetRows.push([
+        row.itemNumber,
+        row.description,
+        row.costBase,
+        row.costReal,
+        row.onHandQuantity,
+      ]);
+    });
+
+    const totals = rows.reduce(
+      (acc, row) => ({
+        costBase: acc.costBase + (Number(row.costBase) || 0),
+        costReal: acc.costReal + (Number(row.costReal) || 0),
+        onHandQuantity: acc.onHandQuantity + (Number(row.onHandQuantity) || 0),
+      }),
+      {
+        costBase: 0,
+        costReal: 0,
+        onHandQuantity: 0,
+      }
+    );
+
+    const totalRowIndex = sheetRows.length;
+    sheetRows.push([
+      'Totals',
+      '',
+      formatAmount(totals.costBase),
+      formatAmount(totals.costReal),
+      formatAmount(totals.onHandQuantity),
+    ]);
+
+    return {
+      sheets: [
+        {
+          name: 'On Hand Report',
+          rows: sheetRows,
+          columnWidths: [18, 32, 14, 14, 16],
+          titleRowIndices: workbookHeader.titleRowIndices,
+          headerRowIndices: [headerRowIndex],
+          totalRowIndices: [totalRowIndex],
+        },
+      ],
+    };
+  }
+
+  return {
+    sheets: [
+      {
+        name: 'On Hand Report',
+        rows: sheetRows,
+        columnWidths: [18, 32, 14, 14, 16],
         titleRowIndices: workbookHeader.titleRowIndices,
         headerRowIndices: [headerRowIndex],
       },

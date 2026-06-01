@@ -287,6 +287,12 @@ export const model: MenuItem[] = [
         to: '/brand',
         type: [BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Flyers',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/flyers',
+        type: [BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RETAIL],
   },
@@ -387,6 +393,20 @@ export const model: MenuItem[] = [
         label: 'To Be Stocked',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/to-be-stocked',
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Reports',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
+        to: '/inventory/reports/on-hand',
+        items: [
+          {
+            label: 'On Hand Report',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
+            to: '/inventory/reports/on-hand',
+            type: [BusinessTypeEnum.RETAIL],
+          },
+        ],
         type: [BusinessTypeEnum.RETAIL],
       },
     ],
@@ -751,6 +771,12 @@ export const model: MenuItem[] = [
         label: 'Tookan Delivery',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/tookan-settings',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Kiosk Slides',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/kiosk-slides-settings',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {

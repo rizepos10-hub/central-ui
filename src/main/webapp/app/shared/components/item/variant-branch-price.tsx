@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { IBranchVariantDetails, IPricingPointBranchPrice, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
+import {
+  IBranchVariantDetails,
+  IPricingPointBranchPrice,
+  IScheduledBranchPrice,
+  IVariableItemVariant,
+} from 'app/shared/model/ITEM/retail/variable-item.model';
 import { IRegularItemVariant } from 'app/shared/model/ITEM/restaurant/regular-item.model';
 import { translate, Translate } from 'react-jhipster';
 import { IBranch } from 'app/shared/model/branch.model';
 import PricingPointModal from './pricing-point-modal';
+import ScheduledBranchPricesModal from './scheduled-branch-prices-dialog';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
@@ -31,6 +37,11 @@ interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularIte
     variantIndex: number,
     field: 'hideItem' | 'hideOnline'
   ) => void;
+  handleSaveScheduledPrices?: (
+    variantIndex: number,
+    branchId: string,
+    scheduledPrices: IScheduledBranchPrice[]
+  ) => void;
   variant: T;
   setItem: React.Dispatch<React.SetStateAction<any>>;
 }
@@ -43,6 +54,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
   itemVariantType,
   handleSavePricingPoint,
   handleHideItemPerBranch,
+  handleSaveScheduledPrices,
   variant,
   setItem,
 }: BranchPriceComponentProps<T>) => {
@@ -54,12 +66,25 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
     show: false,
     branchId: '',
   });
+  const [scheduledPricesModal, setScheduledPricesModal] = useState({
+    show: false,
+    branchId: '',
+    branchName: '',
+  });
 
   const handleShowPricesModal = (branchId?: string) => {
     setPricesModal(prev => ({
       ...prev,
       show: !prev.show,
       branchId,
+    }));
+  };
+
+  const handleScheduledPricesModal = (branchId?: string, branchName?: string) => {
+    setScheduledPricesModal(prev => ({
+      show: !prev.show,
+      branchId: branchId || '',
+      branchName: branchName || '',
     }));
   };
 
@@ -92,6 +117,18 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
           setItem={setItem}
         />
       )}
+      {scheduledPricesModal.show && (
+        <ScheduledBranchPricesModal
+          isOpen={scheduledPricesModal.show}
+          branchId={scheduledPricesModal.branchId}
+          branchName={scheduledPricesModal.branchName}
+          scheduledPrices={branchVariantDetails?.[scheduledPricesModal.branchId]?.scheduledPrices || []}
+          onClose={() => handleScheduledPricesModal()}
+          onSave={scheduledPrices =>
+            handleSaveScheduledPrices?.(variantIndex, scheduledPricesModal.branchId, scheduledPrices)
+          }
+        />
+      )}
       <Label className="text-base font-semibold">
         <Translate contentKey="items.update.branchPrices">Branch Prices</Translate>
       </Label>
@@ -111,6 +148,11 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
               <TableHead className="text-xs h-8 font-semibold p-2">
                 <Translate contentKey="items.update.pricingPoints">Pricing Points</Translate>
               </TableHead>
+              {itemVariantType === 'RETAIL' && (
+                <TableHead className="text-xs h-8 font-semibold p-2">
+                  Scheduled Prices
+                </TableHead>
+              )}
               <TableHead className="text-xs h-8 font-semibold p-2">
                 <Translate contentKey="items.update.hideItem">Hide Item POS</Translate>
               </TableHead>
@@ -180,6 +222,28 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   }
 
                 </TableCell>
+                {itemVariantType === 'RETAIL' && (
+                  <TableCell className="text-xs p-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleScheduledPricesModal(branch.id, branch.name);
+                      }}
+                    >
+                      Scheduled Prices
+                      {(branchVariantDetails?.[branch.id]?.scheduledPrices?.length || 0) > 0 ? (
+                        <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                          {branchVariantDetails?.[branch.id]?.scheduledPrices?.length}
+                        </span>
+                      ) : null}
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell className="text-xs p-2">
                   <Checkbox
                     name={`hideItem_${branch.id}`}

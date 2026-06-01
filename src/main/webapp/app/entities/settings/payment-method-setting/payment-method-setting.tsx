@@ -1,21 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { translate, Translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { IPaymentMethodSetting } from 'app/shared/model/payment-method-setting.model';
 import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
-import { getAllEntities } from './payment-method-setting.reducer';
+import { getAllEntities, updateEntity } from './payment-method-setting.reducer';
 import { Pencil, Trash2, RefreshCw, Plus, Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
+import { assignSequentialPaymentMethodOrder, sortPaymentMethodSettings } from 'app/shared/util/payment-method-setting-utils';
 
 export const PaymentMethodSetting = () => {
   const dispatch = useAppDispatch();
@@ -23,10 +18,17 @@ export const PaymentMethodSetting = () => {
 
   const paymentMethodSettings: IPaymentMethodSetting[] = useAppSelector(state => state.paymentMethodSetting.entities);
   const loading = useAppSelector(state => state.paymentMethodSetting.loading);
+  const [sortedSettings, setSortedSettings] = useState<IPaymentMethodSetting[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [savingShowIds, setSavingShowIds] = useState<string[]>([]);
 
   useEffect(() => {
     dispatch(getAllEntities());
-  }, []);
+  }, [dispatch]);
+
+  useEffect(() => {
+    setSortedSettings(sortPaymentMethodSettings(paymentMethodSettings));
+  }, [paymentMethodSettings]);
 
   const handleSyncList = () => {
     dispatch(getAllEntities());
@@ -44,40 +46,76 @@ export const PaymentMethodSetting = () => {
       .replace(/\b\w/g, char => char.toUpperCase());
   };
 
-  const nameColumnTemplate = (rowData: IPaymentMethodSetting) => {
-    const editUrl = `/payment-method-setting/${rowData.id}/edit`;
-    return (
-      <Link className="font-normal text-xs hover:underline" to={editUrl}>
-        {rowData.name || '-'}
-      </Link>
-    );
-  };
+  const persistReorder = async (nextSettings: IPaymentMethodSetting[]) => {
+    const reorderedSettings = assignSequentialPaymentMethodOrder(nextSettings);
+    setSortedSettings(reorderedSettings);
 
-  const editColumnTemplate = (rowData: IPaymentMethodSetting) => {
-    const editUrl = `/payment-method-setting/${rowData.id}/edit`;
-    return (
-      <Link to={editUrl}>
-        <Pencil className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-      </Link>
-    );
-  };
+    const changedSettings = reorderedSettings.filter((setting, index) => paymentMethodSettings.find(entity => entity.id === setting.id)?.order !== index);
 
-  const deleteColumnTemplate = (rowData: IPaymentMethodSetting) => {
-    // Only show delete for custom transaction methods
-    if (rowData.transactionMethod !== TransactionMethodEnum.custom) {
-      return <span className="text-xs text-muted-foreground">-</span>;
+    if (changedSettings.length === 0) {
+      return;
     }
-    const deleteUrl = `/payment-method-setting/${rowData.id}/delete`;
-    return (
-      <Link to={deleteUrl}>
-        <Trash2 className="h-3 w-3 text-destructive" />
-      </Link>
-    );
+
+    setSavingOrder(true);
+    try {
+      await Promise.all(
+        changedSettings.map(setting =>
+          dispatch(updateEntity({ entity: setting, refreshList: false })).unwrap()
+        )
+      );
+      dispatch(getAllEntities());
+    } finally {
+      setSavingOrder(false);
+    }
   };
+
+  const handleShowToggle = async (setting: IPaymentMethodSetting, checked: boolean) => {
+    if (!setting.id || savingOrder) {
+      return;
+    }
+
+    setSavingShowIds(prev => [...prev, setting.id]);
+    const nextSetting = {
+      ...setting,
+      show: checked,
+    };
+
+    setSortedSettings(prev =>
+      prev.map(row => (row.id === setting.id ? nextSetting : row))
+    );
+
+    try {
+      await dispatch(updateEntity({ entity: nextSetting, refreshList: false })).unwrap();
+      dispatch(getAllEntities());
+    } catch (error) {
+      setSortedSettings(prev =>
+        prev.map(row => (row.id === setting.id ? setting : row))
+      );
+    } finally {
+      setSavingShowIds(prev => prev.filter(id => id !== setting.id));
+    }
+  };
+
+  const listHeader = useMemo(
+    () => (
+      <div className="flex items-center gap-2 pr-2 text-xs font-semibold text-muted-foreground">
+        <div aria-hidden="true" className="flex w-4 flex-col gap-0.5" />
+        <div aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+        <div className="grid flex-1 grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_90px_70px_40px_40px] items-center gap-3">
+          <span>Transaction Method</span>
+          <span>Name</span>
+          <span className="text-center">Show</span>
+          <span>Order</span>
+          <span className="text-center">Edit</span>
+          <span className="text-center">Delete</span>
+        </div>
+      </div>
+    ),
+    []
+  );
 
   return (
     <PageWrapper>
-      {/* Header */}
       <div className="bg-muted/50 p-2 flex justify-between items-center">
         <h2 className="text-xl font-bold">
           <Translate contentKey="payment-method-setting.title">Payment Method Settings</Translate>
@@ -89,7 +127,7 @@ export const PaymentMethodSetting = () => {
             size="sm"
             className="h-8 text-xs"
             onClick={handleSyncList}
-            disabled={loading}
+            disabled={loading || savingOrder}
           >
             {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
             {translate('common.refreshList')}
@@ -98,6 +136,7 @@ export const PaymentMethodSetting = () => {
             size="sm"
             className="h-8 text-xs"
             onClick={handleCreate}
+            disabled={savingOrder}
           >
             <Plus className="h-4 w-4 mr-1" />
             {translate('common.createNew')}
@@ -105,52 +144,82 @@ export const PaymentMethodSetting = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="border rounded-md mt-3">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs">Transaction Method</TableHead>
-              <TableHead className="text-xs">Name</TableHead>
-              <TableHead className="text-xs">Show</TableHead>
-              <TableHead className="text-xs w-10">Edit</TableHead>
-              <TableHead className="text-xs w-10">Delete</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
-              </TableRow>
-            ) : paymentMethodSettings.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-xs py-8">
-                  No payment method settings found
-                </TableCell>
-              </TableRow>
-            ) : (
-              paymentMethodSettings.map(setting => (
-                <TableRow key={setting.id}>
-                  <TableCell className="text-xs">
-                    {formatTransactionMethod(setting.transactionMethod)}
-                  </TableCell>
-                  <TableCell className="text-xs">{nameColumnTemplate(setting)}</TableCell>
-                  <TableCell className="text-xs">
-                    {setting.show ? (
-                      <span className="text-green-600">Yes</span>
+      <div className="mt-3">
+        {loading ? (
+          <div className="border rounded-md py-8">
+            <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+          </div>
+        ) : sortedSettings.length === 0 ? (
+          <div className="border rounded-md py-8 text-center text-xs">
+            No payment method settings found
+          </div>
+        ) : (
+          <DraggableList
+            value={sortedSettings}
+            onChange={event => {
+              void persistReorder(event.value);
+            }}
+            dataKey="id"
+            dragdrop
+            showArrows
+            disabled={savingOrder}
+            header={
+              <div className="space-y-2">
+                {listHeader}
+                {savingOrder ? (
+                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Saving order...
+                  </div>
+                ) : null}
+              </div>
+            }
+            itemTemplate={setting => {
+              const editUrl = `/payment-method-setting/${setting.id}/edit`;
+              const deleteUrl = `/payment-method-setting/${setting.id}/delete`;
+              const isCustomMethod = setting.transactionMethod === TransactionMethodEnum.custom;
+              const isSavingShow = !!setting.id && savingShowIds.includes(setting.id);
+
+              return (
+                <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_90px_70px_40px_40px] items-center gap-3 pr-2 text-xs">
+                  <span className="truncate">{formatTransactionMethod(setting.transactionMethod)}</span>
+                  <Link className="truncate hover:underline" to={editUrl} onClick={e => e.stopPropagation()}>
+                    {setting.name || '-'}
+                  </Link>
+                  <div
+                    className="flex justify-center"
+                    onClick={e => e.stopPropagation()}
+                    onMouseDown={e => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={!!setting.show}
+                      disabled={savingOrder || isSavingShow}
+                      onCheckedChange={checked => {
+                        void handleShowToggle(setting, checked === true);
+                      }}
+                      aria-label={`Toggle visibility for ${setting.name || formatTransactionMethod(setting.transactionMethod)}`}
+                    />
+                  </div>
+                  <span>{setting.order ?? '-'}</span>
+                  <span className="flex justify-center">
+                    <Link to={editUrl} onClick={e => e.stopPropagation()}>
+                      <Pencil className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Link>
+                  </span>
+                  <span className="flex justify-center">
+                    {isCustomMethod ? (
+                      <Link to={deleteUrl} onClick={e => e.stopPropagation()}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Link>
                     ) : (
-                      <span className="text-gray-500">No</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
-                  </TableCell>
-                  <TableCell className="text-xs">{editColumnTemplate(setting)}</TableCell>
-                  <TableCell className="text-xs">{deleteColumnTemplate(setting)}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </span>
+                </div>
+              );
+            }}
+          />
+        )}
       </div>
     </PageWrapper>
   );

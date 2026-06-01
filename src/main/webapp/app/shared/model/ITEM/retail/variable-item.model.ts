@@ -12,6 +12,34 @@ import { IMixAndMatchRule } from "app/shared/model/mix-and-match-rule.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { ShippingDimension } from "app/shared/model/shipping-dimension.model";
 import { IPricingPoint } from "../../PRICING-POINT/pricing-point";
+import { SourceType } from "app/shared/model/ENUMS/source-type.model";
+import { IFlyer } from "app/shared/model/flyer.model";
+
+export interface ITimeOnlyValue {
+  hour: number;
+  minute: number;
+  second: number;
+  nano: number;
+}
+
+export interface IScheduledPriceTimeRange {
+  from: string;
+  to: string;
+}
+
+export interface IScheduledPriceSchedule {
+  [key: string]: IScheduledPriceTimeRange[];
+}
+
+export interface IScheduledBranchPrice {
+  startAt?: string | null;
+  endAt?: string | null;
+  price: number | null;
+  application?: SourceType | null;
+  schedule?: IScheduledPriceSchedule | null;
+  flyerId?: string | null;
+  flyer?: IFlyer | null;
+}
 
 export interface IBranchVariantDetails {
   [key: string]: {
@@ -19,6 +47,7 @@ export interface IBranchVariantDetails {
     price: number;
     salePrice: number;
     wholesalePrices?: IItemPriceNumber;
+    scheduledPrices?: IScheduledBranchPrice[];
     hideItem?: boolean;
     hideOnline?: boolean;
   };

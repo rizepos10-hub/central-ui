@@ -17,6 +17,8 @@ import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
 import { getOnAccountPaymentValidation } from './order-on-account.utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import { cn } from 'app/lib/utils';
+import { getAllEntities as getPaymentMethodSettings } from 'app/entities/settings/payment-method-setting/payment-method-setting.reducer';
+import { sortPaymentMethodSettings } from 'app/shared/util/payment-method-setting-utils';
 
 interface ChargePreviewRow {
   key: string;
@@ -67,10 +69,12 @@ const OrderPaymentDialog = ({
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
   const onAccountSettingsLoading = useAppSelector(state => state.onAccountSettings.loading);
+  const paymentMethodSettings = useAppSelector(state => state.paymentMethodSetting.entities);
+  const paymentMethodSettingsLoading = useAppSelector(state => state.paymentMethodSetting.loading);
 
   const [paymentAmount, setPaymentAmount] = useState<number>(Math.max(0, defaultPaymentAmount));
   const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
-  const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>(TransactionMethodEnum.cash);
+  const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>('');
 
   const normalizedBaseOrderTotal = baseOrderTotal ?? 0;
   const normalizedTotalAmount = totalAmount ?? 0;
@@ -82,12 +86,17 @@ const OrderPaymentDialog = ({
 
   const paymentMethodOptions = useMemo(
     () =>
-      Object.values(TransactionMethodEnum).map(method => ({
-        label: formatTransactionMethodLabel(method),
-        value: method,
-      })),
-    []
+      sortPaymentMethodSettings(paymentMethodSettings)
+        .filter(setting => setting.show)
+        .map(setting => ({
+          label: setting.name || formatTransactionMethodLabel(setting.transactionMethod),
+          value: setting.transactionMethod || '',
+          setting,
+        }))
+        .filter(option => Boolean(option.value)),
+    [paymentMethodSettings]
   );
+  const hasVisiblePaymentMethods = paymentMethodOptions.length > 0;
 
   const onAccountValidation = getOnAccountPaymentValidation({
     customer: paymentCustomer,
@@ -112,7 +121,10 @@ const OrderPaymentDialog = ({
     if (customerId) {
       dispatch(getCustomerEntity(customerId));
     }
-  }, [customerId, dispatch, open]);
+    if (!paymentMethodSettings.length) {
+      dispatch(getPaymentMethodSettings());
+    }
+  }, [customerId, dispatch, open, paymentMethodSettings.length]);
 
   useEffect(() => {
     if (!open) {
@@ -121,8 +133,23 @@ const OrderPaymentDialog = ({
 
     setPaymentAmount(Math.max(0, Math.min(defaultPaymentAmount, remaining)));
     setPaymentTipAmount(0);
-    setPaymentTransactionMethod(TransactionMethodEnum.cash);
   }, [defaultPaymentAmount, open, remaining]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (!hasVisiblePaymentMethods) {
+      setPaymentTransactionMethod('');
+      return;
+    }
+
+    const hasCurrentSelection = paymentMethodOptions.some(method => method.value === paymentTransactionMethod);
+    if (!hasCurrentSelection) {
+      setPaymentTransactionMethod(paymentMethodOptions[0].value);
+    }
+  }, [hasVisiblePaymentMethods, open, paymentMethodOptions, paymentTransactionMethod]);
 
   const handleSubmit = async () => {
     if (isOnAccountPayment) {
@@ -155,22 +182,33 @@ const OrderPaymentDialog = ({
             <div className="space-y-2">
               <div className="text-sm font-medium">Payment Method</div>
               <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-lg border bg-muted/20 p-2">
-                {paymentMethodOptions.map(method => (
-                  <button
-                    key={method.value}
-                    type="button"
-                    className={cn(
-                      'w-full rounded-md border px-3 py-3 text-left text-sm transition-colors',
-                      paymentTransactionMethod === method.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background hover:bg-muted'
-                    )}
-                    onClick={() => setPaymentTransactionMethod(method.value)}
-                    disabled={submitting}
-                  >
-                    {method.label}
-                  </button>
-                ))}
+                {paymentMethodSettingsLoading && !hasVisiblePaymentMethods ? (
+                  <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading payment methods...
+                  </div>
+                ) : !hasVisiblePaymentMethods ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground">
+                    No visible payment methods are configured.
+                  </div>
+                ) : (
+                  paymentMethodOptions.map(method => (
+                    <button
+                      key={method.value}
+                      type="button"
+                      className={cn(
+                        'w-full rounded-md border px-3 py-3 text-left text-sm transition-colors',
+                        paymentTransactionMethod === method.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background hover:bg-muted'
+                      )}
+                      onClick={() => setPaymentTransactionMethod(method.value)}
+                      disabled={submitting}
+                    >
+                      {method.label}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
             <div className="space-y-4">
@@ -276,9 +314,9 @@ const OrderPaymentDialog = ({
           {secondaryActionLabel && onSecondaryAction && (
             <Button
               variant="outline"
-              onClick={onSecondaryAction}
-              className="h-8 text-xs"
-              disabled={submitting || secondaryActionDisabled}
+            onClick={onSecondaryAction}
+            className="h-8 text-xs"
+            disabled={submitting || secondaryActionDisabled}
             >
               {secondaryActionLabel}
             </Button>
@@ -293,7 +331,7 @@ const OrderPaymentDialog = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || submitDisabled || paymentAmount <= 0 || !canProceedWithOnAccountPayment}
+            disabled={submitting || submitDisabled || paymentAmount <= 0 || !canProceedWithOnAccountPayment || !paymentTransactionMethod}
             className="h-8 text-xs"
           >
             {submitting ? (

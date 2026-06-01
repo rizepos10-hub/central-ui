@@ -58,9 +58,16 @@ export const createEntity = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'paymentMethodSetting/update_entity',
-  async (entity: IPaymentMethodSetting, thunkAPI) => {
+  async (
+    payload: IPaymentMethodSetting | { entity: IPaymentMethodSetting; refreshList?: boolean },
+    thunkAPI
+  ) => {
+    const entity = 'entity' in payload ? payload.entity : payload;
+    const refreshList = 'entity' in payload ? payload.refreshList !== false : true;
     const result = await axios.put<IPaymentMethodSetting>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getAllEntities());
+    if (refreshList) {
+      thunkAPI.dispatch(getAllEntities());
+    }
     return result;
   },
   { serializeError: serializeAxiosError }

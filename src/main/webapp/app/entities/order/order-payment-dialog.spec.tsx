@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import OrderPaymentDialog from './order-payment-dialog';
+import { getAllEntities as getPaymentMethodSettings } from 'app/entities/settings/payment-method-setting/payment-method-setting.reducer';
 
 const mockDispatch = jest.fn();
 
@@ -25,6 +26,10 @@ jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => 
   getOnAccountSettings: jest.fn(() => ({ type: 'onAccountSettings/get' })),
 }));
 
+jest.mock('app/entities/settings/payment-method-setting/payment-method-setting.reducer', () => ({
+  getAllEntities: jest.fn(() => ({ type: 'paymentMethodSetting/getAllEntities' })),
+}));
+
 jest.mock('@/components/ui/dialog', () => ({
   Dialog: ({ open, children }) => (open ? <div>{children}</div> : null),
   DialogContent: ({ children }) => <div>{children}</div>,
@@ -45,12 +50,41 @@ beforeEach(() => {
       },
       loading: false,
     },
+    paymentMethodSetting: {
+      entities: [
+        { id: 'cash-id', transactionMethod: 'cash', name: 'Cash', show: true, order: 1 },
+        { id: 'on-account-id', transactionMethod: 'onAccount', name: 'On Account', show: true, order: 0 },
+        { id: 'hidden-id', transactionMethod: 'visa', name: 'Visa', show: false, order: 2 },
+      ],
+      loading: false,
+    },
   };
 
   mockDispatch.mockImplementation(action => action);
 });
 
 describe('OrderPaymentDialog', () => {
+  it('renders visible payment methods in settings order', () => {
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    const buttons = screen.getAllByRole('button');
+    const paymentButtons = buttons.filter(button => ['On Account', 'Cash', 'Visa'].includes(button.textContent || ''));
+    expect(paymentButtons.map(button => button.textContent)).toEqual(['On Account', 'Cash']);
+  });
+
   it('disables submit for invalid on-account payments', () => {
     render(
       <OrderPaymentDialog
@@ -98,6 +132,7 @@ describe('OrderPaymentDialog', () => {
       />
     );
 
+    fireEvent.click(screen.getByRole('button', { name: /cash/i }));
     fireEvent.change(screen.getAllByRole('spinbutton')[0], { target: { value: '5' } });
     fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
 
@@ -160,5 +195,26 @@ describe('OrderPaymentDialog', () => {
 
     expect(screen.queryByText('Platform Fee:')).toBeNull();
     expect(screen.queryByText('Service Charges:')).toBeNull();
+  });
+
+  it('fetches payment settings when opened without loaded methods', () => {
+    mockState.paymentMethodSetting.entities = [];
+
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    expect(getPaymentMethodSettings).toHaveBeenCalled();
   });
 });

@@ -28,7 +28,30 @@ export const searchEntities = createAsyncThunk('items/search_entity', async ({ q
 });
 
 export const getEntities = createAsyncThunk('items/fetch_entity_list', async ({ page, size, sort, name, categoryId, unassignedItems }: IQueryParams, thunkAPI) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&query=${name}&categoryId=${categoryId}&unassignedItems=${unassignedItems}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  const params = new URLSearchParams();
+
+  if (page !== undefined) {
+    params.append('page', String(page));
+  }
+  if (size !== undefined) {
+    params.append('size', String(size));
+  }
+  if (sort) {
+    params.append('sort', sort);
+  }
+  if (name !== undefined) {
+    params.append('query', name ?? '');
+  }
+  if (categoryId !== undefined) {
+    params.append('categoryId', String(categoryId));
+  }
+  if (unassignedItems !== undefined) {
+    params.append('unassignedItems', String(unassignedItems));
+  }
+
+  params.append('cacheBuster', String(new Date().getTime()));
+
+  const requestUrl = `${apiUrl}?${params.toString()}`;
   const response = await axios.get<IItem[]>(requestUrl, {
     signal: thunkAPI.signal
   });
