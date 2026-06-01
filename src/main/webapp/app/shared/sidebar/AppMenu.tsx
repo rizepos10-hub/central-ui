@@ -395,20 +395,6 @@ export const model: MenuItem[] = [
         to: '/inventory/to-be-stocked',
         type: [BusinessTypeEnum.RETAIL],
       },
-      {
-        label: 'Reports',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
-        to: '/inventory/reports/on-hand',
-        items: [
-          {
-            label: 'On Hand Report',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
-            to: '/inventory/reports/on-hand',
-            type: [BusinessTypeEnum.RETAIL],
-          },
-        ],
-        type: [BusinessTypeEnum.RETAIL],
-      },
     ],
     type: [BusinessTypeEnum.RETAIL],
   },
@@ -455,12 +441,6 @@ export const model: MenuItem[] = [
         label: 'Saved',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
         to: '/order/saved',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Create',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
-        to: '/order/choose-branch',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
@@ -634,6 +614,12 @@ export const model: MenuItem[] = [
         to: '/analytics/inventory-report',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER'],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'On Hand Report',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
+        to: '/inventory/reports/on-hand',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Customer Balance Report',

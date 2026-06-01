@@ -42,8 +42,8 @@ export type InventoryOnHandWorkbookRow = {
   itemNumber: string;
   description: string;
   costBase: string;
-  costReal: string;
   onHandQuantity: string;
+  costReal: string;
 };
 
 type PdfExportOptions = {
@@ -668,8 +668,8 @@ export const buildInventoryOnHandWorkbook = (rows: InventoryOnHandWorkbookRow[],
     'Item Number',
     'Description',
     'Cost Base',
-    'Cost Real',
     'On Hand Quantity',
+    'Cost Real',
   ]);
 
   if (rows.length === 0) {
@@ -680,21 +680,19 @@ export const buildInventoryOnHandWorkbook = (rows: InventoryOnHandWorkbookRow[],
         row.itemNumber,
         row.description,
         row.costBase,
-        row.costReal,
         row.onHandQuantity,
+        row.costReal,
       ]);
     });
 
     const totals = rows.reduce(
       (acc, row) => ({
-        costBase: acc.costBase + (Number(row.costBase) || 0),
-        costReal: acc.costReal + (Number(row.costReal) || 0),
         onHandQuantity: acc.onHandQuantity + (Number(row.onHandQuantity) || 0),
+        costReal: acc.costReal + (Number(row.costReal) || 0),
       }),
       {
-        costBase: 0,
-        costReal: 0,
         onHandQuantity: 0,
+        costReal: 0,
       }
     );
 
@@ -702,9 +700,9 @@ export const buildInventoryOnHandWorkbook = (rows: InventoryOnHandWorkbookRow[],
     sheetRows.push([
       'Totals',
       '',
-      formatAmount(totals.costBase),
-      formatAmount(totals.costReal),
+      '',
       formatAmount(totals.onHandQuantity),
+      formatAmount(totals.costReal),
     ]);
 
     return {

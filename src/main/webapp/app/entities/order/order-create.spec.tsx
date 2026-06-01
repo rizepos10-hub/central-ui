@@ -44,6 +44,7 @@ jest.mock('app/entities/branch/branch.reducer', () => ({
 jest.mock('app/entities/customer/customer.reducer', () => ({
   getEntities: jest.fn(() => ({ type: 'customer/getEntities' })),
   getEntity: jest.fn(id => ({ type: 'customer/getEntity', payload: id })),
+  searchCustomers: jest.fn(payload => ({ type: 'customer/searchCustomers', payload })),
 }));
 
 jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => ({
@@ -104,24 +105,40 @@ jest.mock('app/shared/components/filter/drop-down-filter', () => () => null);
 
 jest.mock('app/shared/components/select/select', () => ({
   __esModule: true,
-  default: ({ options = [], value, onChange, placeholder, isDisabled, className }) => (
-    <select
-      aria-label={placeholder || 'select'}
-      className={className}
-      disabled={isDisabled}
-      value={value?.value ?? ''}
-      onChange={event => {
-        const nextOption = options.find(option => String(option.value) === event.target.value) || null;
-        onChange?.(nextOption);
-      }}
-    >
-      <option value="">{placeholder || 'select'}</option>
-      {options.map(option => (
-        <option key={String(option.value)} value={String(option.value)}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+  default: ({ options = [], value, onChange, placeholder, isDisabled, className, onInputChange, onMenuOpen }) => (
+    <div>
+      {onInputChange ? (
+        <input
+          aria-label={`${placeholder || 'select'} input`}
+          disabled={isDisabled}
+          onChange={event => {
+            onInputChange(event.target.value, { action: 'input-change' });
+          }}
+        />
+      ) : null}
+      {onMenuOpen ? (
+        <button type="button" onClick={() => onMenuOpen()} disabled={isDisabled}>
+          Open {placeholder || 'select'}
+        </button>
+      ) : null}
+      <select
+        aria-label={placeholder || 'select'}
+        className={className}
+        disabled={isDisabled}
+        value={value?.value ?? ''}
+        onChange={event => {
+          const nextOption = options.find(option => String(option.value) === event.target.value) || null;
+          onChange?.(nextOption);
+        }}
+      >
+        <option value="">{placeholder || 'select'}</option>
+        {options.map(option => (
+          <option key={String(option.value)} value={String(option.value)}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
   ),
 }));
 
@@ -253,6 +270,62 @@ beforeEach(() => {
   };
 
   mockDispatch.mockImplementation(action => {
+    if (action?.type === 'customer/searchCustomers') {
+      const firstNameFilter = action.payload?.filters?.firstName?.value;
+      const businessNameFilter = action.payload?.filters?.['businessDetails.businessName']?.value;
+      const searchValue = firstNameFilter || businessNameFilter || '';
+
+      if (!searchValue) {
+        return Promise.resolve({
+          type: 'customer/searchCustomers/fulfilled',
+          payload: {
+            data: [
+              {
+                id: 'customer-1',
+                firstName: 'John',
+                lastName: 'Doe',
+                businessDetails: { businessName: 'Acme LLC' },
+              },
+            ],
+          },
+        });
+      }
+
+      if (firstNameFilter) {
+        return Promise.resolve({
+          type: 'customer/searchCustomers/fulfilled',
+          payload: {
+            data: [
+              {
+                id: 'customer-1',
+                firstName: 'John',
+                lastName: 'Doe',
+                businessDetails: { businessName: 'Acme LLC' },
+              },
+            ],
+          },
+        });
+      }
+
+      return Promise.resolve({
+        type: 'customer/searchCustomers/fulfilled',
+        payload: {
+          data: [
+            {
+              id: 'customer-1',
+              firstName: 'John',
+              lastName: 'Doe',
+              businessDetails: { businessName: 'Acme LLC' },
+            },
+            {
+              id: 'customer-2',
+              businessDetails: { businessName: 'Acme Holdings' },
+            },
+          ],
+        },
+      });
+    }
+
     if (action?.type === 'order/calculate_item_price/fulfilled') {
       return Promise.resolve(action);
     }
@@ -504,7 +577,7 @@ describe('OrderCreate payment flow', () => {
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
 
     expect(screen.getByText('Create Order & Payment')).not.toBeNull();
 
@@ -553,7 +626,7 @@ describe('OrderCreate payment flow', () => {
   it('creates the order, draft bill, and payment when using create and pay with a partial amount', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
-    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
 
     const amountInput = screen.getAllByRole('spinbutton')[0];
     fireEvent.change(amountInput, { target: { value: '5' } });
@@ -597,7 +670,7 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR', 'ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
     fireEvent.click(screen.getByRole('button', { name: /create wholesale order without payment/i }));
 
     await waitFor(() => {
@@ -638,7 +711,7 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_WHOLESALE_SALESMAN']);
 
-    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
 
     const amountInput = screen.getAllByRole('spinbutton')[0];
     fireEvent.change(amountInput, { target: { value: '5' } });
@@ -685,7 +758,7 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
-    fireEvent.click(await screen.findByRole('button', { name: /place order/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
     fireEvent.click(screen.getByRole('button', { name: /create wholesale order without payment/i }));
 
     await waitFor(() => {
@@ -730,7 +803,7 @@ describe('OrderCreate payment flow', () => {
       expect(screen.getByText(/before creating a wholesale order\./i)).not.toBeNull();
     });
 
-    expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(true);
+    expect((await screen.findByRole('button', { name: /^pay$/i })).disabled).toBe(true);
     expect(screen.getByPlaceholderText('Search').disabled).toBe(true);
   });
 
@@ -784,7 +857,7 @@ describe('OrderCreate payment flow', () => {
 
     expect(await screen.findByRole('button', { name: /save draft/i })).not.toBeNull();
     expect(screen.queryByRole('button', { name: /update order/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /place order/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^pay$/i })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /save draft/i }));
 
@@ -839,13 +912,13 @@ describe('OrderCreate payment flow', () => {
       );
     });
 
-    expect(await screen.findByRole('button', { name: /place order/i })).not.toBeNull();
+    expect(await screen.findByRole('button', { name: /^pay$/i })).not.toBeNull();
     expect(screen.queryByText('Service Charges')).toBeNull();
     expect(screen.queryByText('Shipping Fee')).toBeNull();
     expect(screen.getByText('Platform Fee')).not.toBeNull();
     expect(screen.getAllByText('$17.00').length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: /place order/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^pay$/i }));
 
     expect(screen.getByText('Base Total:')).not.toBeNull();
     expect(screen.getByText('Final Total:')).not.toBeNull();
@@ -925,7 +998,7 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
-    expect((await screen.findByRole('button', { name: /place order/i })).disabled).toBe(false);
+    expect((await screen.findByRole('button', { name: /^pay$/i })).disabled).toBe(false);
     expect(await screen.findByText(/charge preview unavailable/i)).not.toBeNull();
   });
 
@@ -953,5 +1026,62 @@ describe('OrderCreate payment flow', () => {
 
     expect(screen.queryByText('Service Charges')).toBeNull();
     expect(screen.queryByText('Platform Fee')).toBeNull();
+  });
+
+  it('loads customers through the POST search flow and formats labels with business names', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(
+        mockDispatch.mock.calls.filter(([action]) => action?.type === 'customer/searchCustomers')
+      ).toHaveLength(1);
+    });
+
+    const customerSearchAction = mockDispatch.mock.calls.find(([action]) => action?.type === 'customer/searchCustomers')?.[0];
+    expect(customerSearchAction.payload.filters).toEqual({});
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'John Doe (Acme LLC)' })).not.toBeNull();
+    });
+  });
+
+  it('searches by both customer name and business name and merges duplicate results', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(
+        mockDispatch.mock.calls.filter(([action]) => action?.type === 'customer/searchCustomers')
+      ).toHaveLength(1);
+    });
+
+    mockDispatch.mockClear();
+
+    fireEvent.change(screen.getByLabelText('Customer input'), { target: { value: 'acme' } });
+
+    await waitFor(() => {
+      expect(
+        mockDispatch.mock.calls.filter(([action]) => action?.type === 'customer/searchCustomers')
+      ).toHaveLength(2);
+    });
+
+    const customerSearchCalls = mockDispatch.mock.calls
+      .map(([action]) => action)
+      .filter(action => action?.type === 'customer/searchCustomers');
+
+    expect(customerSearchCalls[0].payload.filters.firstName).toEqual({
+      value: 'acme',
+      matchMode: 'CONTAINS',
+    });
+    expect(customerSearchCalls[1].payload.filters['businessDetails.businessName']).toEqual({
+      value: 'acme',
+      matchMode: 'CONTAINS',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'John Doe (Acme LLC)' })).not.toBeNull();
+      expect(screen.getByRole('option', { name: 'Acme Holdings' })).not.toBeNull();
+    });
+
+    expect(screen.getAllByRole('option', { name: 'John Doe (Acme LLC)' })).toHaveLength(1);
   });
 });

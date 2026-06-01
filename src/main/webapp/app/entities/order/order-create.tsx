@@ -12,7 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { IVariantPackage } from 'app/shared/model/ITEM/retail/variable-item.model';
-import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
+import { searchCustomers } from 'app/entities/customer/customer.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { IAddress } from 'app/shared/model/address.model';
 import { IBranch } from 'app/shared/model/branch.model';
@@ -61,6 +61,36 @@ type ChargePreviewRow = {
     amount: number;
 };
 
+type CustomerOption = {
+    value: string;
+    label: string;
+    customer: ICustomer;
+};
+
+const CUSTOMER_SEARCH_PAGE_SIZE = 20;
+
+const formatCustomerLabel = (customer?: Partial<ICustomer> | null) => {
+    const fullName = [customer?.firstName, customer?.lastName]
+        .filter(part => typeof part === 'string' && part.trim().length > 0)
+        .join(' ')
+        .trim();
+    const businessName = customer?.businessDetails?.businessName?.trim();
+
+    if (fullName && businessName) {
+        return `${fullName} (${businessName})`;
+    }
+
+    if (fullName) {
+        return fullName;
+    }
+
+    if (businessName) {
+        return businessName;
+    }
+
+    return 'Unnamed customer';
+};
+
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -98,6 +128,9 @@ const OrderCreate = () => {
     const [tillList, setTillList] = useState<ITill[]>([]);
     const [loading, setLoading] = useState(false);
     const [filterValue, setFilterValue] = useState('');
+    const [customerSearchLoading, setCustomerSearchLoading] = useState(false);
+    const [customerSearchResults, setCustomerSearchResults] = useState<ICustomer[]>([]);
+    const [selectedCustomerRecord, setSelectedCustomerRecord] = useState<ICustomer | null>(null);
     const [pricingPointId, setPricingPointId] = useState('');
     const [scheduledAtLocal, setScheduledAtLocal] = useState('');
     const [addressDialogOpen, setAddressDialogOpen] = useState(false);
@@ -148,6 +181,7 @@ const OrderCreate = () => {
     const hasInitializedEditOrder = useRef(false);
     const hasRecalculatedEditTaxes = useRef(false);
     const skipNextCartPersistRef = useRef(false);
+    const latestCustomerSearchRequest = useRef(0);
     const isSalesmanMode = isWholesaleMode && authorities.includes('ROLE_WHOLESALE_SALESMAN');
     const missingSchedule = !scheduledAtLocal;
     const missingCustomer = !orderEntity.customer?.id;
@@ -177,6 +211,76 @@ const OrderCreate = () => {
         () => (orderEntity?.items ?? []).some(item => item?.price == null),
         [orderEntity?.items]
     );
+
+    const buildCustomerSearchPayload = useCallback((field: string | null, value: string) => {
+        const trimmedValue = value.trim();
+        return applyMatchModeMap({
+            first: 0,
+            rows: CUSTOMER_SEARCH_PAGE_SIZE,
+            page: 0,
+            sortField: null,
+            sortOrder: null,
+            filters: field && trimmedValue
+                ? {
+                    [field]: {
+                        value: trimmedValue,
+                        matchMode: FilterMatchMode.CONTAINS,
+                    },
+                }
+                : {},
+        });
+    }, []);
+
+    const mergeCustomerResults = useCallback((primary: ICustomer[] = [], secondary: ICustomer[] = []) => {
+        const merged: ICustomer[] = [];
+        const seenIds = new Set<string>();
+
+        [...primary, ...secondary].forEach(customer => {
+            const id = customer?.id;
+            if (!id || seenIds.has(id)) {
+                return;
+            }
+
+            seenIds.add(id);
+            merged.push(customer);
+        });
+
+        return merged;
+    }, []);
+
+    const loadCustomers = useCallback(async (searchValue = '') => {
+        const requestId = latestCustomerSearchRequest.current + 1;
+        latestCustomerSearchRequest.current = requestId;
+        setCustomerSearchLoading(true);
+
+        try {
+            const trimmedValue = searchValue.trim();
+
+            let results: ICustomer[] = [];
+            if (!trimmedValue) {
+                const response: any = await dispatch(searchCustomers(buildCustomerSearchPayload(null, '')));
+                results = response?.payload?.data ?? [];
+            } else {
+                const [nameResponse, businessResponse]: any = await Promise.all([
+                    dispatch(searchCustomers(buildCustomerSearchPayload('firstName', trimmedValue))),
+                    dispatch(searchCustomers(buildCustomerSearchPayload('businessDetails.businessName', trimmedValue))),
+                ]);
+
+                results = mergeCustomerResults(
+                    nameResponse?.payload?.data ?? [],
+                    businessResponse?.payload?.data ?? []
+                );
+            }
+
+            if (latestCustomerSearchRequest.current === requestId) {
+                setCustomerSearchResults(results);
+            }
+        } finally {
+            if (latestCustomerSearchRequest.current === requestId) {
+                setCustomerSearchLoading(false);
+            }
+        }
+    }, [buildCustomerSearchPayload, dispatch, mergeCustomerResults]);
 
     const openScheduledAtPicker = useCallback(() => {
         const input = scheduledAtInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
@@ -691,12 +795,6 @@ const OrderCreate = () => {
             })
         );
         dispatch(getBranches({}))
-        dispatch(getCustomers({
-            query: '',
-            size: 1000,
-            sort: 'createdAt,asc',
-            page: 0
-        }))
         dispatch(
             getCategories({
                 page: 0,
@@ -710,7 +808,27 @@ const OrderCreate = () => {
                 type: RegisterType.ONLINE,
             })
         )
-    }, [])
+
+        void loadCustomers('');
+    }, [dispatch, loadCustomers])
+
+    useEffect(() => {
+        if (!orderEntity.customer?.id) {
+            setSelectedCustomerRecord(null);
+            return;
+        }
+
+        setSelectedCustomerRecord(prev => {
+            if (prev?.id === orderEntity.customer?.id) {
+                return prev;
+            }
+
+            return customers.find(customer => customer.id === orderEntity.customer?.id)
+                || customerSearchResults.find(customer => customer.id === orderEntity.customer?.id)
+                || orderEntity.customer
+                || null;
+        });
+    }, [customerSearchResults, customers, orderEntity.customer]);
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
         sParams.set(name, value);
@@ -1374,17 +1492,22 @@ const OrderCreate = () => {
         []
     );
 
-    const customerOptions = useMemo(
-        () => customers.map(customer => ({
+    const customerOptions = useMemo<CustomerOption[]>(
+        () => customerSearchResults.map(customer => ({
             value: customer.id,
-            label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`.trim() || 'Unnamed customer',
+            label: formatCustomerLabel(customer),
+            customer,
         })),
-        [customers]
+        [customerSearchResults]
     );
 
     const selectedCustomer = useMemo(
-        () => customers.find(customer => customer.id === orderEntity.customer?.id) || orderEntity.customer || null,
-        [customers, orderEntity.customer]
+        () => customerSearchResults.find(customer => customer.id === orderEntity.customer?.id)
+            || selectedCustomerRecord
+            || customers.find(customer => customer.id === orderEntity.customer?.id)
+            || orderEntity.customer
+            || null,
+        [customerSearchResults, customers, orderEntity.customer, selectedCustomerRecord]
     );
 
     const deliveryAddressOptions = useMemo(() => {
@@ -1457,9 +1580,10 @@ const OrderCreate = () => {
     const handleCustomerInputChange = useCallback((value: string, { action }: { action: string }) => {
         if (action === 'input-change') {
             setFilterValue(value);
+            void loadCustomers(value);
         }
         return value;
-    }, []);
+    }, [loadCustomers]);
 
     const CustomerMenuList = (props) => (
         <components.MenuList {...props}>
@@ -1639,11 +1763,9 @@ const OrderCreate = () => {
                 defaultPaymentAmount={finalPayableTotal}
                 baseOrderTotal={cartTotals.total}
                 chargePreviewRows={previewChargeRows}
-                submitLabel={isWholesaleMode ? 'Create Wholesale Order & Pay' : 'Create Order & Pay'}
+                submitLabel="Pay"
                 onSubmit={handleCreateWithPayment}
                 submitting={submittingOrder}
-                secondaryActionLabel={isWholesaleMode ? 'Create Wholesale Order Without Payment' : 'Create Without Payment'}
-                onSecondaryAction={handleCreateWithoutPayment}
             />
 
             <DeliveryAddressDialog
@@ -2154,10 +2276,11 @@ const OrderCreate = () => {
                                             customerOptions.find(option => option.value === orderEntity?.customer?.id)
                                             || (orderEntity?.customer?.id ? {
                                                 value: orderEntity.customer.id,
-                                                label: `${orderEntity.customer.firstName ? orderEntity.customer.firstName : ''} ${orderEntity.customer.lastName ? orderEntity.customer.lastName : ''}`.trim() || 'Unnamed customer',
+                                                label: formatCustomerLabel(selectedCustomer),
                                             } : null)
                                         }
-                                        onChange={(option) => {
+                                        onChange={(option: CustomerOption | null) => {
+                                            setSelectedCustomerRecord(option?.customer ?? null);
                                             dispatch(changeEntityField({
                                                 name: 'customer',
                                                 value: option?.value ? { id: option.value } : null,
@@ -2168,18 +2291,14 @@ const OrderCreate = () => {
                                             }));
                                         }}
                                         onMenuOpen={() => {
-                                            dispatch(getCustomers({
-                                                query: '',
-                                                size: 1000,
-                                                sort: 'createdAt,asc',
-                                                page: 0
-                                            }))
+                                            void loadCustomers(filterValue);
                                         }}
                                         onInputChange={handleCustomerInputChange}
                                         components={{ MenuList: CustomerMenuList }}
                                         placeholder="Customer"
                                         className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
                                         isClearable
+                                        isLoading={customerSearchLoading}
                                     />
                                     {displayUserSelectionPricingPoint() ?? <div />}
                                 </div>
@@ -2511,48 +2630,63 @@ const OrderCreate = () => {
                                         </div>
                                     </div>
                                     </div>
-                                    <Button
-                                        className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
-                                        onClick={() => {
-                                            if (isDraftEditMode) {
-                                                void handleSaveDraft();
-                                                return;
-                                            }
-                                            if (isEditMode) {
-                                                void handleUpdateOrder();
-                                                return;
-                                            }
-                                            setOpenPaymentModal(true);
-                                        }}
-                                        disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
-                                    >
-                                        {submittingOrder ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                <span>{isDraftEditMode ? 'Saving Draft...' : isEditMode ? 'Updating...' : 'Processing...'}</span>
-                                            </>
-                                        ) : (
-                                            <span>{isDraftEditMode ? 'Save Draft' : isEditMode ? 'Update Order' : 'Place Order'}</span>
-                                        )}
-                                    </Button>
-                                    {!isEditMode && (
+                                    {isEditMode ? (
                                         <Button
-                                            variant="outline"
-                                            className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm"
+                                            className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
                                             onClick={() => {
-                                                void handleSaveDraft();
+                                                if (isDraftEditMode) {
+                                                    void handleSaveDraft();
+                                                    return;
+                                                }
+                                                void handleUpdateOrder();
                                             }}
                                             disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
                                         >
                                             {submittingOrder ? (
                                                 <>
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    <span>Saving Draft...</span>
+                                                    <span>{isDraftEditMode ? 'Saving Draft...' : 'Updating...'}</span>
                                                 </>
                                             ) : (
-                                                <span>Save Draft</span>
+                                                <span>{isDraftEditMode ? 'Save Draft' : 'Update Order'}</span>
                                             )}
                                         </Button>
+                                    ) : (
+                                        <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full flex justify-center items-center text-center h-10 text-sm"
+                                                onClick={() => {
+                                                    void handleSaveDraft();
+                                                }}
+                                                disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                            >
+                                                {submittingOrder ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        <span>Saving Draft...</span>
+                                                    </>
+                                                ) : (
+                                                    <span>Save Draft</span>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                className="w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                                onClick={() => {
+                                                    setOpenPaymentModal(true);
+                                                }}
+                                                disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                            >
+                                                {submittingOrder ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        <span>Processing...</span>
+                                                    </>
+                                                ) : (
+                                                    <span>Pay</span>
+                                                )}
+                                            </Button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
