@@ -41,9 +41,6 @@ interface OrderPaymentDialogProps {
   onSubmit: (payload: { amount: number; tipAmount: number; transactionMethod: string }) => void | Promise<void>;
   submitting?: boolean;
   submitDisabled?: boolean;
-  secondaryActionLabel?: string;
-  onSecondaryAction?: () => void;
-  secondaryActionDisabled?: boolean;
 }
 
 const OrderPaymentDialog = ({
@@ -61,9 +58,6 @@ const OrderPaymentDialog = ({
   onSubmit,
   submitting = false,
   submitDisabled = false,
-  secondaryActionLabel,
-  onSecondaryAction,
-  secondaryActionDisabled = false,
 }: OrderPaymentDialogProps) => {
   const dispatch = useAppDispatch();
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
@@ -311,16 +305,6 @@ const OrderPaymentDialog = ({
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          {secondaryActionLabel && onSecondaryAction && (
-            <Button
-              variant="outline"
-            onClick={onSecondaryAction}
-            className="h-8 text-xs"
-            disabled={submitting || secondaryActionDisabled}
-            >
-              {secondaryActionLabel}
-            </Button>
-          )}
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
