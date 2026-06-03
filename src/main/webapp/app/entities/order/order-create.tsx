@@ -32,7 +32,7 @@ import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { ITill, TillStatus } from 'app/shared/model/till.model';
 import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitiesByStatusOpened } from '../settings/branch-registry/till/till.reducer';
-import { ArrowLeft, Loader2, Plus, Search, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, RotateCcw, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -840,6 +840,95 @@ const OrderCreate = () => {
         sParams.delete(name);
         return `?${sParams.toString()}`;
     }, [searchParams]);
+
+    const resetCreateForm = useCallback(() => {
+        if (isEditMode) {
+            return;
+        }
+
+        const defaultOrderMethod = OrderMethod.PickUp;
+        const currentBranchId =
+            branchRegistry.find(record => record.id === selectedRegistryId)?.branch?.id
+            || orderEntity.branchId
+            || null;
+
+        skipNextCartPersistRef.current = true;
+        localStorage.removeItem(cartStorageKey);
+        localStorage.setItem(ORDER_METHOD, defaultOrderMethod);
+
+        dispatch(reset());
+
+        if (currentBranchId) {
+            dispatch(changeEntityField({
+                name: 'branchId',
+                value: currentBranchId,
+            }));
+        }
+
+        dispatch(changeEntityField({
+            name: 'orderMethod',
+            value: defaultOrderMethod,
+        }));
+        dispatch(changeEntityField({
+            name: 'items',
+            value: [],
+        }));
+        dispatch(changeEntityField({
+            name: 'customer',
+            value: null,
+        }));
+        dispatch(changeEntityField({
+            name: 'scheduledAt',
+            value: null,
+        }));
+        dispatch(changeEntityField({
+            name: 'deliverTo',
+            value: null,
+        }));
+        dispatch(changeEntityField({
+            name: 'orderCharges',
+            value: [],
+        }));
+        dispatch(changeEntityField({
+            name: 'customDiscount',
+            value: null,
+        }));
+        dispatch(clearChargesPreview());
+
+        setSelectedCustomerRecord(null);
+        setCustomerSearchResults([]);
+        setPricingPointId('');
+        setScheduledAtLocal('');
+        setAddressDialogAddress(null);
+        setAddressDialogOpen(false);
+        setOpenPaymentModal(false);
+
+    }, [branchRegistry, cartStorageKey, dispatch, isEditMode, orderEntity.branchId, selectedRegistryId]);
+
+    const clearCart = useCallback(() => {
+        if (isEditMode) {
+            return;
+        }
+
+        skipNextCartPersistRef.current = true;
+        localStorage.removeItem(cartStorageKey);
+
+        dispatch(changeEntityField({
+            name: 'items',
+            value: [],
+        }));
+        dispatch(changeEntityField({
+            name: 'customDiscount',
+            value: null,
+        }));
+        dispatch(changeEntityField({
+            name: 'orderCharges',
+            value: [],
+        }));
+        dispatch(clearChargesPreview());
+        setOpenPaymentModal(false);
+
+    }, [cartStorageKey, dispatch, isEditMode]);
 
     const debouncedItemNameNavigate = useCallback(
         _.debounce((newItemName) => {
@@ -2356,90 +2445,89 @@ const OrderCreate = () => {
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Address</Label>
-                                            <div className="flex items-center gap-1">
-                                                <Select
-                                                    options={deliveryAddressOptions}
-                                                    value={
-                                                        deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
-                                                        || (orderEntity.deliverTo ? {
-                                                            value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
-                                                            label: orderEntity.deliverTo.address
-                                                                || orderEntity.deliverTo.fullAddress
-                                                                || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
-                                                                || 'Selected address',
-                                                            address: orderEntity.deliverTo,
-                                                        } : null)
-                                                    }
-                                                    onChange={(option: any) => {
-                                                        dispatch(changeEntityField({
-                                                            name: 'deliverTo',
-                                                            value: option?.address || null,
-                                                        }));
-                                                    }}
-                                                    placeholder={
-                                                        orderEntity.orderMethod === OrderMethod.Delivery
-                                                            ? (selectedCustomer ? "Address" : "Select customer")
-                                                            : "Address"
-                                                    }
-                                                    className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
-                                                    isClearable
-                                                    isDisabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 w-8 p-0 flex-shrink-0"
-                                                    disabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
-                                                    onClick={() => {
-                                                        setAddressDialogAddress(null);
-                                                        setAddressDialogOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus className="h-3.5 w-3.5" />
-                                                </Button>
-                                            </div>
+                                            <Label className="text-xs">Pricing Point</Label>
+                                            {displayUserSelectionPricingPoint() ?? <div className="h-8" />}
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Customer</Label>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Customer</Label>
+                                        <Select
+                                            options={customerOptions}
+                                            value={
+                                                customerOptions.find(option => option.value === orderEntity?.customer?.id)
+                                                || (orderEntity?.customer?.id ? {
+                                                    value: orderEntity.customer.id,
+                                                    label: formatCustomerLabel(selectedCustomer),
+                                                } : null)
+                                            }
+                                            onChange={(option: CustomerOption | null) => {
+                                                setSelectedCustomerRecord(option?.customer ?? null);
+                                                dispatch(changeEntityField({
+                                                    name: 'customer',
+                                                    value: option?.value ? { id: option.value } : null,
+                                                }));
+                                                dispatch(changeEntityField({
+                                                    name: 'deliverTo',
+                                                    value: null,
+                                                }));
+                                            }}
+                                            onMenuOpen={() => {
+                                                void loadCustomers(filterValue);
+                                            }}
+                                            onInputChange={handleCustomerInputChange}
+                                            components={{ MenuList: CustomerMenuList }}
+                                            placeholder="Customer"
+                                            className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                            isClearable
+                                            isLoading={customerSearchLoading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Address</Label>
+                                        <div className="flex items-center gap-1">
                                             <Select
-                                                options={customerOptions}
+                                                options={deliveryAddressOptions}
                                                 value={
-                                                    customerOptions.find(option => option.value === orderEntity?.customer?.id)
-                                                    || (orderEntity?.customer?.id ? {
-                                                        value: orderEntity.customer.id,
-                                                        label: formatCustomerLabel(selectedCustomer),
+                                                    deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
+                                                    || (orderEntity.deliverTo ? {
+                                                        value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
+                                                        label: orderEntity.deliverTo.address
+                                                            || orderEntity.deliverTo.fullAddress
+                                                            || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
+                                                            || 'Selected address',
+                                                        address: orderEntity.deliverTo,
                                                     } : null)
                                                 }
-                                                onChange={(option: CustomerOption | null) => {
-                                                    setSelectedCustomerRecord(option?.customer ?? null);
-                                                    dispatch(changeEntityField({
-                                                        name: 'customer',
-                                                        value: option?.value ? { id: option.value } : null,
-                                                    }));
+                                                onChange={(option: any) => {
                                                     dispatch(changeEntityField({
                                                         name: 'deliverTo',
-                                                        value: null,
+                                                        value: option?.address || null,
                                                     }));
                                                 }}
-                                                onMenuOpen={() => {
-                                                    void loadCustomers(filterValue);
-                                                }}
-                                                onInputChange={handleCustomerInputChange}
-                                                components={{ MenuList: CustomerMenuList }}
-                                                placeholder="Customer"
-                                                className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                                placeholder={
+                                                    orderEntity.orderMethod === OrderMethod.Delivery
+                                                        ? (selectedCustomer ? "Address" : "Select customer")
+                                                        : "Address"
+                                                }
+                                                className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
                                                 isClearable
-                                                isLoading={customerSearchLoading}
+                                                isDisabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
                                             />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Pricing Point</Label>
-                                            {displayUserSelectionPricingPoint() ?? <div className="h-8" />}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 flex-shrink-0"
+                                                disabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
+                                                onClick={() => {
+                                                    setAddressDialogAddress(null);
+                                                    setAddressDialogOpen(true);
+                                                }}
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -2802,41 +2890,65 @@ const OrderCreate = () => {
                                             </div>
                                         )
                                     ) : (
-                                        <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full flex justify-center items-center text-center h-10 text-sm"
-                                                onClick={() => {
-                                                    void handleSaveDraft();
-                                                }}
-                                                disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
-                                            >
-                                                {submittingOrder ? (
-                                                    <>
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                        <span>Saving Draft...</span>
-                                                    </>
-                                                ) : (
-                                                    <span>Save Draft</span>
-                                                )}
-                                            </Button>
-                                            <Button
-                                                className="w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
-                                                onClick={() => {
-                                                    setOpenPaymentModal(true);
-                                                }}
-                                                disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
-                                            >
-                                                {submittingOrder ? (
-                                                    <>
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                        <span>Processing...</span>
-                                                    </>
-                                                ) : (
-                                                    <span>Pay</span>
-                                                )}
-                                            </Button>
-                                        </div>
+                                        <>
+                                            <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    className="w-full flex justify-center items-center text-center h-9 text-sm"
+                                                    onClick={resetCreateForm}
+                                                    disabled={submittingOrder}
+                                                >
+                                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                                    <span>Reset Form</span>
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    className="w-full flex justify-center items-center text-center h-9 text-sm text-rose-600 hover:text-rose-700"
+                                                    onClick={clearCart}
+                                                    disabled={orderEntity?.items.length === 0 || submittingOrder}
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Clear Cart</span>
+                                                </Button>
+                                            </div>
+                                            <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm"
+                                                    onClick={() => {
+                                                        void handleSaveDraft();
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Saving Draft...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Save Draft</span>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                                    onClick={() => {
+                                                        setOpenPaymentModal(true);
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Processing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Pay</span>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             </div>

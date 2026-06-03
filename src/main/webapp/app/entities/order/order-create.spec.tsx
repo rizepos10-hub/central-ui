@@ -636,6 +636,58 @@ describe('OrderCreate payment flow', () => {
     });
   });
 
+  it('resets the create form and clears the stored cart', async () => {
+    localStorage.setItem(
+      'pos-cart:reg-1',
+      JSON.stringify({
+        items: [{ cartId: 'cart-1' }],
+        customerId: 'customer-1',
+      })
+    );
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /reset form/i }));
+
+    expect(orderReducer.reset).toHaveBeenCalled();
+    expect(orderReducer.changeEntityField).toHaveBeenCalledWith({
+      name: 'orderMethod',
+      value: OrderMethod.PickUp,
+    });
+    expect(orderReducer.changeEntityField).toHaveBeenCalledWith({
+      name: 'items',
+      value: [],
+    });
+    expect(orderReducer.changeEntityField).toHaveBeenCalledWith({
+      name: 'customer',
+      value: null,
+    });
+    expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
+  });
+
+  it('clears only the cart items from the create form', async () => {
+    localStorage.setItem(
+      'pos-cart:reg-1',
+      JSON.stringify({
+        items: [{ cartId: 'cart-1' }],
+      })
+    );
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /clear cart/i }));
+
+    expect(orderReducer.changeEntityField).toHaveBeenCalledWith({
+      name: 'items',
+      value: [],
+    });
+    expect(orderReducer.changeEntityField).toHaveBeenCalledWith({
+      name: 'customDiscount',
+      value: null,
+    });
+    expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
+  });
+
   it('creates the order, draft bill, and payment when using create and pay with a partial amount', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
