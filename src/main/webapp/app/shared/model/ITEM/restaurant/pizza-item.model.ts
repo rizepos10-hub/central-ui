@@ -2,7 +2,6 @@ import {IItem} from "app/shared/model/ITEM/item.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
-import {IBranch} from "app/shared/model/branch.model";
 import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
 import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {ITopping} from "app/shared/model/PIZZA/topping.model";
@@ -10,6 +9,7 @@ import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 import { IPizzaSize } from "../../PIZZA/pizza-size.model";
+import { IBranchVariantDetails, IPricingPointBranchPrice } from "../retail/variable-item.model";
 
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
@@ -52,6 +52,9 @@ export interface IPizzaItemVariant {
   description?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
+  price?: number | null;
+  salePrice?: number | null;
+  branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
   predefinedPizza?: IPredefinedPizza;
   itemPricingClass?: IPizzaPricingClass;
@@ -65,6 +68,7 @@ export interface IPizzaItemVariant {
   numberOfPizza?: number;
   pizzaVariantType?: PizzaVariantTypeEnum;
   addPredefinedPizzasAsToppingsOnly?: boolean;
+  pricingPointBranchPrices?: IPricingPointBranchPrice[];
 }
 
 export enum PizzaVariantTypeEnum {

@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const formatApplicationLabel = (application?: string | null) => application || 'All applications';
+
 export const Flyer = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -101,7 +103,7 @@ export const Flyer = () => {
               </TableHead>
               <TableHead className="text-xs">Start At</TableHead>
               <TableHead className="text-xs">End At</TableHead>
-              <TableHead className="text-xs">Price</TableHead>
+              <TableHead className="text-xs">Application</TableHead>
               <TableHead className="text-xs">Entries Count</TableHead>
               <TableHead className="w-20 text-xs">Edit</TableHead>
               <TableHead className="w-20 text-xs">Delete</TableHead>
@@ -129,9 +131,9 @@ export const Flyer = () => {
                     </Link>
                   </TableCell>
                   <TableCell className="text-xs">{flyer.branch?.name || '-'}</TableCell>
-                  <TableCell className="text-xs">{flyer.startAt ? convertDateTimeFromServer(flyer.startAt) : '-'}</TableCell>
-                  <TableCell className="text-xs">{flyer.endAt ? convertDateTimeFromServer(flyer.endAt) : '-'}</TableCell>
-                  <TableCell className="text-xs">{flyer.price ?? '-'}</TableCell>
+                  <TableCell className="text-xs">{flyer.schedule?.startAt ? convertDateTimeFromServer(flyer.schedule.startAt) : '-'}</TableCell>
+                  <TableCell className="text-xs">{flyer.schedule?.endAt ? convertDateTimeFromServer(flyer.schedule.endAt) : '-'}</TableCell>
+                  <TableCell className="text-xs">{formatApplicationLabel(flyer.schedule?.application)}</TableCell>
                   <TableCell className="text-xs">{flyer.entries?.length || 0}</TableCell>
                   <TableCell className="text-xs">
                     <Link to={`/flyers/${flyer.id}/edit`}>

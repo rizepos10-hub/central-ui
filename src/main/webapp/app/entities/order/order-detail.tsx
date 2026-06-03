@@ -18,9 +18,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
   Dialog,
@@ -80,8 +77,6 @@ export const OrderDetail = () => {
   const [deliveryDateTime, setDeliveryDateTime] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined);
   const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(undefined);
-
-  const [activeIndexes, setActiveIndexes] = useState<string[]>([]);
 
   // AlertDialog states
   const [showProcessingConfirm, setShowProcessingConfirm] = useState(false);
@@ -266,6 +261,16 @@ export const OrderDetail = () => {
           transactionMethod,
         })
       ).unwrap();
+
+      if (filteredOrderEntity.wholesale) {
+        await dispatch(
+          changeProcessingStatus({
+            id: filteredOrderEntity.id,
+            orderProcessingStatus: OrderStatus.CLOSED,
+          })
+        ).unwrap();
+      }
+
       resetPaymentDialog();
     } catch (error) {
       setPaymentSubmitting(false);
@@ -320,6 +325,33 @@ export const OrderDetail = () => {
     dispatch(cancelBooking(orderEntity));
     setShowCancelBookingConfirm(false);
   };
+
+  const sendOrderEmail = async (url: string, successMessage: string, fallbackErrorMessage: string) => {
+    try {
+      const response = await fetch(`${SERVER_API_URL}${url}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getCurrentAuthToken()}`,
+        },
+      });
+
+      if (!response.ok) {
+        toast.error(fallbackErrorMessage);
+        return;
+      }
+
+      toast.success(successMessage);
+    } catch (error) {
+      toast.error(fallbackErrorMessage);
+    }
+  };
+
+  const handleSendReceiptEmail = () =>
+    sendOrderEmail(`/api/orders/${orderEntity.id}/send-invoices`, 'Receipt emailed successfully', 'Failed to send receipt email');
+
+  const handleSendBillEmail = (billId: string) =>
+    sendOrderEmail(`/api/orders/${orderEntity.id}/send-invoice?billId=${billId}`, 'E-mail sent successfully', 'Failed to send bill e-mail');
 
   const transformOrderForEdit = (order: IOrder): IOrder => {
     const transformedItems = order.items?.map((item, index) => {
@@ -396,14 +428,23 @@ export const OrderDetail = () => {
   };
 
   const customerFullName = [filteredOrderEntity?.customer?.firstName, filteredOrderEntity?.customer?.lastName].filter(Boolean).join(' ');
+  const reorderActionLabel = filteredOrderEntity?.processingStatus === OrderStatus.DRAFT ? 'Clone' : 'Re-order';
+  const formatStatusLabel = (value?: string | null) =>
+    value
+      ? value
+          .toLowerCase()
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+      : '-';
   const orderCreatedOn = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : '';
   const orderCreatedAt = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy HH:mm') : '';
   const paymentStatusIsPaid = filteredOrderEntity.paymentStatus === PaymentStatus.PAID;
   const orderChargesTotal = orderEntity?.orderCharges?.reduce((acc, charge) => acc + (charge?.amount || 0), 0) || 0;
   const orderMetaCards = [
-    { label: 'Payment status', value: filteredOrderEntity.paymentStatus || '-', emphasis: true },
-    { label: 'Processing status', value: filteredOrderEntity.processingStatus || '-', emphasis: true },
-    { label: 'Order method', value: filteredOrderEntity.orderMethod || '-' },
+    { label: 'Payment status', value: formatStatusLabel(filteredOrderEntity.paymentStatus), emphasis: true },
+    { label: 'Processing status', value: formatStatusLabel(filteredOrderEntity.processingStatus), emphasis: true },
+    { label: 'Order method', value: formatStatusLabel(filteredOrderEntity.orderMethod) },
     { label: 'Created', value: orderCreatedAt || '-' },
   ];
 
@@ -501,18 +542,18 @@ export const OrderDetail = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <div className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold ${paymentStatusIsPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                   <span className={`h-2.5 w-2.5 rounded-full ${paymentStatusIsPaid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                  {filteredOrderEntity.paymentStatus || '-'}
+                  {formatStatusLabel(filteredOrderEntity.paymentStatus)}
                 </div>
                 <div className="flex items-center gap-2 rounded-2xl bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700">
                   <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
                   {filteredOrderEntity.processingStatus || '-'}
                 </div>
-                {filteredOrderEntity?.items?.length > 0 && (
-                  <Button variant="outline" size="sm" onClick={handleReorder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                    <Copy className="mr-1.5 h-3.5 w-3.5" />
-                    Re-order
-                  </Button>
-                )}
+                  {filteredOrderEntity?.items?.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={handleReorder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                      <Copy className="mr-1.5 h-3.5 w-3.5" />
+                      {reorderActionLabel}
+                    </Button>
+                  )}
                 {canEditOrder && (
                   <Button variant="outline" size="sm" onClick={handleEditOrder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                     <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -538,11 +579,20 @@ export const OrderDetail = () => {
                       <h2 className="text-lg font-semibold text-slate-900">Order Items</h2>
                       <p className="text-sm text-slate-500">Ordered products, quantities, modifiers, and totals.</p>
                     </div>
-                    <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
-                      <Button variant="outline" className="mt-2 w-fit rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 md:mt-0">
-                        Print Receipt
+                    <div className="mt-2 flex flex-wrap gap-2 md:mt-0">
+                      <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
+                        <Button variant="outline" className="w-fit rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                          Print Receipt
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        className="rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        onClick={handleSendReceiptEmail}
+                      >
+                        E-mail Receipt
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
 
@@ -565,18 +615,20 @@ export const OrderDetail = () => {
 
                 <div className="mt-5">
                   {filteredOrderEntity?.bills?.length > 0 ? (
-                    <Accordion type="multiple" value={activeIndexes} onValueChange={setActiveIndexes} className="space-y-4">
+                    <div className="space-y-4">
                       {filteredOrderEntity?.bills?.map((bill, idx) => {
                         const billStatus = String(bill.status);
 
                         return (
-                          <AccordionItem key={idx} value={idx.toString()} className="overflow-hidden rounded-2xl border border-slate-200">
-                            <AccordionTrigger className="px-4 py-4 transition hover:no-underline">
+                          <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200">
+                            <div className="px-4 py-4">
                               <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div>
                                   <div className="flex flex-wrap items-center gap-3">
                                     <h3 className="text-base font-semibold text-slate-900">Bill #{bill.sequenceNumber}</h3>
-                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getBillStatusColor(billStatus)}`}>{billStatus}</span>
+                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getBillStatusColor(billStatus)}`}>
+                                      {billStatus}
+                                    </span>
                                   </div>
                                   <p className="mt-1 text-sm text-slate-500">{formatDateForDisplay(bill.dateTime, 'MMM d, yyyy HH:mm')}</p>
                                 </div>
@@ -592,33 +644,14 @@ export const OrderDetail = () => {
                                     <Button
                                       variant="outline"
                                       className="rounded-2xl border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                                      onClick={e => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-
-                                        fetch(`${SERVER_API_URL}/api/orders/${orderEntity.id}/send-invoice?billId=${bill.id}`, {
-                                          method: 'POST',
-                                          headers: {
-                                            'Content-Type': 'application/json',
-                                            Authorization: `Bearer ${getCurrentAuthToken()}`,
-                                          },
-                                        }).then(response => {
-                                          if (!response.ok) {
-                                            toast.error('An error occurred');
-                                          } else {
-                                            toast.success('Email resent successfully');
-                                          }
-                                        });
-                                      }}
+                                      onClick={() => handleSendBillEmail(bill.id)}
                                     >
-                                      Resend E-mail
+                                      E-mail Bill
                                     </Button>
                                     {!orderEntity?.refund && billStatus !== 'REFUNDED' && (
                                       <Button
                                         className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
-                                        onClick={e => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
+                                        onClick={() => {
                                           openRefundDialog(bill);
                                         }}
                                       >
@@ -628,8 +661,8 @@ export const OrderDetail = () => {
                                   </span>
                                 </div>
                               </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="border-t border-slate-100 px-4 pb-4 pt-4">
+                            </div>
+                            <div className="border-t border-slate-100 px-4 pb-4 pt-4">
                               <div className="space-y-4">
                                 {billStatus === 'DRAFT' &&
                                   (() => {
@@ -648,9 +681,7 @@ export const OrderDetail = () => {
                                           <Button
                                             className="rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
                                             disabled={orderEntity?.refund}
-                                            onClick={e => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
+                                            onClick={() => {
                                               openPaymentDialog(bill);
                                             }}
                                           >
@@ -693,11 +724,11 @@ export const OrderDetail = () => {
                                   <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No payment transactions.</div>
                                 )}
                               </div>
-                            </AccordionContent>
-                          </AccordionItem>
+                            </div>
+                          </div>
                         );
                       })}
-                    </Accordion>
+                    </div>
                   ) : (
                     <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No bills available</div>
                   )}
@@ -786,14 +817,14 @@ export const OrderDetail = () => {
                   <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3">
                     <span className="font-medium text-emerald-800">Payment Status</span>
                     <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm">
-                      {filteredOrderEntity.paymentStatus || '-'}
+                      {formatStatusLabel(filteredOrderEntity.paymentStatus)}
                     </span>
                   </div>
                   <div className="space-y-2 rounded-2xl bg-sky-50 px-4 py-3">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sky-800">Processing</span>
                       <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-sky-700 shadow-sm">
-                        {filteredOrderEntity.processingStatus || '-'}
+                        {formatStatusLabel(filteredOrderEntity.processingStatus)}
                       </span>
                     </div>
                     <Select

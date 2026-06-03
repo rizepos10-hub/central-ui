@@ -17,15 +17,35 @@ const initialState: EntityState<IFlyer> = {
 
 const apiUrl = 'api/flyers';
 
-const serializeFlyerEntity = (entity: IFlyer): IFlyer => ({
-  ...entity,
-  entries: (entity.entries || [])
-    .filter(entry => (entry.item?.id || entry.itemId) && (entry.variant?.id || entry.variantId))
-    .map(entry => ({
-      itemId: entry.item?.id || entry.itemId,
-      variantId: entry.variant?.id || entry.variantId,
-    })),
-});
+const serializeFlyerEntity = (entity: IFlyer): IFlyer => {
+  const payload: IFlyer = {
+    id: entity.id,
+    name: entity.name,
+    branch: entity.branch
+      ? {
+          id: entity.branch.id,
+          name: entity.branch.name,
+        }
+      : null,
+    schedule: entity.schedule
+      ? {
+          startAt: entity.schedule.startAt ?? null,
+          endAt: entity.schedule.endAt ?? null,
+          application: entity.schedule.application ?? null,
+          schedule: entity.schedule.schedule ?? null,
+        }
+      : null,
+    entries: (entity.entries || [])
+      .filter(entry => (entry.item?.id || entry.itemId) && (entry.variant?.id || entry.variantId))
+      .map(entry => ({
+        itemId: entry.item?.id || entry.itemId,
+        variantId: entry.variant?.id || entry.variantId,
+        price: entry.price ?? null,
+      })),
+  };
+
+  return payload;
+};
 
 export const getEntities = createAsyncThunk('flyer/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;

@@ -287,12 +287,6 @@ export const model: MenuItem[] = [
         to: '/brand',
         type: [BusinessTypeEnum.RETAIL],
       },
-      {
-        label: 'Flyers',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/flyers',
-        type: [BusinessTypeEnum.RETAIL],
-      },
     ],
     type: [BusinessTypeEnum.RETAIL],
   },
@@ -309,7 +303,7 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Orders',
+        label: 'Processed Orders',
         to: '/logistics/wholesale-orders',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
         type: [BusinessTypeEnum.RETAIL],
@@ -389,12 +383,12 @@ export const model: MenuItem[] = [
         to: '/inventory/supplier',
         type: [BusinessTypeEnum.RETAIL],
       },
-      {
-        label: 'To Be Stocked',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-        to: '/inventory/to-be-stocked',
-        type: [BusinessTypeEnum.RETAIL],
-      },
+      // {
+      //   label: 'To Be Stocked',
+      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //   to: '/inventory/to-be-stocked',
+      //   type: [BusinessTypeEnum.RETAIL],
+      // },
     ],
     type: [BusinessTypeEnum.RETAIL],
   },
@@ -782,6 +776,12 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/pricing-point',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Flyers',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/flyers',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Custom Definitions',

@@ -27,6 +27,7 @@ import SharedAddon from 'app/shared/components/item/addon';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
+import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -317,6 +318,27 @@ export const ComboItemUpdate = () => {
     });
   };
 
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setComboItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
     const entity = {
@@ -520,6 +542,7 @@ export const ComboItemUpdate = () => {
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
                         handleHideItemPerBranch={handleHideItemPerBranch}
+                        handleSaveScheduledPrices={handleSaveScheduledPrices}
                         variant={comboItem?.variants?.[0]}
                         setItem={setComboItem}
                       />

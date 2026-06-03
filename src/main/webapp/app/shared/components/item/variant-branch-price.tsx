@@ -148,7 +148,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
               <TableHead className="text-xs h-8 font-semibold p-2">
                 <Translate contentKey="items.update.pricingPoints">Pricing Points</Translate>
               </TableHead>
-              {itemVariantType === 'RETAIL' && (
+              {(itemVariantType === 'RETAIL' || itemVariantType === 'RESTAURANT') && (
                 <TableHead className="text-xs h-8 font-semibold p-2">
                   Scheduled Prices
                 </TableHead>
@@ -222,7 +222,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   }
 
                 </TableCell>
-                {itemVariantType === 'RETAIL' && (
+                {(itemVariantType === 'RETAIL' || itemVariantType === 'RESTAURANT') && (
                   <TableCell className="text-xs p-2">
                     <Button
                       type="button"

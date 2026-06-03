@@ -25,7 +25,7 @@ export const getEntities = createAsyncThunk('addon-groups/fetch_entity_list', as
   return axios.get<IAddonGroup[]>(requestUrl);
 });
 
-export const searchEntities = createAsyncThunk('addon/filter_entity_list', async ({ query }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('addon-groups/search_entity_list', async ({ query }: IQueryParams) => {
   return axios.post<IAddonGroup[]>(apiSearchUrl, query);
 });
 

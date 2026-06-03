@@ -45,6 +45,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 const stepItems = [
   {
@@ -135,6 +137,71 @@ export const PizzaItemUpdate = () => {
         }
       ]
     }))
+  };
+
+  const handleBranchPriceChange = (variantIndex = 0, branchId, priceType, price) => {
+    setPizzaItem(prev => {
+      const updatedVariants = [...(prev.variants || [])];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            branch: { id: branchId },
+            [priceType]: price,
+          },
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
+    setPizzaItem(prev => {
+      const updatedVariants = [...(prev.variants || [])];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
+          },
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setPizzaItem(prev => {
+      const updatedVariants = [...(prev.variants || [])];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
 
@@ -495,7 +562,9 @@ export const PizzaItemUpdate = () => {
         itemVariantType: "RESTAURANT_PIZZA",
         variants: [{
           multiple: false,
-          multiplePizzaDetails: []
+          multiplePizzaDetails: [],
+          branchVariantDetails: {},
+          pricingPointBranchPrices: [],
         }]
       })
     }
@@ -862,6 +931,18 @@ export const PizzaItemUpdate = () => {
                                   />
                                 </div>
                               </div>
+
+                              <VariantBranchPrice
+                                branchList={branchList}
+                                handleBranchPriceChange={handleBranchPriceChange}
+                                variantIndex={0}
+                                branchVariantDetails={pizzaItem?.variants?.[0]?.branchVariantDetails}
+                                itemVariantType={'RESTAURANT'}
+                                handleHideItemPerBranch={handleHideItemPerBranch}
+                                handleSaveScheduledPrices={handleSaveScheduledPrices}
+                                variant={pizzaItem?.variants?.[0]}
+                                setItem={setPizzaItem}
+                              />
                             </div>
 
                             {pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ?
