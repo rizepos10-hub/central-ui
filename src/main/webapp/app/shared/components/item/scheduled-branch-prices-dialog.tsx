@@ -90,8 +90,8 @@ const formatTimeForInput = (timeString: string): string => {
 };
 
 const formatTimeFromInput = (timeString: string): string => {
-  if (!timeString) return '00:00:00';
-  return `${timeString}:00`;
+  if (!timeString) return '00:00';
+  return timeString;
 };
 
 const toTimeValue = (value?: string | { hour?: number | null; minute?: number | null } | null) => {
@@ -157,7 +157,7 @@ const normalizeScheduleForSave = (schedule: ScheduleDraft['schedule']): ISchedul
         to: range.to,
       }));
 
-    if (ranges) {
+    if (Array.isArray(ranges)) {
       acc[day] = validRanges;
     }
 
@@ -280,6 +280,9 @@ const ScheduledBranchPricesDialog = ({
   const isDaySelected = (scheduleIndex: number, day: DayOfWeek) =>
     Object.prototype.hasOwnProperty.call(draftSchedules[scheduleIndex]?.schedule || {}, day);
 
+  const isFullDaySelected = (scheduleIndex: number, day: DayOfWeek) =>
+    isDaySelected(scheduleIndex, day) && (draftSchedules[scheduleIndex]?.schedule?.[day] || []).length === 0;
+
   const handleToggleDaySelection = (scheduleIndex: number, day: DayOfWeek, checked: boolean) => {
     setDraftSchedules(prev =>
       prev.map((schedule, index) => {
@@ -289,7 +292,7 @@ const ScheduledBranchPricesDialog = ({
 
         const nextSchedule = { ...schedule.schedule };
         if (checked) {
-          nextSchedule[day] = nextSchedule[day] || [];
+          nextSchedule[day] = [];
         } else {
           delete nextSchedule[day];
         }
@@ -317,6 +320,9 @@ const ScheduledBranchPricesDialog = ({
 
   const handleAddHourRange = (scheduleIndex: number, day: DayOfWeek) => {
     const currentRanges = draftSchedules[scheduleIndex]?.schedule?.[day] || [];
+    if (Object.prototype.hasOwnProperty.call(draftSchedules[scheduleIndex]?.schedule || {}, day) && currentRanges.length === 0) {
+      return;
+    }
     updateDayRanges(scheduleIndex, day, [...currentRanges, createDefaultTimeRange()]);
   };
 
@@ -540,12 +546,12 @@ const ScheduledBranchPricesDialog = ({
                             <div className="space-y-2">
                               <label className="flex items-center gap-2 px-1 text-xs font-medium">
                                 <Checkbox
-                                  checked={daySelected}
+                                  checked={isFullDaySelected(scheduleIndex, day)}
                                   onCheckedChange={checked =>
                                     handleToggleDaySelection(scheduleIndex, day, checked === true)
                                   }
                                 />
-                                <span>Select full day</span>
+                                <span>Full day</span>
                               </label>
 
                               <div className="flex justify-end">
@@ -555,14 +561,14 @@ const ScheduledBranchPricesDialog = ({
                                   variant="outline"
                                   onClick={() => handleAddHourRange(scheduleIndex, day)}
                                   className="h-7 text-xs"
-                                  disabled={!daySelected}
+                                  disabled={isFullDaySelected(scheduleIndex, day)}
                                 >
                                   <Plus className="mr-1 h-3 w-3" />
                                   Add Schedule Hours
                                 </Button>
                               </div>
 
-                              {daySelected && ranges.length > 0 ? (
+                              {ranges.length > 0 ? (
                                 ranges.map((hourRange, rangeIndex) => (
                                   <Card key={`${scheduleIndex}-${day}-${rangeIndex}`} className="border-l-4 border-l-primary p-2">
                                     <div className="flex items-end justify-between gap-2">
@@ -631,7 +637,7 @@ const ScheduledBranchPricesDialog = ({
                                 </div>
                               ) : (
                                 <div className="px-1 text-[11px] text-muted-foreground">
-                                  Select this day first, then add hour ranges if needed.
+                                  Add hour ranges directly, or mark this day as full day.
                                 </div>
                               )}
                             </div>

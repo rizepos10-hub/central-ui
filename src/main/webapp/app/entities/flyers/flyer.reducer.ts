@@ -19,11 +19,20 @@ const apiUrl = 'api/flyers';
 
 const serializeFlyerEntity = (entity: IFlyer): IFlyer => ({
   ...entity,
+  schedule: entity.schedule
+    ? {
+        startAt: entity.schedule.startAt ?? null,
+        endAt: entity.schedule.endAt ?? null,
+        application: entity.schedule.application ?? null,
+        schedule: entity.schedule.schedule ?? null,
+      }
+    : null,
   entries: (entity.entries || [])
     .filter(entry => (entry.item?.id || entry.itemId) && (entry.variant?.id || entry.variantId))
     .map(entry => ({
       itemId: entry.item?.id || entry.itemId,
       variantId: entry.variant?.id || entry.variantId,
+      price: entry.price ?? null,
     })),
 });
 

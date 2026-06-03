@@ -31,8 +31,16 @@ const OrderGeneralInfo = ({order}) => {
         return null;
     }
   };
+  const formatStatusLabel = (status) =>
+    status
+      ? status
+          .toLowerCase()
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+      : '-';
   const statusBodyTemplate = () => {
-    return <Tag value={order?.paymentStatus} severity={getSeverity(order?.paymentStatus)}></Tag>;
+    return <Tag value={formatStatusLabel(order?.paymentStatus)} severity={getSeverity(order?.paymentStatus)}></Tag>;
   };
 
   return (
@@ -55,7 +63,7 @@ const OrderGeneralInfo = ({order}) => {
             {order?.createdBy}
           </td>
           <td>
-            {order?.processingStatus}
+            {formatStatusLabel(order?.processingStatus)}
           </td>
           <td>
             {statusBodyTemplate()}

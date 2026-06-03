@@ -10,6 +10,7 @@ import { debounce } from "lodash";
 import { translate } from "react-jhipster";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
+import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { toast } from 'react-toastify';
@@ -70,6 +71,7 @@ const formatStatusLabel = (value?: string | null) => {
 };
 
 const formatSourceLabel = (value?: string | null) => formatStatusLabel(value);
+const formatPaymentStatusLabel = (value?: string | null) => formatStatusLabel(value);
 
 const getStatusBadgeClassName = (status?: string | null) => {
   switch (status) {
@@ -107,6 +109,20 @@ const getSourceBadgeClassName = (source?: string | null) => {
       return 'border-slate-200 bg-slate-50 text-slate-700';
   }
 };
+
+const getPaymentStatusBadgeClassName = (status?: string | null) => {
+  switch (status) {
+    case 'PAID':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case 'UNPAID':
+      return 'border-rose-200 bg-rose-50 text-rose-700';
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-700';
+  }
+};
+
+const getReorderActionLabel = (order?: IOrder | null) =>
+  order?.processingStatus === OrderStatus.DRAFT ? 'Clone' : 'Re-order';
 
 const transformOrderForReorder = (order: IOrder): IOrder => {
   const transformedItems = order.items?.map((item, index) => {
@@ -227,6 +243,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: externalBranchId || '', matchMode: 'equals' },
+      paymentStatus: { value: '', matchMode: 'equals' },
       total: { value: null, matchMode: 'equals' },
       tables: { value: '', matchMode: 'contains' },
       discount: { value: null, matchMode: 'equals' },
@@ -255,9 +272,11 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       value: branch.id,
     }));
 
+  const filteredOrderStatuses = wholesale ? orderStatuses.filter(status => status.value !== OrderStatus.DRAFT) : orderStatuses;
+
   const statusTabs = [
     { label: 'All', value: ALL_STATUS_TAB },
-    ...orderStatuses.map(status => ({
+    ...filteredOrderStatuses.map(status => ({
       label: formatStatusLabel(status.value),
       value: status.value,
     })),
@@ -326,6 +345,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       orderTotal: true,
       OrderDate: true,
       orderStatus: true,
+      paymentStatus: true,
       orderSource: true,
       orderTable: true,
       customerEmail: true,
@@ -441,6 +461,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
     const queryParams = {
       ...(wholesale && { wholesale: true }),
       ...(shouldExcludeWholesaleOrders && { wholesale: false }),
+      ...(wholesale && !isSavedOrdersPage && { excludeProcessingStatus: OrderStatus.DRAFT }),
       ...(pageType === 'scheduled' && { scheduled: true }),
       ...(isSavedOrdersPage && { orderProcessingStatus: OrderStatus.DRAFT }),
       id: lazyState.filters._id?.value || '',
@@ -453,6 +474,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       customerEmail: lazyState.filters['customer.email']?.value || '',
       customerId: lazyState.filters['customer.id']?.value || '',
       branchId: lazyState.filters.branchId?.value || '',
+      paymentStatus: lazyState.filters.paymentStatus?.value || '',
       tables: lazyState.filters.tables?.value || '',
       total: lazyState.filters.total?.value,
       discount: lazyState.filters.discount?.value,
@@ -493,6 +515,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
         lazyState.filters['customer.phone']?.value ||
         lazyState.filters['customer.email']?.value ||
         lazyState.filters.branchId?.value ||
+        lazyState.filters.paymentStatus?.value ||
         lazyState.filters.id?.value ||
         lazyState.filters.tables?.value ||
         lazyState.filters.orderSource?.value ||
@@ -671,7 +694,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
               <div className="pointer-events-none absolute inset-y-1 right-0 w-6 rounded-r-xl bg-gradient-to-l from-background via-background/85 to-transparent" />
             </div>
 
-            {UiSettingsEntity.orderConfirmation && !isSavedOrdersPage && (
+            {UiSettingsEntity.orderConfirmation && !isSavedOrdersPage && !wholesale && (
               <div className="flex items-center gap-2 rounded-full border px-3 py-1.5">
                 <Checkbox
                   checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
@@ -714,7 +737,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
               <AccordionContent className="pb-2">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
                   {pageConfig.showDatePicker && !isEndOfDayMode && (
-                    <div className="col-span-2 space-y-1 sm:col-span-3 xl:col-span-2">
+                    <div className="space-y-1">
                       <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Date Range</Label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -786,6 +809,36 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                       />
                     </div>
                   )}
+
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Payment Status</Label>
+                    <Select
+                      styles={selectStyles}
+                      value={
+                        [
+                          { label: formatPaymentStatusLabel(PaymentStatus.PAID), value: PaymentStatus.PAID },
+                          { label: formatPaymentStatusLabel(PaymentStatus.UNPAID), value: PaymentStatus.UNPAID },
+                        ].find((opt: any) => opt.value === lazyState.filters.paymentStatus?.value) || null
+                      }
+                      options={[
+                        { label: formatPaymentStatusLabel(PaymentStatus.PAID), value: PaymentStatus.PAID },
+                        { label: formatPaymentStatusLabel(PaymentStatus.UNPAID), value: PaymentStatus.UNPAID },
+                      ]}
+                      isClearable
+                      onChange={(option) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          first: 0,
+                          page: 0,
+                          filters: {
+                            ...prevState.filters,
+                            paymentStatus: { value: option?.value || '', matchMode: 'equals' },
+                          },
+                        }))
+                      }
+                      placeholder="Payment Status"
+                    />
+                  </div>
 
                   <div className="space-y-1">
                     <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Refund</Label>
@@ -991,6 +1044,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                     </div>
                   </TableHead>
                 )}
+                {visibleColumns.paymentStatus && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('paymentStatus')}
+                    >
+                      Payment Status {renderSortIcon('paymentStatus')}
+                    </div>
+                  </TableHead>
+                )}
                 {visibleColumns.orderRefund && (
                   <TableHead>
                     <div className="text-xs font-medium">Refund</div>
@@ -1134,6 +1197,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                         </Badge>
                       </TableCell>
                     )}
+                    {visibleColumns.paymentStatus && (
+                      <TableCell className={cellClass}>
+                        <Badge
+                          variant="outline"
+                          className={cn('rounded-full', getPaymentStatusBadgeClassName(order.paymentStatus))}
+                        >
+                          {formatPaymentStatusLabel(order.paymentStatus)}
+                        </Badge>
+                      </TableCell>
+                    )}
                     {visibleColumns.orderRefund && (
                       <TableCell className={`${cellClass} text-center`}>
                         <Badge
@@ -1198,7 +1271,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
                               onClick={() => handleReorder(order)}
                             >
                               <Copy className="mr-2 h-3.5 w-3.5" />
-                              Re-order
+                              {getReorderActionLabel(order)}
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>

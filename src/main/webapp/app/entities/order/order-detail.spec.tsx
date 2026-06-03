@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import OrderDetail from './order-detail';
 import * as orderReducer from './order.reducer';
 import * as deliveryReducer from './delivery.reducer';
+import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -59,7 +60,24 @@ jest.mock('./ordered-items', () => () => null);
 
 jest.mock('./order-payment-dialog', () => ({
   __esModule: true,
-  default: ({ open, title }) => (open ? <div data-testid="payment-dialog">{title}</div> : null),
+  default: ({ open, title, onSubmit }) =>
+    open ? (
+      <div data-testid="payment-dialog">
+        <div>{title}</div>
+        <button
+          type="button"
+          onClick={() =>
+            onSubmit?.({
+              amount: 20,
+              tipAmount: 0,
+              transactionMethod: 'cash',
+            })
+          }
+        >
+          Submit Payment
+        </button>
+      </div>
+    ) : null,
 }));
 
 jest.mock('app/shared/components/select/select', () => ({
@@ -143,6 +161,12 @@ beforeEach(() => {
       };
     }
 
+    if (action?.type === 'order/change_processing_status') {
+      return {
+        unwrap: () => Promise.resolve({ data: {} }),
+      };
+    }
+
     return action;
   });
 });
@@ -202,6 +226,42 @@ describe('OrderDetail payment integration', () => {
     });
 
     expect(orderReducer.createDraftBill).not.toHaveBeenCalled();
+  });
+
+  it('does not close non-wholesale draft orders after adding a payment', async () => {
+    mockState.order.entity.processingStatus = OrderStatus.DRAFT;
+    mockState.order.entity.bills = [
+      {
+        id: 'bill-1',
+        sequenceNumber: 3,
+        total: 20,
+        status: 'DRAFT',
+        paymentTransactions: [],
+        dateTime: '2026-03-30T09:00:00Z',
+      },
+    ];
+
+    renderOrderDetail();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /add payment/i })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill #3');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Payment' }));
+
+    await waitFor(() => {
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
+        orderId: 'order-1',
+        billId: 'bill-1',
+        amount: 20,
+        tipAmount: 0,
+        transactionMethod: 'cash',
+      });
+    });
+
+    expect(orderReducer.changeProcessingStatus).not.toHaveBeenCalled();
   });
 });
 

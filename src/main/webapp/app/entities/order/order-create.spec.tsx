@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrderCreate from './order-create';
 import * as orderReducer from './order.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
+import { OrderStatus } from 'app/shared/model/ENUMS/orderStatus.model';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -94,6 +95,7 @@ jest.mock('./order.reducer', () => ({
   updateEntity: jest.fn(entity => ({ type: 'order/update_entity', payload: entity })),
   createDraftBill: jest.fn(payload => ({ type: 'order/create_draft_bill', payload })),
   addPaymentToBill: jest.fn(payload => ({ type: 'order/add_payment_to_bill', payload })),
+  changeProcessingStatus: jest.fn(payload => ({ type: 'order/change_processing_status', payload })),
   previewCharges: jest.fn(entity => ({ type: 'order/preview_charges', payload: entity })),
   reset: jest.fn(() => ({ type: 'order/reset' })),
 }));
@@ -396,6 +398,17 @@ beforeEach(() => {
       };
     }
 
+    if (action?.type === 'order/change_processing_status') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: action.payload?.id || 'updated-order-id',
+            },
+          }),
+      };
+    }
+
     if (action?.type === 'till/getEntitiesByStatusOpened') {
       return Promise.resolve({
         type: 'till/getEntitiesByStatusOpened/fulfilled',
@@ -683,19 +696,7 @@ describe('OrderCreate payment flow', () => {
       })
     );
 
-    expect(JSON.parse(localStorage.getItem('pos-cart:reg-1'))).toEqual(
-      expect.objectContaining({
-        items: [],
-        customerId: 'customer-1',
-        orderMethod: OrderMethod.Delivery,
-        scheduledAt: '2026-03-30T10:00:00.000Z',
-        scheduledAtLocal: expect.any(String),
-        deliverTo: {
-          id: 'address-1',
-          address: 'Warehouse Street',
-        },
-      })
-    );
+    expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
   });
 
   it('sends wholesale for create and pay in wholesale mode', async () => {
@@ -722,6 +723,10 @@ describe('OrderCreate payment flow', () => {
       expect(orderReducer.createEntity).toHaveBeenCalled();
       expect(orderReducer.createDraftBill).toHaveBeenCalled();
       expect(orderReducer.addPaymentToBill).toHaveBeenCalled();
+      expect(orderReducer.changeProcessingStatus).toHaveBeenCalledWith({
+        id: 'created-order-id',
+        orderProcessingStatus: OrderStatus.CLOSED,
+      });
     });
 
     expect(getLatestCreatePayload()).toEqual(
@@ -730,19 +735,7 @@ describe('OrderCreate payment flow', () => {
       })
     );
 
-    expect(JSON.parse(localStorage.getItem('pos-cart:reg-1'))).toEqual(
-      expect.objectContaining({
-        items: [],
-        customerId: 'customer-1',
-        orderMethod: OrderMethod.Delivery,
-        scheduledAt: '2026-03-30T10:00:00.000Z',
-        scheduledAtLocal: expect.any(String),
-        deliverTo: {
-          id: 'address-1',
-          address: 'Warehouse Street',
-        },
-      })
-    );
+    expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
   });
 
   it('clears wholesale storage for non-salesman wholesale users after create', async () => {
@@ -822,6 +815,7 @@ describe('OrderCreate payment flow', () => {
 
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
+    expect(await screen.findByRole('button', { name: /^pay$/i })).not.toBeNull();
     fireEvent.click(await screen.findByRole('button', { name: /update order/i }));
 
     await waitFor(() => {
@@ -834,10 +828,59 @@ describe('OrderCreate payment flow', () => {
 
     expect(getLatestUpdatePayload().wholesale).toBeUndefined();
 
-    expect(screen.queryByText('Create Order & Payment')).toBeNull();
+    expect(screen.queryByText('Update Order & Payment')).toBeNull();
   });
 
-  it('shows only the draft save action when editing an existing draft', async () => {
+  it('updates an existing order and adds payment from edit mode', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1',
+      state: {
+        editOrder: {
+          id: 'existing-order-id',
+          branchId: 'branch-1',
+        },
+        orderId: 'existing-order-id',
+      },
+    };
+    mockState.order.entity.id = 'existing-order-id';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
+
+    expect(screen.getByText('Update Order & Payment')).not.toBeNull();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^pay$/i })[1]);
+
+    await waitFor(() => {
+      expect(orderReducer.updateEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'existing-order-id',
+        })
+      );
+      expect(orderReducer.createDraftBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        payee: null,
+        createdBy: null,
+        discount: null,
+      });
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        billId: 'draft-bill-id',
+        amount: 9,
+        tipAmount: 0,
+        transactionMethod: 'cash',
+      });
+    });
+
+    expect(orderReducer.changeProcessingStatus).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/updated-order-id');
+    });
+  });
+
+  it('shows save draft and pay when editing an existing draft', async () => {
     mockLocation = {
       search: '?registerId=reg-1',
       state: {
@@ -857,7 +900,7 @@ describe('OrderCreate payment flow', () => {
 
     expect(await screen.findByRole('button', { name: /save draft/i })).not.toBeNull();
     expect(screen.queryByRole('button', { name: /update order/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /^pay$/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /^pay$/i })).not.toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /save draft/i }));
 
@@ -875,6 +918,112 @@ describe('OrderCreate payment flow', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/order/updated-draft-order-id');
+    });
+  });
+
+  it('updates an existing wholesale draft order, adds payment, and closes it', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1&mode=wholesale',
+      state: {
+        editOrder: {
+          id: 'existing-draft-order-id',
+          branchId: 'branch-1',
+          processingStatus: 'DRAFT',
+        },
+        orderId: 'existing-draft-order-id',
+        isDraftEdit: true,
+      },
+    };
+    mockState.order.entity.id = 'existing-draft-order-id';
+    mockState.order.entity.processingStatus = 'DRAFT';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
+
+    expect(screen.getByText('Update Order & Payment')).not.toBeNull();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^pay$/i })[1]);
+
+    await waitFor(() => {
+      expect(orderReducer.updateEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'existing-draft-order-id',
+        })
+      );
+      expect(orderReducer.createDraftBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        payee: null,
+        createdBy: null,
+        discount: null,
+      });
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        billId: 'draft-bill-id',
+        amount: 9,
+        tipAmount: 0,
+        transactionMethod: 'cash',
+      });
+      expect(orderReducer.changeProcessingStatus).toHaveBeenCalledWith({
+        id: 'updated-order-id',
+        orderProcessingStatus: OrderStatus.CLOSED,
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/updated-order-id');
+    });
+  });
+
+  it('updates an existing draft retail order and adds payment without closing it', async () => {
+    mockLocation = {
+      search: '?registerId=reg-1',
+      state: {
+        editOrder: {
+          id: 'existing-draft-order-id',
+          branchId: 'branch-1',
+          processingStatus: 'DRAFT',
+        },
+        orderId: 'existing-draft-order-id',
+        isDraftEdit: true,
+      },
+    };
+    mockState.order.entity.id = 'existing-draft-order-id';
+    mockState.order.entity.processingStatus = 'DRAFT';
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
+
+    expect(screen.getByText('Update Order & Payment')).not.toBeNull();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^pay$/i })[1]);
+
+    await waitFor(() => {
+      expect(orderReducer.updateEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'existing-draft-order-id',
+        })
+      );
+      expect(orderReducer.createDraftBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        payee: null,
+        createdBy: null,
+        discount: null,
+      });
+      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
+        orderId: 'updated-order-id',
+        billId: 'draft-bill-id',
+        amount: 9,
+        tipAmount: 0,
+        transactionMethod: 'cash',
+      });
+    });
+
+    expect(orderReducer.changeProcessingStatus).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/order/updated-order-id');
     });
   });
 

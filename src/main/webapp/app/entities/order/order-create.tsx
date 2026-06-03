@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { addPaymentToBill, calculateItemPrice, changeEntityField, clearChargesPreview, createDraftBill, createDraftEntity, createEntity, previewCharges, updateDraftEntity, updateEntity, reset } from './order.reducer';
+import { addPaymentToBill, calculateItemPrice, changeEntityField, changeProcessingStatus, clearChargesPreview, createDraftBill, createDraftEntity, createEntity, previewCharges, updateDraftEntity, updateEntity, reset } from './order.reducer';
 import { IOrder, IOrderCharge } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
@@ -1195,26 +1195,7 @@ const OrderCreate = () => {
 
     const finalizeCreatedOrder = (createdOrderId?: string | null) => {
         resetVariantDialogState();
-        if (isWholesaleMode) {
-            const preservedWholesalePayload = {
-                items: [],
-                customerId: orderEntity.customer?.id ?? null,
-                customer: orderEntity.customer ?? null,
-                orderMethod: orderEntity.orderMethod ?? null,
-                pricingPointId: pricingPointId || null,
-                scheduledAtLocal: scheduledAtLocal || null,
-                scheduledAt: orderEntity.scheduledAt ?? null,
-                deliverTo: orderEntity.deliverTo ?? null,
-            };
-            if (isSalesmanMode) {
-                localStorage.setItem(cartStorageKey, JSON.stringify(preservedWholesalePayload));
-                skipNextCartPersistRef.current = true;
-            } else {
-                localStorage.removeItem(cartStorageKey);
-            }
-        } else {
-            localStorage.removeItem(cartStorageKey);
-        }
+        localStorage.removeItem(cartStorageKey);
         dispatch(reset());
         setOpenPaymentModal(false);
 
@@ -1342,12 +1323,21 @@ const OrderCreate = () => {
                     transactionMethod,
                 })).unwrap();
 
+                if (isWholesaleMode) {
+                    await dispatch(changeProcessingStatus({
+                        id: createdOrderId,
+                        orderProcessingStatus: OrderStatus.CLOSED,
+                    })).unwrap();
+                }
+
                 toast.success('Order created and payment added successfully!');
             } catch (paymentError) {
                 toast.error(
                     getApiErrorMessage(
                         paymentError,
-                        'Order created, but payment failed. You can retry from the order details page.'
+                        isWholesaleMode
+                            ? 'Order created and payment added, but closing the wholesale order failed. You can retry from the order details page.'
+                            : 'Order created, but payment failed. You can retry from the order details page.'
                     )
                 );
             }
@@ -1355,6 +1345,94 @@ const OrderCreate = () => {
             finalizeCreatedOrder(createdOrderId);
         } catch (error) {
             toast.error(getApiErrorMessage(error, 'Failed to create order'));
+        } finally {
+            setSubmittingOrder(false);
+        }
+    };
+
+    const handleUpdateWithPayment = async ({
+        amount,
+        tipAmount,
+        transactionMethod,
+    }: {
+        amount: number;
+        tipAmount: number;
+        transactionMethod: string;
+    }) => {
+        if (!ensureCreateFlowAllowed() || !orderEntity?.id) {
+            return;
+        }
+
+        let updatedOrderId: string | null | undefined = orderEntity.id;
+
+        try {
+            setSubmittingOrder(true);
+            const updateResponse = await dispatch(updateEntity(buildUpdateStructuredEntity())).unwrap();
+            updatedOrderId = updateResponse.data?.id || orderEntity.id;
+
+            if (!updatedOrderId) {
+                toast.success('Order updated successfully!');
+                resetVariantDialogState();
+                setOpenPaymentModal(false);
+                navigate('/order');
+                return;
+            }
+
+            try {
+                const updatedBills = updateResponse.data?.bills || [];
+                const draftBill = updatedBills.find(bill => bill.status === 'DRAFT');
+                const billToUse = draftBill || updatedBills[0];
+
+                let draftBillId = billToUse?.id;
+
+                if (!draftBillId) {
+                    const draftBillResponse = await dispatch(createDraftBill({
+                        orderId: updatedOrderId,
+                        payee: null,
+                        createdBy: null,
+                        discount: null,
+                    })).unwrap();
+                    draftBillId = draftBillResponse.data?.id;
+                }
+
+                if (!draftBillId) {
+                    throw new Error('Draft bill was not created successfully.');
+                }
+
+                await dispatch(addPaymentToBill({
+                    orderId: updatedOrderId,
+                    billId: draftBillId,
+                    amount,
+                    tipAmount,
+                    transactionMethod,
+                })).unwrap();
+
+                if (isWholesaleMode) {
+                    await dispatch(changeProcessingStatus({
+                        id: updatedOrderId,
+                        orderProcessingStatus: OrderStatus.CLOSED,
+                    })).unwrap();
+                }
+
+                toast.success('Order updated and payment added successfully!');
+            } catch (paymentError) {
+                toast.error(
+                    getApiErrorMessage(
+                        paymentError,
+                        isWholesaleMode
+                            ? 'Order updated and payment added, but closing the wholesale order failed. You can retry from the order details page.'
+                            : 'Order updated, but payment failed. You can retry from the order details page.'
+                    )
+                );
+            }
+
+            resetVariantDialogState();
+            localStorage.removeItem(cartStorageKey);
+            dispatch(reset());
+            setOpenPaymentModal(false);
+            navigate(`/order/${updatedOrderId}`);
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, 'Failed to update order'));
         } finally {
             setSubmittingOrder(false);
         }
@@ -1755,7 +1833,11 @@ const OrderCreate = () => {
             <OrderPaymentDialog
                 open={openPaymentModal}
                 onOpenChange={setOpenPaymentModal}
-                title={isWholesaleMode ? 'Create Wholesale Order & Payment' : 'Create Order & Payment'}
+                title={
+                    isEditMode
+                        ? (isWholesaleMode ? 'Update Wholesale Order & Payment' : 'Update Order & Payment')
+                        : (isWholesaleMode ? 'Create Wholesale Order & Payment' : 'Create Order & Payment')
+                }
                 orderBranchId={orderEntity.branchId}
                 customerId={orderEntity.customer?.id}
                 totalAmount={finalPayableTotal}
@@ -1764,7 +1846,7 @@ const OrderCreate = () => {
                 baseOrderTotal={cartTotals.total}
                 chargePreviewRows={previewChargeRows}
                 submitLabel="Pay"
-                onSubmit={handleCreateWithPayment}
+                onSubmit={isEditMode ? handleUpdateWithPayment : handleCreateWithPayment}
                 submitting={submittingOrder}
             />
 
@@ -2249,62 +2331,120 @@ const OrderCreate = () => {
                                         {salesmanGateMessage} before creating a wholesale order.
                                     </div>
                                 )}
-                                {/* Row 1: Order Method, Customer, Pricing Point */}
-                                <div className="grid grid-cols-3 gap-2">
-                                    <Select
-                                        options={orderMethodOptions}
-                                        value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
-                                        onChange={(option) => {
-                                            if (!option) {
-                                                return;
-                                            }
-                                            dispatch(
-                                                changeEntityField({
-                                                    name: 'orderMethod',
-                                                    value: option.value as any,
-                                                })
-                                            )
-                                            localStorage.setItem(ORDER_METHOD, option.value)
-                                        }}
-                                        placeholder="Order method"
-                                        className="text-xs"
-                                        isDisabled={isSalesmanMode || shouldGateSalesman}
-                                    />
-                                    <Select
-                                        options={customerOptions}
-                                        value={
-                                            customerOptions.find(option => option.value === orderEntity?.customer?.id)
-                                            || (orderEntity?.customer?.id ? {
-                                                value: orderEntity.customer.id,
-                                                label: formatCustomerLabel(selectedCustomer),
-                                            } : null)
-                                        }
-                                        onChange={(option: CustomerOption | null) => {
-                                            setSelectedCustomerRecord(option?.customer ?? null);
-                                            dispatch(changeEntityField({
-                                                name: 'customer',
-                                                value: option?.value ? { id: option.value } : null,
-                                            }));
-                                            dispatch(changeEntityField({
-                                                name: 'deliverTo',
-                                                value: null,
-                                            }));
-                                        }}
-                                        onMenuOpen={() => {
-                                            void loadCustomers(filterValue);
-                                        }}
-                                        onInputChange={handleCustomerInputChange}
-                                        components={{ MenuList: CustomerMenuList }}
-                                        placeholder="Customer"
-                                        className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
-                                        isClearable
-                                        isLoading={customerSearchLoading}
-                                    />
-                                    {displayUserSelectionPricingPoint() ?? <div />}
-                                </div>
-                                {/* Row 2: Schedule At (2/3), Delivery Address + Add Button (1/3) */}
-                                <div className="grid grid-cols-5 gap-2">
-                                    <div className="col-span-3">
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Order Method</Label>
+                                            <Select
+                                                options={orderMethodOptions}
+                                                value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
+                                                onChange={(option) => {
+                                                    if (!option) {
+                                                        return;
+                                                    }
+                                                    dispatch(
+                                                        changeEntityField({
+                                                            name: 'orderMethod',
+                                                            value: option.value as any,
+                                                        })
+                                                    )
+                                                    localStorage.setItem(ORDER_METHOD, option.value)
+                                                }}
+                                                placeholder="Order method"
+                                                className="text-xs"
+                                                isDisabled={isSalesmanMode || shouldGateSalesman}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Address</Label>
+                                            <div className="flex items-center gap-1">
+                                                <Select
+                                                    options={deliveryAddressOptions}
+                                                    value={
+                                                        deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
+                                                        || (orderEntity.deliverTo ? {
+                                                            value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
+                                                            label: orderEntity.deliverTo.address
+                                                                || orderEntity.deliverTo.fullAddress
+                                                                || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
+                                                                || 'Selected address',
+                                                            address: orderEntity.deliverTo,
+                                                        } : null)
+                                                    }
+                                                    onChange={(option: any) => {
+                                                        dispatch(changeEntityField({
+                                                            name: 'deliverTo',
+                                                            value: option?.address || null,
+                                                        }));
+                                                    }}
+                                                    placeholder={
+                                                        orderEntity.orderMethod === OrderMethod.Delivery
+                                                            ? (selectedCustomer ? "Address" : "Select customer")
+                                                            : "Address"
+                                                    }
+                                                    className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
+                                                    isClearable
+                                                    isDisabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0 flex-shrink-0"
+                                                    disabled={orderEntity.orderMethod !== OrderMethod.Delivery || !selectedCustomer}
+                                                    onClick={() => {
+                                                        setAddressDialogAddress(null);
+                                                        setAddressDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Customer</Label>
+                                            <Select
+                                                options={customerOptions}
+                                                value={
+                                                    customerOptions.find(option => option.value === orderEntity?.customer?.id)
+                                                    || (orderEntity?.customer?.id ? {
+                                                        value: orderEntity.customer.id,
+                                                        label: formatCustomerLabel(selectedCustomer),
+                                                    } : null)
+                                                }
+                                                onChange={(option: CustomerOption | null) => {
+                                                    setSelectedCustomerRecord(option?.customer ?? null);
+                                                    dispatch(changeEntityField({
+                                                        name: 'customer',
+                                                        value: option?.value ? { id: option.value } : null,
+                                                    }));
+                                                    dispatch(changeEntityField({
+                                                        name: 'deliverTo',
+                                                        value: null,
+                                                    }));
+                                                }}
+                                                onMenuOpen={() => {
+                                                    void loadCustomers(filterValue);
+                                                }}
+                                                onInputChange={handleCustomerInputChange}
+                                                components={{ MenuList: CustomerMenuList }}
+                                                placeholder="Customer"
+                                                className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                                isClearable
+                                                isLoading={customerSearchLoading}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Pricing Point</Label>
+                                            {displayUserSelectionPricingPoint() ?? <div className="h-8" />}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Date</Label>
                                         <Input
                                             ref={scheduledAtInputRef}
                                             type="datetime-local"
@@ -2323,49 +2463,6 @@ const OrderCreate = () => {
                                             placeholder="Schedule at"
                                         />
                                     </div>
-                                    {orderEntity.orderMethod === OrderMethod.Delivery && selectedCustomer ? (
-                                        <div className="flex gap-1 items-center col-span-2">
-                                            <Select
-                                                options={deliveryAddressOptions}
-                                                value={
-                                                    deliveryAddressOptions.find(option => option.address?.id === orderEntity.deliverTo?.id)
-                                                    || (orderEntity.deliverTo ? {
-                                                        value: orderEntity.deliverTo.id ?? orderEntity.deliverTo.tempId ?? orderEntity.deliverTo.address ?? 'selected',
-                                                        label: orderEntity.deliverTo.address
-                                                            || orderEntity.deliverTo.fullAddress
-                                                            || [orderEntity.deliverTo.street, orderEntity.deliverTo.city, orderEntity.deliverTo.country].filter(Boolean).join(', ')
-                                                            || 'Selected address',
-                                                        address: orderEntity.deliverTo,
-                                                    } : null)
-                                                }
-                                                onChange={(option: any) => {
-                                                    dispatch(changeEntityField({
-                                                        name: 'deliverTo',
-                                                        value: option?.address || null,
-                                                    }));
-                                                }}
-                                                placeholder={selectedCustomer ? "Address" : "Select customer"}
-                                                className={cn("text-xs flex-1", isSalesmanMode && missingDelivery ? "border-destructive" : undefined)}
-                                                isClearable
-                                                isDisabled={!selectedCustomer}
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 w-8 p-0 flex-shrink-0"
-                                                disabled={!selectedCustomer}
-                                                onClick={() => {
-                                                    setAddressDialogAddress(null);
-                                                    setAddressDialogOpen(true);
-                                                }}
-                                            >
-                                                <Plus className="h-3.5 w-3.5" />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div />
-                                    )}
                                 </div>
                             </CardContent>
                             <Separator />
@@ -2631,26 +2728,79 @@ const OrderCreate = () => {
                                     </div>
                                     </div>
                                     {isEditMode ? (
-                                        <Button
-                                            className="mt-2 mb-0 w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
-                                            onClick={() => {
-                                                if (isDraftEditMode) {
-                                                    void handleSaveDraft();
-                                                    return;
-                                                }
-                                                void handleUpdateOrder();
-                                            }}
-                                            disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
-                                        >
-                                            {submittingOrder ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    <span>{isDraftEditMode ? 'Saving Draft...' : 'Updating...'}</span>
-                                                </>
-                                            ) : (
-                                                <span>{isDraftEditMode ? 'Save Draft' : 'Update Order'}</span>
-                                            )}
-                                        </Button>
+                                        isDraftEditMode ? (
+                                            <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm"
+                                                    onClick={() => {
+                                                        void handleSaveDraft();
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Saving Draft...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Save Draft</span>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                                    onClick={() => {
+                                                        setOpenPaymentModal(true);
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Processing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Pay</span>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm"
+                                                    onClick={() => {
+                                                        void handleUpdateOrder();
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Updating...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Update Order</span>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    className="w-full flex justify-center items-center text-center h-10 text-sm bg-emerald-600 hover:bg-emerald-700"
+                                                    onClick={() => {
+                                                        setOpenPaymentModal(true);
+                                                    }}
+                                                    disabled={orderEntity?.items.length === 0 || !orderEntity?.branchId || shouldGateSalesman || submittingOrder}
+                                                >
+                                                    {submittingOrder ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <span>Processing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Pay</span>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        )
                                     ) : (
                                         <div className="mt-2 mb-0 grid grid-cols-2 gap-2">
                                             <Button

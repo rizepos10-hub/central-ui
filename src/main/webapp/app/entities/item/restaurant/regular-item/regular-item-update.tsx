@@ -36,6 +36,7 @@ import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import IngredientsPicker from 'app/shared/ingredients-picker';
+import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -681,6 +682,28 @@ export const RegularItemUpdate = () => {
     });
   };
 
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setRegularItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
   useEffect(() => {
     if (!isNew) return;
 
@@ -983,6 +1006,7 @@ export const RegularItemUpdate = () => {
                                             branchVariantDetails={variant.branchVariantDetails}
                                             itemVariantType={'RESTAURANT'}
                                             handleHideItemPerBranch={handleHideItemPerBranch}
+                                            handleSaveScheduledPrices={handleSaveScheduledPrices}
                                             variant={variant}
                                             setItem={setRegularItem}
                                           />
