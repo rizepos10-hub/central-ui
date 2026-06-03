@@ -7,8 +7,8 @@ import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { filterEntities, exportEntities, archiveEntities, unArchiveEntities, purgeEntities } from 'app/entities/addon/addon.reducer';
-import { getEntities } from 'app/entities/addon-groups/addon-groups.reducer';
-import { IAddonGroup } from "app/shared/model/ADDON/addon-groups.model";
+import { searchEntities as searchAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
+import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { IProfileGroup } from 'app/shared/model/TAX/profile-group.model';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 
@@ -51,6 +51,8 @@ const actionOptions = [
   { label: 'Export', value: 'EXPORT', disabled: false },
 ];
 
+const ADDON_GROUP_PAGE_SIZE = 20;
+
 export const Addon = () => {
   const dispatch = useAppDispatch();
 
@@ -60,7 +62,6 @@ export const Addon = () => {
   const addonList = useAppSelector(state => state.addon.entities);
   const loading = useAppSelector(state => state.addon.loading);
   const totalItems = useAppSelector(state => state.addon.totalItems);
-  const addonGroups = useAppSelector(state => state.addonGroups.entities);
   const loadingGroups = useAppSelector(state => state.addonGroups.loading);
   const [searchParam, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParam.get('query')) || initialState;
@@ -74,6 +75,10 @@ export const Addon = () => {
   // Search state
   const [nameSearch, setNameSearch] = useState(query?.filters?.name?.value || '');
   const [groupFilter, setGroupFilter] = useState(query?.filters?.groupId?.value || null);
+  const [groupOptions, setGroupOptions] = useState<{ id: string; label: string }[]>([]);
+  const [groupSearch, setGroupSearch] = useState('');
+  const [groupPage, setGroupPage] = useState(0);
+  const [groupHasMore, setGroupHasMore] = useState(true);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(query.page || 0);
@@ -104,13 +109,114 @@ export const Addon = () => {
   }, [searchParam, query?.rows]);
 
   useEffect(() => {
-    dispatch(
-      getEntities({
-        page: 0,
-        size: 100,
-      })
-    );
-  }, []);
+    let ignore = false;
+
+    const loadInitialAddonGroups = async () => {
+      try {
+        const response = await dispatch(
+          searchAddonGroups({
+            query: applyMatchModeMap({
+              page: 0,
+              size: ADDON_GROUP_PAGE_SIZE,
+              sortField: 'name',
+              sortOrder: 1,
+              filters: {
+                name: {
+                  value: groupSearch.trim() || null,
+                  matchMode: FilterMatchMode.CONTAINS,
+                },
+              },
+            }),
+          })
+        ).unwrap();
+
+        if (ignore) {
+          return;
+        }
+
+        const nextOptions = (Array.isArray(response.data) ? response.data : []).map(group => ({
+          id: group.id || '',
+          label: group.name || '',
+        }));
+        const totalCount = Number(response.headers?.['x-total-count']);
+
+        setGroupOptions(nextOptions.filter(option => option.id));
+        setGroupPage(0);
+        setGroupHasMore(
+          Number.isFinite(totalCount)
+            ? nextOptions.length < totalCount
+            : nextOptions.length === ADDON_GROUP_PAGE_SIZE
+        );
+      } catch (_error) {
+        if (!ignore) {
+          setGroupOptions([]);
+          setGroupPage(0);
+          setGroupHasMore(false);
+        }
+      }
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      loadInitialAddonGroups();
+    }, 300);
+
+    return () => {
+      ignore = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [dispatch, groupSearch]);
+
+  const loadMoreAddonGroups = async () => {
+    if (loadingGroups || !groupHasMore) {
+      return;
+    }
+
+    const nextPage = groupPage + 1;
+
+    try {
+      const previousCount = groupOptions.length;
+      const response = await dispatch(
+        searchAddonGroups({
+          query: applyMatchModeMap({
+            page: nextPage,
+            size: ADDON_GROUP_PAGE_SIZE,
+            sortField: 'name',
+            sortOrder: 1,
+            filters: {
+              name: {
+                value: groupSearch.trim() || null,
+                matchMode: FilterMatchMode.CONTAINS,
+              },
+            },
+          }),
+        })
+      ).unwrap();
+
+      const nextOptions = (Array.isArray(response.data) ? response.data : []).map(group => ({
+        id: group.id || '',
+        label: group.name || '',
+      }));
+      const totalCount = Number(response.headers?.['x-total-count']);
+
+      setGroupOptions(prevOptions => {
+        const optionMap = new Map(prevOptions.map(option => [option.id, option]));
+        nextOptions.forEach(option => {
+          if (option.id) {
+            optionMap.set(option.id, option);
+          }
+        });
+        return Array.from(optionMap.values());
+      });
+      setGroupPage(nextPage);
+      setGroupHasMore(
+        Number.isFinite(totalCount)
+          ? previousCount + nextOptions.length < totalCount
+          : nextOptions.length === ADDON_GROUP_PAGE_SIZE
+      );
+    } catch (_error) {
+      setGroupHasMore(false);
+    }
+  };
 
   // Export functionality
   useEffect(() => {
@@ -285,8 +391,7 @@ export const Addon = () => {
 
   const isSelected = (addon: IAddon) => selectedAddons.some(a => a.id === addon.id);
 
-  const addonGroupsOptions = addonGroups.map(grp => ({ id: grp.id, label: grp.name }));
-  const selectedGroupOption = addonGroupsOptions.find(opt => opt.id === groupFilter);
+  const selectedGroupOption = groupOptions.find(opt => opt.id === groupFilter) || null;
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -382,11 +487,17 @@ export const Addon = () => {
             <Select
               value={selectedGroupOption}
               onChange={handleGroupFilter}
-              options={addonGroupsOptions}
+              options={groupOptions}
               placeholder={translate("tempApp.addon.searchAddonGroups")}
               isClearable
               isLoading={loadingGroups}
               className="w-64"
+              onInputChange={(inputValue, actionMeta) => {
+                if (actionMeta.action === 'input-change') {
+                  setGroupSearch(inputValue);
+                }
+              }}
+              onMenuScrollToBottom={loadMoreAddonGroups}
             />
           </div>
 

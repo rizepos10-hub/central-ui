@@ -32,7 +32,7 @@ import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { ITill, TillStatus } from 'app/shared/model/till.model';
 import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitiesByStatusOpened } from '../settings/branch-registry/till/till.reducer';
-import { ArrowLeft, Loader2, Plus, RotateCcw, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { ArrowLeft, BadgePercent, CalendarDays, Loader2, MapPin, Plus, RotateCcw, Search, ShoppingCart, Store, Trash2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -2422,70 +2422,76 @@ const OrderCreate = () => {
                                 )}
                                 <div className="space-y-2">
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Order Method</Label>
+                                        <div className="flex items-center gap-2">
+                                            <Store className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                            <div className="flex-1">
+                                                <Select
+                                                    options={orderMethodOptions}
+                                                    value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
+                                                    onChange={(option) => {
+                                                        if (!option) {
+                                                            return;
+                                                        }
+                                                        dispatch(
+                                                            changeEntityField({
+                                                                name: 'orderMethod',
+                                                                value: option.value as any,
+                                                            })
+                                                        )
+                                                        localStorage.setItem(ORDER_METHOD, option.value)
+                                                    }}
+                                                    placeholder="Order method"
+                                                    className="text-xs"
+                                                    isDisabled={isSalesmanMode || shouldGateSalesman}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <BadgePercent className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                            <div className="flex-1">
+                                                {displayUserSelectionPricingPoint() ?? <div className="h-8" />}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                        <div className="flex-1">
                                             <Select
-                                                options={orderMethodOptions}
-                                                value={orderMethodOptions.find(option => option.value === orderEntity?.orderMethod) || null}
-                                                onChange={(option) => {
-                                                    if (!option) {
-                                                        return;
-                                                    }
-                                                    dispatch(
-                                                        changeEntityField({
-                                                            name: 'orderMethod',
-                                                            value: option.value as any,
-                                                        })
-                                                    )
-                                                    localStorage.setItem(ORDER_METHOD, option.value)
+                                                options={customerOptions}
+                                                value={
+                                                    customerOptions.find(option => option.value === orderEntity?.customer?.id)
+                                                    || (orderEntity?.customer?.id ? {
+                                                        value: orderEntity.customer.id,
+                                                        label: formatCustomerLabel(selectedCustomer),
+                                                    } : null)
+                                                }
+                                                onChange={(option: CustomerOption | null) => {
+                                                    setSelectedCustomerRecord(option?.customer ?? null);
+                                                    dispatch(changeEntityField({
+                                                        name: 'customer',
+                                                        value: option?.value ? { id: option.value } : null,
+                                                    }));
+                                                    dispatch(changeEntityField({
+                                                        name: 'deliverTo',
+                                                        value: null,
+                                                    }));
                                                 }}
-                                                placeholder="Order method"
-                                                className="text-xs"
-                                                isDisabled={isSalesmanMode || shouldGateSalesman}
+                                                onMenuOpen={() => {
+                                                    void loadCustomers(filterValue);
+                                                }}
+                                                onInputChange={handleCustomerInputChange}
+                                                components={{ MenuList: CustomerMenuList }}
+                                                placeholder="Customer"
+                                                className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
+                                                isClearable
+                                                isLoading={customerSearchLoading}
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Pricing Point</Label>
-                                            {displayUserSelectionPricingPoint() ?? <div className="h-8" />}
-                                        </div>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Customer</Label>
-                                        <Select
-                                            options={customerOptions}
-                                            value={
-                                                customerOptions.find(option => option.value === orderEntity?.customer?.id)
-                                                || (orderEntity?.customer?.id ? {
-                                                    value: orderEntity.customer.id,
-                                                    label: formatCustomerLabel(selectedCustomer),
-                                                } : null)
-                                            }
-                                            onChange={(option: CustomerOption | null) => {
-                                                setSelectedCustomerRecord(option?.customer ?? null);
-                                                dispatch(changeEntityField({
-                                                    name: 'customer',
-                                                    value: option?.value ? { id: option.value } : null,
-                                                }));
-                                                dispatch(changeEntityField({
-                                                    name: 'deliverTo',
-                                                    value: null,
-                                                }));
-                                            }}
-                                            onMenuOpen={() => {
-                                                void loadCustomers(filterValue);
-                                            }}
-                                            onInputChange={handleCustomerInputChange}
-                                            components={{ MenuList: CustomerMenuList }}
-                                            placeholder="Customer"
-                                            className={cn("text-xs", isSalesmanMode && missingCustomer ? "border-destructive" : undefined)}
-                                            isClearable
-                                            isLoading={customerSearchLoading}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Address</Label>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                                         <div className="flex items-center gap-1">
                                             <Select
                                                 options={deliveryAddressOptions}
@@ -2531,25 +2537,27 @@ const OrderCreate = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Date</Label>
-                                        <Input
-                                            ref={scheduledAtInputRef}
-                                            type="datetime-local"
-                                            value={scheduledAtLocal}
-                                            onClick={openScheduledAtPicker}
-                                            onFocus={openScheduledAtPicker}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setScheduledAtLocal(value);
-                                                dispatch(changeEntityField({
-                                                    name: 'scheduledAt',
-                                                    value: value ? toLocalISOString(new Date(value)) : null,
-                                                }));
-                                            }}
-                                            className={cn("h-8 text-xs", isSalesmanMode && missingSchedule ? "border-destructive" : undefined)}
-                                            placeholder="Schedule at"
-                                        />
+                                    <div className="flex items-center gap-2">
+                                        <CalendarDays className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                        <div className="flex-1">
+                                            <Input
+                                                ref={scheduledAtInputRef}
+                                                type="datetime-local"
+                                                value={scheduledAtLocal}
+                                                onClick={openScheduledAtPicker}
+                                                onFocus={openScheduledAtPicker}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setScheduledAtLocal(value);
+                                                    dispatch(changeEntityField({
+                                                        name: 'scheduledAt',
+                                                        value: value ? toLocalISOString(new Date(value)) : null,
+                                                    }));
+                                                }}
+                                                className={cn("h-8 text-xs", isSalesmanMode && missingSchedule ? "border-destructive" : undefined)}
+                                                placeholder="Schedule at"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

@@ -26,7 +26,6 @@ interface IInvoiceLine {
   discountText: string;
   netPrice: number;
   extPrice: number;
-  po: string;
   taxCode: string;
   isAddon: boolean;
 }
@@ -186,8 +185,7 @@ const PrintOrder = () => {
         discountText: discountMeta.text,
         netPrice,
         extPrice,
-        po: '-',
-        taxCode: toNumber(item.taxValue) > 0 ? 'T' : '-',
+        taxCode: toNumber(item.taxValue) > 0 ? 't' : 'n',
         isAddon: false,
       });
 
@@ -215,8 +213,7 @@ const PrintOrder = () => {
           discountText: addonDiscount.text,
           netPrice: addonNetPrice,
           extPrice: addonExtPrice,
-          po: '-',
-          taxCode: toNumber(addon.taxValue) > 0 ? 'T' : '-',
+          taxCode: toNumber(addon.taxValue) > 0 ? 't' : 'n',
           isAddon: true,
         });
       });
@@ -283,8 +280,6 @@ const PrintOrder = () => {
   ].filter(Boolean);
 
   const invoiceNumber = orderEntity?.sequenceNumber ? `${orderEntity.sequenceNumber}`.padStart(7, '0') : '-';
-  const poNumber = orderEntity?.id ? orderEntity.id.slice(-5).toUpperCase() : '-';
-
   return (
     <div>
       <div className={styles.printWrapper}>
@@ -332,10 +327,6 @@ const PrintOrder = () => {
                 <span className={styles.metaLabel}>TIME:</span>
                 <span>{formatInvoiceTime(orderEntity?.createdDate)}</span>
               </div>
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>PO#:</span>
-                <span>{poNumber}</span>
-              </div>
             </div>
           </div>
 
@@ -345,12 +336,11 @@ const PrintOrder = () => {
                 <th>QTY</th>
                 <th>ITEM #</th>
                 <th>DESCRIPTION</th>
-                <th>U/M</th>
-                <th className={styles.textRight}>PRICE</th>
-                <th className={styles.textRight}>DISCOUNT</th>
-                <th className={styles.textRight}>NET PRIC</th>
-                <th className={styles.textRight}>EXT PRIC</th>
-                <th className={styles.textCenter}>PO</th>
+                <th>UOM</th>
+                <th className={styles.textRight}>Net</th>
+                <th className={styles.textRight}>Disc.</th>
+                <th className={styles.textRight}>Net</th>
+                <th className={styles.textRight}>Price</th>
                 <th className={styles.textCenter}>TAX</th>
               </tr>
             </thead>
@@ -365,7 +355,6 @@ const PrintOrder = () => {
                   <td className={styles.textRight}>{row.discountText}</td>
                   <td className={styles.textRight}>{toCurrency(row.netPrice)}</td>
                   <td className={styles.textRight}>{toCurrency(row.extPrice)}</td>
-                  <td className={styles.textCenter}>{row.po}</td>
                   <td className={styles.textCenter}>{row.taxCode}</td>
                 </tr>
               ))}
