@@ -467,6 +467,12 @@ export const FlyerUpdate = () => {
 
     const entity: IFlyer = {
       ...flyer,
+      branch: flyer.branch
+        ? {
+            id: flyer.branch.id,
+            name: flyer.branch.name,
+          }
+        : null,
       schedule: {
         startAt: scheduleDraft.useDateRange ? toMidnightInstant(scheduleDraft.startAt) : null,
         endAt: scheduleDraft.useDateRange ? toMidnightInstant(scheduleDraft.endAt) : null,
