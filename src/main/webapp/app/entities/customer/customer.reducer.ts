@@ -4,6 +4,7 @@ import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } fr
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { ICustomer, defaultValue } from 'app/shared/model/CUSTOMER/customer.model';
+import { ICustomerPayByOnAccountRequest } from 'app/shared/model/customer-pay-by-on-account.model';
 
 const initialState: EntityState<ICustomer> = {
   loading: false,
@@ -94,6 +95,14 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const payByOnAccount = createAsyncThunk(
+  'customer/pay_by_on_account',
+  async ({ customerId, entity }: { customerId: string; entity: ICustomerPayByOnAccountRequest }) => {
+    return axios.post(`${apiUrl}/${customerId}/pay-by-on-account`, cleanEntity(entity));
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const assignCard = createAsyncThunk(
   'customer/assign_card',
   async ({ entity, cardRefNumber }: { entity: ICustomer, cardRefNumber: string }, thunkAPI) => {
@@ -147,6 +156,11 @@ export const CustomerSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
+      .addCase(payByOnAccount.fulfilled, state => {
+        state.updating = false;
+        state.loading = false;
+        state.updateSuccess = true;
+      })
       .addMatcher(isFulfilled(getEntities, searchEntities, searchCustomers), (state, action) => {
         const { data, headers } = action.payload;
 
@@ -168,7 +182,7 @@ export const CustomerSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, assignCard, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, assignCard, partialUpdateEntity, deleteEntity, payByOnAccount), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

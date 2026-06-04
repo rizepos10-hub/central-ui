@@ -6,6 +6,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
+import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -20,6 +21,7 @@ import {
   updatePrices,
   getPricesForCustomer,
   assignCard,
+  payByOnAccount,
 } from './customer.reducer';
 import { filterOrders } from 'app/entities/order/order.reducer';
 import Order from 'app/entities/order/order';
@@ -47,10 +49,13 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { ICustomerOnAccountAudit } from 'app/shared/model/customer-on-account-audit.model';
+import { ICustomerPayByOnAccountRequest } from 'app/shared/model/customer-pay-by-on-account.model';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { omitGlobalOnAccountFields } from './customer-on-account.utils';
+import CustomerPayOnAccountDialog from './components/CustomerPayOnAccountDialog';
+import { getCustomerOnAccountPaydownValidation } from './customer-pay-by-on-account.utils';
 
 export const CustomerUpdate = ({
   firstName,
@@ -95,6 +100,7 @@ export const CustomerUpdate = ({
   const [onAccountAuditsError, setOnAccountAuditsError] = useState<string | null>(null);
   const [onAccountAuditsDateRange, setOnAccountAuditsDateRange] = useState<DateRange | undefined>(undefined);
   const [appliedOnAccountAuditsDateRange, setAppliedOnAccountAuditsDateRange] = useState<{ fromDate: string; toDate: string } | null>(null);
+  const [payOnAccountOpen, setPayOnAccountOpen] = useState(false);
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
   const parseNumericField = (value: string) => {
@@ -117,6 +123,13 @@ export const CustomerUpdate = ({
   const getBranchOnAccountDebit = (branchId: string): IBranchOnAccountDebit => {
     return customerEntity?.branchOnAccountDebits?.[branchId] || { debitLimit: 0, debitUsed: 0 };
   };
+
+  const canOpenPayOnAccount =
+    !isNew &&
+    customerEntity?.onAccountEnabled === true &&
+    getCustomerOnAccountPaydownValidation({
+      customer: customerEntity,
+    }).payableBalance > 0;
 
   const handleBranchOnAccountDebitChange = (branchId: string, field: keyof IBranchOnAccountDebit, value: number) => {
     dispatch(
@@ -297,6 +310,27 @@ export const CustomerUpdate = ({
   const handleResetOnAccountAuditsFilter = async () => {
     setOnAccountAuditsDateRange(undefined);
     await loadOnAccountAudits();
+  };
+
+  const handlePayOnAccount = async (payload: ICustomerPayByOnAccountRequest) => {
+    if (!customerEntity?.id) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        payByOnAccount({
+          customerId: customerEntity.id,
+          entity: payload,
+        })
+      ).unwrap();
+      toast.success('On account payment recorded successfully.');
+      setPayOnAccountOpen(false);
+      dispatch(getEntity(customerEntity.id));
+      await loadOnAccountAudits(appliedOnAccountAuditsDateRange);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to record on account payment.');
+    }
   };
 
   const onAccountAuditsDateRangeLabel = useMemo(() => {
@@ -630,6 +664,17 @@ export const CustomerUpdate = ({
 
               <TabsContent value="on-account" className="space-y-3">
                 <div className="space-y-3 rounded-md">
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => setPayOnAccountOpen(true)}
+                      disabled={!canOpenPayOnAccount || updating}
+                    >
+                      Pay On Account
+                    </Button>
+                  </div>
                   <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2">
                     <Checkbox
                       id="customer-onAccountEnabled"
@@ -943,6 +988,14 @@ export const CustomerUpdate = ({
         customer={customerEntity}
         address={addressDialogOptions.address}
         onSaved={handleAddressSaved}
+      />
+
+      <CustomerPayOnAccountDialog
+        open={payOnAccountOpen}
+        onOpenChange={setPayOnAccountOpen}
+        customer={customerEntity}
+        submitting={updating}
+        onSubmit={handlePayOnAccount}
       />
 
       {/* Confirm Assign Card AlertDialog */}
