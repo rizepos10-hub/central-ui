@@ -5,13 +5,15 @@ import { CalendarIcon, Pencil, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
+import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity } from './customer.reducer';
+import { getEntity, payByOnAccount } from './customer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { ICustomerOnAccountAudit } from 'app/shared/model/customer-on-account-audit.model';
 import { ICustomerOrderPayment } from 'app/shared/model/customer-order-payment.model';
+import { ICustomerPayByOnAccountRequest } from 'app/shared/model/customer-pay-by-on-account.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { TransactionType } from 'app/shared/model/ENUMS/transaction-type.model';
+import CustomerPayOnAccountDialog from './components/CustomerPayOnAccountDialog';
+import { getCustomerOnAccountPaydownValidation } from './customer-pay-by-on-account.utils';
 
 const EmptyTabState = ({ title }: { title: string }) => (
   <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
@@ -45,6 +49,7 @@ export const CustomerDashboard = () => {
 
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const customerLoading = useAppSelector(state => state.customer.loading);
+  const customerUpdating = useAppSelector(state => state.customer.updating);
   const branchList = useAppSelector(state => state.branch.entities);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
@@ -56,6 +61,7 @@ export const CustomerDashboard = () => {
   const [previousSales, setPreviousSales] = useState<ICustomerOrderPayment[]>([]);
   const [previousSalesLoading, setPreviousSalesLoading] = useState(false);
   const [previousSalesError, setPreviousSalesError] = useState<string | null>(null);
+  const [payOnAccountOpen, setPayOnAccountOpen] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -224,6 +230,32 @@ export const CustomerDashboard = () => {
   const onAccountDebitLimit = customerEntity?.onAccountDebitLimit ?? 0;
   const onAccountDebitUsed = customerEntity?.onAccountDebitUsed ?? 0;
   const onAccountRemaining = onAccountDebitLimit - onAccountDebitUsed;
+  const canOpenPayOnAccount =
+    customerEntity?.onAccountEnabled === true &&
+    getCustomerOnAccountPaydownValidation({
+      customer: customerEntity,
+    }).payableBalance > 0;
+
+  const handlePayOnAccount = async (payload: ICustomerPayByOnAccountRequest) => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        payByOnAccount({
+          customerId: id,
+          entity: payload,
+        })
+      ).unwrap();
+      toast.success('On account payment recorded successfully.');
+      setPayOnAccountOpen(false);
+      dispatch(getEntity(id));
+      await loadOnAccountAudits(appliedOnAccountAuditsDateRange);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to record on account payment.');
+    }
+  };
 
   return (
     <PageWrapper>
@@ -327,6 +359,15 @@ export const CustomerDashboard = () => {
                       {appliedOnAccountAuditsDateRange ? 'Date filter applied' : 'Showing all audits'}
                     </div>
                     <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => setPayOnAccountOpen(true)}
+                        disabled={!canOpenPayOnAccount}
+                      >
+                        Pay On Account
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -513,6 +554,13 @@ export const CustomerDashboard = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <CustomerPayOnAccountDialog
+        open={payOnAccountOpen}
+        onOpenChange={setPayOnAccountOpen}
+        customer={customerEntity}
+        submitting={customerUpdating}
+        onSubmit={handlePayOnAccount}
+      />
     </PageWrapper>
   );
 };
