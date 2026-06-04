@@ -220,7 +220,7 @@ export const AddonGroups = () => {
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="w-12 p-2">
@@ -236,21 +236,25 @@ export const AddonGroups = () => {
                   />
                 </TableHead>
                 <TableHead 
-                  className="text-xs h-8 font-semibold p-2 cursor-pointer"
+                  className="w-56 text-xs h-8 font-semibold p-2 cursor-pointer"
                   onClick={() => handleSort('name')}
                 >
-                  {translate('common.name')}
-                  {getSortIcon('name')}
+                  <div className="flex items-center gap-1">
+                    <span>{translate('common.name')}</span>
+                    <span className="inline-flex w-3 justify-center">{getSortIcon('name')}</span>
+                  </div>
                 </TableHead>
                 <TableHead 
                   className="text-xs h-8 font-semibold p-2 cursor-pointer"
                   onClick={() => handleSort('addons.name')}
                 >
-                  {translate('tempApp.addon.addons')}
-                  {getSortIcon('addons.name')}
+                  <div className="flex items-center gap-1">
+                    <span>{translate('tempApp.addon.addons')}</span>
+                    <span className="inline-flex w-3 justify-center">{getSortIcon('addons.name')}</span>
+                  </div>
                 </TableHead>
                 <TableHead 
-                  className="text-xs h-8 font-semibold p-2 cursor-pointer"
+                  className="w-24 text-xs h-8 font-semibold p-2"
                 >
                   {translate('common.actions')}
                 </TableHead>
@@ -274,9 +278,9 @@ export const AddonGroups = () => {
                     className="h-8 text-xs"
                   />
                 </TableHead>
+                <TableHead className="p-1 w-56"></TableHead>
                 <TableHead className="p-1"></TableHead>
-                <TableHead className="p-1"></TableHead>
-                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1 w-24"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -316,10 +320,10 @@ export const AddonGroups = () => {
                           {addonGroup.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-xs p-2">
+                      <TableCell className="text-xs p-2 break-words">
                         {addonGroup.addons?.map(addon => addon?.name).join(" | ")}
                       </TableCell>
-                      <TableCell className="text-xs p-2">
+                      <TableCell className="text-xs p-2 w-24">
                         <div className="flex gap-1">
                           {!query?.filters?.isArchived?.value ? (
                             <>
