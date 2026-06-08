@@ -54,6 +54,11 @@ describe('Tookan settings reducer tests', () => {
     expect(state.entity.value.active).toBe(true);
     expect(state.entity.value.notify).toBe(true);
     expect(state.entity.value.deliveryConfiguration.zoneChargeRules).toEqual([]);
+    expect(state.entity.value.deliveryConfiguration.tookanBookingTaskSteps).toEqual({
+      goingToRestaurantEnabled: true,
+      pickedUpPackageEnabled: true,
+      deliveredToCustomerEnabled: true,
+    });
     expect(state.entity.hasApiKey).toBe(true);
   });
 
@@ -66,6 +71,22 @@ describe('Tookan settings reducer tests', () => {
 
     expect(normalized.deliveryConfiguration.zoneChargeRules).toEqual([{ zoneId: 'zone-1', charge: 12 }]);
     expect(normalized.deliveryConfiguration.definedChargeRules).toEqual([]);
+  });
+
+  it('should default missing Tookan booking task steps when normalizing settings', () => {
+    const normalized = normalizeTookanSettingValue({
+      deliveryConfiguration: {
+        tookanBookingTaskSteps: {
+          pickedUpPackageEnabled: false,
+        },
+      },
+    });
+
+    expect(normalized.deliveryConfiguration.tookanBookingTaskSteps).toEqual({
+      goingToRestaurantEnabled: true,
+      pickedUpPackageEnabled: false,
+      deliveredToCustomerEnabled: true,
+    });
   });
 
   it('should set teams and agents on successful fetch', () => {
