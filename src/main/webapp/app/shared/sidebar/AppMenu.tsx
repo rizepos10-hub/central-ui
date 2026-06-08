@@ -747,12 +747,12 @@ export const model: MenuItem[] = [
         to: '/on-account-settings',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      {
-        label: 'Tookan Delivery',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/tookan-settings',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
+      // {
+      //   label: 'Tookan Delivery',
+      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+      //   to: '/tookan-settings',
+      //   type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      // },
       {
         label: 'Kiosk Slides',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
