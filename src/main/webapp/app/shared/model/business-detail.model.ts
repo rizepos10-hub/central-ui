@@ -83,6 +83,7 @@ export interface IDeliveryConfiguration {
   zoneChargeRules: IZoneChargeRule[];
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
+  tookanBookingTaskSteps?: ITookanBookingTaskSteps | null;
 }
 
 export enum DeliveryPricingMode {
@@ -94,6 +95,12 @@ export enum DeliveryPricingMode {
 export enum DeliveryTaggingModeEnum {
   RESTRICTED = 'RESTRICTED',
   UNRESTRICTED = 'UNRESTRICTED',
+}
+
+export interface ITookanBookingTaskSteps {
+  goingToRestaurantEnabled: boolean;
+  pickedUpPackageEnabled: boolean;
+  deliveredToCustomerEnabled: boolean;
 }
 
 export interface IChargeRule {
