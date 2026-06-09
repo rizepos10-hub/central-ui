@@ -102,8 +102,8 @@ export const assignDriver = createAsyncThunk(
 
 export const getTookanTeams = createAsyncThunk(
     'order/getTookanTeams',
-    async (branchId: string) => {
-        const result = await axios.get<any[]>(`api/tookan/teams/${branchId}`);
+    async () => {
+        const result = await axios.get<any[]>('api/tookan/teams');
         return result;
     },
     { serializeError: serializeAxiosError }
@@ -111,9 +111,13 @@ export const getTookanTeams = createAsyncThunk(
 
 export const getTookanAgents = createAsyncThunk(
     'order/getTookanAgents',
-    async ({ branchId, teamId }: { branchId: string; teamId?: number | null }) => {
-        const query = teamId != null ? `?teamId=${teamId}` : '';
-        const result = await axios.get<any[]>(`api/tookan/agents/${branchId}${query}`);
+    async ({ teamId }: { teamId?: number | null }) => {
+        const params = new URLSearchParams();
+        if (teamId != null) {
+            params.set('teamId', String(teamId));
+        }
+        const query = params.toString();
+        const result = await axios.get<any[]>(query ? `api/tookan/agents?${query}` : 'api/tookan/agents');
         return result;
     },
     { serializeError: serializeAxiosError }

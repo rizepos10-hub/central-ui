@@ -1589,13 +1589,23 @@ export const Branches = () => {
                               <div className="grid gap-2">
                                 {tookanBookingTaskStepOptions.map(option => {
                                   const checkboxId = `tookan-task-step-${branchIndex}-${option.field}`;
+                                  const isDeliveredToCustomer = option.field === 'deliveredToCustomerEnabled';
                                   return (
                                     <div key={option.field} className="flex items-center gap-2 rounded-md border bg-background px-2 py-2">
                                       <Checkbox
                                         id={checkboxId}
-                                        checked={branch.deliveryConfiguration?.tookanBookingTaskSteps?.[option.field] ?? true}
+                                        checked={
+                                          isDeliveredToCustomer
+                                            ? true
+                                            : (branch.deliveryConfiguration?.tookanBookingTaskSteps?.[option.field] ?? true)
+                                        }
+                                        disabled={isDeliveredToCustomer}
                                         onCheckedChange={checked =>
-                                          handleDeliveryConfiguration(branchIndex, `tookanBookingTaskSteps.${option.field}`, !!checked)
+                                          handleDeliveryConfiguration(
+                                            branchIndex,
+                                            `tookanBookingTaskSteps.${option.field}`,
+                                            isDeliveredToCustomer ? true : !!checked
+                                          )
                                         }
                                       />
                                       <Label htmlFor={checkboxId} className="cursor-pointer text-xs font-medium leading-tight">
@@ -1619,13 +1629,13 @@ export const Branches = () => {
                         <CardDescription className="text-[11px]">Complete the delivery stack in a few clicks.</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2 text-xs">
-                        <Link
+                        {/* <Link
                           to="/tookan-settings"
                           className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"
                         >
                           Tookan integration
                           <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Link>
+                        </Link> */}
                         <Link
                           to="/service-charge"
                           className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"
