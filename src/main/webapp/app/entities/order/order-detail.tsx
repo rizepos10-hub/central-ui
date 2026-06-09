@@ -355,6 +355,18 @@ export const OrderDetail = () => {
     );
   }, [dispatch, id]);
 
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      dispatch(getEntity(id));
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [dispatch, id]);
+
 
   useEffect(() => {
     const newDataTableValues = [];
