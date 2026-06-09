@@ -326,11 +326,38 @@ describe('OrderDetail delivery provider source', () => {
     renderOrderDetail();
 
     await waitFor(() => {
-      expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith('branch-1');
+      expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith();
     });
 
-    expect(screen.getByText('Update Booking')).toBeTruthy();
-    expect(screen.getByText('Assign Tookan Driver')).toBeTruthy();
+    expect(screen.getByText('Update')).toBeTruthy();
+    expect(screen.getByText('Assign Driver')).toBeTruthy();
+  });
+
+  it('renders task-based order progress from integration details', () => {
+    mockState.order.entity.orderDeliveryDetails = {
+      integrationDetails: {
+        tasks: [
+          {
+            taskType: 'goingToRestaurant',
+            deliveryStatus: 'CREATED',
+            jobDescription: 'Heading to restaurant',
+          },
+          {
+            taskType: 'deliveredToCustomer',
+            deliveryStatus: 'DELIVERED',
+            jobDescription: "Delivered to customer's house",
+          },
+        ],
+      },
+    };
+
+    renderOrderDetail();
+
+    expect(screen.getByText('Order Progress')).toBeTruthy();
+    expect(screen.getByText('Going To Restaurant')).toBeTruthy();
+    expect(screen.getByText('Delivered To Customer')).toBeTruthy();
+    expect(screen.getByText('Pending')).toBeTruthy();
+    expect(screen.getByText('DELIVERED')).toBeTruthy();
   });
 
   it('does not show provider selection for booked orders', () => {
@@ -341,7 +368,7 @@ describe('OrderDetail delivery provider source', () => {
 
     renderOrderDetail();
 
-    expect(screen.getByText('Update Booking')).toBeTruthy();
+    expect(screen.getByText('Update')).toBeTruthy();
     expect(screen.queryByLabelText('Select provider')).toBeNull();
   });
 

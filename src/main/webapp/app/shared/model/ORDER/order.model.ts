@@ -95,6 +95,34 @@ export interface IOrderIntegrationDetails {
   deliveryHash?: string;
   teamId?: string;
   fleetId?: string;
+  tasks?: IOrderIntegrationTask[];
+}
+
+export enum OrderIntegrationTaskDeliveryStatus {
+  CREATED = 'CREATED',
+  ACCEPTED = 'ACCEPTED',
+  IN_DELIVERY = 'IN_DELIVERY',
+  ARRIVED = 'ARRIVED',
+  HANDED = 'HANDED',
+  DELIVERED = 'DELIVERED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface IOrderIntegrationTask {
+  taskType?: string;
+  jobId?: string;
+  jobToken?: string | null;
+  jobHash?: string;
+  jobStatus?: number | null;
+  deliveryStatus?: OrderIntegrationTaskDeliveryStatus | null;
+  fleetId?: string;
+  fleetName?: string | null;
+  trackingLink?: string | null;
+  jobDescription?: string | null;
+  pickupDate?: string | null;
+  deliveryDate?: string | null;
+  details?: Record<string, any>;
 }
 
 export const defaultValue: Readonly<IOrder> = {
