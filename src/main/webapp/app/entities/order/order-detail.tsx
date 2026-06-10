@@ -59,6 +59,29 @@ import {
 } from '@/components/ui/stepper';
 
 type TaskStepperState = 'active' | 'completed' | 'inactive';
+type DeliveryProgressTaskType = 'goingToRestaurant' | 'pickedUpPackage' | 'deliveredToCustomer';
+
+const DELIVERY_PROGRESS_TASKS: Array<{
+  taskType: DeliveryProgressTaskType;
+  title: string;
+  doneStatus: OrderIntegrationTaskDeliveryStatus;
+}> = [
+  {
+    taskType: 'goingToRestaurant',
+    title: 'Going To Restaurant',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.ARRIVED,
+  },
+  {
+    taskType: 'pickedUpPackage',
+    title: 'Picked Up Package',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.HANDED,
+  },
+  {
+    taskType: 'deliveredToCustomer',
+    title: 'Delivered To Customer',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.DELIVERED,
+  },
+];
 
 const prettifyTaskType = (taskType?: string | null) => {
   if (!taskType) {
@@ -80,15 +103,18 @@ const formatTaskBadge = (status?: OrderIntegrationTaskDeliveryStatus | null) => 
   return status;
 };
 
-const getTaskStepperState = (status?: OrderIntegrationTaskDeliveryStatus | null): TaskStepperState => {
+const getTaskStepperState = (
+  status?: OrderIntegrationTaskDeliveryStatus | null,
+  doneStatus?: OrderIntegrationTaskDeliveryStatus
+): TaskStepperState => {
   switch (status) {
-    case OrderIntegrationTaskDeliveryStatus.DELIVERED:
+    case doneStatus:
       return 'completed';
-    case OrderIntegrationTaskDeliveryStatus.ACCEPTED:
     case OrderIntegrationTaskDeliveryStatus.IN_DELIVERY:
     case OrderIntegrationTaskDeliveryStatus.ARRIVED:
     case OrderIntegrationTaskDeliveryStatus.HANDED:
       return 'active';
+    case OrderIntegrationTaskDeliveryStatus.ACCEPTED:
     case OrderIntegrationTaskDeliveryStatus.CREATED:
     case OrderIntegrationTaskDeliveryStatus.FAILED:
     case OrderIntegrationTaskDeliveryStatus.CANCELLED:
@@ -97,12 +123,12 @@ const getTaskStepperState = (status?: OrderIntegrationTaskDeliveryStatus | null)
   }
 };
 
-const getTaskSupportText = (task: IOrderIntegrationTask) => {
+const getTaskSupportText = (task: IOrderIntegrationTask, fallbackTitle?: string) => {
   if (task.jobDescription?.trim()) {
     return task.jobDescription.trim();
   }
 
-  return `${prettifyTaskType(task.taskType)} task`;
+  return `${fallbackTitle || prettifyTaskType(task.taskType)} task`;
 };
 
 const getTaskIcon = (state: TaskStepperState) => {
@@ -130,31 +156,36 @@ const getBadgeClasses = (state: TaskStepperState) => {
 
 const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | null }) => {
   const normalizedTasks = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
-  const activeIndex = normalizedTasks.findIndex(task => getTaskStepperState(task.deliveryStatus) === 'active');
-  const currentStep = activeIndex >= 0 ? activeIndex + 1 : 1;
 
   if (normalizedTasks.length === 0) {
-    return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">Order Progress</h2>
-            <p className="text-sm text-slate-500">Task milestones will appear here once delivery tasks are available.</p>
-          </div>
-        </div>
-        <div className="mt-4 rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-500">
-          No delivery tasks available yet.
-        </div>
-      </div>
-    );
+    return null;
   }
+
+  const stepTasks = DELIVERY_PROGRESS_TASKS.map(taskConfig => {
+    const task = normalizedTasks.find(candidate => candidate?.taskType === taskConfig.taskType);
+    const taskState = getTaskStepperState(task?.deliveryStatus, taskConfig.doneStatus);
+
+    return {
+      ...taskConfig,
+      badgeText: formatTaskBadge(task?.deliveryStatus),
+      supportText: task
+        ? getTaskSupportText(task, taskConfig.title)
+        : `${taskConfig.title} task`,
+      taskState,
+      task,
+    };
+  });
+
+  const activeIndex = stepTasks.findIndex(task => task.taskState === 'active');
+  const completedCount = stepTasks.filter(task => task.taskState === 'completed').length;
+  const currentStep = activeIndex >= 0 ? activeIndex + 1 : Math.min(completedCount + 1, stepTasks.length);
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Order Progress</h2>
-          <p className="text-sm text-slate-500">Live delivery task milestones from the provider integration.</p>
+          <h2 className="text-lg font-semibold text-slate-900">Delivery Progress</h2>
+          <p className="text-sm text-slate-500">Live delivery milestones from the provider integration.</p>
         </div>
       </div>
 
@@ -166,18 +197,13 @@ const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | nul
         }}
         className="w-full space-y-4"
       >
-        <StepperNav className="gap-3">
-          {normalizedTasks.map((task, index) => {
-            const taskState = getTaskStepperState(task.deliveryStatus);
-            const badgeText = formatTaskBadge(task.deliveryStatus);
-            const stepTitle = prettifyTaskType(task.taskType);
-            const stepSummary = getTaskSupportText(task);
-
+        <StepperNav className="justify-center gap-3">
+          {stepTasks.map((task, index) => {
             return (
               <StepperItem
-                key={`${task.jobId ?? 'task'}-${index}`}
+                key={task.taskType}
                 step={index + 1}
-                state={taskState}
+                state={task.taskState}
                 className="relative flex-1 items-start"
               >
                 <StepperTrigger
@@ -185,30 +211,30 @@ const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | nul
                   asChild
                 >
                   <StepperIndicator className="size-8 border-2 data-[state=inactive]:border-slate-200 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
-                    {getTaskIcon(taskState)}
+                    {getTaskIcon(task.taskState)}
                   </StepperIndicator>
                   <div className="flex flex-col items-start gap-1">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                       Step {index + 1}
                     </div>
                     <StepperTitle className="text-start text-sm font-semibold text-slate-900 group-data-[state=inactive]/step:text-slate-500">
-                      {stepTitle}
+                      {task.title}
                     </StepperTitle>
                     <div className="text-[11px] leading-relaxed text-slate-500">
-                      {stepSummary}
+                      {task.supportText}
                     </div>
                     <div>
                       <Badge
-                        variant={taskState === 'inactive' ? 'outline' : 'secondary'}
-                        className={getBadgeClasses(taskState)}
+                        variant={task.taskState === 'inactive' ? 'outline' : 'secondary'}
+                        className={getBadgeClasses(task.taskState)}
                       >
-                        {badgeText}
+                        {task.badgeText}
                       </Badge>
                     </div>
                   </div>
                 </StepperTrigger>
 
-                {normalizedTasks.length > index + 1 && (
+                {stepTasks.length > index + 1 && (
                   <StepperSeparator className="absolute inset-x-0 start-9 top-4 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none group-data-[state=completed]/step:bg-emerald-500" />
                 )}
               </StepperItem>
@@ -217,13 +243,13 @@ const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | nul
         </StepperNav>
 
         <StepperPanel className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500">
-          {normalizedTasks.map((task, index) => (
+          {stepTasks.map((task, index) => (
             <StepperContent
-              key={`${task.jobId ?? 'task'}-content-${index}`}
+              key={`${task.taskType}-content`}
               value={index + 1}
               className="flex items-center justify-start"
             >
-              {getTaskSupportText(task)}
+              {task.supportText}
             </StepperContent>
           ))}
         </StepperPanel>
@@ -276,6 +302,7 @@ export const OrderDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [hasLoadedInitialOrder, setHasLoadedInitialOrder] = useState(false);
   const orderProviderCode = orderEntity.orderDeliveryDetails?.deliveryProviderCode as 'ICABBI' | 'TOOKAN' | undefined;
   const canEditOrder = !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED;
   const canManageProcessingStatus = !orderEntity?.refund;
@@ -346,6 +373,7 @@ export const OrderDetail = () => {
   }, [dispatch, isTookanBooking, selectedTeamId]);
 
   useEffect(() => {
+    setHasLoadedInitialOrder(false);
     dispatch(getEntity(id));
     dispatch(getUiSettings());
     dispatch(
@@ -366,6 +394,12 @@ export const OrderDetail = () => {
 
     return () => window.clearInterval(intervalId);
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (!loading && orderEntity?.id) {
+      setHasLoadedInitialOrder(true);
+    }
+  }, [loading, orderEntity?.id]);
 
 
   useEffect(() => {
@@ -677,7 +711,7 @@ export const OrderDetail = () => {
     { label: 'Discount', value: `- ${orderEntity?.totalDiscount || '0.00'}`, valueClassName: 'text-red-600' },
   ];
 
-  if (loading) {
+  if (loading && !hasLoadedInitialOrder) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
