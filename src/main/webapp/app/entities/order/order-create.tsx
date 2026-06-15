@@ -2577,23 +2577,26 @@ const OrderCreate = () => {
                                     {orderEntity?.items?.map((product, idx) => {
                                         const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
                                         const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
+                                        const grandTotal = product.grandTotal ?? itemPriceCalculations?.[product.cartId]?.grandTotal;
                                         const byWeight = productById.get(product.itemId)?.byWeight;
                                         const derivedPriceMeta = getItemPriceDisplayMeta(product);
                                         const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
                                         const inputUnitPrice = product.priceOverridden
                                             ? (product.price ?? '')
                                             : (product.price ?? derivedPriceMeta.originalPrice ?? '');
+                                        const inputDisplayedPrice =
+                                            inputUnitPrice === '' || inputUnitPrice == null
+                                                ? null
+                                                : Number(inputUnitPrice);
                                         const effectiveUnitPrice = product.priceOverridden
                                             ? (product.price ?? 0)
                                             : (derivedPriceMeta.effectivePrice ?? product.price ?? 0);
                                         const amountTotal = effectiveUnitPrice * qtyDisplay;
-                                        const originalUnitPrice = product.priceOverridden
-                                            ? product.priceBeforeDiscount ?? null
-                                            : derivedPriceMeta.originalPrice ?? product.price ?? null;
-                                        const showDiscountedUnitPrice =
-                                            originalUnitPrice != null &&
-                                            effectiveUnitPrice != null &&
-                                            originalUnitPrice > effectiveUnitPrice;
+                                        const displayAmount = grandTotal ?? amountTotal;
+                                        const showCalculatedGrandTotal =
+                                            inputDisplayedPrice != null &&
+                                            Number.isFinite(inputDisplayedPrice) &&
+                                            Math.abs(displayAmount - inputDisplayedPrice) > 0.0001;
 
                                         return (
                                         <AccordionItem
@@ -2614,15 +2617,15 @@ const OrderCreate = () => {
                                                     <div className="text-right font-semibold">
                                                         {itemPriceLoading?.[product.cartId] ? (
                                                             <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
-                                                        ) : showDiscountedUnitPrice ? (
+                                                        ) : showCalculatedGrandTotal ? (
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <span className="text-[11px] font-normal text-muted-foreground line-through">
-                                                                    ${originalUnitPrice.toFixed(2)}
+                                                                    ${inputDisplayedPrice.toFixed(2)}
                                                                 </span>
-                                                                <span>${effectiveUnitPrice.toFixed(2)}</span>
+                                                                <span>${displayAmount.toFixed(2)}</span>
                                                             </div>
                                                         ) : (
-                                                            `$${amountTotal.toFixed(2)}`
+                                                            `$${displayAmount.toFixed(2)}`
                                                         )}
                                                     </div>
                                                     <Button

@@ -20,9 +20,9 @@
     --accent: 204.0000 93.7500% 93.7255%;
     --accent-foreground: 224.4444 64.2857% 32.9412%;
     --destructive: 0 84.2365% 60.1961%;
-    --destructive-foreground: 0 0% 100%;
-    --warning: 32 95% 52%;
-    --warning-foreground: 20 90% 22%;
+    --destructive-foreground: var(--color-red-800);
+    --warning: var(--color-yellow-500);
+    --warning-foreground: var(--color-yellow-900);
     --border: 220 13.0435% 90.9804%;
     --input: 220 13.0435% 70.9804%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -60,6 +60,12 @@
     --tracking-normal: 0em;
     --spacing: 0.25rem;
     --sidebar-background: 220 16% 96%;
+    --success: var(--color-emerald-500);
+    --success-foreground: var(--color-emerald-900);
+    --info: var(--color-violet-500);
+    --info-foreground: var(--color-violet-900);
+    --invert: var(--color-zinc-900);
+    --invert-foreground: var(--color-zinc-50);
   }
   
   .dark {
@@ -78,9 +84,9 @@
     --accent: 224.4444 64.2857% 32.9412%;
     --accent-foreground: 213.3333 96.9231% 87.2549%;
     --destructive: 0 84.2365% 60.1961%;
-    --destructive-foreground: 0 0% 100%;
-    --warning: 33 100% 58%;
-    --warning-foreground: 34 100% 90%;
+    --destructive-foreground: var(--color-red-600);
+    --warning: var(--color-yellow-500);
+    --warning-foreground: var(--color-yellow-600);
     --border: 0 0% 25.0980%;
     --input: 0 0% 25.0980%;
     --ring: 217.2193 91.2195% 59.8039%;
@@ -116,6 +122,12 @@
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
     --sidebar-background: 240 5.9% 10%;
+    --success: var(--color-emerald-500);
+    --success-foreground: var(--color-emerald-600);
+    --info: var(--color-violet-500);
+    --info-foreground: var(--color-violet-600);
+    --invert: var(--color-zinc-700);
+    --invert-foreground: var(--color-zinc-50);
   }
 
   * {

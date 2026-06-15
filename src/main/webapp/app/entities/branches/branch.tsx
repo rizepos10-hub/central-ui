@@ -3,15 +3,13 @@ import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallba
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
 import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
-  IBusinessDetail,
   DeliveryPricingMode,
   Metric,
   UnitCostCalculationMode,
   dayTypeEnum,
-  IBranchDetails,
   DeliveryTaggingModeEnum,
-  IDeliveryConfiguration,
 } from 'app/shared/model/business-detail.model';
+import type { IBusinessDetail, IBranchDetails, IDeliveryConfiguration, ITookanBookingTaskSteps } from 'app/shared/model/business-detail.model';
 import { RequestType, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
@@ -50,6 +48,18 @@ const deliveryPricingModeLabels: Record<DeliveryPricingMode, string> = {
   [DeliveryPricingMode.DISTANCE_BAND_RULE]: 'Distance band rule',
   [DeliveryPricingMode.ZONE_RULE]: 'Zone rule',
 };
+
+const defaultTookanBookingTaskSteps = (): ITookanBookingTaskSteps => ({
+  goingToRestaurantEnabled: true,
+  pickedUpPackageEnabled: true,
+  deliveredToCustomerEnabled: true,
+});
+
+const tookanBookingTaskStepOptions: { field: keyof ITookanBookingTaskSteps; label: string }[] = [
+  { field: 'goingToRestaurantEnabled', label: 'Going to restaurant' },
+  { field: 'pickedUpPackageEnabled', label: 'Picked up package' },
+  { field: 'deliveredToCustomerEnabled', label: 'Delivered to customer' },
+];
 
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
@@ -107,6 +117,16 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
   } else {
     lines.push({ label: 'Free delivery', value: 'Off' });
   }
+
+  const tookanBookingTaskSteps = {
+    ...defaultTookanBookingTaskSteps(),
+    ...(dc.tookanBookingTaskSteps ?? {}),
+  };
+  const enabledTaskStepCount = tookanBookingTaskStepOptions.filter(option => tookanBookingTaskSteps[option.field]).length;
+  lines.push({
+    label: 'Tookan task steps',
+    value: `${enabledTaskStepCount}/${tookanBookingTaskStepOptions.length} enabled`,
+  });
 
   return lines;
 }
@@ -469,7 +489,40 @@ export const Branches = () => {
     zoneChargeRules: [],
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
     defaultBookingLeadMinutes: null,
+    tookanBookingTaskSteps: defaultTookanBookingTaskSteps(),
   });
+
+  const withDeliveryConfigurationDefaults = (deliveryConfiguration?: IDeliveryConfiguration | null) => {
+    if (!deliveryConfiguration) {
+      return null;
+    }
+    const defaults = defaultDeliveryConfiguration();
+
+    return {
+      ...defaults,
+      ...deliveryConfiguration,
+      chargePerDistance: {
+        ...defaults.chargePerDistance,
+        ...(deliveryConfiguration.chargePerDistance ?? {}),
+        distance: {
+          ...defaults.chargePerDistance.distance,
+          ...(deliveryConfiguration.chargePerDistance?.distance ?? {}),
+        },
+      },
+      shipmentRange: {
+        ...defaults.shipmentRange,
+        ...(deliveryConfiguration.shipmentRange ?? {}),
+      },
+      definedChargeRules: Array.isArray(deliveryConfiguration.definedChargeRules) ? deliveryConfiguration.definedChargeRules : [],
+      zoneChargeRules: Array.isArray(deliveryConfiguration.zoneChargeRules) ? deliveryConfiguration.zoneChargeRules : [],
+      deliveryTaggingMode: deliveryConfiguration.deliveryTaggingMode ?? DeliveryTaggingModeEnum.UNRESTRICTED,
+      defaultBookingLeadMinutes: deliveryConfiguration.defaultBookingLeadMinutes ?? null,
+      tookanBookingTaskSteps: {
+        ...defaultTookanBookingTaskSteps(),
+        ...(deliveryConfiguration.tookanBookingTaskSteps ?? {}),
+      },
+    };
+  };
 
   const handleDeliveryConfiguration = (branchIndex, field, value) => {
     setBusinessDetailsState(prevState => {
@@ -552,7 +605,10 @@ export const Branches = () => {
   const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
-      branchDetails: businessDetailsState?.branchDetails,
+      branchDetails: businessDetailsState?.branchDetails?.map(branch => ({
+        ...branch,
+        deliveryConfiguration: withDeliveryConfigurationDefaults(branch.deliveryConfiguration),
+      })),
     };
 
     if (isNew) {
@@ -1149,31 +1205,6 @@ export const Branches = () => {
                           />
                           <p className="text-[10px] text-muted-foreground">Applied as a floor when calculating delivery cost.</p>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-xs font-medium">Default booking lead minutes</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            placeholder="e.g. 15"
-                            value={
-                              branch.deliveryConfiguration?.defaultBookingLeadMinutes != null
-                                ? String(branch.deliveryConfiguration.defaultBookingLeadMinutes)
-                                : ''
-                            }
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              if (raw === '') {
-                                handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', null);
-                                return;
-                              }
-                              handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', Number(raw));
-                            }}
-                            className="h-8 text-xs"
-                          />
-                          <p className="text-[10px] text-muted-foreground">
-                            Leave empty to keep this unset, or provide the default lead time in minutes for branch bookings.
-                          </p>
-                        </div>
                         <div className="flex flex-col gap-1 rounded-md border border-dashed bg-muted/5 p-3">
                           <Label className="text-xs font-medium">Free delivery threshold (order subtotal)</Label>
                           <Input
@@ -1523,6 +1554,69 @@ export const Branches = () => {
                               </ShadSelect>
                             </dd>
                           </div>
+                          <div className="rounded-md border bg-muted/20 px-3 py-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Default booking lead minutes
+                            </dt>
+                            <dd className="mt-2 space-y-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder="e.g. 15"
+                                value={
+                                  branch.deliveryConfiguration?.defaultBookingLeadMinutes != null
+                                    ? String(branch.deliveryConfiguration.defaultBookingLeadMinutes)
+                                    : ''
+                                }
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                    handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', null);
+                                    return;
+                                  }
+                                  handleDeliveryConfiguration(branchIndex, 'defaultBookingLeadMinutes', Number(raw));
+                                }}
+                                className="h-8 text-xs bg-background"
+                              />
+                              <p className="text-[10px] text-muted-foreground">
+                                Leave empty to keep this unset, or provide the default lead time in minutes for branch bookings.
+                              </p>
+                            </dd>
+                          </div>
+                          <div className="rounded-md border bg-muted/20 px-3 py-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tookan booking task steps</dt>
+                            <dd className="mt-2">
+                              <div className="grid gap-2">
+                                {tookanBookingTaskStepOptions.map(option => {
+                                  const checkboxId = `tookan-task-step-${branchIndex}-${option.field}`;
+                                  const isDeliveredToCustomer = option.field === 'deliveredToCustomerEnabled';
+                                  return (
+                                    <div key={option.field} className="flex items-center gap-2 rounded-md border bg-background px-2 py-2">
+                                      <Checkbox
+                                        id={checkboxId}
+                                        checked={
+                                          isDeliveredToCustomer
+                                            ? true
+                                            : (branch.deliveryConfiguration?.tookanBookingTaskSteps?.[option.field] ?? true)
+                                        }
+                                        disabled={isDeliveredToCustomer}
+                                        onCheckedChange={checked =>
+                                          handleDeliveryConfiguration(
+                                            branchIndex,
+                                            `tookanBookingTaskSteps.${option.field}`,
+                                            isDeliveredToCustomer ? true : !!checked
+                                          )
+                                        }
+                                      />
+                                      <Label htmlFor={checkboxId} className="cursor-pointer text-xs font-medium leading-tight">
+                                        {option.label}
+                                      </Label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </dd>
+                          </div>
                         </dl>
                       </CardContent>
                     </Card>
@@ -1535,13 +1629,13 @@ export const Branches = () => {
                         <CardDescription className="text-[11px]">Complete the delivery stack in a few clicks.</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2 text-xs">
-                        <Link
+                        {/* <Link
                           to="/tookan-settings"
                           className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"
                         >
                           Tookan integration
                           <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Link>
+                        </Link> */}
                         <Link
                           to="/service-charge"
                           className="flex items-center justify-between rounded-md border bg-card px-3 py-2 font-medium hover:bg-muted/50 transition-colors"

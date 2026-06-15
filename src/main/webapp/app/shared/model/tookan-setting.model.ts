@@ -27,14 +27,22 @@ export interface IZoneChargeRule {
   charge?: number;
 }
 
+export interface ITookanBookingTaskSteps {
+  goingToRestaurantEnabled?: boolean;
+  pickedUpPackageEnabled?: boolean;
+  deliveredToCustomerEnabled?: boolean;
+}
+
 export interface IDeliveryConfiguration {
   definedChargeRules?: IDefinedChargeRule[];
   zoneChargeRules?: IZoneChargeRule[];
   deliveryTaggingMode?: DeliveryTaggingMode;
+  defaultBookingLeadMinutes?: number | null;
+  tookanBookingTaskSteps?: ITookanBookingTaskSteps;
   chargePerDistance?: IDistanceCharge;
   shipmentRange?: IDistance;
   minCharge?: number;
-  freeOnAmount?: number;
+  freeOnAmount?: number | null;
 }
 
 export interface ISubtotalCondition {
@@ -87,10 +95,18 @@ export interface ITookanSettingResponse {
   value?: ITookanSettingValue;
 }
 
+export const defaultTookanBookingTaskSteps: Readonly<ITookanBookingTaskSteps> = {
+  goingToRestaurantEnabled: true,
+  pickedUpPackageEnabled: true,
+  deliveredToCustomerEnabled: true,
+};
+
 export const defaultDeliveryConfiguration: Readonly<IDeliveryConfiguration> = {
   definedChargeRules: [],
   zoneChargeRules: [],
   deliveryTaggingMode: 'UNRESTRICTED',
+  defaultBookingLeadMinutes: undefined,
+  tookanBookingTaskSteps: defaultTookanBookingTaskSteps,
   chargePerDistance: undefined,
   shipmentRange: undefined,
   minCharge: undefined,
@@ -103,7 +119,12 @@ export const defaultTookanSettingValue: Readonly<ITookanSettingValue> = {
   notify: true,
   geofence: false,
   trackingLink: true,
-  deliveryConfiguration: { ...defaultDeliveryConfiguration, definedChargeRules: [], zoneChargeRules: [] },
+  deliveryConfiguration: {
+    ...defaultDeliveryConfiguration,
+    definedChargeRules: [],
+    zoneChargeRules: [],
+    tookanBookingTaskSteps: { ...defaultTookanBookingTaskSteps },
+  },
   chargeCalculationSetting: {},
 };
 
@@ -122,6 +143,10 @@ function normalizeDeliveryConfiguration(dc?: IDeliveryConfiguration | null): IDe
     definedChargeRules: Array.isArray(rules) ? rules.map(r => ({ ...r })) : [],
     zoneChargeRules: Array.isArray(zoneRules) ? zoneRules.map(r => ({ ...r })) : [],
     deliveryTaggingMode: dc?.deliveryTaggingMode ?? 'UNRESTRICTED',
+    tookanBookingTaskSteps: {
+      ...defaultTookanBookingTaskSteps,
+      ...(dc?.tookanBookingTaskSteps || {}),
+    },
   };
 }
 

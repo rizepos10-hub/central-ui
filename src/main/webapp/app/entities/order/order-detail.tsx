@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy } from 'lucide-react';
+import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy, CheckIcon, LoaderCircleIcon, LockIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import Select from 'app/shared/components/select/select';
 import OrderedItems from './ordered-items';
-import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { IOrder, IOrderIntegrationTask, OrderIntegrationTaskDeliveryStatus } from 'app/shared/model/ORDER/order.model';
 import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
@@ -46,6 +46,217 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
 import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
+import {
+  Stepper,
+  StepperContent,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperPanel,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from '@/components/ui/stepper';
+
+type TaskStepperState = 'active' | 'completed' | 'inactive';
+type DeliveryProgressTaskType = 'goingToRestaurant' | 'pickedUpPackage' | 'deliveredToCustomer';
+
+const DELIVERY_PROGRESS_TASKS: Array<{
+  taskType: DeliveryProgressTaskType;
+  title: string;
+  doneStatus: OrderIntegrationTaskDeliveryStatus;
+}> = [
+  {
+    taskType: 'goingToRestaurant',
+    title: 'Going To Restaurant',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.ARRIVED,
+  },
+  {
+    taskType: 'pickedUpPackage',
+    title: 'Picked Up Package',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.HANDED,
+  },
+  {
+    taskType: 'deliveredToCustomer',
+    title: 'Delivered To Customer',
+    doneStatus: OrderIntegrationTaskDeliveryStatus.DELIVERED,
+  },
+];
+
+const prettifyTaskType = (taskType?: string | null) => {
+  if (!taskType) {
+    return 'Unnamed Task';
+  }
+
+  return taskType
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+};
+
+const formatTaskBadge = (status?: OrderIntegrationTaskDeliveryStatus | null) => {
+  if (!status || status === OrderIntegrationTaskDeliveryStatus.CREATED) {
+    return 'Pending';
+  }
+
+  return status;
+};
+
+const getTaskStepperState = (
+  status?: OrderIntegrationTaskDeliveryStatus | null,
+  doneStatus?: OrderIntegrationTaskDeliveryStatus
+): TaskStepperState => {
+  switch (status) {
+    case doneStatus:
+      return 'completed';
+    case OrderIntegrationTaskDeliveryStatus.IN_DELIVERY:
+    case OrderIntegrationTaskDeliveryStatus.ARRIVED:
+    case OrderIntegrationTaskDeliveryStatus.HANDED:
+      return 'active';
+    case OrderIntegrationTaskDeliveryStatus.ACCEPTED:
+    case OrderIntegrationTaskDeliveryStatus.CREATED:
+    case OrderIntegrationTaskDeliveryStatus.FAILED:
+    case OrderIntegrationTaskDeliveryStatus.CANCELLED:
+    default:
+      return 'inactive';
+  }
+};
+
+const getTaskSupportText = (task: IOrderIntegrationTask, fallbackTitle?: string) => {
+  if (task.jobDescription?.trim()) {
+    return task.jobDescription.trim();
+  }
+
+  return `${fallbackTitle || prettifyTaskType(task.taskType)} task`;
+};
+
+const getTaskIcon = (state: TaskStepperState) => {
+  if (state === 'completed') {
+    return <CheckIcon className="size-4" />;
+  }
+
+  if (state === 'active') {
+    return <LoaderCircleIcon className="size-4 animate-spin" />;
+  }
+
+  return <LockIcon className="size-4" />;
+};
+
+const getBadgeClasses = (state: TaskStepperState) => {
+  switch (state) {
+    case 'completed':
+      return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
+    case 'active':
+      return 'bg-sky-100 text-sky-700 hover:bg-sky-100';
+    default:
+      return 'border-slate-200 text-slate-500';
+  }
+};
+
+const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | null }) => {
+  const normalizedTasks = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
+
+  if (normalizedTasks.length === 0) {
+    return null;
+  }
+
+  const stepTasks = DELIVERY_PROGRESS_TASKS.map(taskConfig => {
+    const task = normalizedTasks.find(candidate => candidate?.taskType === taskConfig.taskType);
+    const taskState = getTaskStepperState(task?.deliveryStatus, taskConfig.doneStatus);
+
+    return {
+      ...taskConfig,
+      badgeText: formatTaskBadge(task?.deliveryStatus),
+      supportText: task
+        ? getTaskSupportText(task, taskConfig.title)
+        : `${taskConfig.title} task`,
+      taskState,
+      task,
+    };
+  });
+
+  const activeIndex = stepTasks.findIndex(task => task.taskState === 'active');
+  const completedCount = stepTasks.filter(task => task.taskState === 'completed').length;
+  const currentStep = activeIndex >= 0 ? activeIndex + 1 : Math.min(completedCount + 1, stepTasks.length);
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Delivery Progress</h2>
+          <p className="text-sm text-slate-500">Live delivery milestones from the provider integration.</p>
+        </div>
+      </div>
+
+      <Stepper
+        value={currentStep}
+        indicators={{
+          completed: <CheckIcon className="size-3.5" />,
+          loading: <LoaderCircleIcon className="size-3.5 animate-spin" />,
+        }}
+        className="w-full space-y-4"
+      >
+        <StepperNav className="justify-center gap-3">
+          {stepTasks.map((task, index) => {
+            return (
+              <StepperItem
+                key={task.taskType}
+                step={index + 1}
+                state={task.taskState}
+                className="relative flex-1 items-start"
+              >
+                <StepperTrigger
+                  className="flex grow flex-col items-start justify-center gap-2.5"
+                  asChild
+                >
+                  <StepperIndicator className="size-8 border-2 data-[state=inactive]:border-slate-200 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
+                    {getTaskIcon(task.taskState)}
+                  </StepperIndicator>
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                      Step {index + 1}
+                    </div>
+                    <StepperTitle className="text-start text-sm font-semibold text-slate-900 group-data-[state=inactive]/step:text-slate-500">
+                      {task.title}
+                    </StepperTitle>
+                    <div className="text-[11px] leading-relaxed text-slate-500">
+                      {task.supportText}
+                    </div>
+                    <div>
+                      <Badge
+                        variant={task.taskState === 'inactive' ? 'outline' : 'secondary'}
+                        className={getBadgeClasses(task.taskState)}
+                      >
+                        {task.badgeText}
+                      </Badge>
+                    </div>
+                  </div>
+                </StepperTrigger>
+
+                {stepTasks.length > index + 1 && (
+                  <StepperSeparator className="absolute inset-x-0 start-9 top-4 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none group-data-[state=completed]/step:bg-emerald-500" />
+                )}
+              </StepperItem>
+            );
+          })}
+        </StepperNav>
+
+        <StepperPanel className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+          {stepTasks.map((task, index) => (
+            <StepperContent
+              key={`${task.taskType}-content`}
+              value={index + 1}
+              className="flex items-center justify-start"
+            >
+              {task.supportText}
+            </StepperContent>
+          ))}
+        </StepperPanel>
+      </Stepper>
+    </div>
+  );
+};
 
 // eslint-disable-next-line complexity
 export const OrderDetail = () => {
@@ -91,6 +302,7 @@ export const OrderDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<IBill | null>(null);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [hasLoadedInitialOrder, setHasLoadedInitialOrder] = useState(false);
   const orderProviderCode = orderEntity.orderDeliveryDetails?.deliveryProviderCode as 'ICABBI' | 'TOOKAN' | undefined;
   const canEditOrder = !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED;
   const canManageProcessingStatus = !orderEntity?.refund;
@@ -149,18 +361,19 @@ export const OrderDetail = () => {
     : [];
 
   useEffect(() => {
-    if (isTookanBooking && orderEntity.branchId) {
-      dispatch(getTookanTeams(orderEntity.branchId));
+    if (isTookanBooking) {
+      dispatch(getTookanTeams());
     }
-  }, [dispatch, isTookanBooking, orderEntity.branchId]);
+  }, [dispatch, isTookanBooking]);
 
   useEffect(() => {
-    if (isTookanBooking && orderEntity.branchId && selectedTeamId) {
-      dispatch(getTookanAgents({ branchId: orderEntity.branchId, teamId: Number(selectedTeamId) }));
+    if (isTookanBooking && selectedTeamId) {
+      dispatch(getTookanAgents({ teamId: Number(selectedTeamId) }));
     }
-  }, [dispatch, isTookanBooking, orderEntity.branchId, selectedTeamId]);
+  }, [dispatch, isTookanBooking, selectedTeamId]);
 
   useEffect(() => {
+    setHasLoadedInitialOrder(false);
     dispatch(getEntity(id));
     dispatch(getUiSettings());
     dispatch(
@@ -169,6 +382,24 @@ export const OrderDetail = () => {
       })
     );
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      dispatch(getEntity(id));
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (!loading && orderEntity?.id) {
+      setHasLoadedInitialOrder(true);
+    }
+  }, [loading, orderEntity?.id]);
 
 
   useEffect(() => {
@@ -480,7 +711,7 @@ export const OrderDetail = () => {
     { label: 'Discount', value: `- ${orderEntity?.totalDiscount || '0.00'}`, valueClassName: 'text-red-600' },
   ];
 
-  if (loading) {
+  if (loading && !hasLoadedInitialOrder) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -572,6 +803,8 @@ export const OrderDetail = () => {
 
           <div className="grid gap-6 xl:grid-cols-[1.65fr_0.9fr]">
             <section className="space-y-6">
+              <OrderProgressStepper tasks={filteredOrderEntity.orderDeliveryDetails?.integrationDetails?.tasks} />
+
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 px-5 py-4 md:px-6">
                   <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">

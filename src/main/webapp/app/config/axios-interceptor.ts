@@ -1,11 +1,26 @@
   import axios from 'axios';
   import { Storage } from 'react-jhipster';
-  import { AUTH_TOKEN_KEY, clearAccessToken } from 'app/shared/reducers/authentication';
+  import { clearAccessToken } from 'app/shared/reducers/authentication';
   import { buildAuthTokenKey, buildRefreshTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
 
   const TIMEOUT = 1 * 60 * 1000;
   axios.defaults.timeout = TIMEOUT;
   axios.defaults.baseURL = SERVER_API_URL;
+
+  const CENTRAL_APP_LOGIN_PATH_PATTERN = /^\/api\/login\/[^/]+\/central-app\/?$/;
+
+  const isCentralAppLoginRequest = (url?: string) => {
+    if (!url) {
+      return false;
+    }
+
+    try {
+      const resolvedUrl = new URL(url, axios.defaults.baseURL || window.location.origin);
+      return CENTRAL_APP_LOGIN_PATH_PATTERN.test(resolvedUrl.pathname);
+    } catch (error) {
+      return CENTRAL_APP_LOGIN_PATH_PATTERN.test(url);
+    }
+  };
 
   const setupAxiosInterceptors = onUnauthenticated => {
 
@@ -44,7 +59,6 @@
         }
         return null;
       } catch (error) {
-        console.error('error refreshing token: ', error)
         onUnauthenticated();
         throw error
       }
@@ -53,7 +67,8 @@
     const onRequestSuccess = config => {
       const authKey = buildAuthTokenKey();
       const token = Storage.local.get(authKey) || Storage.session.get(authKey);
-        if (token) {
+        if (token && !isCentralAppLoginRequest(config.url)) {
+          config.headers = config.headers || {};
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -63,12 +78,9 @@
 
     const onResponseError = async (err) => {
       const status = err.status || (err.response ? err.response.status : 0);
-      console.log(status)
       if ( status === 401 && !err.config.url.endsWith("/refresh")  && !err.config.url.endsWith("/central-app")) {
-        console.log(status)
         try {
           const newAccessToken = await refreshAccessToken();
-          console.log(status)
           if (newAccessToken) {
             err.config.headers.Authorization = `Bearer ${newAccessToken}`;
             return axios(err.config);
@@ -76,7 +88,6 @@
             onUnauthenticated();
           }
         } catch (error) {
-          console.log(status)
           onUnauthenticated();
         }
       }

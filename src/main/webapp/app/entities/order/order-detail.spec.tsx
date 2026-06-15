@@ -326,11 +326,126 @@ describe('OrderDetail delivery provider source', () => {
     renderOrderDetail();
 
     await waitFor(() => {
-      expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith('branch-1');
+      expect(deliveryReducer.getTookanTeams).toHaveBeenCalledWith();
     });
 
-    expect(screen.getByText('Update Booking')).toBeTruthy();
-    expect(screen.getByText('Assign Tookan Driver')).toBeTruthy();
+    expect(screen.getByText('Update')).toBeTruthy();
+    expect(screen.getByText('Assign Driver')).toBeTruthy();
+  });
+
+  it('renders fixed delivery progress in business-flow order regardless of API order', () => {
+    mockState.order.entity.orderDeliveryDetails = {
+      integrationDetails: {
+        tasks: [
+          {
+            taskType: 'deliveredToCustomer',
+            deliveryStatus: 'DELIVERED',
+            jobDescription: "Delivered to customer's house",
+          },
+          {
+            taskType: 'goingToRestaurant',
+            deliveryStatus: 'ARRIVED',
+            jobDescription: 'Driver reached the restaurant',
+          },
+          {
+            taskType: 'pickedUpPackage',
+            deliveryStatus: 'HANDED',
+            jobDescription: 'Package picked up from the restaurant',
+          },
+        ],
+      },
+    };
+
+    const { container } = renderOrderDetail();
+
+    expect(screen.getByText('Delivery Progress')).toBeTruthy();
+    expect(screen.getByText('Going To Restaurant')).toBeTruthy();
+    expect(screen.getByText('Picked Up Package')).toBeTruthy();
+    expect(screen.getByText('Delivered To Customer')).toBeTruthy();
+    expect(screen.getByText('ARRIVED')).toBeTruthy();
+    expect(screen.getByText('HANDED')).toBeTruthy();
+    expect(screen.getByText('DELIVERED')).toBeTruthy();
+
+    const content = container.textContent || '';
+    expect(content.indexOf('Going To Restaurant')).toBeLessThan(content.indexOf('Picked Up Package'));
+    expect(content.indexOf('Picked Up Package')).toBeLessThan(content.indexOf('Delivered To Customer'));
+  });
+
+  it('shows pending for created tasks and hides delivery progress when there are no tasks', () => {
+    const { rerender } = renderOrderDetail();
+
+    expect(screen.queryByText('Delivery Progress')).toBeNull();
+
+    mockState.order.entity.orderDeliveryDetails = {
+      integrationDetails: {
+        tasks: [
+          {
+            taskType: 'goingToRestaurant',
+            deliveryStatus: 'CREATED',
+            jobDescription: 'Waiting for dispatch',
+          },
+          {
+            taskType: 'pickedUpPackage',
+            deliveryStatus: 'CREATED',
+            jobDescription: 'Waiting for pickup',
+          },
+          {
+            taskType: 'deliveredToCustomer',
+            deliveryStatus: 'CREATED',
+            jobDescription: 'Waiting for delivery',
+          },
+        ],
+      },
+    };
+
+    rerender(
+      <MemoryRouter>
+        <OrderDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Delivery Progress')).toBeTruthy();
+    expect(screen.getAllByText('Pending')).toHaveLength(3);
+  });
+
+  it('keeps the page visible during silent polling refreshes after the initial load', () => {
+    mockState.order.entity.orderDeliveryDetails = {
+      integrationDetails: {
+        tasks: [
+          {
+            taskType: 'goingToRestaurant',
+            deliveryStatus: 'ARRIVED',
+            jobDescription: 'Driver reached the restaurant',
+          },
+          {
+            taskType: 'pickedUpPackage',
+            deliveryStatus: 'HANDED',
+            jobDescription: 'Package picked up from the restaurant',
+          },
+          {
+            taskType: 'deliveredToCustomer',
+            deliveryStatus: 'CREATED',
+            jobDescription: 'Waiting for delivery',
+          },
+        ],
+      },
+    };
+
+    const { rerender } = renderOrderDetail();
+
+    expect(screen.getByText('Order Items')).toBeTruthy();
+
+    mockState.order.loading = true;
+
+    rerender(
+      <MemoryRouter>
+        <OrderDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Order Items')).toBeTruthy();
+    expect(screen.queryByText('Delivery Progress')).toBeTruthy();
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('does not show provider selection for booked orders', () => {
@@ -341,7 +456,7 @@ describe('OrderDetail delivery provider source', () => {
 
     renderOrderDetail();
 
-    expect(screen.getByText('Update Booking')).toBeTruthy();
+    expect(screen.getByText('Update')).toBeTruthy();
     expect(screen.queryByLabelText('Select provider')).toBeNull();
   });
 
