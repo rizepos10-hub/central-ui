@@ -173,6 +173,31 @@ describe('OrderPaymentDialog', () => {
     expect(screen.getAllByText('$20.00').length).toBeGreaterThan(0);
   });
 
+  it('preserves backend precision so remaining matches the payment amount input', () => {
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        baseOrderTotal={2.98}
+        chargePreviewRows={[
+          { key: 'gratuity', label: 'Gratuity', amount: 7 },
+          { key: 'wrapping', label: 'Wrapping Fee', amount: 0.3 },
+        ]}
+        totalAmount={10.285}
+        totalPaid={0}
+        defaultPaymentAmount={10.285}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('$10.285')).not.toBeNull();
+    expect(screen.getAllByRole('spinbutton')[0]).toHaveValue(10.285);
+  });
+
   it('hides zero-value charge rows and summary', () => {
     render(
       <OrderPaymentDialog
