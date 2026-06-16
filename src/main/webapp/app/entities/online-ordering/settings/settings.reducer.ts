@@ -32,7 +32,7 @@ export const getEntity = createAsyncThunk(
 export const updateEntity = createAsyncThunk(
   'online-ordering-settings/update_entity',
   async (settings: IUiSettings, thunkAPI) => {
-    return await axios.put<IUiSettings>(`${apiUrl}`, settings);
+    return await axios.put<IUiSettings>(`${apiUrl}`, { ...settings, key: 'ONLINE_ORDERING_UI' });
   },
   { serializeError: serializeAxiosError }
 );

@@ -68,6 +68,9 @@ export interface IUiSettings {
   languages?: ILanguages
   addonOptionsVisibility?: AddonOptionsVisibility
   variantsUiLayout?: VariantsUiLayout
+  usePageBuilder?: boolean
+  defaultPageId?: string
+  defaultPageSlug?: string
 }
 
 export interface IOnlineOrderingLogo {
@@ -124,6 +127,7 @@ export const variantsUiLayoutOptions: VariantsUiLayout[] = [VariantsUiLayout.HOR
 
 
 export const defaultValue: Readonly<IUiSettings> = {
+  key: 'ONLINE_ORDERING_UI',
   homePageSetting: defaultLayoutValue,
   scriptSnippets: [],
   addonOptionsVisibility: AddonOptionsVisibility.HIDDEN,

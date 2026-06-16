@@ -684,6 +684,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Landing Pages',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/online-ordering/pages',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Pick A Layout',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/pick-a-layout',
