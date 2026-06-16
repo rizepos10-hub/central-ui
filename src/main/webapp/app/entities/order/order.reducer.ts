@@ -3,7 +3,7 @@ import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } fr
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
-import { IOrder, IOrderChargesPreviewResponse, defaultValue } from 'app/shared/model/ORDER/order.model';
+import { IOrder, IOrderChargesPreviewResponse, IPlacePaidOrderRequest, defaultValue } from 'app/shared/model/ORDER/order.model';
 import { IAuditLog } from "app/shared/model/audit-log.model";
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 
@@ -161,6 +161,16 @@ export const createEntity = createAsyncThunk(
   'order/create_entity',
   async (entity: IOrder, thunkAPI) => {
     const result = await axios.post<IOrder>(`${apiUrl}/place-order`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const placePaidOrder = createAsyncThunk(
+  'order/place_paid_order',
+  async (payload: IPlacePaidOrderRequest, thunkAPI) => {
+    const result = await axios.post<IOrder>(`${apiUrl}/place-paid-order`, cleanEntity(payload));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },

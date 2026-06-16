@@ -55,7 +55,7 @@ export const model: MenuItem[] = [
       },
       {
         label: 'Sell',
-        to: '/order/create',
+        to: '/order/choose-branch',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
