@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, changeEntityField } from './settings.reducer';
+import { getEntity, updateEntity, changeEntityField, flushStorefrontCache } from './settings.reducer';
 import {
   addonOptionsVisibilityOptions,
   currencySymbolPositionOptions,
@@ -33,6 +33,7 @@ import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile'
 import SeoTags from 'app/shared/components/item/seo-tags';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { ScriptSnippets } from './components/script-snippets';
+import { toast } from 'react-toastify';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -61,6 +62,15 @@ export const UiSettingsUpdate = () => {
   const saveEntity = (e) => {
     e.preventDefault();
     dispatch(updateEntity(UiSettingsEntity));
+  };
+
+  const handleFlushStorefrontCache = async () => {
+    try {
+      await dispatch(flushStorefrontCache()).unwrap();
+      toast.success('Storefront cache flushed successfully');
+    } catch {
+      toast.error('Failed to flush storefront cache. Check the domain and cache flush secret.');
+    }
   };
 
   const quillHeader = (
@@ -214,6 +224,27 @@ export const UiSettingsUpdate = () => {
                       onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
                       className="h-7 text-xs"
                     />
+                  </div>
+
+                  <div className="rounded-md border bg-muted/30 p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold">Storefront cache</p>
+                        <p className="text-xs text-muted-foreground">
+                          Clear cached UI settings and landing page data on the online ordering website for this business.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-8 shrink-0 text-xs"
+                        disabled={updating || !UiSettingsEntity.domain}
+                        onClick={handleFlushStorefrontCache}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Flush storefront cache
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">

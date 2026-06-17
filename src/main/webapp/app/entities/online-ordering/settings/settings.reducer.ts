@@ -37,6 +37,14 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const flushStorefrontCache = createAsyncThunk(
+  'online-ordering-settings/flush_storefront_cache',
+  async () => {
+    await axios.post(`${apiUrl}/storefront-cache/flush`);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const changeEntityField = createAction<{
   name: string
   value: any
@@ -96,6 +104,18 @@ export const UiSettingsSlice = createEntitySlice({
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
+      })
+      .addMatcher(isPending(flushStorefrontCache), state => {
+        state.errorMessage = null;
+        state.updating = true;
+      })
+      .addMatcher(isFulfilled(flushStorefrontCache), state => {
+        state.updating = false;
+        state.updateSuccess = true;
+      })
+      .addMatcher(isRejected(flushStorefrontCache), (state, action) => {
+        state.updating = false;
+        state.errorMessage = action.error.message ?? 'Failed to flush storefront cache';
       });
   },
 });
