@@ -33,7 +33,7 @@ import {
 } from './pages.reducer';
 import { ISectionTypeDescriptor } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
-import { getEntity as getUiSettings, updateEntity as updateUiSettings } from '../settings/settings.reducer';
+import { getEntity as getUiSettings, updateEntity as updateUiSettings, flushStorefrontCache } from '../settings/settings.reducer';
 import PageEditorPreview from './page-editor-preview';
 import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './page-preview-utils';
 import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppearance } from './section-appearance-fields';
@@ -220,6 +220,15 @@ const OnlineOrderingPageEditor = () => {
     openPreview(LOCAL_STOREFRONT_URL);
   };
 
+  const handleFlushStorefrontCache = async () => {
+    try {
+      await dispatch(flushStorefrontCache()).unwrap();
+      toast.success('Storefront cache flushed successfully');
+    } catch {
+      toast.error('Failed to flush storefront cache. Check the domain and cache flush secret.');
+    }
+  };
+
   return (
     <PageWrapper className="max-w-5xl mx-auto">
       <div className="space-y-4">
@@ -274,6 +283,8 @@ const OnlineOrderingPageEditor = () => {
             uiSettings={uiSettings}
             onSetActiveAndPreview={handleSetActiveAndPreview}
             settingActive={updating}
+            onFlushStorefrontCache={handleFlushStorefrontCache}
+            flushingStorefrontCache={updating}
           />
         )}
 

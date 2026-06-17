@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,8 @@ type PageEditorPreviewProps = {
   uiSettings: IUiSettings;
   onSetActiveAndPreview?: () => void;
   settingActive?: boolean;
+  onFlushStorefrontCache?: () => void;
+  flushingStorefrontCache?: boolean;
 };
 
 const PreviewLink = ({ href, label }: { href: string; label: string }) => (
@@ -33,7 +35,14 @@ const PreviewLink = ({ href, label }: { href: string; label: string }) => (
   </a>
 );
 
-export const PageEditorPreview = ({ page, uiSettings, onSetActiveAndPreview, settingActive }: PageEditorPreviewProps) => {
+export const PageEditorPreview = ({
+  page,
+  uiSettings,
+  onSetActiveAndPreview,
+  settingActive,
+  onFlushStorefrontCache,
+  flushingStorefrontCache,
+}: PageEditorPreviewProps) => {
   const isActive = isPageActiveLanding(page, uiSettings);
   const isPublished = page.status === PageStatus.PUBLISHED;
   const liveUrl = getLivePreviewUrl(uiSettings);
@@ -84,6 +93,29 @@ export const PageEditorPreview = ({ page, uiSettings, onSetActiveAndPreview, set
             <Button className="h-8 w-fit text-xs" disabled={settingActive} onClick={onSetActiveAndPreview}>
               Set active &amp; open preview
             </Button>
+          )}
+
+          {onFlushStorefrontCache && (
+            <div className="rounded-md border bg-muted/30 p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold">Storefront cache</p>
+                  <p className="text-xs text-muted-foreground">
+                    Clear cached landing page data on the online ordering website after publishing changes.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-8 shrink-0 text-xs"
+                  disabled={flushingStorefrontCache || !uiSettings.domain}
+                  onClick={onFlushStorefrontCache}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Flush storefront cache
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>
