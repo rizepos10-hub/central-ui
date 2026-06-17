@@ -40,7 +40,7 @@ export const updateEntity = createAsyncThunk(
 export const flushStorefrontCache = createAsyncThunk(
   'online-ordering-settings/flush_storefront_cache',
   async () => {
-    await axios.post(`${apiUrl}/storefront-cache/flush`);
+    await axios.post('api/online-ordering/settings/storefront-cache/flush');
   },
   { serializeError: serializeAxiosError }
 );
