@@ -55,7 +55,7 @@ export const model: MenuItem[] = [
       },
       {
         label: 'Sell',
-        to: '/order/create',
+        to: '/order/choose-branch',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
@@ -681,6 +681,12 @@ export const model: MenuItem[] = [
         label: 'UI Settings',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/online-ordering/settings',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Landing Pages',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/online-ordering/pages',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {

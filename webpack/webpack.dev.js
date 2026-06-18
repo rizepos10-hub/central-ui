@@ -50,13 +50,13 @@ module.exports = async options =>
       proxy: [
         {
           context: ['/api', '/services', '/management', '/v3/api-docs', '/h2-console', '/auth'],
-          target: `http${options.tls ? 's' : ''}://164.92.188.249:8080`,
+          target: `http${options.tls ? 's' : ''}://localhost:8080`,
           secure: false,
           changeOrigin: options.tls,
         },
         {
           context: ['/websocket'],
-          target: 'ws://164.92.188.249:8080',
+          target: 'ws://localhost:8080',
           ws: true,
         },
       ],

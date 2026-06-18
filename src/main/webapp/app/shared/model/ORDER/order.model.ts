@@ -26,6 +26,7 @@ export interface IOrder extends IOrderAudit {
   bills?: IBill[];
   scheduledAt?: string | null;
   orderCharges?: IOrderCharge[];
+  additionalServiceCharges?: IOrderCharge[];
   deliverTo?: IAddress | null;
   orderDeliveryDetails?: IOrderDeliveryDetails;
   paymentStatus?: PaymentStatus
@@ -57,6 +58,20 @@ export interface IOrderChargesPreviewResponse {
   orderCharges?: IOrderCharge[];
   gratuityOrderCharge?: IOrderCharge | null;
   totalCharges?: number | null;
+}
+
+export interface IPlacePaidOrderRequest {
+  order: IOrder;
+  bill: {
+    payee: string;
+    createdBy: string;
+    tipAmount: number;
+  };
+  payment: {
+    amount: number;
+    tipAmount: number;
+    transactionMethod: string;
+  };
 }
 
 export interface IOrderDeliveryDetails {

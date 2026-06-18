@@ -104,7 +104,33 @@ const OrderPaymentDialog = ({
   const onAccountValidationMessage = onAccountDataLoading ? 'Loading account details...' : onAccountValidation.validationMessage;
   const canProceedWithOnAccountPayment = !isOnAccountPayment || (!onAccountDataLoading && onAccountValidation.canProceed);
 
-  const formatCurrencyAmount = (value?: number | null) => `$${(value ?? 0).toFixed(2)}`;
+  const formatCurrencyAmount = (value?: number | null) => {
+    const numericValue = Number(value ?? 0);
+
+    if (!Number.isFinite(numericValue)) {
+      return '$0.00';
+    }
+
+    const normalizedValue = Object.is(numericValue, -0) ? 0 : numericValue;
+    const sign = normalizedValue < 0 ? '-' : '';
+    const absoluteString = Math.abs(normalizedValue).toString();
+
+    if (absoluteString.includes('e')) {
+      return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
+    }
+
+    const [wholePart, decimalPart = ''] = absoluteString.split('.');
+
+    if (decimalPart.length === 0) {
+      return `${sign}$${wholePart}.00`;
+    }
+
+    if (decimalPart.length === 1) {
+      return `${sign}$${wholePart}.${decimalPart}0`;
+    }
+
+    return `${sign}$${wholePart}.${decimalPart}`;
+  };
 
   useEffect(() => {
     if (!open) {

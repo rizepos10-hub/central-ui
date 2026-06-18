@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { addPaymentToBill, calculateItemPrice, changeEntityField, changeProcessingStatus, clearChargesPreview, createDraftBill, createDraftEntity, createEntity, previewCharges, updateDraftEntity, updateEntity, reset } from './order.reducer';
-import { IOrder, IOrderCharge } from 'app/shared/model/ORDER/order.model';
+import { addPaymentToBill, calculateItemPrice, changeEntityField, changeProcessingStatus, clearChargesPreview, createDraftBill, createDraftEntity, createEntity, placePaidOrder, previewCharges, updateDraftEntity, updateEntity, reset } from './order.reducer';
+import { IOrder, IOrderCharge, IPlacePaidOrderRequest } from 'app/shared/model/ORDER/order.model';
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -91,6 +91,34 @@ const formatCustomerLabel = (customer?: Partial<ICustomer> | null) => {
     return 'Unnamed customer';
 };
 
+const formatCurrencyAmount = (value?: number | null) => {
+    const numericValue = Number(value ?? 0);
+
+    if (!Number.isFinite(numericValue)) {
+        return '$0.00';
+    }
+
+    const normalizedValue = Object.is(numericValue, -0) ? 0 : numericValue;
+    const sign = normalizedValue < 0 ? '-' : '';
+    const absoluteString = Math.abs(normalizedValue).toString();
+
+    if (absoluteString.includes('e')) {
+        return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
+    }
+
+    const [wholePart, decimalPart = ''] = absoluteString.split('.');
+
+    if (decimalPart.length === 0) {
+        return `${sign}$${wholePart}.00`;
+    }
+
+    if (decimalPart.length === 1) {
+        return `${sign}$${wholePart}.${decimalPart}0`;
+    }
+
+    return `${sign}$${wholePart}.${decimalPart}`;
+};
+
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -103,6 +131,7 @@ const OrderCreate = () => {
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
     const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
+    const accountLogin = useAppSelector(state => state.authentication.account?.login || '');
     const searchParams = new URLSearchParams(location.search);
     const selectedRegistryId = searchParams.get("registerId");
     const isWholesaleMode = searchParams.get("mode") === 'wholesale';
@@ -404,33 +433,6 @@ const OrderCreate = () => {
             if (parsed?.pricingPointId) {
                 setPricingPointId(parsed.pricingPointId);
             }
-            // Synchronize scheduledAtLocal and scheduledAt
-            if (parsed?.scheduledAtLocal) {
-                setScheduledAtLocal(parsed.scheduledAtLocal);
-                // Also set scheduledAt if scheduledAtLocal exists
-                if (parsed.scheduledAt) {
-                    dispatch(changeEntityField({
-                        name: 'scheduledAt',
-                        value: parsed.scheduledAt,
-                    }));
-                } else {
-                    // Convert scheduledAtLocal to scheduledAt if not present
-                    const dateValue = parsed.scheduledAtLocal ? toLocalISOString(new Date(parsed.scheduledAtLocal)) : null;
-                    dispatch(changeEntityField({
-                        name: 'scheduledAt',
-                        value: dateValue,
-                    }));
-                }
-            } else {
-                // Clear both if scheduledAtLocal is not present
-                setScheduledAtLocal('');
-                if (parsed?.scheduledAt) {
-                    dispatch(changeEntityField({
-                        name: 'scheduledAt',
-                        value: null,
-                    }));
-                }
-            }
             if (parsed?.deliverTo) {
                 dispatch(changeEntityField({
                     name: 'deliverTo',
@@ -617,12 +619,10 @@ const OrderCreate = () => {
             customer: orderEntity.customer ?? null,
             orderMethod: orderEntity.orderMethod ?? null,
             pricingPointId: pricingPointId || null,
-            scheduledAtLocal: scheduledAtLocal || null,
-            scheduledAt: orderEntity.scheduledAt ?? null,
             deliverTo: orderEntity.deliverTo ?? null,
         };
         localStorage.setItem(cartStorageKey, JSON.stringify(payload));
-    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, orderEntity.scheduledAt, pricingPointId, selectedRegistryId, scheduledAtLocal]);
+    }, [cartStorageKey, orderEntity.items, orderEntity.customer?.id, orderEntity.orderMethod, orderEntity.deliverTo, pricingPointId, selectedRegistryId]);
 
     const getOpenTills = (ids: string[]) => {
         dispatch(
@@ -1258,6 +1258,38 @@ const OrderCreate = () => {
         [buildBaseStructuredEntity]
     );
 
+    const buildCreatePaidOrderPayload = useCallback(
+        ({
+            amount,
+            tipAmount,
+            transactionMethod,
+        }: {
+            amount: number;
+            tipAmount: number;
+            transactionMethod: string;
+        }): IPlacePaidOrderRequest => ({
+            order: {
+                ...buildBaseStructuredEntity({
+                    includeOrderCharges: true,
+                    includeWholesale: true,
+                    processingStatus: OrderStatus.CONFIRMED,
+                }),
+                additionalServiceCharges: orderEntity?.orderCharges || [],
+            },
+            bill: {
+                payee: transactionMethod,
+                createdBy: accountLogin,
+                tipAmount,
+            },
+            payment: {
+                amount,
+                tipAmount,
+                transactionMethod,
+            },
+        }),
+        [accountLogin, buildBaseStructuredEntity, orderEntity?.orderCharges]
+    );
+
     const buildUpdateStructuredEntity = useCallback(
         (): IOrder => buildBaseStructuredEntity({ includeId: true, includeOrderCharges: true, includeWholesale: true }),
         [buildBaseStructuredEntity]
@@ -1365,7 +1397,7 @@ const OrderCreate = () => {
         }
     };
 
-    const handleCreateWithPayment = async ({
+    const handleCreateWithPayment = useCallback(async ({
         amount,
         tipAmount,
         transactionMethod,
@@ -1382,62 +1414,20 @@ const OrderCreate = () => {
 
         try {
             setSubmittingOrder(true);
-            const createResponse = await dispatch(createEntity(buildCreateStructuredEntity())).unwrap();
+            const createResponse = await dispatch(placePaidOrder(buildCreatePaidOrderPayload({
+                amount,
+                tipAmount,
+                transactionMethod,
+            }))).unwrap();
             createdOrderId = createResponse.data?.id || orderEntity.id;
-
-            if (!createdOrderId) {
-                toast.success('Order Created Successfully!');
-                finalizeCreatedOrder(createdOrderId);
-                return;
-            }
-
-            try {
-                const draftBillResponse = await dispatch(createDraftBill({
-                    orderId: createdOrderId,
-                    payee: null,
-                    createdBy: null,
-                    discount: null,
-                })).unwrap();
-                const draftBillId = draftBillResponse.data?.id;
-
-                if (!draftBillId) {
-                    throw new Error('Draft bill was not created successfully.');
-                }
-
-                await dispatch(addPaymentToBill({
-                    orderId: createdOrderId,
-                    billId: draftBillId,
-                    amount,
-                    tipAmount,
-                    transactionMethod,
-                })).unwrap();
-
-                if (isWholesaleMode) {
-                    await dispatch(changeProcessingStatus({
-                        id: createdOrderId,
-                        orderProcessingStatus: OrderStatus.CLOSED,
-                    })).unwrap();
-                }
-
-                toast.success('Order created and payment added successfully!');
-            } catch (paymentError) {
-                toast.error(
-                    getApiErrorMessage(
-                        paymentError,
-                        isWholesaleMode
-                            ? 'Order created and payment added, but closing the wholesale order failed. You can retry from the order details page.'
-                            : 'Order created, but payment failed. You can retry from the order details page.'
-                    )
-                );
-            }
-
+            toast.success('Paid order created successfully!');
             finalizeCreatedOrder(createdOrderId);
         } catch (error) {
-            toast.error(getApiErrorMessage(error, 'Failed to create order'));
+            toast.error(getApiErrorMessage(error, 'Failed to create paid order'));
         } finally {
             setSubmittingOrder(false);
         }
-    };
+    }, [buildCreatePaidOrderPayload, dispatch, ensureCreateFlowAllowed, finalizeCreatedOrder, getApiErrorMessage, orderEntity.id]);
 
     const handleUpdateWithPayment = async ({
         amount,
@@ -2799,18 +2789,18 @@ const OrderCreate = () => {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span>Sub-total</span>
-                                                <span className="text-muted-foreground">${cartTotals.itemsTotal.toFixed(2)}</span>
+                                                <span className="text-muted-foreground">{formatCurrencyAmount(cartTotals.itemsTotal)}</span>
                                             </div>
                                             <div className="flex items-center justify-between text-muted-foreground">
                                                 <span>Taxes</span>
-                                                <span>${cartTotals.totalTaxes.toFixed(2)}</span>
+                                                <span>{formatCurrencyAmount(cartTotals.totalTaxes)}</span>
                                             </div>
                                             {(previewChargeRows.length > 0 || previewUnavailableMessage) ? (
                                                 <>
                                                     {previewChargeRows.map(charge => (
                                                         <div key={charge.key} className="flex items-center justify-between text-muted-foreground">
                                                             <span>{charge.label}</span>
-                                                            <span>${charge.amount.toFixed(2)}</span>
+                                                            <span>{formatCurrencyAmount(charge.amount)}</span>
                                                         </div>
                                                     ))}
                                                     {previewUnavailableMessage ? (
@@ -2822,7 +2812,7 @@ const OrderCreate = () => {
                                             ) : null}
                                         </div>
                                         <div className="flex flex-col items-center justify-center rounded-lg border border-border/40 bg-white/70 px-3 py-2">
-                                            <span className="text-lg font-semibold">${finalPayableTotal.toFixed(2)}</span>
+                                            <span className="text-lg font-semibold">{formatCurrencyAmount(finalPayableTotal)}</span>
                                         </div>
                                     </div>
                                     </div>

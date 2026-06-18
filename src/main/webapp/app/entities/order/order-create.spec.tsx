@@ -91,6 +91,7 @@ jest.mock('./order.reducer', () => ({
   clearChargesPreview: jest.fn(() => ({ type: 'order/clear_charges_preview' })),
   createDraftEntity: jest.fn(entity => ({ type: 'order/create_draft_entity', payload: entity })),
   createEntity: jest.fn(entity => ({ type: 'order/create_entity', payload: entity })),
+  placePaidOrder: jest.fn(payload => ({ type: 'order/place_paid_order', payload })),
   updateDraftEntity: jest.fn(entity => ({ type: 'order/update_draft_entity', payload: entity })),
   updateEntity: jest.fn(entity => ({ type: 'order/update_entity', payload: entity })),
   createDraftBill: jest.fn(payload => ({ type: 'order/create_draft_bill', payload })),
@@ -266,6 +267,7 @@ beforeEach(() => {
     },
     authentication: {
       account: {
+        login: 'tester',
         authorities: [],
       },
     },
@@ -333,6 +335,17 @@ beforeEach(() => {
     }
 
     if (action?.type === 'order/create_entity') {
+      return {
+        unwrap: () =>
+          Promise.resolve({
+            data: {
+              id: 'created-order-id',
+            },
+          }),
+      };
+    }
+
+    if (action?.type === 'order/place_paid_order') {
       return {
         unwrap: () =>
           Promise.resolve({
@@ -471,6 +484,7 @@ const renderOrderCreate = authorities => {
 
 const getLatestCreateDraftPayload = () => orderReducer.createDraftEntity.mock.calls[orderReducer.createDraftEntity.mock.calls.length - 1][0];
 const getLatestCreatePayload = () => orderReducer.createEntity.mock.calls[orderReducer.createEntity.mock.calls.length - 1][0];
+const getLatestPaidOrderPayload = () => orderReducer.placePaidOrder.mock.calls[orderReducer.placePaidOrder.mock.calls.length - 1][0];
 const getLatestUpdateDraftPayload = () => orderReducer.updateDraftEntity.mock.calls[orderReducer.updateDraftEntity.mock.calls.length - 1][0];
 const getLatestUpdatePayload = () => orderReducer.updateEntity.mock.calls[orderReducer.updateEntity.mock.calls.length - 1][0];
 
@@ -688,7 +702,50 @@ describe('OrderCreate payment flow', () => {
     expect(localStorage.getItem('pos-cart:reg-1')).toBeNull();
   });
 
-  it('creates the order, draft bill, and payment when using create and pay with a partial amount', async () => {
+  it('does not restore scheduled date from local storage on create order', async () => {
+    localStorage.setItem(
+      'pos-cart:reg-1',
+      JSON.stringify({
+        items: [{ cartId: 'cart-1' }],
+        scheduledAtLocal: '2026-06-20T12:30',
+        scheduledAt: '2026-06-20T09:30:00.000Z',
+      })
+    );
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Schedule at')).not.toBeNull();
+    });
+
+    expect(orderReducer.changeEntityField).not.toHaveBeenCalledWith({
+      name: 'scheduledAt',
+      value: '2026-06-20T09:30:00.000Z',
+    });
+    expect(screen.getByPlaceholderText('Schedule at')).toHaveValue('');
+  });
+
+  it('does not persist scheduled date into local storage on create order', async () => {
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    const scheduledInput = await screen.findByPlaceholderText('Schedule at');
+    fireEvent.change(scheduledInput, { target: { value: '2026-06-20T12:30' } });
+
+    await waitFor(() => {
+      const storedCart = JSON.parse(localStorage.getItem('pos-cart:reg-1'));
+      expect(storedCart).toEqual(
+        expect.objectContaining({
+          items: expect.any(Array),
+          customerId: 'customer-1',
+          orderMethod: OrderMethod.Delivery,
+        })
+      );
+      expect(storedCart.scheduledAt).toBeUndefined();
+      expect(storedCart.scheduledAtLocal).toBeUndefined();
+    });
+  });
+
+  it('creates a paid order with a single request when using create and pay with a partial amount', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
     fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
@@ -699,27 +756,68 @@ describe('OrderCreate payment flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
 
     await waitFor(() => {
-      expect(orderReducer.createEntity).toHaveBeenCalled();
-      expect(orderReducer.createDraftBill).toHaveBeenCalledWith({
-        orderId: 'created-order-id',
-        payee: null,
-        createdBy: null,
-        discount: null,
-      });
-      expect(orderReducer.addPaymentToBill).toHaveBeenCalledWith({
-        orderId: 'created-order-id',
-        billId: 'draft-bill-id',
-        amount: 5,
-        tipAmount: 0,
-        transactionMethod: 'cash',
-      });
+      expect(orderReducer.placePaidOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            branchId: 'branch-1',
+            orderMethod: OrderMethod.Delivery,
+            processingStatus: 'CONFIRMED',
+            additionalServiceCharges: [],
+          }),
+          bill: {
+            payee: 'cash',
+            createdBy: 'tester',
+            tipAmount: 0,
+          },
+          payment: {
+            amount: 5,
+            tipAmount: 0,
+            transactionMethod: 'cash',
+          },
+        })
+      );
     });
 
-    expect(getLatestCreatePayload().wholesale).toBeUndefined();
+    expect(orderReducer.createEntity).not.toHaveBeenCalled();
+    expect(orderReducer.createDraftBill).not.toHaveBeenCalled();
+    expect(orderReducer.addPaymentToBill).not.toHaveBeenCalled();
+    expect(orderReducer.changeProcessingStatus).not.toHaveBeenCalled();
+    expect(getLatestPaidOrderPayload().order.wholesale).toBeUndefined();
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/order/created-order-id');
     });
+  });
+
+  it('shows a paid-order creation error and skips navigation when the single paid request fails', async () => {
+    mockDispatch.mockImplementationOnce(action => {
+      if (action?.type === 'order/place_paid_order') {
+        return {
+          unwrap: () =>
+            Promise.reject({
+              response: {
+                data: {
+                  message: 'Paid order failed',
+                },
+              },
+            }),
+        };
+      }
+
+      return action;
+    });
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    fireEvent.click(await screen.findByRole('button', { name: /^pay$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create order & pay/i }));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('Paid order failed');
+    });
+
+    expect(mockToastError).not.toHaveBeenCalledWith(expect.stringMatching(/payment failed/i));
+    expect(mockNavigate).not.toHaveBeenCalledWith('/order/created-order-id');
   });
 
   it('sends wholesale in wholesale mode when creating without payment', async () => {
@@ -772,16 +870,29 @@ describe('OrderCreate payment flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /create wholesale order & pay/i }));
 
     await waitFor(() => {
-      expect(orderReducer.createEntity).toHaveBeenCalled();
-      expect(orderReducer.createDraftBill).toHaveBeenCalled();
-      expect(orderReducer.addPaymentToBill).toHaveBeenCalled();
-      expect(orderReducer.changeProcessingStatus).toHaveBeenCalledWith({
-        id: 'created-order-id',
-        orderProcessingStatus: OrderStatus.CLOSED,
-      });
+      expect(orderReducer.placePaidOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            wholesale: true,
+            processingStatus: 'CONFIRMED',
+          }),
+          bill: expect.objectContaining({
+            payee: 'cash',
+            createdBy: 'tester',
+          }),
+          payment: expect.objectContaining({
+            amount: 5,
+            transactionMethod: 'cash',
+          }),
+        })
+      );
     });
 
-    expect(getLatestCreatePayload()).toEqual(
+    expect(orderReducer.createEntity).not.toHaveBeenCalled();
+    expect(orderReducer.createDraftBill).not.toHaveBeenCalled();
+    expect(orderReducer.addPaymentToBill).not.toHaveBeenCalled();
+    expect(orderReducer.changeProcessingStatus).not.toHaveBeenCalled();
+    expect(getLatestPaidOrderPayload().order).toEqual(
       expect.objectContaining({
         wholesale: true,
       })
