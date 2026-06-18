@@ -497,11 +497,164 @@ const SectionConfigForm = ({
   }
 
   if (section.type === SectionType.BRANCH_DIRECTORY) {
+    const variant = (config.variant as string) ?? 'default';
+    const cards = (config.cards as Array<Record<string, unknown>>) ?? [];
     return (
-      <div>
-        <Label>Section title (optional)</Label>
+      <div className="space-y-2">
+        <Label>Display mode</Label>
+        <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
+            <SelectItem value="cards">Location cards (configured below)</SelectItem>
+          </SelectContent>
+        </SectionTypeSelect>
+        <Label>Eyebrow (optional)</Label>
+        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
+        <Label>Section title</Label>
         <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <p className="text-xs text-muted-foreground mt-2">Branches and zones are loaded automatically on the storefront.</p>
+        <Label>Subtitle (optional)</Label>
+        <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
+        {variant === 'cards' ? (
+          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+            <Label className="text-xs">Location cards ({cards.length})</Label>
+            {cards.map((card, cardIndex) => {
+              const image = (card.image as IAttachment) ?? null;
+              const lines = (card.lines as string[]) ?? [''];
+              const actions = (card.actions as Array<Record<string, string>>) ?? [
+                { text: '', url: '', variant: 'gold' },
+                { text: '', url: '', variant: 'outline' },
+              ];
+              return (
+                <div key={cardIndex} className="space-y-2 rounded border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium">Card {cardIndex + 1}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => onConfigChange('cards', cards.filter((_, index) => index !== cardIndex))}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Label>Tag</Label>
+                  <Input
+                    value={(card.tag as string) ?? ''}
+                    onChange={e => {
+                      const next = [...cards];
+                      next[cardIndex] = { ...next[cardIndex], tag: e.target.value };
+                      onConfigChange('cards', next);
+                    }}
+                  />
+                  <Label>Title</Label>
+                  <Input
+                    value={(card.title as string) ?? ''}
+                    onChange={e => {
+                      const next = [...cards];
+                      next[cardIndex] = { ...next[cardIndex], title: e.target.value };
+                      onConfigChange('cards', next);
+                    }}
+                  />
+                  <Label>Image</Label>
+                  <SelectedImagePreview image={image} onClear={() => {
+                    const next = [...cards];
+                    next[cardIndex] = { ...next[cardIndex], image: undefined };
+                    onConfigChange('cards', next);
+                  }} />
+                  <MediaLibrary
+                    handleFilesSelectCallback={files => {
+                      const selected = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      const next = [...cards];
+                      next[cardIndex] = { ...next[cardIndex], image: selected };
+                      onConfigChange('cards', next);
+                    }}
+                  />
+                  <Label>Description lines</Label>
+                  {lines.map((line, lineIndex) => (
+                    <Input
+                      key={lineIndex}
+                      value={line}
+                      onChange={e => {
+                        const next = [...cards];
+                        const nextLines = [...lines];
+                        nextLines[lineIndex] = e.target.value;
+                        next[cardIndex] = { ...next[cardIndex], lines: nextLines };
+                        onConfigChange('cards', next);
+                      }}
+                    />
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={() => {
+                      const next = [...cards];
+                      next[cardIndex] = { ...next[cardIndex], lines: [...lines, ''] };
+                      onConfigChange('cards', next);
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add line
+                  </Button>
+                  {actions.map((action, actionIndex) => (
+                    <div key={actionIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                      <div>
+                        <Label>Button {actionIndex + 1} text</Label>
+                        <Input
+                          value={action.text ?? ''}
+                          onChange={e => {
+                            const next = [...cards];
+                            const nextActions = [...actions];
+                            nextActions[actionIndex] = { ...nextActions[actionIndex], text: e.target.value };
+                            next[cardIndex] = { ...next[cardIndex], actions: nextActions };
+                            onConfigChange('cards', next);
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>Button {actionIndex + 1} URL</Label>
+                        <Input
+                          value={action.url ?? ''}
+                          onChange={e => {
+                            const next = [...cards];
+                            const nextActions = [...actions];
+                            nextActions[actionIndex] = { ...nextActions[actionIndex], url: e.target.value };
+                            next[cardIndex] = { ...next[cardIndex], actions: nextActions };
+                            onConfigChange('cards', next);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            <Button
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() =>
+                onConfigChange('cards', [
+                  ...cards,
+                  {
+                    tag: 'Location',
+                    title: 'Branch name',
+                    lines: ['Address line'],
+                    actions: [
+                      { text: 'Call', url: 'tel:', variant: 'gold' },
+                      { text: 'Directions', url: '#', variant: 'outline' },
+                    ],
+                  },
+                ])
+              }
+            >
+              <Plus className="h-3 w-3 mr-1" /> Add card
+            </Button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Branches and zones are loaded automatically on the storefront.</p>
+        )}
       </div>
     );
   }
@@ -696,7 +849,14 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
     case SectionType.CATEGORY_STRIP:
       return { title: 'Categories', layout: 'LAYOUT_ONE', showImages: true, categories: [], appearance };
     case SectionType.BRANCH_DIRECTORY:
-      return { title: '', appearance };
+      return {
+        variant: 'default',
+        title: '',
+        eyebrow: '',
+        subtitle: '',
+        cards: [],
+        appearance,
+      };
     case SectionType.HERO_BANNER:
       return {
         variant: 'hero',
