@@ -1,6 +1,52 @@
+.barcode-wrapper {
+  overflow: visible;
+}
+
 .barcode-wrapper svg {
-  overflow: initial !important;
-  height: 100% !important;
-  width: 100% !important;
+  overflow: visible !important;
+  display: block;
+  max-width: 100%;
+}
+
+.barcode-label {
   display: flex;
+  align-items: stretch;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px;
+  background: #ffffff;
+}
+
+.barcode-label-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.barcode-name,
+.barcode-sku,
+.barcode-price {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.barcode-price-sale {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.barcode-price-original {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.barcode-card-preview svg {
+  max-width: 100%;
 }
