@@ -55,7 +55,7 @@ const AppRoutes = () => {
     window.location.href = `/${tenantName}/`;
   }
 
-  if (!tenant) return (
+  if (!tenant && typeof BUSINESS_ID === 'undefined') return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardContent className="pt-6">

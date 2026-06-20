@@ -7,7 +7,7 @@
   axios.defaults.timeout = TIMEOUT;
   axios.defaults.baseURL = SERVER_API_URL;
 
-  const CENTRAL_APP_LOGIN_PATH_PATTERN = /^\/api\/login\/[^/]+\/central-app\/?$/;
+  const CENTRAL_APP_LOGIN_PATH_PATTERN = new RegExp(`^/api/login/[^/]+/${APP_ID}/?$`);
 
   const isCentralAppLoginRequest = (url?: string) => {
     if (!url) {
@@ -37,7 +37,7 @@
           const requestBody = {
             refresh: refreshToken,
             realm: tenantKey,
-            clientId: 'central-app',
+            clientId: APP_ID,
           };
 
           const response = await axios.post(SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
@@ -78,7 +78,7 @@
 
     const onResponseError = async (err) => {
       const status = err.status || (err.response ? err.response.status : 0);
-      if ( status === 401 && !err.config.url.endsWith("/refresh")  && !err.config.url.endsWith("/central-app")) {
+      if ( status === 401 && !err.config.url.endsWith("/refresh")  && !err.config.url.endsWith(`/${APP_ID}`)) {
         try {
           const newAccessToken = await refreshAccessToken();
           if (newAccessToken) {

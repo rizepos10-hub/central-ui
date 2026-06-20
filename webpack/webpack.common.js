@@ -111,6 +111,8 @@ module.exports = async options => {
           GOOGLE_MAPS_API_KEY: `${
             development ? JSON.stringify(environmentDev.GOOGLE_MAPS_API_KEY) : JSON.stringify(environmentProd.GOOGLE_MAPS_API_KEY)
           }`,
+          BUSINESS_ID: `${development ? JSON.stringify(environmentDev.BUSINESS_ID) : JSON.stringify(environmentProd.BUSINESS_ID)}`,
+          APP_ID: `${development ? JSON.stringify(environmentDev.APP_ID) : JSON.stringify(environmentProd.APP_ID)}`,
         }),
         new ESLintPlugin({
           baseConfig: {
