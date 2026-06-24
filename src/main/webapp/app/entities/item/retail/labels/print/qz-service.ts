@@ -47,6 +47,7 @@ export const qzPrintPdf = async (printer: string, base64: string, size: { widthM
     margins: 0,
     scaleContent: false,
     rasterize: false,
+    density: 300,
     orientation,
   });
   await qz.print(config, [{ type: 'pixel', format: 'pdf', flavor: 'base64', data: base64 }]);

@@ -1,4 +1,5 @@
-const RASTER_DPI = 300;
+
+const RASTER_DPI = 600;
 
 export const mmToRasterPx = (mm: number): number => Math.max(1, Math.round((mm / 25.4) * RASTER_DPI));
 export const rasterPxToMm = (px: number): number => (px / RASTER_DPI) * 25.4;

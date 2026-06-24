@@ -16,7 +16,7 @@ import { PT_PER_MM } from '../util/units';
 import { ContainRect, containRect, loadImage, mmToRasterPx, rasterizeRotated } from './rotate-raster';
 import { PrinterOffset, ZERO_OFFSET } from './printer-calibration';
 
-const RASTER_DPI = 300;
+const RASTER_DPI = 600;
 const mmPx = (mm: number): number => (mm / 25.4) * RASTER_DPI;
 
 export interface FlatPdfLabel {

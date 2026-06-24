@@ -16,8 +16,8 @@ export const barcodePngDataUrl = (data: string, symbology: string): string | nul
       format: BARCODE_SYMBOLOGY_FORMAT[symbology] || 'CODE128',
       displayValue: false,
       margin: 0,
-      width: 2,
-      height: 120,
+      width: 6,
+      height: 480,
     });
     return canvas.toDataURL('image/png');
   } catch {
@@ -27,7 +27,7 @@ export const barcodePngDataUrl = (data: string, symbology: string): string | nul
 
 export const qrPngDataUrl = async (data: string): Promise<string | null> => {
   try {
-    return await QRCode.toDataURL(data, { margin: 0, width: 512, errorCorrectionLevel: 'M' });
+    return await QRCode.toDataURL(data, { margin: 0, width: 1024, errorCorrectionLevel: 'M' });
   } catch {
     return null;
   }
