@@ -14,6 +14,7 @@ import { validateBarcodeData } from '../model/label-template.model';
 import { DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, TextLayoutResult, fitComparePrice, layoutLabelText } from '../util/text-layout';
 import { PT_PER_MM } from '../util/units';
 import { ContainRect, containRect, loadImage, mmToRasterPx, rasterizeRotated } from './rotate-raster';
+import { PrinterOffset, ZERO_OFFSET } from './printer-calibration';
 
 const RASTER_DPI = 300;
 const mmPx = (mm: number): number => (mm / 25.4) * RASTER_DPI;
@@ -335,14 +336,25 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
   drawText(doc, element, datum, useFormattedVariantName);
 };
 
-export const buildLabelsPdf = async (template: LabelTemplate, labels: FlatPdfLabel[], useFormattedVariantName = true): Promise<jsPDF> => {
+const offsetElements = (elements: LabelElement[], offset: PrinterOffset): LabelElement[] => {
+  if (offset.xMm === 0 && offset.yMm === 0) return elements;
+  return elements.map(el => ({ ...el, xMm: el.xMm + offset.xMm, yMm: el.yMm + offset.yMm }));
+};
+
+export const buildLabelsPdf = async (
+  template: LabelTemplate,
+  labels: FlatPdfLabel[],
+  useFormattedVariantName = true,
+  offset: PrinterOffset = ZERO_OFFSET
+): Promise<jsPDF> => {
   const { widthMm, heightMm } = template;
   const orientation = orientationFor(widthMm, heightMm);
   const doc = new jsPDF({ unit: 'mm', format: [widthMm, heightMm], orientation, compress: true });
+  const elements = offsetElements(template.elements, offset);
 
   for (let i = 0; i < labels.length; i++) {
     if (i > 0) doc.addPage([widthMm, heightMm], orientation);
-    for (const element of template.elements) {
+    for (const element of elements) {
       await drawElement(doc, element, labels[i].datum, useFormattedVariantName);
     }
   }
@@ -356,8 +368,13 @@ export const exportLabelsPdf = async (template: LabelTemplate, labels: FlatPdfLa
   doc.save(`labels-${template.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
 };
 
-export const labelsPdfBase64 = async (template: LabelTemplate, labels: FlatPdfLabel[], useFormattedVariantName = true): Promise<string> => {
-  const doc = await buildLabelsPdf(template, labels, useFormattedVariantName);
+export const labelsPdfBase64 = async (
+  template: LabelTemplate,
+  labels: FlatPdfLabel[],
+  useFormattedVariantName = true,
+  offset: PrinterOffset = ZERO_OFFSET
+): Promise<string> => {
+  const doc = await buildLabelsPdf(template, labels, useFormattedVariantName, offset);
   const uri = doc.output('datauristring');
   return uri.substring(uri.indexOf(',') + 1);
 };

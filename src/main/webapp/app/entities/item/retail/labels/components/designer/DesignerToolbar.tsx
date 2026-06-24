@@ -80,7 +80,8 @@ export const DesignerToolbar = ({
           type="number"
           min={5}
           value={template.widthMm}
-          onChange={e => dispatch({ type: 'updateTemplate', patch: { widthMm: clamp(Number(e.target.value) || 1, 5, 500) } })}
+          onChange={e => dispatch({ type: 'updateTemplate', patch: { widthMm: Math.min(Number(e.target.value) || 1, 500) } })}
+          onBlur={e => dispatch({ type: 'updateTemplate', patch: { widthMm: clamp(Number(e.target.value) || 5, 5, 500) } })}
           className="h-8 w-16 text-xs"
         />
         <span>×</span>
@@ -89,7 +90,8 @@ export const DesignerToolbar = ({
           type="number"
           min={5}
           value={template.heightMm}
-          onChange={e => dispatch({ type: 'updateTemplate', patch: { heightMm: clamp(Number(e.target.value) || 1, 5, 500) } })}
+          onChange={e => dispatch({ type: 'updateTemplate', patch: { heightMm: Math.min(Number(e.target.value) || 1, 500) } })}
+          onBlur={e => dispatch({ type: 'updateTemplate', patch: { heightMm: clamp(Number(e.target.value) || 5, 5, 500) } })}
           className="h-8 w-16 text-xs"
         />
         <span>mm</span>

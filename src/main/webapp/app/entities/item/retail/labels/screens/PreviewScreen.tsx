@@ -1,7 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { ArrowLeft, CheckCircle2, FileDown, Inbox, Package, Printer, Ruler, Tag, TriangleAlert, Wifi, WifiOff } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Crosshair,
+  FileDown,
+  Inbox,
+  Package,
+  Printer,
+  RotateCcw,
+  Ruler,
+  Tag,
+  TriangleAlert,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Select from 'app/shared/components/select/select';
 import { findLabelBarcodeIssues } from '../util/label-data';
@@ -20,9 +38,13 @@ const PreviewScreen = () => {
   const qz = useQz();
 
   const printRef = useRef<HTMLDivElement>(null);
+  const testRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const testLabels = useMemo(() => flatLabels.slice(0, 1), [flatLabels]);
 
   useEffect(() => {
     if (!template && templateId) {
@@ -43,6 +65,12 @@ const PreviewScreen = () => {
   const browserPrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: template ? `${template.name} Labels` : 'Labels',
+    pageStyle,
+  });
+
+  const browserTestPrint = useReactToPrint({
+    content: () => testRef.current,
+    documentTitle: template ? `${template.name} Test Label` : 'Test Label',
     pageStyle,
   });
 
@@ -68,13 +96,32 @@ const PreviewScreen = () => {
     }
     setIsPrinting(true);
     try {
-      const base64 = await labelsPdfBase64(template, flatLabels);
+      const base64 = await labelsPdfBase64(template, flatLabels, true, qz.offset);
       await qz.printPdf(qz.selected, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
     } catch (e) {
       setError('Direct printing failed — opening the system print dialog instead.');
       browserPrint();
     } finally {
       setIsPrinting(false);
+    }
+  };
+
+  const handleTestPrint = async () => {
+    if (!template || testLabels.length === 0) return;
+    setError(null);
+    if (!qz.available || !qz.selected) {
+      browserTestPrint();
+      return;
+    }
+    setIsTesting(true);
+    try {
+      const base64 = await labelsPdfBase64(template, testLabels, true, qz.offset);
+      await qz.printPdf(qz.selected, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
+    } catch (e) {
+      setError('Direct printing failed — opening the system print dialog instead.');
+      browserTestPrint();
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -167,7 +214,8 @@ const PreviewScreen = () => {
         ))}
       </div>
 
-      <PrintSheet ref={printRef} template={template} labels={flatLabels} />
+      <PrintSheet ref={printRef} template={template} labels={flatLabels} offset={qz.offset} />
+      <PrintSheet ref={testRef} template={template} labels={testLabels} offset={qz.offset} />
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 p-3 backdrop-blur">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -176,22 +224,25 @@ const PreviewScreen = () => {
               {qz.available ? <Wifi className="h-3 w-3 text-emerald-600" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
               Printer
             </span>
-            {qz.available ? (
-              <div className="min-w-[220px]">
-                <Select
-                  value={printerOptions.find(o => o.value === qz.selected) || null}
-                  options={printerOptions}
-                  onChange={(opt: { value: string } | null) => qz.selectPrinter(opt?.value ?? null)}
-                  placeholder="Choose a printer…"
-                />
-              </div>
-            ) : (
-              <span className="text-[11px] text-muted-foreground">
-                {qz.connecting
-                  ? 'Looking for QZ Tray…'
-                  : 'QZ Tray not detected — Print uses the system dialog. Install QZ Tray for direct printing.'}
-              </span>
-            )}
+            <div className="flex flex-col gap-2">
+              {qz.available ? (
+                <div className="min-w-[220px]">
+                  <Select
+                    value={printerOptions.find(o => o.value === qz.selected) || null}
+                    options={printerOptions}
+                    onChange={(opt: { value: string } | null) => qz.selectPrinter(opt?.value ?? null)}
+                    placeholder="Choose a printer…"
+                  />
+                </div>
+              ) : (
+                <span className="text-[11px] text-muted-foreground">
+                  {qz.connecting
+                    ? 'Looking for QZ Tray…'
+                    : 'QZ Tray not detected — Print uses the system dialog. Install QZ Tray for direct printing.'}
+                </span>
+              )}
+              <OffsetCalibration offset={qz.offset} onNudge={qz.updateOffset} onReset={qz.resetOffset} />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" className="h-12 gap-2" disabled={isExporting} onClick={handleExport}>
@@ -209,6 +260,71 @@ const PreviewScreen = () => {
     </div>
   );
 };
+
+const STEP_MM = 0.5;
+
+type OffsetCalibrationProps = {
+  offset: { xMm: number; yMm: number };
+  onNudge: (next: { xMm: number; yMm: number }) => void;
+  onReset: () => void;
+};
+
+const OffsetCalibration = ({ offset, onNudge, onReset }: OffsetCalibrationProps) => {
+  const move = (dx: number, dy: number) => () =>
+    onNudge({ xMm: offset.xMm + dx * STEP_MM, yMm: offset.yMm + dy * STEP_MM });
+  const adjusted = offset.xMm !== 0 || offset.yMm !== 0;
+  const fmt = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <Crosshair className="h-3 w-3" />
+        Align
+      </span>
+      <div className="flex items-center gap-0.5">
+        <NudgeBtn onClick={move(-1, 0)} title="Move left">
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </NudgeBtn>
+        <div className="flex flex-col gap-0.5">
+          <NudgeBtn onClick={move(0, -1)} title="Move up">
+            <ChevronUp className="h-3.5 w-3.5" />
+          </NudgeBtn>
+          <NudgeBtn onClick={move(0, 1)} title="Move down">
+            <ChevronDown className="h-3.5 w-3.5" />
+          </NudgeBtn>
+        </div>
+        <NudgeBtn onClick={move(1, 0)} title="Move right">
+          <ChevronRight className="h-3.5 w-3.5" />
+        </NudgeBtn>
+      </div>
+      <span className="font-mono text-[11px] text-muted-foreground">
+        X {fmt(offset.xMm)} · Y {fmt(offset.yMm)} mm
+      </span>
+      {adjusted && (
+        <button
+          type="button"
+          onClick={onReset}
+          title="Reset alignment"
+          className="flex items-center gap-1 rounded text-[11px] font-medium text-muted-foreground hover:text-foreground"
+        >
+          <RotateCcw className="h-3 w-3" />
+          Reset
+        </button>
+      )}
+    </div>
+  );
+};
+
+const NudgeBtn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={title}
+    className="flex h-6 w-6 items-center justify-center rounded border border-border bg-background text-foreground hover:bg-muted"
+  >
+    {children}
+  </button>
+);
 
 const SummaryChip = ({ icon, label, className }: { icon: React.ReactNode; label: string; className: string }) => (
   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold ${className}`}>
