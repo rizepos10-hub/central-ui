@@ -5,7 +5,7 @@ interface TenantState {
 }
 
 const initialState = {
-  tenant: 'default', // Initial value
+  tenant: typeof BUSINESS_ID !== 'undefined' ? BUSINESS_ID : 'default',
 };
 
 type TenantAction = { type: 'SET_TENANT'; payload: string };

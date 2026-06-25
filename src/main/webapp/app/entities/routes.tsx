@@ -64,6 +64,7 @@ const GiftCardsRoutes = React.lazy(() => import('./item/virtual/gift-card'));
 const CourseDefinitionRoutes = React.lazy(() => import('./settings/course-definition'));
 const PosAuthorityGroupRoutes = React.lazy(() => import('./pos-authority-groups'));
 const Barcode = React.lazy(() => import('./item/retail/barcode/barcode'));
+const Labels = React.lazy(() => import('./item/retail/labels'));
 const EndOfDay = React.lazy(() => import('./end-of-day'));
 const PayoutType = React.lazy(() => import('./payout-type'));
 const CashPayment = React.lazy(() => import('./cash-payment'));
@@ -136,6 +137,7 @@ export default () => {
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="product/*" element={<Product />} />
         <Route path="barcodes/*" element={<Barcode />} />
+        <Route path="labels/*" element={<Labels />} />
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />

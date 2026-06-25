@@ -1,0 +1,46 @@
+.labels-print-root {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: #ffffff;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .labels-print-root,
+    .labels-print-root * {
+        visibility: visible;
+    }
+
+    .labels-print-root {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        z-index: 9999;
+    }
+
+    .labels-print-label {
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden;
+    }
+
+    .labels-print-label:last-child {
+        page-break-after: auto;
+    }
+}
+
+.labels-canvas-scroll {
+    overflow: auto;
+}
+
+.labels-grab {
+    touch-action: none;
+}

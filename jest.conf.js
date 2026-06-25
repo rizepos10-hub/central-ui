@@ -35,6 +35,7 @@ module.exports = {
       diagnostics: false,
     },
     ...require('./webpack/environment'),
+    ...require('./webpack/environment.dev'),
     DEVELOPMENT: false,
   },
 };

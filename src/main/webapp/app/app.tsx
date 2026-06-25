@@ -17,16 +17,21 @@ import VersionUpdateChecker from "app/version/version-checker";
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from 'app/shared/hooks/use-theme';
-import { getTenantFromURL } from 'app/shared/util/tenant-utils';
+import { getActiveTenant, getTenantFromURL } from 'app/shared/util/tenant-utils';
 
-const tenant = getTenantFromURL();
-const baseHref = tenant ? `/${tenant}/` : '/';
+const tenant = getActiveTenant();
+const baseHref = `/${tenant}/`;
 export const App = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // dispatch(getSession());
-    dispatch(setTenant({ tenant }));
+    const urlTenant = getTenantFromURL();
+    if (!urlTenant) {
+      const suffix = window.location.pathname === '/' ? '' : window.location.pathname;
+      window.location.replace(`/${tenant}${suffix}${window.location.search}${window.location.hash}`);
+      return;
+    }
+    dispatch(setTenant({ tenant: getActiveTenant() }));
   }, []);
 
   return (

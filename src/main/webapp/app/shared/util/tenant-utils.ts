@@ -1,4 +1,4 @@
-export const DEFAULT_TENANT = 'default';
+export const DEFAULT_TENANT = typeof BUSINESS_ID !== 'undefined' ? BUSINESS_ID : 'default';
 
 export function getTenantFromURL(): string | undefined {
   const pathname = window.location.pathname;
@@ -9,7 +9,7 @@ export function getTenantFromURL(): string | undefined {
 }
 
 export function getActiveTenant(): string {
-  return getTenantFromURL() || undefined;
+  return getTenantFromURL() || DEFAULT_TENANT;
 }
 
 export function buildAuthTokenKey(tenant?: string): string {
