@@ -1,18 +1,19 @@
 import qz from 'qz-tray';
+import { configureQzTrust } from './qz-trust';
 
-let configured = false;
-
-const configure = () => {
-  if (configured) return;
-  configured = true;
-  qz.security.setCertificatePromise((resolve: (v?: unknown) => void) => resolve());
-  qz.security.setSignaturePromise(() => (resolve: (v?: unknown) => void) => resolve());
-};
+let connecting: Promise<void> | null = null;
 
 export const qzConnect = async (): Promise<void> => {
-  configure();
+  configureQzTrust();
   if (qz.websocket.isActive()) return;
-  await qz.websocket.connect({ retries: 1, delay: 1 });
+  if (!connecting) {
+    connecting = qz.websocket
+      .connect({ retries: 2, delay: 1 })
+      .finally(() => {
+        connecting = null;
+      });
+  }
+  await connecting;
 };
 
 export const qzIsActive = (): boolean => {
@@ -51,4 +52,64 @@ export const qzPrintPdf = async (printer: string, base64: string, size: { widthM
     orientation,
   });
   await qz.print(config, [{ type: 'pixel', format: 'pdf', flavor: 'base64', data: base64 }]);
+};
+
+export const qzPrintRaw = async (printer: string, commands: string[]): Promise<void> => {
+  await qzConnect();
+  const config = qz.configs.create(printer, {
+    encoding: 'UTF-8',
+  });
+  await qz.print(
+    config,
+    commands
+      .map(command => command.trim())
+      .filter(Boolean)
+  );
+};
+
+export const qzPrintDirect = async (
+  printer: string,
+  payloads: Array<
+    | string
+    | {
+        type: 'raw-image' | 'raw-command-hex';
+        language?: 'epl';
+        base64?: string;
+        data?: string;
+        x?: number;
+        y?: number;
+      }
+  >
+): Promise<void> => {
+  await qzConnect();
+  const config = qz.configs.create(printer, {
+    encoding: 'UTF-8',
+  });
+  await qz.print(
+    config,
+    payloads
+      .map(payload => {
+        if (typeof payload === 'string') return payload.trim();
+        if (payload.type === 'raw-command-hex') {
+          return {
+            type: 'raw',
+            format: 'command',
+            flavor: 'hex',
+            data: payload.data ?? '',
+          };
+        }
+        return {
+          type: 'raw',
+          format: 'image',
+          flavor: 'base64',
+          data: payload.base64 ?? '',
+          options: {
+            language: payload.language,
+            x: payload.x ?? 0,
+            y: payload.y ?? 0,
+          },
+        };
+      })
+      .filter(Boolean)
+  );
 };

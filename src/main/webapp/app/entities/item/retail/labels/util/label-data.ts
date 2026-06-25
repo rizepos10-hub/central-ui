@@ -1,7 +1,7 @@
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { formatVariant } from 'app/shared/util/variant-utils';
-import { LabelElement, LabelTemplate, validateBarcodeData } from '../model/label-template.model';
+import { ComparePriceStyle, LabelElement, LabelTemplate, validateBarcodeData } from '../model/label-template.model';
 
 export interface LabelDatum {
   product: IProduct;
@@ -47,6 +47,12 @@ export const resolvePriceParts = (variant?: IVariableItemVariant): PriceParts =>
     onSale,
   };
 };
+
+// How the original (pre-sale) price reads next to the sale price. "strikethrough" keeps the bare amount
+// (the renderer draws the line); "was" labels it "Was $100.00" — the standard retail tag wording — so
+// nothing relies on a printed line surviving the thermal head.
+export const comparePriceText = (original: string, style: ComparePriceStyle = 'strikethrough'): string =>
+  style === 'was' ? `Was ${original}` : original;
 
 export const resolveBarcodeData = (datum: LabelDatum): string => datum.variant?.sku ?? '';
 

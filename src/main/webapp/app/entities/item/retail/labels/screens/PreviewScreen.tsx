@@ -29,6 +29,8 @@ import { useQz } from '../store/useQz';
 import { LabelCanvasPreview } from '../components/LabelCanvas';
 import { PrintSheet } from '../print/PrintSheet';
 import { exportLabelsPdf, labelsPdfBase64 } from '../print/labels-pdf';
+import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-script';
+import { compileDirectPrintTemplate } from '../util/direct-print-compiler';
 
 const PreviewScreen = () => {
   const navigate = useNavigate();
@@ -45,6 +47,8 @@ const PreviewScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   const testLabels = useMemo(() => flatLabels.slice(0, 1), [flatLabels]);
+  const isDirect = isDirectPrintTemplate(template);
+  const preferredDirectPrinter = isDirect ? template?.directPrint?.printerName ?? qz.selected : qz.selected;
 
   useEffect(() => {
     if (!template && templateId) {
@@ -52,6 +56,13 @@ const PreviewScreen = () => {
       if (found) setTemplate(found);
     }
   }, [template, templateId, getTemplate, setTemplate]);
+
+  useEffect(() => {
+    if (!isDirect || !template?.directPrint?.printerName || !qz.available) return;
+    if (!qz.printers.includes(template.directPrint.printerName)) return;
+    if (qz.selected === template.directPrint.printerName) return;
+    qz.selectPrinter(template.directPrint.printerName);
+  }, [isDirect, qz, template]);
 
   const pageStyle = useMemo(
     () =>
@@ -68,19 +79,39 @@ const PreviewScreen = () => {
     pageStyle,
   });
 
-  const browserTestPrint = useReactToPrint({
-    content: () => testRef.current,
-    documentTitle: template ? `${template.name} Test Label` : 'Test Label',
-    pageStyle,
-  });
+  const compiledDirectLabels = useMemo(
+    () =>
+      isDirect && template
+        ? flatLabels.map(label => ({
+            datum: label.datum,
+            copyNum: label.copyNum,
+            totalCopies: label.totalCopies,
+            ...compileDirectPrintTemplate(
+              template,
+              label.datum,
+              template.directPrint?.language ?? 'zpl',
+              template.directPrint?.dpi ?? 203
+            ),
+          }))
+        : [],
+    [flatLabels, isDirect, template]
+  );
+
+  const directWarnings = useMemo(() => Array.from(new Set(compiledDirectLabels.flatMap(item => item.warnings))), [compiledDirectLabels]);
+  const printerOptions = useMemo(() => qz.printers.map(p => ({ value: p, label: p })), [qz.printers]);
+
+  const barcodeIssues = useMemo(
+    () => (template ? findLabelBarcodeIssues(template, flatLabels.map(l => l.datum)) : []),
+    [template, flatLabels]
+  );
 
   const handleExport = async () => {
-    if (!template) return;
+    if (!template || isDirect) return;
     setError(null);
     setIsExporting(true);
     try {
       await exportLabelsPdf(template, flatLabels);
-    } catch (e) {
+    } catch {
       setError('Could not generate the PDF. Please try again.');
     } finally {
       setIsExporting(false);
@@ -90,47 +121,47 @@ const PreviewScreen = () => {
   const handlePrint = async () => {
     if (!template) return;
     setError(null);
-    if (!qz.available || !qz.selected) {
-      browserPrint();
+
+    if (isDirect) {
+      const payloads = compiledDirectLabels
+        .map(item => item.qzPayload ?? item.script)
+        .filter(Boolean);
+      if (payloads.length === 0) {
+        setError('This direct-print template does not produce any printer commands yet.');
+        return;
+      }
+      setIsPrinting(true);
+      try {
+        const printer = await qz.ensurePrinter(template.directPrint?.printerName);
+        if (!printer) {
+          setError('Direct printer templates require QZ Tray and a selected or template-bound printer.');
+          return;
+        }
+        await qz.printDirect(printer, payloads as any);
+      } catch {
+        setError('Direct printing failed. Check the selected language, printer, or compiled output and try again.');
+      } finally {
+        setIsPrinting(false);
+      }
       return;
     }
+
     setIsPrinting(true);
     try {
+      const printer = await qz.ensurePrinter();
+      if (!printer) {
+        browserPrint();
+        return;
+      }
       const base64 = await labelsPdfBase64(template, flatLabels, true, qz.offset);
-      await qz.printPdf(qz.selected, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
-    } catch (e) {
+      await qz.printPdf(printer, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
+    } catch {
       setError('Direct printing failed — opening the system print dialog instead.');
       browserPrint();
     } finally {
       setIsPrinting(false);
     }
   };
-
-  const handleTestPrint = async () => {
-    if (!template || testLabels.length === 0) return;
-    setError(null);
-    if (!qz.available || !qz.selected) {
-      browserTestPrint();
-      return;
-    }
-    setIsTesting(true);
-    try {
-      const base64 = await labelsPdfBase64(template, testLabels, true, qz.offset);
-      await qz.printPdf(qz.selected, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
-    } catch (e) {
-      setError('Direct printing failed — opening the system print dialog instead.');
-      browserTestPrint();
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const printerOptions = useMemo(() => qz.printers.map(p => ({ value: p, label: p })), [qz.printers]);
-
-  const barcodeIssues = useMemo(
-    () => (template ? findLabelBarcodeIssues(template, flatLabels.map(l => l.datum)) : []),
-    [template, flatLabels]
-  );
 
   if (!template || totalLabels === 0) {
     return (
@@ -175,10 +206,12 @@ const PreviewScreen = () => {
 
       <div className="flex items-center gap-2 bg-emerald-500/8 px-4 py-2 text-xs font-medium text-emerald-600">
         <CheckCircle2 className="h-3.5 w-3.5" />
-        Each page is exactly {template.widthMm.toFixed(0)} × {template.heightMm.toFixed(0)} mm — the print and PDF match this preview.
+        {isDirect
+          ? `The canvas design is compiled into ${directPrintLanguageName(template.directPrint?.language ?? 'zpl')} before printing${preferredDirectPrinter ? ` using ${preferredDirectPrinter}` : ''}.`
+          : `Each page is exactly ${template.widthMm.toFixed(0)} × ${template.heightMm.toFixed(0)} mm — the print and PDF match this preview.`}
       </div>
 
-      {barcodeIssues.length > 0 && (
+      {!isDirect && barcodeIssues.length > 0 && (
         <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700">
           <div className="flex items-center gap-2 font-semibold">
             <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
@@ -191,6 +224,20 @@ const PreviewScreen = () => {
               </li>
             ))}
             {barcodeIssues.length > 5 && <li>+{barcodeIssues.length - 5} more…</li>}
+          </ul>
+        </div>
+      )}
+
+      {isDirect && directWarnings.length > 0 && (
+        <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700">
+          <div className="flex items-center gap-2 font-semibold">
+            <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
+            Native output warnings
+          </div>
+          <ul className="mt-1 ml-6 list-disc space-y-0.5">
+            {directWarnings.map((warning, index) => (
+              <li key={index}>{warning}</li>
+            ))}
           </ul>
         </div>
       )}
@@ -214,8 +261,12 @@ const PreviewScreen = () => {
         ))}
       </div>
 
-      <PrintSheet ref={printRef} template={template} labels={flatLabels} offset={qz.offset} />
-      <PrintSheet ref={testRef} template={template} labels={testLabels} offset={qz.offset} />
+      {!isDirect && (
+        <>
+          <PrintSheet ref={printRef} template={template} labels={flatLabels} offset={qz.offset} />
+          <PrintSheet ref={testRef} template={template} labels={testLabels} offset={qz.offset} />
+        </>
+      )}
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 p-3 backdrop-blur">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -231,7 +282,7 @@ const PreviewScreen = () => {
                     value={printerOptions.find(o => o.value === qz.selected) || null}
                     options={printerOptions}
                     onChange={(opt: { value: string } | null) => qz.selectPrinter(opt?.value ?? null)}
-                    placeholder="Choose a printer…"
+                    placeholder={isDirect && template?.directPrint?.printerName ? 'Using template printer…' : 'Choose a printer…'}
                   />
                 </div>
               ) : (
@@ -241,20 +292,29 @@ const PreviewScreen = () => {
                     : 'QZ Tray not detected — Print uses the system dialog. Install QZ Tray for direct printing.'}
                 </span>
               )}
-              <OffsetCalibration offset={qz.offset} onNudge={qz.updateOffset} onReset={qz.resetOffset} />
+              {!isDirect && <OffsetCalibration offset={qz.offset} onNudge={qz.updateOffset} onReset={qz.resetOffset} />}
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="h-12 gap-2" disabled={isExporting} onClick={handleExport}>
-              <FileDown className="h-5 w-5" />
-              {isExporting ? 'Generating…' : 'Export PDF'}
-            </Button>
+            {!isDirect && (
+              <Button variant="outline" className="h-12 gap-2" disabled={isExporting} onClick={handleExport}>
+                <FileDown className="h-5 w-5" />
+                {isExporting ? 'Generating…' : 'Export PDF'}
+              </Button>
+            )}
             <Button className="h-12 gap-2 px-6 text-base font-bold" disabled={isPrinting} onClick={handlePrint}>
               <Printer className="h-5 w-5" />
-              {isPrinting ? 'Printing…' : qz.available && qz.selected ? 'Print' : 'Print…'}
+              {isPrinting ? 'Printing…' : isDirect ? 'Send Native Print' : qz.available && qz.selected ? 'Print' : 'Print…'}
             </Button>
           </div>
         </div>
+
+        {isDirect && template?.directPrint?.printerName && (
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            This template is bound to <span className="font-medium text-foreground">{template.directPrint.printerName}</span> and will prefer that printer automatically.
+          </p>
+        )}
         {error && <p className="mt-1 text-[11px] font-medium text-red-600">{error}</p>}
       </div>
     </div>
@@ -270,8 +330,7 @@ type OffsetCalibrationProps = {
 };
 
 const OffsetCalibration = ({ offset, onNudge, onReset }: OffsetCalibrationProps) => {
-  const move = (dx: number, dy: number) => () =>
-    onNudge({ xMm: offset.xMm + dx * STEP_MM, yMm: offset.yMm + dy * STEP_MM });
+  const move = (dx: number, dy: number) => () => onNudge({ xMm: offset.xMm + dx * STEP_MM, yMm: offset.yMm + dy * STEP_MM });
   const adjusted = offset.xMm !== 0 || offset.yMm !== 0;
   const fmt = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
 

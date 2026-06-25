@@ -1386,6 +1386,8 @@ export const OrderDetail = () => {
         title={`Add Payment to Bill #${selectedBillForPayment?.sequenceNumber ?? ''}`}
         orderBranchId={orderEntity.branchId}
         customerId={orderEntity.customer?.id}
+        loyaltyPreviewEligible={Boolean(orderEntity.loyaltyPreview?.eligible)}
+        loyaltyPreviewPoints={orderEntity.loyaltyPreview?.points ?? 0}
         totalAmount={selectedBillForPayment?.total ?? 0}
         totalPaid={selectedBillForPayment?.paymentTransactions?.reduce((sum, txn) => sum + (txn.amount || 0), 0) || 0}
         defaultPaymentAmount={Math.max(

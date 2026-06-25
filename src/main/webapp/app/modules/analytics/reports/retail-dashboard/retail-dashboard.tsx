@@ -140,11 +140,32 @@ const RetialDashboard: React.FC = () => {
     ]);
 
     const branchesLength = branches?.length ?? 0;
-    const defaultBranchId = branches?.[0]?.id;
+
+    const branchOptions = useMemo(
+        () => branches?.map(branch => ({ value: branch.id, label: branch.name })) ?? [],
+        [branches]
+    );
+
+    const selectedBranchOption = useMemo(
+        () => branchOptions.find(opt => opt.value === filterState.filters.branchId.value) ?? null,
+        [branchOptions, filterState.filters.branchId.value]
+    );
 
     useEffect(() => {
         dispatch(getBranches({ page: 0, size: 100, sort: 'id,desc' }));
     }, [dispatch]);
+
+    useEffect(() => {
+        if (branchesLength === 1 && !filterState.filters.branchId.value) {
+            setFilterState(prev => ({
+                ...prev,
+                filters: {
+                    ...prev.filters,
+                    branchId: { value: branches[0].id, matchMode: FilterMatchMode.EQUALS },
+                },
+            }));
+        }
+    }, [branchesLength, branches, filterState.filters.branchId.value]);
 
     useEffect(() => {
         if (branchesLength === 0) return;
@@ -158,6 +179,8 @@ const RetialDashboard: React.FC = () => {
 
         setChartsLoading(true);
 
+        const resolvedBranch = filterState.filters.branchId.value ?? undefined;
+
         const payload: IRetailDashboard = {
             nodes: [],
             dateRange: {
@@ -168,7 +191,7 @@ const RetialDashboard: React.FC = () => {
                     slots: debouncedSlots,
                 },
             },
-            branch: filterState.filters.branchId.value || defaultBranchId,
+            ...(resolvedBranch ? { branch: resolvedBranch } : {}),
         };
 
         (async () => {
@@ -199,7 +222,7 @@ const RetialDashboard: React.FC = () => {
         return () => {
             cancelled = true;
         };
-    }, [view, debouncedSlots, branchesLength, defaultBranchId, filterFingerprint, dispatch]);
+    }, [view, debouncedSlots, branchesLength, filterFingerprint, dispatch]);
 
     const toCamelCase = (str: string) => {
         return str.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
@@ -330,8 +353,9 @@ const RetialDashboard: React.FC = () => {
                     <div className="space-y-2">
                         <Label htmlFor="branch" className="text-xs font-semibold">Branch</Label>
                         <Select
-                            options={branches?.map(branch => ({ value: branch.id, label: branch.name }))}
-                            isClearable
+                            options={branchOptions}
+                            value={selectedBranchOption}
+                            isClearable={branchesLength !== 1}
                             onChange={handleBranchChange}
                             onMenuOpen={() => {
                                 dispatch(getBranches({ page: 0, size: 1000, sort: 'id,desc' }));

@@ -1,5 +1,13 @@
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
-import { LabelElement, createElement, duplicateTemplate, paperNameFor, validateBarcodeData } from './model/label-template.model';
+import {
+  LabelElement,
+  createDirectPrintSettings,
+  createElement,
+  duplicateTemplate,
+  normalizeLabelTemplate,
+  paperNameFor,
+  validateBarcodeData,
+} from './model/label-template.model';
 import { LABEL_PRESETS } from './model/label-presets';
 import {
   LabelDatum,
@@ -11,6 +19,14 @@ import {
   resolveQrData,
   variantKey,
 } from './util/label-data';
+import {
+  detectDirectPrintLanguage,
+  extractDirectPrintPlaceholders,
+  findDirectPrintControlChars,
+  renderDirectPrintScript,
+  visualizeDirectPrintScript,
+} from './util/label-script';
+import { compileDirectPrintTemplate } from './util/direct-print-compiler';
 import { containRect } from './print/rotate-raster';
 import { deleteTemplate, getDefaultTemplateId, listTemplates, saveTemplate, setDefaultTemplateId } from './store/label-templates.storage';
 import { fitComparePrice, layoutLabelText } from './util/text-layout';
@@ -103,7 +119,9 @@ describe('template helpers', () => {
 
   it('creates barcode elements with a default symbology', () => {
     expect(createElement('barcode').barcodeSymbology).toBe('code128');
+    expect(createElement('barcode').alignment).toBe('center');
     expect(createElement('qrCode').qrDataType).toBe('sku');
+    expect(createElement('qrCode').alignment).toBe('center');
   });
 });
 
@@ -153,6 +171,8 @@ describe('layout warnings', () => {
     widthMm: 50,
     heightMm: 30,
     orientation: 'portrait',
+    templateType: 'visual',
+    directPrint: null,
     isDefault: false,
     isActive: true,
     elements,
@@ -200,6 +220,8 @@ describe('layout warnings', () => {
       widthMm: 50,
       heightMm: 30,
       orientation: 'portrait',
+      templateType: 'visual',
+      directPrint: null,
       isDefault: false,
       isActive: true,
       elements: [
@@ -250,6 +272,8 @@ describe('barcode issues', () => {
     widthMm: 50,
     heightMm: 30,
     orientation: 'portrait',
+    templateType: 'visual',
+    directPrint: null,
     isDefault: false,
     isActive: true,
     elements,
@@ -282,6 +306,8 @@ describe('designer reducer', () => {
     widthMm: 50,
     heightMm: 30,
     orientation: 'portrait',
+    templateType: 'visual',
+    directPrint: null,
     isDefault: false,
     isActive: true,
     elements: [],
@@ -359,5 +385,182 @@ describe('template storage', () => {
     setDefaultTemplateId(custom.id);
     expect(getDefaultTemplateId()).toBe(custom.id);
     expect(listTemplates().find(t => t.id === custom.id)?.isDefault).toBe(true);
+  });
+
+  it('normalizes legacy templates without explicit type metadata', () => {
+    localStorage.setItem(
+      'retail-label-templates',
+      JSON.stringify([
+        {
+          id: 'legacy-template',
+          name: 'Legacy',
+          widthMm: 40,
+          heightMm: 25,
+          orientation: 'portrait',
+          isDefault: false,
+          isActive: true,
+          elements: [],
+        },
+      ])
+    );
+
+    const legacy = listTemplates().find(t => t.id === 'legacy-template');
+    expect(legacy?.templateType).toBe('visual');
+    expect(legacy?.directPrint).toBeNull();
+  });
+});
+
+describe('direct-print scripts', () => {
+  it('duplicates direct-print settings intact', () => {
+    const direct = normalizeLabelTemplate({
+      id: 'direct-1',
+      name: 'Direct',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'zpl', printerName: 'ZDesigner ZD420', dpi: 300 }),
+      isDefault: false,
+      isActive: true,
+      elements: [createElement('productName')],
+    });
+
+    const copy = duplicateTemplate(direct, 'Direct Copy');
+    expect(copy.templateType).toBe('direct');
+    expect(copy.directPrint?.language).toBe('zpl');
+    expect(copy.directPrint?.printerName).toBe('ZDesigner ZD420');
+    expect(copy.directPrint?.dpi).toBe(300);
+  });
+
+  it('extracts placeholders and renders a raw printer script', () => {
+    const script = '^FO20,20^FD@name^FS^FO20,50^FD@price^FS^FO20,80^FD@barcode^FS';
+    expect(extractDirectPrintPlaceholders(script)).toEqual(['name', 'price', 'barcode']);
+
+    const rendered = renderDirectPrintScript(script, datum);
+    expect(rendered).toContain('Blue T-Shirt');
+    expect(rendered).toContain('$15.00');
+    expect(rendered).toContain('TSHIRT-BLUE-M');
+  });
+
+  it('detects ZPL and exposes control bytes safely for previewing', () => {
+    const script = '\u0010CT~CD,~CC^~CT\n^XA\n^FO20,20^FD@name^FS\n^XZ';
+    expect(detectDirectPrintLanguage(script)).toBe('zpl');
+    expect(findDirectPrintControlChars(script)).toEqual(['0x10']);
+    expect(visualizeDirectPrintScript(script)).toContain('\\x10CT~CD,~CC^~CT');
+  });
+
+  it('compiles a visual direct-print template into ZPL', () => {
+    const direct = normalizeLabelTemplate({
+      id: 'direct-2',
+      name: 'Compiled',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'zpl', dpi: 203 }),
+      isDefault: false,
+      isActive: true,
+      elements: [
+        createElement('productName', { xMm: 2, yMm: 2, widthMm: 40, heightMm: 8, fontSize: 10 }),
+        createElement('barcode', { xMm: 2, yMm: 12, widthMm: 45, heightMm: 14, barcodeSymbology: 'code128' }),
+      ],
+    });
+
+    const compiled = compileDirectPrintTemplate(direct, datum, 'zpl', 203);
+    expect(compiled.script).toContain('^XA');
+    expect(compiled.script.includes('^GFA,') || compiled.script.includes('^FO16,32')).toBe(true);
+  });
+
+  it('keeps wrapped product names on separate native lines instead of one overflowing command', () => {
+    const wrappedDatum: LabelDatum = {
+      product: { ...product, name: 'Premium Organic Colombian Coffee Beans Extra Bold Roast' } as any,
+      variant: product.variants[0],
+    };
+    const direct = normalizeLabelTemplate({
+      id: 'direct-2b',
+      name: 'Wrapped Name',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'tspl', dpi: 203 }),
+      isDefault: false,
+      isActive: true,
+      elements: [createElement('productName', { xMm: 2, yMm: 2, widthMm: 24, heightMm: 9, fontSize: 10, maxLines: 2 })],
+    });
+
+    const compiled = compileDirectPrintTemplate(direct, wrappedDatum, 'tspl', 203);
+    const textLines = compiled.script.split('\n').filter(line => line.startsWith('TEXT '));
+    expect(textLines.length).toBe(2);
+    expect(textLines.join(' ')).not.toContain('Premium Organic Colombian Coffee Beans Extra Bold Roast');
+  });
+
+  it('centers the current price in compiled output when compare-price mode is enabled but there is no sale', () => {
+    const direct = normalizeLabelTemplate({
+      id: 'direct-3',
+      name: 'Centered Price',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'zpl', dpi: 203 }),
+      isDefault: false,
+      isActive: true,
+      elements: [createElement('price', { xMm: 2, yMm: 2, widthMm: 40, heightMm: 8, alignment: 'right', showComparePrice: true })],
+    });
+
+    const noSaleDatum: LabelDatum = { product, variant: { ...product.variants[0], salePrice: undefined } as any };
+    const compiled = compileDirectPrintTemplate(direct, noSaleDatum, 'zpl', 203);
+    expect(compiled.script.includes('^GFA,') || compiled.script.includes('$20.00')).toBe(true);
+  });
+
+  it('produces a different exact ZPL image when the barcode alignment changes', () => {
+    const leftBarcode = normalizeLabelTemplate({
+      id: 'direct-4',
+      name: 'Left Barcode',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'zpl', dpi: 203 }),
+      isDefault: false,
+      isActive: true,
+      elements: [createElement('barcode', { xMm: 2, yMm: 12, widthMm: 45, heightMm: 14, alignment: 'left', barcodeSymbology: 'ean13' })],
+    });
+    const centeredBarcode = normalizeLabelTemplate({
+      ...leftBarcode,
+      id: 'direct-5',
+      elements: [createElement('barcode', { xMm: 2, yMm: 12, widthMm: 45, heightMm: 14, alignment: 'center', barcodeSymbology: 'ean13' })],
+    });
+
+    const leftScript = compileDirectPrintTemplate(leftBarcode, { product, variant: { ...product.variants[0], sku: '5901234123457' } as any }, 'zpl', 203).script;
+    const centeredScript = compileDirectPrintTemplate(
+      centeredBarcode,
+      { product, variant: { ...product.variants[0], sku: '5901234123457' } as any },
+      'zpl',
+      203
+    ).script;
+
+    expect(centeredScript).not.toBe(leftScript);
+    expect(centeredScript.includes('^GFA,') || centeredScript.includes('^FO')).toBe(true);
+  });
+
+  it('falls back to native ZPL commands when the template uses unsupported exact-mode elements', () => {
+    const withQr = normalizeLabelTemplate({
+      id: 'direct-6',
+      name: 'QR Fallback',
+      widthMm: 58,
+      heightMm: 40,
+      orientation: 'portrait',
+      templateType: 'direct',
+      directPrint: createDirectPrintSettings({ language: 'zpl', dpi: 203 }),
+      isDefault: false,
+      isActive: true,
+      elements: [createElement('qrCode', { xMm: 2, yMm: 2, widthMm: 16, heightMm: 16 })],
+    });
+
+    const compiled = compileDirectPrintTemplate(withQr, datum, 'zpl', 203);
+    expect(compiled.script).toContain('^BQN');
+    expect(compiled.warnings[0]).toContain('Exact ZPL parity mode');
   });
 });

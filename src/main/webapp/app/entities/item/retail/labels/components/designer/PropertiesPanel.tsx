@@ -17,6 +17,10 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import {
   BARCODE_SYMBOLOGY_LABELS,
   BarcodeSymbology,
+  COMPARE_PRICE_LAYOUT_LABELS,
+  COMPARE_PRICE_STYLE_LABELS,
+  ComparePriceArrangement,
+  ComparePriceStyle,
   ELEMENT_TYPE_LABELS,
   LabelElement,
   LabelTextAlign,
@@ -40,6 +44,7 @@ type PropertiesPanelProps = {
 
 export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: PropertiesPanelProps) => {
   const isText = !NON_TEXT_TYPES.includes(element.type);
+  const supportsHorizontalAlign = isText || element.type === 'barcode';
   const rotation = Math.round(element.rotation) % 360;
   return (
     <div className="flex flex-col gap-3">
@@ -119,10 +124,60 @@ export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: Pr
             <span className="text-sm text-foreground">Show original price struck through</span>
           </label>
           <p className="text-[11px] leading-snug text-muted-foreground">
-            When a product is on sale, the regular price appears crossed out before the sale price (e.g.{' '}
-            <span className="text-muted-foreground line-through">$12.99</span> <span className="font-semibold text-foreground">$9.99</span>).
+            When a product is on sale, the regular price appears before the sale price (e.g.{' '}
+            <span className="text-foreground line-through">$12.99</span> <span className="font-semibold text-foreground">$9.99</span>).
             Otherwise just the current price shows.
           </p>
+          {(element.showComparePrice ?? false) && (
+            <>
+              <div className="mt-1 flex flex-col gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Original price style</span>
+                <NativeSelect
+                  value={element.comparePriceStyle ?? 'strikethrough'}
+                  onChange={v => onChange({ comparePriceStyle: v as ComparePriceStyle })}
+                  options={Object.entries(COMPARE_PRICE_STYLE_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  {(element.comparePriceStyle ?? 'strikethrough') === 'was'
+                    ? 'Labels the regular price as “Was $100.00” — no crossed-out line, so it always prints clearly on thermal printers.'
+                    : 'Crosses out the regular price with a line. Both prices print in bold black.'}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Layout</span>
+                <NativeSelect
+                  value={element.comparePriceLayout ?? 'stacked'}
+                  onChange={v => onChange({ comparePriceLayout: v as ComparePriceArrangement })}
+                  options={Object.entries(COMPARE_PRICE_LAYOUT_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  {(element.comparePriceLayout ?? 'stacked') === 'inline'
+                    ? 'Regular and sale price sit side by side on one line.'
+                    : 'Regular price sits small on top, sale price large below — the classic retail look.'}
+                </p>
+              </div>
+            </>
+          )}
+        </Field>
+      )}
+
+      {supportsHorizontalAlign && (
+        <Field label="Horizontal align">
+          <div className="flex gap-1">
+            {(['left', 'center', 'right'] as LabelTextAlign[]).map(align => (
+              <Button
+                key={align}
+                variant={element.alignment === align ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onChange({ alignment: align })}
+              >
+                {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                {align === 'right' && <AlignRight className="h-4 w-4" />}
+              </Button>
+            ))}
+          </div>
         </Field>
       )}
 
@@ -154,24 +209,6 @@ export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: Pr
               >
                 <Bold className="h-4 w-4" />
               </Button>
-            </div>
-          </Field>
-
-          <Field label="Horizontal align">
-            <div className="flex gap-1">
-              {(['left', 'center', 'right'] as LabelTextAlign[]).map(align => (
-                <Button
-                  key={align}
-                  variant={element.alignment === align ? 'default' : 'outline'}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onChange({ alignment: align })}
-                >
-                  {align === 'left' && <AlignLeft className="h-4 w-4" />}
-                  {align === 'center' && <AlignCenter className="h-4 w-4" />}
-                  {align === 'right' && <AlignRight className="h-4 w-4" />}
-                </Button>
-              ))}
             </div>
           </Field>
 

@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { LabelElement, LabelTemplate } from '../model/label-template.model';
-import { barcodePadMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
+import { barcodeContentRectMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
 import {
   LabelDatum,
   demoBarcodeData,
@@ -11,7 +11,7 @@ import {
   resolveQrData,
 } from '../util/label-data';
 import { validateBarcodeData } from '../model/label-template.model';
-import { DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, TextLayoutResult, fitComparePrice, layoutLabelText } from '../util/text-layout';
+import { DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, TextLayoutResult, layoutComparePrice, layoutLabelText } from '../util/text-layout';
 import { PT_PER_MM } from '../util/units';
 import { ContainRect, containRect, loadImage, mmToRasterPx, rasterizeRotated } from './rotate-raster';
 import { PrinterOffset, ZERO_OFFSET } from './printer-calibration';
@@ -47,7 +47,6 @@ const imageDimensions = (src: string): Promise<{ w: number; h: number }> =>
     img.src = src;
   });
 
-// Canvas fallback: works for same-origin images, or cross-origin images served with CORS headers.
 const loadViaCanvas = (url: string): Promise<LoadedImage | null> =>
   new Promise(resolve => {
     const img = new Image();
@@ -70,8 +69,6 @@ const loadViaCanvas = (url: string): Promise<LoadedImage | null> =>
   });
 
 const loadImageDataUrl = async (url: string): Promise<LoadedImage | null> => {
-  // Preferred: fetch the bytes directly. This bypasses the <canvas> taint that drops cross-origin
-  // images from the PDF, as long as the host allows a cross-origin GET (most CDNs do for images).
   try {
     const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
     if (res.ok) {
@@ -133,7 +130,13 @@ const paintTextCanvas = (
   });
 };
 
-const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useFormattedVariantName: boolean) => {
+const drawText = (
+  doc: jsPDF,
+  element: LabelElement,
+  datum: LabelDatum,
+  useFormattedVariantName: boolean,
+  alignmentOverride?: LabelElement['alignment']
+) => {
   const text = resolveElementText(element, datum, useFormattedVariantName);
   if (!text) return;
   const layout = textLayoutFor(element, text);
@@ -162,7 +165,7 @@ const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useForma
       ? element.yMm + element.heightMm - blockHeight
       : element.yMm + (element.heightMm - blockHeight) / 2;
 
-  const align = element.alignment;
+  const align = alignmentOverride ?? element.alignment;
   const x = align === 'center' ? element.xMm + element.widthMm / 2 : align === 'right' ? element.xMm + element.widthMm : element.xMm;
 
   layout.lines.forEach((line, i) => {
@@ -171,58 +174,40 @@ const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useForma
   });
 };
 
-const drawImageContent = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, widthPx: number, heightPx: number, padXMm: number) => {
-  const padPx = mmPx(padXMm);
-  ctx.drawImage(img, padPx, 0, Math.max(1, widthPx - padPx * 2), heightPx);
+const drawImageContent = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, offsetXMm: number, drawWidthMm: number, heightPx: number) => {
+  const offsetPx = mmPx(offsetXMm);
+  const drawWidthPx = mmPx(drawWidthMm);
+  ctx.drawImage(img, offsetPx, 0, Math.max(1, drawWidthPx), heightPx);
 };
 
-// Original price (struck through) followed by the sale price — matches the on-screen compare layout.
 const drawComparePrice = (doc: jsPDF, element: LabelElement, current: string, original: string) => {
-  const fit = fitComparePrice(current, original, element.fontSize, element.widthMm, element.heightMm, {
+  const compareStyle = element.comparePriceStyle ?? 'strikethrough';
+  const layout = layoutComparePrice(current, original, compareStyle, {
+    fontSizePt: element.fontSize,
+    widthMm: element.widthMm,
+    heightMm: element.heightMm,
+    alignment: element.alignment,
+    verticalAlign: element.verticalAlign ?? 'middle',
     autoFit: element.autoFit ?? true,
     minFontPt: element.minFontSize ?? DEFAULT_MIN_FONT_PT,
+    arrangement: element.comparePriceLayout ?? 'stacked',
   });
-  const curSize = fit.currentPt;
-  const origSize = fit.originalPt;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(origSize);
-  const origW = doc.getTextWidth(original);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(curSize);
-  const curW = doc.getTextWidth(current);
-
-  const gap = fit.gapMm;
-  const totalW = origW + gap + curW;
-  const align = element.alignment;
-  const startX =
-    align === 'center'
-      ? element.xMm + (element.widthMm - totalW) / 2
-      : align === 'right'
-      ? element.xMm + element.widthMm - totalW
-      : element.xMm;
-
-  const halfLine = curSize / PT_PER_MM / 2;
-  const vAlign = element.verticalAlign ?? 'middle';
-  const y =
-    vAlign === 'top'
-      ? element.yMm + halfLine
-      : vAlign === 'bottom'
-      ? element.yMm + element.heightMm - halfLine
-      : element.yMm + element.heightMm / 2;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(origSize);
-  doc.setTextColor(107, 114, 128);
-  doc.text(original, startX, y, { baseline: 'middle' });
-  doc.setDrawColor(107, 114, 128);
-  doc.setLineWidth((origSize / PT_PER_MM) * 0.07);
-  doc.line(startX, y, startX + origW, y);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(curSize);
   doc.setTextColor(0, 0, 0);
-  doc.text(current, startX + origW + gap, y, { baseline: 'middle' });
+
+  const wasX = element.xMm + layout.wasXMm;
+  const wasY = element.yMm + layout.wasYMm;
+  doc.setFontSize(layout.wasPt);
+  doc.text(layout.wasText, wasX, wasY, { baseline: 'middle' });
+  if (layout.strike) {
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth((layout.wasPt / PT_PER_MM) * 0.08);
+    doc.line(wasX, wasY, wasX + layout.wasWidthMm, wasY);
+  }
+
+  doc.setFontSize(layout.nowPt);
+  doc.text(layout.nowText, element.xMm + layout.nowXMm, element.yMm + layout.nowYMm, { baseline: 'middle' });
 };
 
 const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum, useFormattedVariantName: boolean): Promise<void> => {
@@ -234,7 +219,7 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
     const symbology = element.barcodeSymbology ?? 'code128';
     const data = resolveBarcodeData(datum) || demoBarcodeData(symbology);
     if (validateBarcodeData(symbology, data)) return;
-    const padX = barcodePadMm(widthMm);
+    const rect = barcodeContentRectMm(element.widthMm, element.heightMm, element.alignment, data, symbology);
     const url = barcodePngDataUrl(data, symbology);
     if (!url) return;
     if (rotated) {
@@ -243,11 +228,13 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
         addRotated(
           doc,
           element,
-          rasterizeRotated(widthMm, heightMm, element.rotation, (ctx, w, h) => drawImageContent(ctx, img, w, h, padX))
+          rasterizeRotated(widthMm, heightMm, element.rotation, (ctx, w, h) => {
+            drawImageContent(ctx, img, rect.xMm, rect.widthMm, h);
+          })
         );
       }
     } else {
-      doc.addImage(url, 'PNG', xMm + padX, yMm, widthMm - padX * 2, heightMm);
+      doc.addImage(url, 'PNG', xMm + rect.xMm, yMm, rect.widthMm, heightMm);
     }
     return;
   }
@@ -329,6 +316,10 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
     const parts = resolvePriceParts(datum.variant);
     if (parts.current && parts.original) {
       drawComparePrice(doc, element, parts.current, parts.original);
+      return;
+    }
+    if (parts.current) {
+      drawText(doc, element, datum, useFormattedVariantName, 'center');
       return;
     }
   }

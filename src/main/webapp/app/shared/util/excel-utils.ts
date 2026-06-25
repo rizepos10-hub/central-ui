@@ -20,6 +20,26 @@ export const parseSalesSummaryFromEndOfDay = (data: any) => {
   }
 };
 
+export const parseSummaryReport = (report: unknown): ISummaryReport | null => {
+  if (!report) {
+    return null;
+  }
+
+  if (typeof report === 'string') {
+    try {
+      return JSON.parse(report) as ISummaryReport;
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof report === 'object' && report !== null && 'totalSales' in report) {
+    return report as ISummaryReport;
+  }
+
+  return null;
+};
+
 export const saveAsExcelFile = (buffer, fileName) => {
     import('file-saver').then((module) => {
         if (module && module.default) {

@@ -34,6 +34,8 @@ interface OrderPaymentDialogProps {
   customerId?: string | null;
   baseOrderTotal?: number | null;
   chargePreviewRows?: ChargePreviewRow[];
+  loyaltyPreviewEligible?: boolean;
+  loyaltyPreviewPoints?: number | null;
   totalAmount?: number | null;
   totalPaid?: number | null;
   defaultPaymentAmount?: number;
@@ -51,6 +53,8 @@ const OrderPaymentDialog = ({
   customerId,
   baseOrderTotal = 0,
   chargePreviewRows = [],
+  loyaltyPreviewEligible = false,
+  loyaltyPreviewPoints = 0,
   totalAmount = 0,
   totalPaid = 0,
   defaultPaymentAmount = 0,
@@ -77,6 +81,7 @@ const OrderPaymentDialog = ({
   const visibleChargeRows = chargePreviewRows.filter(charge => (charge.amount ?? 0) > 0);
   const paymentCustomer = customerEntity?.id && customerEntity.id === customerId ? customerEntity : null;
   const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
+  const shouldShowLoyaltyPreview = loyaltyPreviewEligible && Boolean(customerId);
 
   const paymentMethodOptions = useMemo(
     () =>
@@ -255,6 +260,12 @@ const OrderPaymentDialog = ({
                   <span className="font-semibold">Remaining:</span>
                   <span className="font-bold text-lg">{formatCurrencyAmount(remaining)}</span>
                 </div>
+                {shouldShowLoyaltyPreview ? (
+                  <div className="mt-3 flex justify-between gap-3 rounded-md bg-emerald-50 px-3 py-2 text-emerald-700">
+                    <span>This customer will earn</span>
+                    <span className="font-semibold">{Number(loyaltyPreviewPoints ?? 0).toFixed(2)} points</span>
+                  </div>
+                ) : null}
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Payment Amount</label>

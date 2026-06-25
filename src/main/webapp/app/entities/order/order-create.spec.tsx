@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrderCreate from './order-create';
 import * as orderReducer from './order.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
-import { OrderStatus } from 'app/shared/model/ENUMS/orderStatus.model';
+import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -599,6 +599,88 @@ describe('OrderCreate payment flow', () => {
     expect(discountedPrices.length).toBeGreaterThan(0);
     expect(unitPriceInput.value).toBe('10');
     expect(discountInput.value).toBe('0');
+  });
+
+  it('does not show a strike-through when the only difference is tax', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 122.99,
+        itemTotal: 122.99,
+        taxTotal: 24.6,
+        grandTotal: 147.59,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 122.99,
+            salePrice: null,
+            attachments: [],
+            discounts: [],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await screen.findAllByText('$122.99');
+
+    const struckThroughPrice = screen
+      .queryAllByText('$122.99')
+      .find(node => node.className.includes('line-through'));
+
+    expect(struckThroughPrice).toBeUndefined();
+  });
+
+  it('rounds displayed totals with backend-style half-up formatting', async () => {
+    mockState.order.entity.items = [
+      {
+        cartId: 'cart-1',
+        itemId: 'item-1',
+        variantId: 'variant-1',
+        variantName: 'Variant 1',
+        amount: 1,
+        price: 169.34799999999998,
+        itemTotal: 169.34799999999998,
+        taxTotal: 0,
+        grandTotal: 169.34799999999998,
+      },
+    ];
+    mockState.product.entities = [
+      {
+        id: 'item-1',
+        name: 'Product 1',
+        attachments: [],
+        variants: [
+          {
+            id: 'variant-1',
+            name: 'Variant 1',
+            price: 169.34799999999998,
+            salePrice: null,
+            attachments: [],
+            discounts: [],
+          },
+        ],
+      },
+    ];
+
+    renderOrderCreate(['ROLE_ADMINISTRATOR']);
+
+    await screen.findAllByText('$169.35');
+
+    expect(screen.queryByText('$169.34799999999998')).toBeNull();
   });
 
   it('lets dual-role admins create without payment and navigates directly to order detail', async () => {
@@ -1279,7 +1361,7 @@ describe('OrderCreate payment flow', () => {
     expect(orderReducer.previewCharges).not.toHaveBeenCalled();
   });
 
-  it('does not request a charge preview when any item price is null', async () => {
+  it('requests a charge preview when item prices are resolved through calculated totals', async () => {
     mockState.order.entity.items = [
       {
         cartId: 'cart-1',
@@ -1290,14 +1372,36 @@ describe('OrderCreate payment flow', () => {
         price: null,
       },
     ];
+    mockState.order.itemPriceCalculations = {
+      'cart-1': {
+        grandTotal: 12,
+        itemTotal: 10,
+        taxTotal: 2,
+      },
+    };
+    mockState.order.chargesPreview = {
+      loyaltyPreview: {
+        eligible: true,
+        points: 8.5,
+      },
+      totalCharges: 0,
+      orderCharges: [],
+    };
 
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
     await waitFor(() => {
-      expect(orderReducer.clearChargesPreview).toHaveBeenCalled();
+      expect(orderReducer.previewCharges).toHaveBeenCalledWith(
+        expect.objectContaining({
+          items: [
+            expect.objectContaining({
+              itemId: 'item-1',
+              price: 10,
+            }),
+          ],
+        })
+      );
     });
-
-    expect(orderReducer.previewCharges).not.toHaveBeenCalled();
   });
 
   it('shows a non-blocking preview failure message and keeps the order action enabled', async () => {

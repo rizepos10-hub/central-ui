@@ -10,8 +10,10 @@ import { DesignerToolbar } from '../components/designer/DesignerToolbar';
 import { ElementPalette } from '../components/designer/ElementPalette';
 import { PropertiesPanel } from '../components/designer/PropertiesPanel';
 import { useDesignerHotkeys } from '../components/designer/useDesignerHotkeys';
+import { DirectPrintPanel } from '../components/designer/DirectPrintPanel';
 import { findLayoutWarnings, warningElementIds } from '../util/layout-warnings';
 import { SAMPLE_DATUM } from '../util/label-data';
+import { createDirectPrintSettings, normalizeLabelTemplate } from '../model/label-template.model';
 
 const blankTemplate = () => ({
   id: generateLabelId(),
@@ -20,6 +22,8 @@ const blankTemplate = () => ({
   widthMm: 50,
   heightMm: 30,
   orientation: 'portrait' as const,
+  templateType: 'visual' as const,
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [],
@@ -35,7 +39,7 @@ const DesignerScreen = () => {
   const initialTemplate = useMemo(() => {
     if (templateId && templateId !== 'new') {
       const found = getTemplate(templateId);
-      if (found) return found;
+      if (found) return normalizeLabelTemplate(found);
     }
     return blankTemplate();
   }, [templateId, getTemplate]);
@@ -45,12 +49,16 @@ const DesignerScreen = () => {
   const selected = template.elements.find(e => e.id === selectedElementId) || null;
 
   const [showSample, setShowSample] = useState(true);
+  // Right panel shows one thing at a time for direct templates: the selected element's properties, or the
+  // direct-print (ZPL) settings — never both stacked. Selecting an element jumps to its properties.
+  const [rightTab, setRightTab] = useState<'element' | 'direct'>('element');
   const savedRef = useRef(false);
   const initialSnapshot = useMemo(() => JSON.stringify(initialTemplate), [initialTemplate]);
   const isDirty = JSON.stringify(template) !== initialSnapshot;
 
   const warnings = useMemo(() => findLayoutWarnings(template), [template]);
   const warnIds = useMemo(() => warningElementIds(warnings), [warnings]);
+  const isDirect = template.templateType === 'direct';
 
   const onSave = useCallback(() => {
     if (template.elements.length === 0) {
@@ -65,9 +73,16 @@ const DesignerScreen = () => {
       if (!ok) return;
     }
     savedRef.current = true;
-    saveTemplate({ ...template, name: template.name.trim() || 'Untitled label', updatedAt: new Date().toISOString() });
+    saveTemplate(
+      normalizeLabelTemplate({
+        ...template,
+        name: template.name.trim() || 'Untitled label',
+        directPrint: isDirect ? template.directPrint ?? createDirectPrintSettings() : null,
+        updatedAt: new Date().toISOString(),
+      })
+    );
     navigate('/labels');
-  }, [template, warnings, saveTemplate, navigate]);
+  }, [isDirect, navigate, saveTemplate, template, warnings]);
 
   const onCancel = useCallback(() => {
     if (isDirty && !window.confirm('Discard unsaved changes?')) return;
@@ -87,6 +102,10 @@ const DesignerScreen = () => {
 
   useDesignerHotkeys({ selectedElementId, dispatch, onSave });
 
+  useEffect(() => {
+    setRightTab(selectedElementId ? 'element' : 'direct');
+  }, [selectedElementId]);
+
   const handleSelect = useCallback((id: string | null) => dispatch({ type: 'select', id }), []);
   const handleInteractionStart = useCallback(() => dispatch({ type: 'snapshot' }), []);
   const handleMove = useCallback((id: string, dxMm: number, dyMm: number) => dispatch({ type: 'move', id, dxMm, dyMm }), []);
@@ -102,7 +121,7 @@ const DesignerScreen = () => {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <DesignerToolbar
         template={template}
         zoom={zoom}
@@ -117,7 +136,7 @@ const DesignerScreen = () => {
         onToggleSample={() => setShowSample(s => !s)}
       />
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <ElementPalette template={template} selectedElementId={selectedElementId} warnIds={warnIds} dispatch={dispatch} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -138,7 +157,7 @@ const DesignerScreen = () => {
               </Button>
             </div>
           )}
-          <div className="flex flex-1 items-center justify-center overflow-auto bg-muted/50 p-8">
+          <div className="flex flex-1 items-start justify-center overflow-auto bg-muted/50 p-8">
             <LabelCanvas
               template={template}
               datum={showSample ? SAMPLE_DATUM : undefined}
@@ -156,14 +175,47 @@ const DesignerScreen = () => {
           </div>
         </div>
 
-        <div className="w-72 shrink-0 overflow-y-auto border-l border-border bg-background p-3">
-          {selected ? (
-            <PropertiesPanel
-              element={selected}
-              onChange={updateSelected}
-              onDuplicate={() => dispatch({ type: 'duplicate', id: selected.id })}
-              onDelete={() => dispatch({ type: 'remove', id: selected.id })}
-            />
+        <div className={`${isDirect ? 'w-[380px] xl:w-[420px]' : 'w-72'} flex min-h-0 shrink-0 flex-col overflow-hidden border-l border-border bg-background p-3`}>
+          {isDirect ? (
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+              <div className="grid shrink-0 grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+                <PanelTab active={rightTab === 'element'} disabled={!selected} onClick={() => setRightTab('element')}>
+                  Element
+                </PanelTab>
+                <PanelTab active={rightTab === 'direct'} onClick={() => setRightTab('direct')}>
+                  Direct Print
+                </PanelTab>
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {rightTab === 'element' ? (
+                  selected ? (
+                    <div className="h-full overflow-y-auto pr-1">
+                      <PropertiesPanel
+                        element={selected}
+                        onChange={updateSelected}
+                        onDuplicate={() => dispatch({ type: 'duplicate', id: selected.id })}
+                        onDelete={() => dispatch({ type: 'remove', id: selected.id })}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
+                      <p>Select an element on the canvas to edit it, or add one from the left.</p>
+                    </div>
+                  )
+                ) : (
+                  <DirectPrintPanel template={template} onChange={patch => dispatch({ type: 'updateTemplate', patch })} />
+                )}
+              </div>
+            </div>
+          ) : selected ? (
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <PropertiesPanel
+                element={selected}
+                onChange={updateSelected}
+                onDuplicate={() => dispatch({ type: 'duplicate', id: selected.id })}
+                onDelete={() => dispatch({ type: 'remove', id: selected.id })}
+              />
+            </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
               <p>Select an element on the canvas to edit it, or add one from the left.</p>
@@ -174,5 +226,25 @@ const DesignerScreen = () => {
     </div>
   );
 };
+
+type PanelTabProps = {
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+};
+
+const PanelTab = ({ active, disabled = false, onClick, children }: PanelTabProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`h-8 rounded-md px-3 text-xs font-semibold transition-colors ${
+      active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+    } ${disabled ? 'cursor-not-allowed opacity-40 hover:text-muted-foreground' : ''}`}
+  >
+    {children}
+  </button>
+);
 
 export default DesignerScreen;

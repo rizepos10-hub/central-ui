@@ -3,6 +3,7 @@ export interface IUserClock {
   id?: string;
   instantClockedIn?: string;
   instantClockedOut?: string;
+  deposit?: number | null;
   report?: string | null;
   username?: string;
 }

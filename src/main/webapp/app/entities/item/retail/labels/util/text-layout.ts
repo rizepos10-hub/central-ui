@@ -29,6 +29,9 @@ const getCtx = (): CanvasRenderingContext2D | null => {
   measureCtx = null;
   try {
     if (typeof document !== 'undefined') {
+      if (typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent || '')) {
+        return null;
+      }
       const canvas = document.createElement('canvas');
       measureCtx = canvas.getContext('2d');
     }
@@ -150,7 +153,7 @@ export const fitComparePrice = (
 
   const totalWidthAt = (size: number): number =>
     measureTextMm(current, size, true) +
-    measureTextMm(original, size * COMPARE_ORIGINAL_RATIO, false) +
+    measureTextMm(original, size * COMPARE_ORIGINAL_RATIO, true) +
     (size / PT_PER_MM) * COMPARE_GAP_RATIO;
 
   if (autoFit) {
@@ -159,6 +162,133 @@ export const fitComparePrice = (
     }
   }
   return { currentPt: pt, originalPt: pt * COMPARE_ORIGINAL_RATIO, gapMm: (pt / PT_PER_MM) * COMPARE_GAP_RATIO };
+};
+
+// Professional "was / now" price block: the regular price sits small on top (struck through, or spelled
+// out as "Was $100.00") and the sale price dominates below in large bold — the layout shoppers recognise
+// from retail clearance tags. Geometry is returned in mm so the preview, PDF and thermal raster can each
+// scale it into their own units and stay pixel-identical.
+export interface ComparePriceLayout {
+  nowText: string;
+  wasText: string;
+  nowPt: number;
+  wasPt: number;
+  strike: boolean;
+  // All offsets are in mm relative to the element box's top-left corner; y values are the baseline-middle.
+  nowXMm: number;
+  nowYMm: number;
+  wasXMm: number;
+  wasYMm: number;
+  wasWidthMm: number;
+}
+
+export type ComparePriceArrangement = 'stacked' | 'inline';
+
+export const COMPARE_WAS_RATIO = 0.62;
+const COMPARE_PAIR_GAP_RATIO = 0.16;
+
+export const layoutComparePrice = (
+  current: string,
+  original: string,
+  style: 'strikethrough' | 'was',
+  opts: {
+    fontSizePt: number;
+    widthMm: number;
+    heightMm: number;
+    alignment: 'left' | 'center' | 'right';
+    verticalAlign?: 'top' | 'middle' | 'bottom';
+    autoFit?: boolean;
+    minFontPt?: number;
+    arrangement?: ComparePriceArrangement;
+  }
+): ComparePriceLayout => {
+  const {
+    fontSizePt,
+    widthMm,
+    heightMm,
+    alignment,
+    verticalAlign = 'middle',
+    autoFit = true,
+    minFontPt = DEFAULT_MIN_FONT_PT,
+    arrangement = 'stacked',
+  } = opts;
+  const wasText = style === 'was' ? `Was ${original}` : original;
+  const strike = style === 'strikethrough';
+  const floor = Math.max(2, Math.min(minFontPt, fontSizePt));
+  const xFor = (w: number): number => (alignment === 'center' ? (widthMm - w) / 2 : alignment === 'right' ? widthMm - w : 0);
+
+  if (arrangement === 'inline') {
+    // "Was" price and sale price on a single line, side by side: $329.99  $299.99
+    const totalWidthMm = (nowPt: number): number =>
+      measureTextMm(wasText, nowPt * COMPARE_WAS_RATIO, true) + (nowPt / PT_PER_MM) * COMPARE_PAIR_GAP_RATIO + measureTextMm(current, nowPt, true);
+
+    let nowPt = Math.min(Math.max(floor, fontSizePt), Math.max(floor, heightMm * PT_PER_MM));
+    if (autoFit) {
+      while (nowPt > floor && totalWidthMm(nowPt) > widthMm) {
+        nowPt = Math.max(floor, Math.round((nowPt - 0.5) * 2) / 2);
+      }
+    }
+    const wasPt = nowPt * COMPARE_WAS_RATIO;
+    const wWas = measureTextMm(wasText, wasPt, true);
+    const wNow = measureTextMm(current, nowPt, true);
+    const gap = (nowPt / PT_PER_MM) * COMPARE_PAIR_GAP_RATIO;
+    const totalW = wWas + gap + wNow;
+    const startX = xFor(totalW);
+    const halfNow = nowPt / PT_PER_MM / 2;
+    const yMid = verticalAlign === 'top' ? halfNow : verticalAlign === 'bottom' ? heightMm - halfNow : heightMm / 2;
+
+    return {
+      nowText: current,
+      wasText,
+      nowPt,
+      wasPt,
+      strike,
+      wasXMm: startX,
+      wasYMm: yMid,
+      nowXMm: startX + wWas + gap,
+      nowYMm: yMid,
+      wasWidthMm: wWas,
+    };
+  }
+
+  // Stacked: small "was" price on top, large sale price below.
+  const blockHeightMm = (nowPt: number): number => {
+    const hNow = nowPt / PT_PER_MM;
+    const hWas = (nowPt * COMPARE_WAS_RATIO) / PT_PER_MM;
+    return hWas + hNow * COMPARE_PAIR_GAP_RATIO + hNow;
+  };
+  const widthsFit = (nowPt: number): boolean =>
+    measureTextMm(current, nowPt, true) <= widthMm && measureTextMm(wasText, nowPt * COMPARE_WAS_RATIO, true) <= widthMm;
+
+  let nowPt = Math.max(floor, fontSizePt);
+  if (autoFit) {
+    while (nowPt > floor && (blockHeightMm(nowPt) > heightMm || !widthsFit(nowPt))) {
+      nowPt = Math.max(floor, Math.round((nowPt - 0.5) * 2) / 2);
+    }
+  }
+
+  const wasPt = nowPt * COMPARE_WAS_RATIO;
+  const hNow = nowPt / PT_PER_MM;
+  const hWas = wasPt / PT_PER_MM;
+  const gap = hNow * COMPARE_PAIR_GAP_RATIO;
+  const blockH = hWas + gap + hNow;
+  const topY = verticalAlign === 'top' ? 0 : verticalAlign === 'bottom' ? heightMm - blockH : (heightMm - blockH) / 2;
+
+  const wNow = measureTextMm(current, nowPt, true);
+  const wWas = measureTextMm(wasText, wasPt, true);
+
+  return {
+    nowText: current,
+    wasText,
+    nowPt,
+    wasPt,
+    strike,
+    wasXMm: xFor(wWas),
+    wasYMm: topY + hWas / 2,
+    nowXMm: xFor(wNow),
+    nowYMm: topY + hWas + gap + hNow / 2,
+    wasWidthMm: wWas,
+  };
 };
 
 export const layoutLabelText = (input: TextLayoutInput): TextLayoutResult => {

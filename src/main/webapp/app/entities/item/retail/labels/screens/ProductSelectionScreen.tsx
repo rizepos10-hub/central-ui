@@ -19,6 +19,7 @@ import { useLabelFlow } from '../store/label-flow-context';
 import { formatCurrency, variantKey } from '../util/label-data';
 import { LabelCanvasPreview } from '../components/LabelCanvas';
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-script';
 
 const SELECT_HEIGHT = '36px';
 const matchInputHeight = {
@@ -94,6 +95,7 @@ const ProductSelectionScreen = () => {
   };
 
   const hasFilters = Boolean(searchParams.get('name') || searchParams.get('categoryId'));
+  const isDirect = isDirectPrintTemplate(template);
 
   return (
     <div ref={rootRef} className="flex h-full w-full flex-col px-4 py-4 pb-28">
@@ -113,9 +115,18 @@ const ProductSelectionScreen = () => {
         </div>
         {template && (
           <div className="flex shrink-0 items-center gap-3 rounded-xl border border-border bg-card p-2.5 shadow-sm">
-            <div className="overflow-hidden rounded-md border border-border/70 bg-white">
-              <LabelCanvasPreview template={template} maxWidthPx={128} maxHeightPx={84} withShadow={false} />
-            </div>
+            {isDirect ? (
+              <div className="flex h-[84px] w-[128px] items-center justify-center rounded-md border border-border/70 bg-amber-500/5">
+                <div className="text-center">
+                  <div className="text-sm font-bold text-amber-700">{directPrintLanguageName(template.directPrint?.language ?? 'zpl')}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">Raw printer script</div>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-md border border-border/70 bg-white">
+                <LabelCanvasPreview template={template} maxWidthPx={128} maxHeightPx={84} withShadow={false} />
+              </div>
+            )}
             <div className="pr-1">
               <p className="m-0 max-w-[150px] truncate text-sm font-semibold text-foreground">{template.name}</p>
               <div className="mt-1.5 flex flex-col gap-1">
@@ -123,7 +134,7 @@ const ProductSelectionScreen = () => {
                   {template.widthMm.toFixed(0)} × {template.heightMm.toFixed(0)} mm
                 </MetaChip>
                 <MetaChip icon={<Layers className="h-3 w-3" />}>
-                  {template.elements.length} element{template.elements.length === 1 ? '' : 's'}
+                  {isDirect ? directPrintLanguageName(template.directPrint?.language ?? 'zpl') : `${template.elements.length} element${template.elements.length === 1 ? '' : 's'}`}
                 </MetaChip>
               </div>
             </div>
