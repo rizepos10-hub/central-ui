@@ -94,7 +94,7 @@ export default function Home() {
     const rows = recentSales.map((item: any) => [
       `${item.itemName} (${item.variantName})`,
       item.categories?.[0]?.name || '',
-      item.currentPrice?.toFixed(2) || '',
+      item.currentPrice != null ? formatFixed(item.currentPrice) : '',
       item.inventoryStatus || 'INSTOCK'
     ]);
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -109,12 +109,14 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', {
+  const formatCurrency = (value?: number | null) => {
+    return (value ?? 0).toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD'
     });
   };
+
+  const formatFixed = (value?: number | null, digits = 2) => Number(value ?? 0).toFixed(digits);
 
   const onGlobalFilterChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -172,7 +174,7 @@ export default function Home() {
           </Button>
         );
       },
-      cell: ({ row }) => <span>${row.original.currentPrice?.toFixed(2) || '0.00'}</span>,
+      cell: ({ row }) => <span>${formatFixed(row.original.currentPrice)}</span>,
     },
     {
       accessorKey: 'inventoryStatus',
@@ -417,7 +419,7 @@ export default function Home() {
                 <Skeleton className="h-12 w-32" />
               ) : (
                 <div className="flex-1">
-                  <span className="text-2xl font-bold block">{topFields?.revenue?.toFixed(2)}</span>
+                  <span className="text-2xl font-bold block">{formatCurrency(topFields?.revenue)}</span>
                   <div className="text-green-500 mt-2 flex items-center">
                     <span className="font-medium">+20%</span>
                     <ArrowUp className="ml-2 h-3 w-3" />
@@ -775,7 +777,7 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="font-semibold text-lg text-muted-foreground">
-                        ${(product.currentPrice).toFixed(2)}
+                        ${formatFixed(product.currentPrice)}
                       </span>
                     </li>
                   ))}
