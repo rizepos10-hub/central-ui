@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { LabelElement, LabelTemplate } from '../model/label-template.model';
-import { barcodePadMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
+import { barcodeContentRectMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
 import {
   LabelDatum,
   demoBarcodeData,
@@ -133,7 +133,13 @@ const paintTextCanvas = (
   });
 };
 
-const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useFormattedVariantName: boolean) => {
+const drawText = (
+  doc: jsPDF,
+  element: LabelElement,
+  datum: LabelDatum,
+  useFormattedVariantName: boolean,
+  alignmentOverride?: LabelElement['alignment']
+) => {
   const text = resolveElementText(element, datum, useFormattedVariantName);
   if (!text) return;
   const layout = textLayoutFor(element, text);
@@ -162,7 +168,7 @@ const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useForma
       ? element.yMm + element.heightMm - blockHeight
       : element.yMm + (element.heightMm - blockHeight) / 2;
 
-  const align = element.alignment;
+  const align = alignmentOverride ?? element.alignment;
   const x = align === 'center' ? element.xMm + element.widthMm / 2 : align === 'right' ? element.xMm + element.widthMm : element.xMm;
 
   layout.lines.forEach((line, i) => {
@@ -171,9 +177,10 @@ const drawText = (doc: jsPDF, element: LabelElement, datum: LabelDatum, useForma
   });
 };
 
-const drawImageContent = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, widthPx: number, heightPx: number, padXMm: number) => {
-  const padPx = mmPx(padXMm);
-  ctx.drawImage(img, padPx, 0, Math.max(1, widthPx - padPx * 2), heightPx);
+const drawImageContent = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, offsetXMm: number, drawWidthMm: number, heightPx: number) => {
+  const offsetPx = mmPx(offsetXMm);
+  const drawWidthPx = mmPx(drawWidthMm);
+  ctx.drawImage(img, offsetPx, 0, Math.max(1, drawWidthPx), heightPx);
 };
 
 // Original price (struck through) followed by the sale price — matches the on-screen compare layout.
@@ -234,7 +241,7 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
     const symbology = element.barcodeSymbology ?? 'code128';
     const data = resolveBarcodeData(datum) || demoBarcodeData(symbology);
     if (validateBarcodeData(symbology, data)) return;
-    const padX = barcodePadMm(widthMm);
+    const rect = barcodeContentRectMm(element.widthMm, element.heightMm, element.alignment, data, symbology);
     const url = barcodePngDataUrl(data, symbology);
     if (!url) return;
     if (rotated) {
@@ -243,11 +250,13 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
         addRotated(
           doc,
           element,
-          rasterizeRotated(widthMm, heightMm, element.rotation, (ctx, w, h) => drawImageContent(ctx, img, w, h, padX))
+          rasterizeRotated(widthMm, heightMm, element.rotation, (ctx, w, h) => {
+            drawImageContent(ctx, img, rect.xMm, rect.widthMm, h);
+          })
         );
       }
     } else {
-      doc.addImage(url, 'PNG', xMm + padX, yMm, widthMm - padX * 2, heightMm);
+      doc.addImage(url, 'PNG', xMm + rect.xMm, yMm, rect.widthMm, heightMm);
     }
     return;
   }
@@ -329,6 +338,10 @@ const drawElement = async (doc: jsPDF, element: LabelElement, datum: LabelDatum,
     const parts = resolvePriceParts(datum.variant);
     if (parts.current && parts.original) {
       drawComparePrice(doc, element, parts.current, parts.original);
+      return;
+    }
+    if (parts.current) {
+      drawText(doc, element, datum, useFormattedVariantName, 'center');
       return;
     }
   }

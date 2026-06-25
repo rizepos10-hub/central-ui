@@ -34,6 +34,8 @@ const logoRetailTag: LabelTemplate = {
   widthMm: 100,
   heightMm: 60,
   orientation: 'landscape',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: true,
   isActive: true,
   elements: [
@@ -52,6 +54,8 @@ const priceTag: LabelTemplate = {
   widthMm: 58,
   heightMm: 40,
   orientation: 'portrait',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [
@@ -69,6 +73,8 @@ const shelfLabel: LabelTemplate = {
   widthMm: 80,
   heightMm: 50,
   orientation: 'portrait',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [
@@ -88,6 +94,8 @@ const qrLabel: LabelTemplate = {
   widthMm: 60,
   heightMm: 60,
   orientation: 'portrait',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [
@@ -106,6 +114,8 @@ const minimalTag: LabelTemplate = {
   widthMm: 50,
   heightMm: 25,
   orientation: 'landscape',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [
@@ -122,6 +132,8 @@ const fullDetail: LabelTemplate = {
   widthMm: 100,
   heightMm: 70,
   orientation: 'portrait',
+  templateType: 'visual',
+  directPrint: null,
   isDefault: false,
   isActive: true,
   elements: [

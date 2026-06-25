@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { qzDefaultPrinter, qzListPrinters, qzPrintPdf } from '../print/qz-service';
+import { qzDefaultPrinter, qzListPrinters, qzPrintDirect, qzPrintPdf, qzPrintRaw } from '../print/qz-service';
 import { PrinterOffset, SYSTEM_DIALOG_KEY, ZERO_OFFSET, getPrinterOffset, setPrinterOffset } from '../print/printer-calibration';
 
 const SELECTED_PRINTER_KEY = 'retail-label-qz-printer';
@@ -53,5 +53,18 @@ export const useQz = () => {
 
   const resetOffset = useCallback(() => updateOffset(ZERO_OFFSET), [updateOffset]);
 
-  return { available, connecting, printers, selected, selectPrinter, refresh, printPdf: qzPrintPdf, offset, updateOffset, resetOffset };
+  return {
+    available,
+    connecting,
+    printers,
+    selected,
+    selectPrinter,
+    refresh,
+    printPdf: qzPrintPdf,
+    printRaw: qzPrintRaw,
+    printDirect: qzPrintDirect,
+    offset,
+    updateOffset,
+    resetOffset,
+  };
 };

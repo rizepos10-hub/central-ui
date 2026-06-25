@@ -1,4 +1,4 @@
-import { LabelTemplate } from '../model/label-template.model';
+import { LabelTemplate, normalizeLabelTemplate } from '../model/label-template.model';
 import { DEFAULT_PRESET, LABEL_PRESETS, isPresetId } from '../model/label-presets';
 
 const STORAGE_KEY = 'retail-label-templates';
@@ -9,14 +9,14 @@ const readStored = (): LabelTemplate[] => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as LabelTemplate[]) : [];
+    return Array.isArray(parsed) ? (parsed as LabelTemplate[]).map(template => normalizeLabelTemplate(template)) : [];
   } catch {
     return [];
   }
 };
 
 const writeStored = (templates: LabelTemplate[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates.map(template => normalizeLabelTemplate(template))));
 };
 
 export const getDefaultTemplateId = (): string => {
@@ -36,14 +36,14 @@ export const listTemplates = (): LabelTemplate[] => {
 
   const merged: LabelTemplate[] = [];
   for (const preset of LABEL_PRESETS) {
-    merged.push(storedById.get(preset.id) ?? preset);
+    merged.push(normalizeLabelTemplate(storedById.get(preset.id) ?? preset));
     storedById.delete(preset.id);
   }
   for (const custom of stored) {
-    if (!isPresetId(custom.id)) merged.push(custom);
+    if (!isPresetId(custom.id)) merged.push(normalizeLabelTemplate(custom));
   }
 
-  return merged.map(t => ({ ...t, isDefault: t.id === defaultId }));
+  return merged.map(t => ({ ...normalizeLabelTemplate(t), isDefault: t.id === defaultId }));
 };
 
 export const getTemplate = (id: string): LabelTemplate | undefined => listTemplates().find(t => t.id === id);
@@ -52,7 +52,7 @@ export const saveTemplate = (template: LabelTemplate): void => {
   const now = new Date().toISOString();
   const stored = readStored();
   const index = stored.findIndex(t => t.id === template.id);
-  const next: LabelTemplate = { ...template, updatedAt: now, createdAt: template.createdAt ?? now };
+  const next: LabelTemplate = normalizeLabelTemplate({ ...template, updatedAt: now, createdAt: template.createdAt ?? now });
   if (index >= 0) {
     stored[index] = next;
   } else {

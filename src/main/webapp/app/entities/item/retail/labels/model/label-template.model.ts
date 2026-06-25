@@ -20,6 +20,14 @@ export type LabelTextAlign = 'left' | 'center' | 'right';
 export type LabelVerticalAlign = 'top' | 'middle' | 'bottom';
 
 export type LabelOrientation = 'portrait' | 'landscape';
+export type LabelTemplateType = 'visual' | 'direct';
+export type DirectPrintLanguage = 'epl' | 'zpl' | 'tspl';
+
+export interface DirectPrintSettings {
+  language: DirectPrintLanguage;
+  printerName?: string | null;
+  dpi?: number;
+}
 
 export interface LabelElement {
   id: string;
@@ -51,12 +59,33 @@ export interface LabelTemplate {
   widthMm: number;
   heightMm: number;
   orientation: LabelOrientation;
+  templateType: LabelTemplateType;
+  directPrint?: DirectPrintSettings | null;
   isDefault: boolean;
   isActive: boolean;
   elements: LabelElement[];
   createdAt?: string;
   updatedAt?: string;
 }
+
+export const DEFAULT_DIRECT_PRINT_LANGUAGE: DirectPrintLanguage = 'zpl';
+
+export const createDirectPrintSettings = (overrides: Partial<DirectPrintSettings> = {}): DirectPrintSettings => ({
+  language: DEFAULT_DIRECT_PRINT_LANGUAGE,
+  printerName: null,
+  dpi: 203,
+  ...overrides,
+});
+
+export const normalizeLabelTemplate = (template: LabelTemplate): LabelTemplate => {
+  const templateType = template.templateType ?? 'visual';
+  return {
+    ...template,
+    templateType,
+    directPrint: templateType === 'direct' ? createDirectPrintSettings(template.directPrint ?? {}) : null,
+    elements: Array.isArray(template.elements) ? template.elements : [],
+  };
+};
 
 export const ELEMENT_TYPE_LABELS: Record<LabelElementType, string> = {
   productName: 'Name',
@@ -102,6 +131,17 @@ export const BARCODE_SYMBOLOGY_FORMAT: Record<BarcodeSymbology, string> = {
   ean13: 'EAN13',
   upcA: 'UPC',
   upcE: 'UPCE',
+};
+
+export const TEMPLATE_TYPE_LABELS: Record<LabelTemplateType, string> = {
+  visual: 'Visual Designer',
+  direct: 'Direct Printing',
+};
+
+export const DIRECT_PRINT_LANGUAGE_LABELS: Record<DirectPrintLanguage, string> = {
+  epl: 'EPL',
+  zpl: 'ZPL',
+  tspl: 'TSPL',
 };
 
 export const QR_DATA_TYPE_LABELS: Record<QrDataType, string> = {
@@ -159,7 +199,7 @@ export const createElement = (type: LabelElementType, overrides: Partial<LabelEl
   heightMm: isBarcodeLike(type) ? 18 : 10,
   fontSize: 10,
   fontBold: false,
-  alignment: 'left',
+  alignment: type === 'barcode' || type === 'qrCode' ? 'center' : 'left',
   verticalAlign: 'middle',
   autoFit: true,
   minFontSize: 5,
@@ -174,19 +214,21 @@ export const createElement = (type: LabelElementType, overrides: Partial<LabelEl
 });
 
 export const cloneTemplate = (template: LabelTemplate): LabelTemplate => ({
-  ...template,
+  ...normalizeLabelTemplate(template),
   elements: template.elements.map(e => ({ ...e })),
+  directPrint: template.directPrint ? { ...template.directPrint } : null,
 });
 
 export const duplicateTemplate = (template: LabelTemplate, newName: string): LabelTemplate => {
   const now = new Date().toISOString();
   return {
-    ...template,
+    ...normalizeLabelTemplate(template),
     id: generateLabelId(),
     name: newName.trim(),
     isDefault: false,
     isActive: true,
     elements: template.elements.map(e => ({ ...e, id: generateLabelId() })),
+    directPrint: template.directPrint ? { ...template.directPrint } : null,
     createdAt: now,
     updatedAt: now,
   };

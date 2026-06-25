@@ -29,6 +29,9 @@ const getCtx = (): CanvasRenderingContext2D | null => {
   measureCtx = null;
   try {
     if (typeof document !== 'undefined') {
+      if (typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent || '')) {
+        return null;
+      }
       const canvas = document.createElement('canvas');
       measureCtx = canvas.getContext('2d');
     }

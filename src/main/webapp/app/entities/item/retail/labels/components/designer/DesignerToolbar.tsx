@@ -2,7 +2,12 @@ import React, { Dispatch } from 'react';
 import { Check, FlaskConical, Grid3x3, Magnet, Redo2, RotateCw, Undo2, WandSparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { COMMON_LABEL_SIZES, LabelTemplate } from '../../model/label-template.model';
+import {
+  COMMON_LABEL_SIZES,
+  LabelTemplate,
+  TEMPLATE_TYPE_LABELS,
+  createDirectPrintSettings,
+} from '../../model/label-template.model';
 import { DesignerAction } from '../../store/designer-reducer';
 import { clamp } from '../../util/units';
 
@@ -49,6 +54,7 @@ export const DesignerToolbar = ({
     });
 
   const selectedSize = COMMON_LABEL_SIZES.find(s => s.widthMm === template.widthMm && s.heightMm === template.heightMm)?.name ?? '';
+  const isDirect = template.templateType === 'direct';
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border bg-background px-4 py-2">
@@ -61,6 +67,26 @@ export const DesignerToolbar = ({
         className="h-8 w-44 text-sm font-semibold"
         placeholder="Template name"
       />
+      <select
+        value={template.templateType}
+        onChange={e =>
+          dispatch({
+            type: 'updateTemplate',
+            patch: {
+              templateType: e.target.value as LabelTemplate['templateType'],
+              directPrint: e.target.value === 'direct' ? template.directPrint ?? createDirectPrintSettings() : null,
+            },
+          })
+        }
+        className="h-8 rounded-md border border-input bg-background px-2 text-xs text-muted-foreground"
+        title="Template type"
+      >
+        {Object.entries(TEMPLATE_TYPE_LABELS).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
       <select
         value={selectedSize}
         onChange={e => applySize(e.target.value)}
@@ -104,31 +130,47 @@ export const DesignerToolbar = ({
         <IconToggle active={showSample} title="Preview with sample product data" onClick={onToggleSample}>
           <FlaskConical className="h-4 w-4" />
         </IconToggle>
-        <IconToggle active={showGrid} title="Grid" onClick={() => dispatch({ type: 'toggleGrid' })}>
-          <Grid3x3 className="h-4 w-4" />
-        </IconToggle>
-        <IconToggle active={snap} title="Snap to grid" onClick={() => dispatch({ type: 'toggleSnap' })}>
-          <Magnet className="h-4 w-4" />
-        </IconToggle>
-        <span className="mx-1 h-5 w-px bg-border" />
-        <Button variant="ghost" size="icon" className="h-8 w-8" title="Zoom out" onClick={() => dispatch({ type: 'setZoom', zoom: zoom - 0.5 })}>
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <span className="w-10 text-center text-xs text-muted-foreground">{Math.round(zoom * 100)}%</span>
-        <Button variant="ghost" size="icon" className="h-8 w-8" title="Zoom in" onClick={() => dispatch({ type: 'setZoom', zoom: zoom + 0.5 })}>
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <span className="mx-1 h-5 w-px bg-border" />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1"
-          title="Stack all elements neatly without overlaps"
-          onClick={() => dispatch({ type: 'arrange' })}
-        >
-          <WandSparkles className="h-4 w-4" /> Auto-arrange
-        </Button>
-        <span className="mx-1 h-5 w-px bg-border" />
+        {!isDirect && (
+          <>
+            <IconToggle active={showGrid} title="Grid" onClick={() => dispatch({ type: 'toggleGrid' })}>
+              <Grid3x3 className="h-4 w-4" />
+            </IconToggle>
+            <IconToggle active={snap} title="Snap to grid" onClick={() => dispatch({ type: 'toggleSnap' })}>
+              <Magnet className="h-4 w-4" />
+            </IconToggle>
+            <span className="mx-1 h-5 w-px bg-border" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Zoom out"
+              onClick={() => dispatch({ type: 'setZoom', zoom: zoom - 0.5 })}
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="w-10 text-center text-xs text-muted-foreground">{Math.round(zoom * 100)}%</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Zoom in"
+              onClick={() => dispatch({ type: 'setZoom', zoom: zoom + 0.5 })}
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <span className="mx-1 h-5 w-px bg-border" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1"
+              title="Stack all elements neatly without overlaps"
+              onClick={() => dispatch({ type: 'arrange' })}
+            >
+              <WandSparkles className="h-4 w-4" /> Auto-arrange
+            </Button>
+            <span className="mx-1 h-5 w-px bg-border" />
+          </>
+        )}
         <Button variant="ghost" size="icon" className="h-8 w-8" title="Undo" disabled={!canUndo} onClick={() => dispatch({ type: 'undo' })}>
           <Undo2 className="h-4 w-4" />
         </Button>

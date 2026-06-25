@@ -40,6 +40,7 @@ type PropertiesPanelProps = {
 
 export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: PropertiesPanelProps) => {
   const isText = !NON_TEXT_TYPES.includes(element.type);
+  const supportsHorizontalAlign = isText || element.type === 'barcode';
   const rotation = Math.round(element.rotation) % 360;
   return (
     <div className="flex flex-col gap-3">
@@ -126,6 +127,26 @@ export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: Pr
         </Field>
       )}
 
+      {supportsHorizontalAlign && (
+        <Field label="Horizontal align">
+          <div className="flex gap-1">
+            {(['left', 'center', 'right'] as LabelTextAlign[]).map(align => (
+              <Button
+                key={align}
+                variant={element.alignment === align ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onChange({ alignment: align })}
+              >
+                {align === 'left' && <AlignLeft className="h-4 w-4" />}
+                {align === 'center' && <AlignCenter className="h-4 w-4" />}
+                {align === 'right' && <AlignRight className="h-4 w-4" />}
+              </Button>
+            ))}
+          </div>
+        </Field>
+      )}
+
       {isText && (
         <>
           <Field label={`Font size — ${Math.round(element.fontSize)} pt`}>
@@ -154,24 +175,6 @@ export const PropertiesPanel = ({ element, onChange, onDuplicate, onDelete }: Pr
               >
                 <Bold className="h-4 w-4" />
               </Button>
-            </div>
-          </Field>
-
-          <Field label="Horizontal align">
-            <div className="flex gap-1">
-              {(['left', 'center', 'right'] as LabelTextAlign[]).map(align => (
-                <Button
-                  key={align}
-                  variant={element.alignment === align ? 'default' : 'outline'}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onChange({ alignment: align })}
-                >
-                  {align === 'left' && <AlignLeft className="h-4 w-4" />}
-                  {align === 'center' && <AlignCenter className="h-4 w-4" />}
-                  {align === 'right' && <AlignRight className="h-4 w-4" />}
-                </Button>
-              ))}
             </div>
           </Field>
 

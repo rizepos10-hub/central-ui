@@ -1,17 +1,19 @@
+import { LabelTextAlign } from '../model/label-template.model';
 import React, { useEffect, useState } from 'react';
 import { BarcodeSymbology, validateBarcodeData } from '../model/label-template.model';
-import { barcodePadMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
+import { barcodeContentRectMm, barcodePngDataUrl, qrPngDataUrl } from '../util/code-images';
 
 type BarcodeBoxProps = {
   data: string;
   symbology: BarcodeSymbology;
+  alignment?: LabelTextAlign;
   widthPx: number;
   heightPx: number;
   scale: number;
 };
 
 // Renders the barcode from the same image jsPDF uses, stretched to fill exactly like the PDF — so preview == print.
-export const BarcodeBox = React.memo(({ data, symbology, widthPx, heightPx, scale }: BarcodeBoxProps) => {
+export const BarcodeBox = React.memo(({ data, symbology, alignment = 'center', widthPx, heightPx, scale }: BarcodeBoxProps) => {
   const error = data ? validateBarcodeData(symbology, data) : 'No barcode data';
   if (error) {
     return <InvalidBox message={error} widthPx={widthPx} heightPx={heightPx} />;
@@ -21,8 +23,12 @@ export const BarcodeBox = React.memo(({ data, symbology, widthPx, heightPx, scal
     return <InvalidBox message="Barcode error" widthPx={widthPx} heightPx={heightPx} />;
   }
 
-  const widthMm = scale > 0 ? widthPx / scale : widthPx;
-  const padXpx = barcodePadMm(widthMm) * (scale > 0 ? scale : 1);
+  const pxPerMm = scale > 0 ? scale : 1;
+  const widthMm = widthPx / pxPerMm;
+  const heightMm = heightPx / pxPerMm;
+  const rect = barcodeContentRectMm(widthMm, heightMm, alignment, data, symbology);
+  const offsetLeftPx = rect.xMm * pxPerMm;
+  const barcodeWidthPx = Math.max(1, rect.widthMm * pxPerMm);
 
   return (
     <div
@@ -31,11 +37,24 @@ export const BarcodeBox = React.memo(({ data, symbology, widthPx, heightPx, scal
         height: heightPx,
         background: '#ffffff',
         boxSizing: 'border-box',
-        padding: `0 ${padXpx}px`,
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
-      <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'fill', display: 'block', imageRendering: 'pixelated' }} />
+      <img
+        src={url}
+        alt=""
+        style={{
+          position: 'absolute',
+          left: offsetLeftPx,
+          top: 0,
+          width: barcodeWidthPx,
+          height: '100%',
+          objectFit: 'fill',
+          display: 'block',
+          imageRendering: 'pixelated',
+        }}
+      />
     </div>
   );
 });

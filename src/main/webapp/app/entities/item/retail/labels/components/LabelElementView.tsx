@@ -203,7 +203,7 @@ const ElementContent = ({ element, datum, scale, width, height, useFormattedVari
   if (element.type === 'barcode') {
     const symbology = element.barcodeSymbology ?? 'code128';
     const data = (datum ? resolveBarcodeData(datum) : '') || demoBarcodeData(symbology);
-    return <BarcodeBox data={data} symbology={symbology} widthPx={width} heightPx={height} scale={scale} />;
+    return <BarcodeBox data={data} symbology={symbology} alignment={element.alignment} widthPx={width} heightPx={height} scale={scale} />;
   }
 
   if (element.type === 'qrCode') {
@@ -269,6 +269,25 @@ const ElementContent = ({ element, datum, scale, width, height, useFormattedVari
         </div>
       );
     }
+
+    const fontPx = scaledFontPx(element.fontSize, scale / MM_TO_PX);
+    const vAlign = element.verticalAlign ?? 'middle';
+    const alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+    return (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems,
+          justifyContent: 'center',
+          overflow: 'hidden',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+        }}
+      >
+        <span style={{ fontSize: fontPx, fontWeight: 700, color: '#000000', whiteSpace: 'nowrap', lineHeight: 1 }}>{current}</span>
+      </div>
+    );
   }
 
   const text = datum ? resolveElementText(element, datum, useFormattedVariantName) : '';
