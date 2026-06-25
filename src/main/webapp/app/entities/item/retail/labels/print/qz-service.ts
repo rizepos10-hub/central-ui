@@ -1,18 +1,19 @@
 import qz from 'qz-tray';
+import { configureQzTrust } from './qz-trust';
 
-let configured = false;
-
-const configure = () => {
-  if (configured) return;
-  configured = true;
-  qz.security.setCertificatePromise((resolve: (v?: unknown) => void) => resolve());
-  qz.security.setSignaturePromise(() => (resolve: (v?: unknown) => void) => resolve());
-};
+let connecting: Promise<void> | null = null;
 
 export const qzConnect = async (): Promise<void> => {
-  configure();
+  configureQzTrust();
   if (qz.websocket.isActive()) return;
-  await qz.websocket.connect({ retries: 1, delay: 1 });
+  if (!connecting) {
+    connecting = qz.websocket
+      .connect({ retries: 2, delay: 1 })
+      .finally(() => {
+        connecting = null;
+      });
+  }
+  await connecting;
 };
 
 export const qzIsActive = (): boolean => {

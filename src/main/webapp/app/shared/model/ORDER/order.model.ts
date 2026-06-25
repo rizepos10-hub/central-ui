@@ -44,6 +44,7 @@ export interface IOrder extends IOrderAudit {
   addonsTotal?: number | null,
   itemsTotal?: number | null,
   totalTip?: number | null,
+  loyaltyPreview?: ILoyaltyPreview | null,
   tillId?: string | null;
 }
 
@@ -53,11 +54,18 @@ export interface IOrderCharge {
   chargeType?: ServiceChargeKey;
 }
 
+export interface ILoyaltyPreview {
+  eligible?: boolean;
+  points?: number | null;
+  earnableCash?: number | null;
+}
+
 export interface IOrderChargesPreviewResponse {
   deliveryCharge?: IOrderCharge | null;
   orderCharges?: IOrderCharge[];
   gratuityOrderCharge?: IOrderCharge | null;
   totalCharges?: number | null;
+  loyaltyPreview?: ILoyaltyPreview | null;
 }
 
 export interface IPlacePaidOrderRequest {

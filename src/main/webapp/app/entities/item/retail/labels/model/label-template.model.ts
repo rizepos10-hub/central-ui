@@ -17,6 +17,10 @@ export type QrDataType = 'productUrl' | 'sku' | 'internalId' | 'custom';
 
 export type LabelTextAlign = 'left' | 'center' | 'right';
 
+export type ComparePriceStyle = 'strikethrough' | 'was';
+
+export type ComparePriceArrangement = 'stacked' | 'inline';
+
 export type LabelVerticalAlign = 'top' | 'middle' | 'bottom';
 
 export type LabelOrientation = 'portrait' | 'landscape';
@@ -48,6 +52,8 @@ export interface LabelElement {
   visible: boolean;
   value?: string | null;
   showComparePrice?: boolean;
+  comparePriceStyle?: ComparePriceStyle;
+  comparePriceLayout?: ComparePriceArrangement;
   barcodeSymbology?: BarcodeSymbology;
   qrDataType?: QrDataType;
 }
@@ -142,6 +148,16 @@ export const DIRECT_PRINT_LANGUAGE_LABELS: Record<DirectPrintLanguage, string> =
   epl: 'EPL',
   zpl: 'ZPL',
   tspl: 'TSPL',
+};
+
+export const COMPARE_PRICE_STYLE_LABELS: Record<ComparePriceStyle, string> = {
+  strikethrough: 'Strikethrough',
+  was: 'Was price label',
+};
+
+export const COMPARE_PRICE_LAYOUT_LABELS: Record<ComparePriceArrangement, string> = {
+  stacked: 'On top of each other',
+  inline: 'Next to each other',
 };
 
 export const QR_DATA_TYPE_LABELS: Record<QrDataType, string> = {

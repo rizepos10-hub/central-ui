@@ -11,7 +11,7 @@ import {
   resolveProductImage,
   resolveQrData,
 } from '../util/label-data';
-import { COMPARE_ORIGINAL_RATIO, DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, fitComparePrice, layoutLabelText } from '../util/text-layout';
+import { DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, layoutComparePrice, layoutLabelText } from '../util/text-layout';
 import { BarcodeBox, QrBox } from './BarcodeBox';
 
 type LabelElementViewProps = {
@@ -88,7 +88,6 @@ export const LabelElementView = React.memo(function LabelElementView({
     }
     const sdx = (e.clientX - resizeLast.current.x) / scale;
     const sdy = (e.clientY - resizeLast.current.y) / scale;
-    // Project the screen-space drag onto the element's own (rotated) axes so the handle grows it correctly.
     const rad = ((element.rotation || 0) * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
@@ -240,32 +239,52 @@ const ElementContent = ({ element, datum, scale, width, height, useFormattedVari
     const { current, original } = resolvePriceParts(datum.variant);
     if (!current) return null;
     if (original) {
-      const fit = fitComparePrice(current, original, element.fontSize, element.widthMm, element.heightMm, {
+      const compareStyle = element.comparePriceStyle ?? 'strikethrough';
+      const layout = layoutComparePrice(current, original, compareStyle, {
+        fontSizePt: element.fontSize,
+        widthMm: element.widthMm,
+        heightMm: element.heightMm,
+        alignment: element.alignment,
+        verticalAlign: element.verticalAlign ?? 'middle',
         autoFit: element.autoFit ?? true,
         minFontPt: element.minFontSize ?? DEFAULT_MIN_FONT_PT,
+        arrangement: element.comparePriceLayout ?? 'stacked',
       });
-      const curPx = scaledFontPx(fit.currentPt, scale / MM_TO_PX);
-      const origPx = curPx * COMPARE_ORIGINAL_RATIO;
-      const justify = element.alignment === 'center' ? 'center' : element.alignment === 'right' ? 'flex-end' : 'flex-start';
-      const vAlign = element.verticalAlign ?? 'middle';
-      const alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+      const zoom = scale / MM_TO_PX;
       return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems,
-            justifyContent: justify,
-            gap: fit.gapMm * scale,
-            overflow: 'hidden',
-            fontFamily: 'Arial, Helvetica, sans-serif',
-          }}
-        >
-          <span style={{ fontSize: origPx, color: '#6b7280', textDecoration: 'line-through', whiteSpace: 'nowrap', lineHeight: 1 }}>
-            {original}
+        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: layout.wasXMm * scale,
+              top: layout.wasYMm * scale,
+              transform: 'translateY(-50%)',
+              fontSize: scaledFontPx(layout.wasPt, zoom),
+              fontWeight: 700,
+              color: '#000000',
+              textDecoration: layout.strike ? 'line-through' : 'none',
+              textDecorationThickness: layout.strike ? Math.max(1, scaledFontPx(layout.wasPt, zoom) * 0.08) : undefined,
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
+            }}
+          >
+            {layout.wasText}
           </span>
-          <span style={{ fontSize: curPx, fontWeight: 700, color: '#000000', whiteSpace: 'nowrap', lineHeight: 1 }}>{current}</span>
+          <span
+            style={{
+              position: 'absolute',
+              left: layout.nowXMm * scale,
+              top: layout.nowYMm * scale,
+              transform: 'translateY(-50%)',
+              fontSize: scaledFontPx(layout.nowPt, zoom),
+              fontWeight: 700,
+              color: '#000000',
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
+            }}
+          >
+            {layout.nowText}
+          </span>
         </div>
       );
     }

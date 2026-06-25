@@ -43,7 +43,8 @@ export const listTemplates = (): LabelTemplate[] => {
     if (!isPresetId(custom.id)) merged.push(normalizeLabelTemplate(custom));
   }
 
-  return merged.map(t => ({ ...normalizeLabelTemplate(t), isDefault: t.id === defaultId }));
+  const withDefault = merged.map(t => ({ ...normalizeLabelTemplate(t), isDefault: t.id === defaultId }));
+  return withDefault.sort((a, b) => (a.isDefault === b.isDefault ? 0 : a.isDefault ? -1 : 1));
 };
 
 export const getTemplate = (id: string): LabelTemplate | undefined => listTemplates().find(t => t.id === id);

@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  Code2,
   Crosshair,
   FileDown,
   Inbox,
@@ -30,7 +29,7 @@ import { useQz } from '../store/useQz';
 import { LabelCanvasPreview } from '../components/LabelCanvas';
 import { PrintSheet } from '../print/PrintSheet';
 import { exportLabelsPdf, labelsPdfBase64 } from '../print/labels-pdf';
-import { directPrintLanguageName, isDirectPrintTemplate, visualizeDirectPrintScript } from '../util/label-script';
+import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-script';
 import { compileDirectPrintTemplate } from '../util/direct-print-compiler';
 
 const PreviewScreen = () => {
@@ -44,6 +43,7 @@ const PreviewScreen = () => {
   const testRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const testLabels = useMemo(() => flatLabels.slice(0, 1), [flatLabels]);
@@ -98,7 +98,6 @@ const PreviewScreen = () => {
   );
 
   const directWarnings = useMemo(() => Array.from(new Set(compiledDirectLabels.flatMap(item => item.warnings))), [compiledDirectLabels]);
-  const previewDirectLabels = useMemo(() => compiledDirectLabels.slice(0, 3), [compiledDirectLabels]);
   const printerOptions = useMemo(() => qz.printers.map(p => ({ value: p, label: p })), [qz.printers]);
 
   const barcodeIssues = useMemo(
@@ -124,10 +123,6 @@ const PreviewScreen = () => {
     setError(null);
 
     if (isDirect) {
-      if (!qz.available || !preferredDirectPrinter) {
-        setError('Direct printer templates require QZ Tray and a selected or template-bound printer.');
-        return;
-      }
       const payloads = compiledDirectLabels
         .map(item => item.qzPayload ?? item.script)
         .filter(Boolean);
@@ -137,7 +132,12 @@ const PreviewScreen = () => {
       }
       setIsPrinting(true);
       try {
-        await qz.printDirect(preferredDirectPrinter, payloads as any);
+        const printer = await qz.ensurePrinter(template.directPrint?.printerName);
+        if (!printer) {
+          setError('Direct printer templates require QZ Tray and a selected or template-bound printer.');
+          return;
+        }
+        await qz.printDirect(printer, payloads as any);
       } catch {
         setError('Direct printing failed. Check the selected language, printer, or compiled output and try again.');
       } finally {
@@ -146,15 +146,15 @@ const PreviewScreen = () => {
       return;
     }
 
-    if (!qz.available || !qz.selected) {
-      browserPrint();
-      return;
-    }
-
     setIsPrinting(true);
     try {
+      const printer = await qz.ensurePrinter();
+      if (!printer) {
+        browserPrint();
+        return;
+      }
       const base64 = await labelsPdfBase64(template, flatLabels, true, qz.offset);
-      await qz.printPdf(qz.selected, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
+      await qz.printPdf(printer, base64, { widthMm: template.widthMm, heightMm: template.heightMm });
     } catch {
       setError('Direct printing failed — opening the system print dialog instead.');
       browserPrint();
@@ -242,74 +242,24 @@ const PreviewScreen = () => {
         </div>
       )}
 
-      {isDirect ? (
-        <div className="bg-muted/40 px-4 py-6">
-          <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-            <div className="flex flex-col gap-4">
-              {previewDirectLabels.map((item, i) => (
-                <div key={i} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-foreground">{item.datum.product.name}</div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {item.copyNum} / {item.totalCopies} · {template.widthMm.toFixed(0)} × {template.heightMm.toFixed(0)} mm
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-sky-500/10 px-2 py-1 text-[11px] font-semibold text-sky-700">Visual preview</span>
-                  </div>
-                  <div className="flex justify-center">
-                    <LabelCanvasPreview template={template} datum={item.datum} maxWidthPx={300} maxHeightPx={220} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-              <div className="flex items-center justify-between border-b border-border bg-background px-4 py-3">
-                <div>
-                  <div className="text-sm font-semibold text-foreground">
-                    Generated {directPrintLanguageName(template.directPrint?.language ?? 'zpl')} Script
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">Compiled from the same canvas design that the user arranged.</div>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-[11px] font-semibold text-amber-700">
-                  <Code2 className="h-3.5 w-3.5" />
-                  Native output
-                </span>
-              </div>
-              <pre className="m-0 max-h-[72vh] overflow-auto bg-slate-950 p-4 text-[11px] leading-5 text-slate-100">
-                {previewDirectLabels.length > 0 ? visualizeDirectPrintScript(previewDirectLabels[0].script) : '(no compiled output)'}
-              </pre>
-            </div>
-          </div>
-
-          {compiledDirectLabels.length > previewDirectLabels.length && (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Showing the first {previewDirectLabels.length} visual previews. The remaining {compiledDirectLabels.length - previewDirectLabels.length}{' '}
-              labels are compiled from the same template using their own product data.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-6 bg-muted/40 px-4 py-6">
-          {flatLabels.map((label, i) => (
-            <div key={i} className="flex flex-col items-center">
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="rounded-full bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-bold text-sky-600">
-                  {label.copyNum} / {label.totalCopies}
-                </span>
-                <span className="max-w-[260px] truncate text-xs font-semibold text-muted-foreground">{label.datum.product.name}</span>
-              </div>
-              <div className="shadow-lg">
-                <LabelCanvasPreview template={template} datum={label.datum} maxWidthPx={520} maxHeightPx={360} />
-              </div>
-              <span className="mt-1.5 text-[11px] text-muted-foreground">
-                {template.widthMm.toFixed(0)} × {template.heightMm.toFixed(0)} mm
+      <div className="flex flex-col items-center gap-6 bg-muted/40 px-4 py-6">
+        {flatLabels.map((label, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="rounded-full bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-bold text-sky-600">
+                {label.copyNum} / {label.totalCopies}
               </span>
+              <span className="max-w-[260px] truncate text-xs font-semibold text-muted-foreground">{label.datum.product.name}</span>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="shadow-lg">
+              <LabelCanvasPreview template={template} datum={label.datum} maxWidthPx={520} maxHeightPx={360} />
+            </div>
+            <span className="mt-1.5 text-[11px] text-muted-foreground">
+              {template.widthMm.toFixed(0)} × {template.heightMm.toFixed(0)} mm
+            </span>
+          </div>
+        ))}
+      </div>
 
       {!isDirect && (
         <>

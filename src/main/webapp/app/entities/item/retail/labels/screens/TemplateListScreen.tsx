@@ -14,6 +14,7 @@ import { useLabelTemplates } from '../store/useLabelTemplates';
 import { useLabelFlow } from '../store/label-flow-context';
 import { LabelCanvasPreview } from '../components/LabelCanvas';
 import { ElementChip } from '../components/ElementChip';
+import { SAMPLE_DATUM } from '../util/label-data';
 import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-script';
 
 const TemplateListScreen = () => {
@@ -139,8 +140,8 @@ const TemplateCard = ({ template, isPreset, onUse, onDesign, onDuplicate, onSetD
             </>
           ) : (
             <>
-              <LabelCanvasPreview template={template} maxWidthPx={240} maxHeightPx={120} />
-              <span className="mt-2 text-[10px] italic text-muted-foreground">Preview — placeholder data shown</span>
+              <LabelCanvasPreview template={template} datum={SAMPLE_DATUM} maxWidthPx={240} maxHeightPx={120} />
+              <span className="mt-2 text-[10px] italic text-muted-foreground">Preview — sample data shown</span>
             </>
           )}
         </div>

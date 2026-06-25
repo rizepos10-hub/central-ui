@@ -91,8 +91,65 @@ const formatCustomerLabel = (customer?: Partial<ICustomer> | null) => {
     return 'Unnamed customer';
 };
 
-const formatCurrencyAmount = (value?: number | null) => {
+const incrementIntegerString = (value: string) => {
+    let carry = 1;
+    const digits = value.split('');
+
+    for (let index = digits.length - 1; index >= 0; index -= 1) {
+        const nextDigit = Number(digits[index]) + carry;
+        if (nextDigit >= 10) {
+            digits[index] = '0';
+            carry = 1;
+        } else {
+            digits[index] = String(nextDigit);
+            carry = 0;
+            break;
+        }
+    }
+
+    return carry > 0 ? `1${digits.join('')}` : digits.join('');
+};
+
+const toPlainDecimalString = (value: number) => {
+    const absoluteValue = Math.abs(value);
+    const asString = absoluteValue.toString();
+
+    if (!asString.includes('e') && !asString.includes('E')) {
+        return asString;
+    }
+
+    return absoluteValue.toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+};
+
+const scaleMoney = (value?: number | null) => {
     const numericValue = Number(value ?? 0);
+
+    if (!Number.isFinite(numericValue)) {
+        return 0;
+    }
+
+    if (numericValue === 0) {
+        return 0;
+    }
+
+    const sign = numericValue < 0 ? -1 : 1;
+    const absoluteString = toPlainDecimalString(numericValue);
+    const [wholePart = '0', decimalPart = ''] = absoluteString.split('.');
+    let cents = decimalPart.slice(0, 2).padEnd(2, '0');
+    const guardDigit = Number(decimalPart.charAt(2) || '0');
+
+    if (guardDigit >= 5) {
+        const incremented = incrementIntegerString(`${wholePart}${cents}`);
+        cents = incremented.slice(-2).padStart(2, '0');
+        const nextWholePart = incremented.slice(0, -2);
+        return sign * Number(`${nextWholePart || '0'}.${cents}`);
+    }
+
+    return sign * Number(`${wholePart}.${cents}`);
+};
+
+const formatCurrencyAmount = (value?: number | null) => {
+    const numericValue = scaleMoney(value);
 
     if (!Number.isFinite(numericValue)) {
         return '$0.00';
@@ -105,18 +162,7 @@ const formatCurrencyAmount = (value?: number | null) => {
     if (absoluteString.includes('e')) {
         return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
     }
-
-    const [wholePart, decimalPart = ''] = absoluteString.split('.');
-
-    if (decimalPart.length === 0) {
-        return `${sign}$${wholePart}.00`;
-    }
-
-    if (decimalPart.length === 1) {
-        return `${sign}$${wholePart}.${decimalPart}0`;
-    }
-
-    return `${sign}$${wholePart}.${decimalPart}`;
+    return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
 };
 
 const OrderCreate = () => {
@@ -236,9 +282,26 @@ const OrderCreate = () => {
         () => Object.values(itemPriceLoading || {}).some(Boolean),
         [itemPriceLoading]
     );
-    const hasItemWithMissingPrice = useMemo(
-        () => (orderEntity?.items ?? []).some(item => item?.price == null),
-        [orderEntity?.items]
+    const getResolvedItemUnitPrice = useCallback((item: IOrder['items'][number]) => {
+        if (item?.price != null) {
+            return item.price;
+        }
+
+        const calculatedTotals = item?.cartId ? itemPriceCalculations?.[item.cartId] : null;
+        if (!calculatedTotals) {
+            return null;
+        }
+
+        const quantity = item?.amount ?? 0;
+        if (quantity <= 0) {
+            return 0;
+        }
+
+        return scaleMoney((calculatedTotals.itemTotal ?? 0) / quantity);
+    }, [itemPriceCalculations]);
+    const hasItemWithUnresolvedPrice = useMemo(
+        () => (orderEntity?.items ?? []).some(item => getResolvedItemUnitPrice(item) == null),
+        [getResolvedItemUnitPrice, orderEntity?.items]
     );
 
     const buildCustomerSearchPayload = useCallback((field: string | null, value: string) => {
@@ -1228,7 +1291,7 @@ const OrderCreate = () => {
             itemId: item.itemId,
             variantId: item.variantId,
             amount: item.amount,
-            price: item.price,
+            price: getResolvedItemUnitPrice(item),
             selectedRetailAttributes: item.selectedRetailAttributes,
             ...(item?.discount?.value && item?.discount?.type ? {
                 discount: {
@@ -1246,7 +1309,7 @@ const OrderCreate = () => {
         processingStatus,
         tillId: till?.id,
         ...(includeWholesale && isWholesaleMode ? { wholesale: true } : {}),
-    }), [isEditMode, isWholesaleMode, orderEntity, till?.id]);
+    }), [getResolvedItemUnitPrice, isEditMode, isWholesaleMode, orderEntity, till?.id]);
 
     const buildChargesPreviewPayload = useCallback(
         (): IOrder => buildBaseStructuredEntity({ includeOrderCharges: false, includeWholesale: true }),
@@ -1306,13 +1369,13 @@ const OrderCreate = () => {
     );
 
     useEffect(() => {
-        if (!orderEntity?.branchId || hasPendingItemPriceCalculation || hasItemWithMissingPrice) {
+        if (!orderEntity?.branchId || hasPendingItemPriceCalculation || hasItemWithUnresolvedPrice) {
             dispatch(clearChargesPreview());
             return;
         }
 
         dispatch(previewCharges(buildChargesPreviewPayload()));
-    }, [buildChargesPreviewPayload, dispatch, hasItemWithMissingPrice, hasPendingItemPriceCalculation, orderEntity?.branchId]);
+    }, [buildChargesPreviewPayload, dispatch, hasItemWithUnresolvedPrice, hasPendingItemPriceCalculation, orderEntity?.branchId]);
 
     const finalizeCreatedOrder = (createdOrderId?: string | null) => {
         resetVariantDialogState();
@@ -1582,13 +1645,13 @@ const OrderCreate = () => {
     }, [cartItems, productById]);
     const cartTotals = useMemo(() => {
         return cartItems.reduce<{ itemsTotal: number; totalTaxes: number; total: number }>((acc, item) => {
-            const itemTotal = item.itemTotal ?? ((item.price ?? 0) * (item.amount ?? 0));
-            const taxTotal = item.taxTotal ?? 0;
-            const grandTotal = item.grandTotal ?? (itemTotal + taxTotal);
+            const itemTotal = scaleMoney(item.itemTotal ?? ((item.price ?? 0) * (item.amount ?? 0)));
+            const taxTotal = scaleMoney(item.taxTotal ?? 0);
+            const grandTotal = scaleMoney(item.grandTotal ?? (itemTotal + taxTotal));
             return {
-                itemsTotal: acc.itemsTotal + itemTotal,
-                totalTaxes: acc.totalTaxes + taxTotal,
-                total: acc.total + grandTotal,
+                itemsTotal: scaleMoney(acc.itemsTotal + itemTotal),
+                totalTaxes: scaleMoney(acc.totalTaxes + taxTotal),
+                total: scaleMoney(acc.total + grandTotal),
             };
         }, { itemsTotal: 0, totalTaxes: 0, total: 0 });
     }, [cartItems]);
@@ -1632,9 +1695,9 @@ const OrderCreate = () => {
         return rows;
     }, [chargesPreview]);
     const previewChargesTotal = useMemo(() => {
-        return previewChargeRows.reduce((sum, charge) => sum + charge.amount, 0);
+        return previewChargeRows.reduce((sum, charge) => scaleMoney(sum + charge.amount), 0);
     }, [previewChargeRows]);
-    const finalPayableTotal = cartTotals.total + previewChargesTotal;
+    const finalPayableTotal = scaleMoney(cartTotals.total + previewChargesTotal);
     const previewUnavailableMessage = chargesPreviewError
         ? 'Charge preview unavailable. Final charges will be recalculated when the order is submitted.'
         : null;
@@ -1924,6 +1987,8 @@ const OrderCreate = () => {
                 defaultPaymentAmount={finalPayableTotal}
                 baseOrderTotal={cartTotals.total}
                 chargePreviewRows={previewChargeRows}
+                loyaltyPreviewEligible={Boolean(chargesPreview?.loyaltyPreview?.eligible)}
+                loyaltyPreviewPoints={chargesPreview?.loyaltyPreview?.points ?? 0}
                 submitLabel="Pay"
                 onSubmit={isEditMode ? handleUpdateWithPayment : handleCreateWithPayment}
                 submitting={submittingOrder}
@@ -2565,28 +2630,27 @@ const OrderCreate = () => {
                             <ScrollArea className="h-0 flex-1 px-2 py-3">
                                 <Accordion type="multiple" className="space-y-2">
                                     {orderEntity?.items?.map((product, idx) => {
-                                        const itemTotal = product.itemTotal ?? itemPriceCalculations?.[product.cartId]?.itemTotal;
-                                        const taxTotal = product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal;
-                                        const grandTotal = product.grandTotal ?? itemPriceCalculations?.[product.cartId]?.grandTotal;
+                                        const taxTotal = scaleMoney(product.taxTotal ?? itemPriceCalculations?.[product.cartId]?.taxTotal);
                                         const byWeight = productById.get(product.itemId)?.byWeight;
                                         const derivedPriceMeta = getItemPriceDisplayMeta(product);
                                         const qtyDisplay = byWeight ? 1 : (product.amount ?? 0);
                                         const inputUnitPrice = product.priceOverridden
                                             ? (product.price ?? '')
                                             : (product.price ?? derivedPriceMeta.originalPrice ?? '');
-                                        const inputDisplayedPrice =
-                                            inputUnitPrice === '' || inputUnitPrice == null
-                                                ? null
-                                                : Number(inputUnitPrice);
-                                        const effectiveUnitPrice = product.priceOverridden
+                                        const originalUnitPrice = product.priceOverridden
+                                            ? (product.priceBeforeDiscount ?? derivedPriceMeta.originalPrice ?? product.price ?? null)
+                                            : (product.price ?? derivedPriceMeta.originalPrice ?? product.priceBeforeDiscount ?? null);
+                                        const normalizedOriginalUnitPrice =
+                                            originalUnitPrice == null ? null : scaleMoney(originalUnitPrice);
+                                        const effectiveUnitPrice = scaleMoney(product.priceOverridden
                                             ? (product.price ?? 0)
-                                            : (derivedPriceMeta.effectivePrice ?? product.price ?? 0);
-                                        const amountTotal = effectiveUnitPrice * qtyDisplay;
-                                        const displayAmount = grandTotal ?? amountTotal;
-                                        const showCalculatedGrandTotal =
-                                            inputDisplayedPrice != null &&
-                                            Number.isFinite(inputDisplayedPrice) &&
-                                            Math.abs(displayAmount - inputDisplayedPrice) > 0.0001;
+                                            : (derivedPriceMeta.effectivePrice ?? product.price ?? 0));
+                                        const effectivePreTaxAmount = scaleMoney(effectiveUnitPrice * qtyDisplay);
+                                        const originalPreTaxAmount =
+                                            normalizedOriginalUnitPrice == null ? null : scaleMoney(normalizedOriginalUnitPrice * qtyDisplay);
+                                        const showPriceComparison =
+                                            originalPreTaxAmount != null &&
+                                            Math.abs(originalPreTaxAmount - effectivePreTaxAmount) > 0.0001;
 
                                         return (
                                         <AccordionItem
@@ -2607,15 +2671,15 @@ const OrderCreate = () => {
                                                     <div className="text-right font-semibold">
                                                         {itemPriceLoading?.[product.cartId] ? (
                                                             <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />
-                                                        ) : showCalculatedGrandTotal ? (
+                                                        ) : showPriceComparison ? (
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <span className="text-[11px] font-normal text-muted-foreground line-through">
-                                                                    ${inputDisplayedPrice.toFixed(2)}
+                                                                    {formatCurrencyAmount(originalPreTaxAmount)}
                                                                 </span>
-                                                                <span>${displayAmount.toFixed(2)}</span>
+                                                                <span>{formatCurrencyAmount(effectivePreTaxAmount)}</span>
                                                             </div>
                                                         ) : (
-                                                            `$${displayAmount.toFixed(2)}`
+                                                            formatCurrencyAmount(effectivePreTaxAmount)
                                                         )}
                                                     </div>
                                                     <Button

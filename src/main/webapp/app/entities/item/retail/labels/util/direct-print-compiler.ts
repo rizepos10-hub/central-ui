@@ -1,7 +1,7 @@
 import { BARCODE_SYMBOLOGY_FORMAT, DirectPrintLanguage, LabelElement, LabelTemplate } from '../model/label-template.model';
 import { LabelDatum, demoBarcodeData, resolveBarcodeData, resolveElementText, resolvePriceParts, resolveQrData } from './label-data';
 import { barcodeCanvas, barcodeContentRectMm } from './code-images';
-import { COMPARE_ORIGINAL_RATIO, DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, fitComparePrice, layoutLabelText, measureTextMm } from './text-layout';
+import { DEFAULT_LINE_HEIGHT, DEFAULT_MIN_FONT_PT, layoutComparePrice, layoutLabelText, measureTextMm } from './text-layout';
 import { PT_PER_MM } from './units';
 
 export interface DirectPrintCompileResult {
@@ -241,47 +241,44 @@ const drawPriceBlock = (ctx: CanvasRenderingContext2D, element: LabelElement, da
     return true;
   }
 
-  const fit = fitComparePrice(parts.current, parts.original, element.fontSize, element.widthMm, element.heightMm, {
+  const compareStyle = element.comparePriceStyle ?? 'strikethrough';
+  const layout = layoutComparePrice(parts.current, parts.original, compareStyle, {
+    fontSizePt: element.fontSize,
+    widthMm: element.widthMm,
+    heightMm: element.heightMm,
+    alignment: element.alignment,
+    verticalAlign: element.verticalAlign ?? 'middle',
     autoFit: element.autoFit ?? true,
     minFontPt: element.minFontSize ?? DEFAULT_MIN_FONT_PT,
+    arrangement: element.comparePriceLayout ?? 'stacked',
   });
-  const currentPx = ptToDots(fit.currentPt, dpi);
-  const originalPx = ptToDots(fit.originalPt, dpi);
-  const gapPx = mmToDots(fit.gapMm, dpi);
-  const originalWidthPx = (measureTextMm(parts.original, fit.originalPt, false) / 25.4) * dpi;
-  const currentWidthPx = (measureTextMm(parts.current, fit.currentPt, true) / 25.4) * dpi;
-  const totalWidthPx = originalWidthPx + gapPx + currentWidthPx;
-  const align = element.alignment;
-  const startXPx =
-    align === 'center'
-      ? mmToDots(element.xMm, dpi) + (mmToDots(element.widthMm, dpi) - totalWidthPx) / 2
-      : align === 'right'
-      ? mmToDots(element.xMm + element.widthMm, dpi) - totalWidthPx
-      : mmToDots(element.xMm, dpi);
-  const verticalAlign = element.verticalAlign ?? 'middle';
-  const currentLineHeightPx = currentPx * (element.lineHeight ?? DEFAULT_LINE_HEIGHT);
-  const yPx =
-    verticalAlign === 'top'
-      ? mmToDots(element.yMm, dpi) + currentLineHeightPx / 2
-      : verticalAlign === 'bottom'
-      ? mmToDots(element.yMm + element.heightMm, dpi) - currentLineHeightPx / 2
-      : mmToDots(element.yMm + element.heightMm / 2, dpi);
+
+  // Use the exact pt→dot size the layout assumed (no min-12 clamp) so the was/now sizes and positions line
+  // up identically to the canvas/preview, in both the stacked and inline arrangements.
+  const priceFontPx = (pt: number): number => Math.max(1, Math.round((pt / 72) * dpi));
+  const wasPx = priceFontPx(layout.wasPt);
+  const nowPx = priceFontPx(layout.nowPt);
+  const wasXPx = mmToDots(element.xMm + layout.wasXMm, dpi);
+  const wasYPx = mmToDots(element.yMm + layout.wasYMm, dpi);
+  const wasWidthPx = mmToDots(layout.wasWidthMm, dpi);
 
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#6b7280';
-  ctx.font = `400 ${originalPx}px Arial, Helvetica, sans-serif`;
-  ctx.fillText(parts.original, startXPx, yPx);
-  ctx.strokeStyle = '#6b7280';
-  ctx.lineWidth = Math.max(1, originalPx * 0.06);
-  ctx.beginPath();
-  ctx.moveTo(startXPx, yPx);
-  ctx.lineTo(startXPx + originalWidthPx, yPx);
-  ctx.stroke();
+  ctx.fillStyle = '#000000';
+  ctx.font = `700 ${wasPx}px Arial, Helvetica, sans-serif`;
+  ctx.fillText(layout.wasText, wasXPx, wasYPx);
+  if (layout.strike) {
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = Math.max(1, wasPx * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(wasXPx, wasYPx);
+    ctx.lineTo(wasXPx + wasWidthPx, wasYPx);
+    ctx.stroke();
+  }
 
   ctx.fillStyle = '#000000';
-  ctx.font = `700 ${currentPx}px Arial, Helvetica, sans-serif`;
-  ctx.fillText(parts.current, startXPx + originalWidthPx + gapPx, yPx);
+  ctx.font = `700 ${nowPx}px Arial, Helvetica, sans-serif`;
+  ctx.fillText(layout.nowText, mmToDots(element.xMm + layout.nowXMm, dpi), mmToDots(element.yMm + layout.nowYMm, dpi));
   return true;
 };
 

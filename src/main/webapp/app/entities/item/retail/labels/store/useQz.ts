@@ -44,6 +44,26 @@ export const useQz = () => {
     else localStorage.removeItem(SELECTED_PRINTER_KEY);
   }, []);
 
+  // Resolve the printer to actually print on. Used at click time so the first Print press still works even
+  // if QZ is mid-connect or the default printer hasn't been fetched yet (otherwise the user has to click twice).
+  const ensurePrinter = useCallback(
+    async (preferred?: string | null): Promise<string | null> => {
+      if (preferred) return preferred;
+      if (selected) return selected;
+      try {
+        const def = await qzDefaultPrinter();
+        if (def) {
+          selectPrinter(def);
+          return def;
+        }
+      } catch {
+        /* QZ not reachable — caller falls back to the system dialog */
+      }
+      return null;
+    },
+    [selected, selectPrinter]
+  );
+
   const updateOffset = useCallback(
     (next: PrinterOffset) => {
       setOffset(setPrinterOffset(offsetKeyFor(selected), next));
@@ -59,6 +79,7 @@ export const useQz = () => {
     printers,
     selected,
     selectPrinter,
+    ensurePrinter,
     refresh,
     printPdf: qzPrintPdf,
     printRaw: qzPrintRaw,

@@ -173,6 +173,28 @@ describe('OrderPaymentDialog', () => {
     expect(screen.getAllByText('$20.00').length).toBeGreaterThan(0);
   });
 
+  it('shows the loyalty preview inside the payment dialog', () => {
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        loyaltyPreviewEligible
+        loyaltyPreviewPoints={12.5}
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('This customer will earn')).not.toBeNull();
+    expect(screen.getByText('12.50 points')).not.toBeNull();
+  });
+
   it('preserves backend precision so remaining matches the payment amount input', () => {
     render(
       <OrderPaymentDialog

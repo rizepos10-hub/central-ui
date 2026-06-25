@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getEntity, updateEntities } from "app/entities/loyalty/loyalty-records.reducer";
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -60,7 +59,7 @@ export const LoyaltyUpdate = () => {
           <div className="max-w-2xl">
             <Card>
               <CardContent className="space-y-4 pt-6">
-                <form className="space-y-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold">
                       <Translate contentKey={'loyalty.update.name'}>Name</Translate>
@@ -76,18 +75,10 @@ export const LoyaltyUpdate = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="points" className="text-xs font-semibold">
+                    <Label className="text-xs font-semibold">
                       <Translate contentKey={'loyalty.update.points'}>Points</Translate>
                     </Label>
-                    <Input
-                      type="number"
-                      id="points"
-                      placeholder={translate('loyalty.update.points')}
-                      value={points || 0}
-                      onChange={handlePointsChange}
-                      className="h-7 text-xs"
-                      step="0.00001"
-                    />
+                    <p className="text-xs">{record.points ?? 0}</p>
                   </div>
 
                   <div className="flex gap-2 pt-4">
@@ -103,18 +94,8 @@ export const LoyaltyUpdate = () => {
                         <Translate contentKey="entity.action.back">Back</Translate>
                       </Link>
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={onSave}
-                      disabled={updating}
-                    >
-                      <Save className="h-4 w-4 mr-1" />
-                      <Translate contentKey="entity.action.save">Save</Translate>
-                    </Button>
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
           </div>

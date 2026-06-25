@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { FilterMatchMode } from "primereact/api";
 import { translate } from "react-jhipster";
@@ -6,8 +6,14 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { filterEntities } from "app/modules/analytics/user-clock/user-clock.reducer";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { IUserClock } from "app/shared/model/user-clock.model";
-import { format, intervalToDuration } from "date-fns";
+import { format } from "date-fns";
 import { saveAsExcelFile } from "app/shared/util/excel-utils";
+import {
+    formatClockDuration,
+    formatWorkingDuration,
+    formatWorkingDurationTitle,
+    getElapsedSeconds,
+} from "app/shared/util/duration-format-utils";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { PageWrapper } from "app/shared/layout/page-wrapper";
 import ReportActionBar from "app/shared/components/report/report-action-bar";
@@ -44,12 +50,12 @@ const EmployeeHoursReport = () => {
     const branches = useAppSelector(state => state.branch.entities);
     const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
     const loadingClocks = useAppSelector(state => state.userClock.loading);
-    const loadingReport = useAppSelector(state => state.userClock.loadingReport);
     const userClockErrorMessage = useAppSelector(state => state.userClock.errorMessage);
 
     const [filterState, setFilterState] = useState(initialState);
     const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [hasLoadedReport, setHasLoadedReport] = useState(false);
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
         from: undefined,
         to: undefined
@@ -59,13 +65,18 @@ const EmployeeHoursReport = () => {
         dispatch(getBranches({}));
     }, []);
 
-    const getUserClocks = () => {
+    const getUserClocks = async () => {
         setError(null);
         const updatedState = applyMatchModeMap(filterState);
-        dispatch(filterEntities({
-            query: updatedState,
-        }))
-    }
+        try {
+            await dispatch(filterEntities({
+                query: updatedState,
+            })).unwrap();
+            setHasLoadedReport(true);
+        } catch {
+            setHasLoadedReport(true);
+        }
+    };
 
     const handleDateChange = (range: { from: Date | undefined; to: Date | undefined }) => {
         setDateRange(range);
@@ -85,27 +96,15 @@ const EmployeeHoursReport = () => {
         });
     };
 
-    const formatDuration = (start: Date, end: Date) => {
-        const duration = intervalToDuration({ start, end });
-        return `${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`;
-    };
+    const getClockElapsedSeconds = (clock: IUserClock) =>
+        getElapsedSeconds(new Date(clock.instantClockedIn), new Date(clock.instantClockedOut));
 
     const calculateTotalHours = (username: string) => {
-        const userInstances = userClocks.filter(clock => clock.username === username);
-        let totalSeconds = 0;
+        const totalSeconds = userClocks
+            .filter(clock => clock.username === username)
+            .reduce((sum, clock) => sum + getClockElapsedSeconds(clock), 0);
 
-        userInstances.forEach(clock => {
-            const clockIn = new Date(clock.instantClockedIn);
-            const clockOut = new Date(clock.instantClockedOut);
-            const duration = intervalToDuration({ start: clockIn, end: clockOut });
-            totalSeconds += duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
-        });
-
-        const totalHours = Math.floor(totalSeconds / 3600);
-        const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
-        const totalSecs = totalSeconds % 60;
-
-        return `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
+        return formatWorkingDuration(totalSeconds);
     };
 
     const exportExcel = async () => {
@@ -125,36 +124,22 @@ const EmployeeHoursReport = () => {
         Object.keys(clocksByUser).forEach(username => {
             let totalSeconds = 0;
             clocksByUser[username].forEach(clock => {
-                const clockIn = new Date(clock.instantClockedIn);
-                const clockOut = new Date(clock.instantClockedOut);
-
-                const duration = intervalToDuration({ start: clockIn, end: clockOut });
-                const secondsThisClock = duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
+                const secondsThisClock = getClockElapsedSeconds(clock);
                 totalSeconds += secondsThisClock;
-
-                const hours = String(duration.hours).padStart(2, '0');
-                const mins = String(duration.minutes).padStart(2, '0');
-                const secs = String(duration.seconds).padStart(2, '0');
-                const workingHours = `${hours}:${mins}:${secs}`;
 
                 structuredExcelData.push({
                     Name: username,
                     'Clock In': clock.instantClockedIn,
                     'Clock Out': clock.instantClockedOut,
-                    'Working Hours': workingHours
+                    'Working Hours': formatClockDuration(clock.instantClockedIn, clock.instantClockedOut)
                 });
             });
-
-            const totalHours = Math.floor(totalSeconds / 3600);
-            const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
-            const totalSecs = totalSeconds % 60;
-            const formattedTotal = `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
 
             structuredExcelData.push({
                 Name: '',
                 'Clock In': '',
                 'Clock Out': '',
-                'Working Hours': `Total Hours : ${formattedTotal}`
+                'Working Hours': `Total Hours : ${formatWorkingDuration(totalSeconds)}`
             });
         });
 
@@ -308,20 +293,38 @@ const EmployeeHoursReport = () => {
 
             {reportError ? <ReportErrorState message={reportError} dataTestId="employee-hours-error" /> : null}
 
-            {loadingReport && (
+            {loadingClocks && (
                 <div className="flex items-center justify-center h-32">
                     <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
             )}
 
-            {!reportError && userClocks?.length > 0 && (
+            {!reportError && !loadingClocks && !hasLoadedReport && (
+                <div
+                    className="rounded-lg border px-4 py-10 text-center text-xs text-muted-foreground"
+                    data-testid="employee-hours-not-loaded"
+                >
+                    Run the report to view results.
+                </div>
+            )}
+
+            {!reportError && !loadingClocks && hasLoadedReport && userClocks.length === 0 && (
+                <div
+                    className="rounded-lg border px-4 py-10 text-center text-xs text-muted-foreground"
+                    data-testid="employee-hours-empty"
+                >
+                    No employee hours records found for the selected branch and date range.
+                </div>
+            )}
+
+            {!reportError && !loadingClocks && hasLoadedReport && userClocks.length > 0 && (
                 <div className="mt-2">
                     <div className="flex justify-end mb-2">
                         <ReportActionBar
                             onExcel={exportExcel}
                             onPdf={handlePdfExport}
                             onPrint={handlePrint}
-                            disabled={!hasExportData || loadingReport || busyAction !== null}
+                            disabled={!hasExportData || loadingClocks || busyAction !== null}
                             busyAction={busyAction}
                         />
                     </div>
@@ -359,8 +362,11 @@ const EmployeeHoursReport = () => {
                                                 <TableCell className="text-xs">
                                                     {formatDateForDisplay(clock.instantClockedOut)}
                                                 </TableCell>
-                                                <TableCell className="text-xs text-right">
-                                                    {formatDuration(new Date(clock.instantClockedIn), new Date(clock.instantClockedOut))}
+                                                <TableCell
+                                                    className="text-xs text-right"
+                                                    title={formatWorkingDurationTitle(getClockElapsedSeconds(clock))}
+                                                >
+                                                    {formatClockDuration(clock.instantClockedIn, clock.instantClockedOut)}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -368,7 +374,14 @@ const EmployeeHoursReport = () => {
                                             <TableCell colSpan={3} className="text-xs text-right">
                                                 Total Hours:
                                             </TableCell>
-                                            <TableCell className="text-xs text-right">
+                                            <TableCell
+                                                className="text-xs text-right"
+                                                title={formatWorkingDurationTitle(
+                                                    userClocks
+                                                        .filter(userClock => userClock.username === username)
+                                                        .reduce((sum, userClock) => sum + getClockElapsedSeconds(userClock), 0)
+                                                )}
+                                            >
                                                 {calculateTotalHours(username)}
                                             </TableCell>
                                         </TableRow>

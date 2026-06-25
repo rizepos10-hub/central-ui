@@ -9,6 +9,8 @@ import { compileDirectPrintTemplate } from '../../util/direct-print-compiler';
 import { visualizeDirectPrintScript } from '../../util/label-script';
 import { useQz } from '../../store/useQz';
 
+const SUPPORTED_DIRECT_PRINT_LANGUAGES: DirectPrintLanguage[] = ['zpl'];
+
 type DirectPrintPanelProps = {
   template: LabelTemplate;
   onChange: (patch: Partial<LabelTemplate>) => void;
@@ -23,24 +25,6 @@ export const DirectPrintPanel = ({ template, onChange }: DirectPrintPanelProps) 
     () => compileDirectPrintTemplate(template, SAMPLE_DATUM, settings.language, settings.dpi ?? 203),
     [settings.dpi, settings.language, template]
   );
-  const supportTone =
-    settings.language === 'zpl'
-      ? {
-          badge: 'Best Fidelity',
-          classes: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
-          note: 'Best choice for near-WYSIWYG label layouts and barcode-heavy retail labels.',
-        }
-      : settings.language === 'tspl'
-      ? {
-          badge: 'Strong Compatibility',
-          classes: 'bg-sky-500/10 text-sky-700 border-sky-500/20',
-          note: 'Good label-language target, but some elements may need printer-specific tuning.',
-        }
-      : {
-          badge: 'Legacy Mode',
-          classes: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
-          note: 'Older language with tighter layout limits. Best for simpler labels.',
-        };
 
   const updateSettings = (patch: Partial<DirectPrintSettings>) =>
     onChange({
@@ -75,11 +59,6 @@ export const DirectPrintPanel = ({ template, onChange }: DirectPrintPanelProps) 
           </div>
         </div>
 
-        <div className={`mb-3 rounded-lg border px-3 py-2 text-xs ${supportTone.classes}`}>
-          <div className="font-semibold">{supportTone.badge}</div>
-          <div className="mt-1 leading-5">{supportTone.note}</div>
-        </div>
-
         <div className="space-y-3">
           <Field label="Language">
             <select
@@ -87,9 +66,9 @@ export const DirectPrintPanel = ({ template, onChange }: DirectPrintPanelProps) 
               onChange={e => updateSettings({ language: e.target.value as DirectPrintLanguage })}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             >
-              {Object.entries(DIRECT_PRINT_LANGUAGE_LABELS).map(([value, label]) => (
+              {SUPPORTED_DIRECT_PRINT_LANGUAGES.map(value => (
                 <option key={value} value={value}>
-                  {label}
+                  {DIRECT_PRINT_LANGUAGE_LABELS[value]}
                 </option>
               ))}
             </select>

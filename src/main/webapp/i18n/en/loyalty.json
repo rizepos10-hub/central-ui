@@ -9,7 +9,7 @@
           "email": "Email",
           "phone": "Phone Number",
           "points": "Points",
-          "edit": "Edit"
+          "view": "View"
         },
         "search": {
           "search": "Search"
