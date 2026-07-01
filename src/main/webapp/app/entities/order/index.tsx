@@ -10,6 +10,7 @@ import OrderCreate from './order-create';
 import PrintOrder from './print-order';
 import PrintBill from './print-bill';
 import OrderScheduled from './order-scheduled';
+import OrderAiOrdering from './order-ai-ordering';
 import OrderSaved from './order-saved';
 import ChooseRegister from './choose-register';
 
@@ -20,6 +21,7 @@ const OrderRoutes = () => (
     <Route path="create" element={<OrderCreate />} />
     <Route path="today" element={<TodayOrder />} />
     <Route path="scheduled" element={<OrderScheduled />} /> 
+    <Route path="ai-ordering" element={<OrderAiOrdering />} />
     <Route path="saved" element={<OrderSaved />} />
 
     <Route path=":id">
