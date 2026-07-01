@@ -46,9 +46,10 @@ interface LazyTableState {
 }
 
 type OrderProps = {
-  pageType?: 'history' | 'today' | 'scheduled' | 'saved' | '';
+  pageType?: 'history' | 'today' | 'scheduled' | 'ai-ordering' | 'saved' | '';
   customer?: string;
   appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
+  defaultOrderSource?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
   externalFromDate?: string;
   externalToDate?: string;
   externalBranchId?: string | null;
@@ -155,7 +156,17 @@ const transformOrderForReorder = (order: IOrder): IOrder => {
   };
 };
 
-export const Order = ({ pageType = '', customer = '', appSourceProp, externalFromDate, externalToDate, externalBranchId, isEndOfDayMode = false, wholesale = false }: OrderProps) => {
+export const Order = ({
+  pageType = '',
+  customer = '',
+  appSourceProp,
+  defaultOrderSource,
+  externalFromDate,
+  externalToDate,
+  externalBranchId,
+  isEndOfDayMode = false,
+  wholesale = false,
+}: OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -207,6 +218,16 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       modifiedDate: false,
       showDatePicker: true,
     },
+    'ai-ordering': {
+      storageKey: 'order-ai-ordering-columns',
+      title: 'Ai Ordering',
+      sortField: 'createdDate',
+      sortOrder: -1 as any,
+      dateFrom: '',
+      dateTo: '',
+      modifiedDate: false,
+      showDatePicker: true,
+    },
     saved: {
       storageKey: 'order-saved-columns',
       title: 'Saved Orders',
@@ -244,6 +265,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
       "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: externalBranchId || '', matchMode: 'equals' },
       paymentStatus: { value: '', matchMode: 'equals' },
+      orderSource: { value: defaultOrderSource || '', matchMode: 'equals' },
       total: { value: null, matchMode: 'equals' },
       tables: { value: '', matchMode: 'contains' },
       discount: { value: null, matchMode: 'equals' },
@@ -456,7 +478,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
   };
 
   const buildOrderQueryParams = () => {
-    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled', 'saved'].includes(pageType);
+    const shouldExcludeWholesaleOrders = !wholesale && ['', 'today', 'history', 'scheduled', 'ai-ordering', 'saved'].includes(pageType);
 
     const queryParams = {
       ...(wholesale && { wholesale: true }),
@@ -628,6 +650,7 @@ export const Order = ({ pageType = '', customer = '', appSourceProp, externalFro
               <CardTitle className="truncate text-xl font-semibold">{pageConfig.title}</CardTitle>
               {pageType === 'today' && <Badge variant="secondary" className="rounded-full">Today</Badge>}
               {pageType === 'scheduled' && <Badge variant="secondary" className="rounded-full">Scheduled</Badge>}
+              {pageType === 'ai-ordering' && <Badge variant="secondary" className="rounded-full">Online Ordering</Badge>}
               {pageType === 'saved' && <Badge variant="secondary" className="rounded-full">Draft Only</Badge>}
               {!!wholesale && <Badge variant="outline" className="rounded-full">Wholesale</Badge>}
               {!!customer && <Badge variant="outline" className="rounded-full">Customer Orders</Badge>}
