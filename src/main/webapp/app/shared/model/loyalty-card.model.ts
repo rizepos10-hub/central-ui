@@ -1,9 +1,19 @@
+import type { ICustomer } from './CUSTOMER/customer.model';
+
+export interface ILoyaltyCardWallet {
+    id?: string;
+    balance?: number;
+    assignedToId?: string;
+    assignedTo?: ICustomer | null;
+}
+
 export interface ILoyaltyCard {
     id?: string;
     referenceNumber?: string;
     expiryDate?: Date;
     cardHolderName?: string;
     walletId?: string;
+    wallet?: ILoyaltyCardWallet | null;
     loyaltyPointId?: string;
     createdByBranchId?: string;
     code?: string;

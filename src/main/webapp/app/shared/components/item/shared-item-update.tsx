@@ -19,8 +19,7 @@ import AddonImportModal from './addon-import-modal';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
-import MediaLibrary from '../media-library/media-library';
-import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
 import { getEntities as getBrands } from 'app/entities/brand/brand.reducer';
 import SharedAddon from 'app/shared/components/item/addon';
 import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
@@ -78,13 +77,6 @@ export const SharedItemUpdate = ({
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities);
   const discountList = useAppSelector(state => state.discount.entities);
 
-  const removeImage = () => {
-    onFieldChange('attachments', []);
-  };
-
-  const addImage = files => {
-    onFieldChange('attachments', transformAttachmentStructure(files, 'toIAttachment'));
-  };
 
   useEffect(() => {
     dispatch(
@@ -199,7 +191,7 @@ export const SharedItemUpdate = ({
         />
       </div>
 
-      {!item.askForPrice && !isPredefinedPizza && !isComboItem && (
+      {!isPredefinedPizza && !isComboItem && (
         <div className="space-y-2">
           <Label htmlFor="price" className="text-xs font-semibold">
             {isRetailVariable ? 'Default Price' : 'Price'}
@@ -208,17 +200,21 @@ export const SharedItemUpdate = ({
             type="number"
             name="price"
             id="price"
-            required={true}
+            required={!item.askForPrice}
+            disabled={!!item.askForPrice}
+            readOnly={!!item.askForPrice}
             min={0}
             step={0.01}
             placeholder={translate('items.update.placeholders.itemPrice')}
-            value={defaultPrice ?? ''}
+            value={item.askForPrice ? 0 : (defaultPrice ?? '')}
             onChange={e => {
-              console.log(e.target.value)
               setDefaultPrice(parseFloat(e.target.value) ?? 0);
             }}
-            className={`h-8 text-xs ${showFormErrors && !item?.variants?.[0]?.price ? 'border-destructive' : ''}`}
+            className={`h-8 text-xs ${showFormErrors && !item.askForPrice && !item?.variants?.[0]?.price ? 'border-destructive' : ''}`}
           />
+          {item.askForPrice && (
+            <p className="text-xs text-muted-foreground">Price is entered at POS when selling this item.</p>
+          )}
         </div>
       )}
 
@@ -409,18 +405,6 @@ export const SharedItemUpdate = ({
     </div>
   ) : null;
 
-  const imageBlock = (
-    <div className="space-y-2">
-      <Label className="text-xs font-semibold">
-        <Translate contentKey={'items.update.image'}>Image</Translate>
-      </Label>
-      <MediaLibrary
-        multiSelect={true}
-        handleFilesSelectCallback={files => addImage(files)}
-        defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
-      />
-    </div>
-  );
 
   const retailOptionsBody = (
     <>
@@ -448,9 +432,13 @@ export const SharedItemUpdate = ({
           ? section('Product options', 'Weight-based sale and brand.', retailOptionsBody)
           : null
         : retailOptionsBody}
-      {!hideCatalogImages
-        ? section('Catalog images', 'Main product photos for this item (not variant-specific images).', imageBlock)
-        : null}
+      {!hideCatalogImages ? (
+        <ProductImageGallery
+          attachments={item?.attachments}
+          onAttachmentsChange={atts => onFieldChange('attachments', atts)}
+          description="Main product photos for this item (not variant-specific images)."
+        />
+      ) : null}
     </div>
   );
 };

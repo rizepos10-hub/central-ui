@@ -1325,10 +1325,12 @@ const OrderCreate = () => {
         ({
             amount,
             tipAmount,
+            loyaltyPointsToRedeem,
             transactionMethod,
         }: {
             amount: number;
             tipAmount: number;
+            loyaltyPointsToRedeem?: number;
             transactionMethod: string;
         }): IPlacePaidOrderRequest => ({
             order: {
@@ -1340,13 +1342,14 @@ const OrderCreate = () => {
                 additionalServiceCharges: orderEntity?.orderCharges || [],
             },
             bill: {
-                payee: transactionMethod,
+                payee: transactionMethod || 'Loyalty',
                 createdBy: accountLogin,
                 tipAmount,
             },
             payment: {
                 amount,
                 tipAmount,
+                loyaltyPointsToRedeem,
                 transactionMethod,
             },
         }),
@@ -1463,10 +1466,12 @@ const OrderCreate = () => {
     const handleCreateWithPayment = useCallback(async ({
         amount,
         tipAmount,
+        loyaltyPointsToRedeem,
         transactionMethod,
     }: {
         amount: number;
         tipAmount: number;
+        loyaltyPointsToRedeem?: number;
         transactionMethod: string;
     }) => {
         if (!ensureCreateFlowAllowed()) {
@@ -1480,6 +1485,7 @@ const OrderCreate = () => {
             const createResponse = await dispatch(placePaidOrder(buildCreatePaidOrderPayload({
                 amount,
                 tipAmount,
+                loyaltyPointsToRedeem,
                 transactionMethod,
             }))).unwrap();
             createdOrderId = createResponse.data?.id || orderEntity.id;
@@ -1495,10 +1501,12 @@ const OrderCreate = () => {
     const handleUpdateWithPayment = async ({
         amount,
         tipAmount,
+        loyaltyPointsToRedeem,
         transactionMethod,
     }: {
         amount: number;
         tipAmount: number;
+        loyaltyPointsToRedeem?: number;
         transactionMethod: string;
     }) => {
         if (!ensureCreateFlowAllowed() || !orderEntity?.id) {
@@ -1546,6 +1554,7 @@ const OrderCreate = () => {
                     billId: draftBillId,
                     amount,
                     tipAmount,
+                    loyaltyPointsToRedeem,
                     transactionMethod,
                 })).unwrap();
 
@@ -1687,6 +1696,11 @@ const OrderCreate = () => {
                 amount,
             });
         };
+
+        pushChargeRow(
+            chargesPreview?.deliveryCharge,
+            formatServiceChargeKey(chargesPreview?.deliveryCharge?.chargeType, chargesPreview?.deliveryCharge?.name || 'Delivery Charge')
+        );
 
         (chargesPreview?.orderCharges || []).forEach(charge => {
             pushChargeRow(charge, formatServiceChargeKey(charge.chargeType));

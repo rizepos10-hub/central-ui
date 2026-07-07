@@ -15,6 +15,7 @@ import { InputText } from 'primereact/inputtext';
 import { translate } from 'react-jhipster';
 import { convertDateTimeFromServer } from "app/shared/util/date-utils";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { Button } from 'primereact/button';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -205,7 +206,7 @@ const RegisterClosureOrder = () => {
           header={translate('orders.view.table.fields.id')}
           filter
           sortable
-          body={(rowData): any => <Link to={`/order/${rowData.id}`}>{rowData.sequenceNumber}</Link>}
+          body={(rowData): any => <Link to={`/order/${rowData.id}`}>{formatSourceScopedIdentifier(rowData.sourceApp?.type, rowData.sequenceNumber, rowData.id)}</Link>}
           filterElement={
             <InputText
               style={{ width: '5rem' }}

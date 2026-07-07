@@ -101,6 +101,7 @@ export const CustomerUpdate = ({
   const [onAccountAuditsDateRange, setOnAccountAuditsDateRange] = useState<DateRange | undefined>(undefined);
   const [appliedOnAccountAuditsDateRange, setAppliedOnAccountAuditsDateRange] = useState<{ fromDate: string; toDate: string } | null>(null);
   const [payOnAccountOpen, setPayOnAccountOpen] = useState(false);
+  const [unassigningCardId, setUnassigningCardId] = useState<string | null>(null);
   const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
   const parseNumericField = (value: string) => {
@@ -244,16 +245,6 @@ export const CustomerUpdate = ({
     );
   }, []);
 
-  useEffect(() => {
-    if (customerEntity?.loyaltyCard?.id) {
-      setSelectedCardToAssign({
-        value: customerEntity?.loyaltyCard?.referenceNumber,
-        label: customerEntity?.loyaltyCard?.referenceNumber,
-        card: customerEntity?.loyaltyCard,
-      });
-    }
-  }, [customerEntity?.loyaltyCard?.id]);
-
   const loadOnAccountAudits = (filters?: { fromDate: string; toDate: string } | null) => {
     setOnAccountAuditsLoading(true);
     setOnAccountAuditsError(null);
@@ -387,8 +378,24 @@ export const CustomerUpdate = ({
         entity: customerEntity,
         cardRefNumber: selectedCardToAssign?.card?.referenceNumber,
       })
-    );
+    ).then(() => setSelectedCardToAssign(null));
     setConfirmAssignCardOpen(false);
+  };
+
+  const handleUnassignCard = async (card: ILoyaltyCard) => {
+    if (!card?.id || !customerEntity?.id) {
+      return;
+    }
+    setUnassigningCardId(card.id);
+    try {
+      await axios.post(`api/loyalty-cards/${card.id}/unassign`);
+      toast.success('Card unassigned successfully.');
+      dispatch(getEntity(customerEntity.id));
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to unassign card.');
+    } finally {
+      setUnassigningCardId(null);
+    }
   };
 
   const handleDeleteAddress = addressToDelete => {
@@ -416,6 +423,8 @@ export const CustomerUpdate = ({
     const pricingPointsPerBranch = pricingPoints.filter(pricingPoint => pricingPoint.applicableBranches?.some(b => b.id === branchId));
     return pricingPointsPerBranch;
   }
+
+  const currentLoyaltyCards = customerEntity?.loyaltyCards || [];
 
   return (
     <PageWrapper>
@@ -541,6 +550,49 @@ export const CustomerUpdate = ({
                         <Plus className="h-4 w-4 mr-1" />
                         {translate('tempApp.assignCard')}
                       </Button>
+                    </div>
+                    <div className="mt-2 rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Card</TableHead>
+                            <TableHead className="text-xs">Holder</TableHead>
+                            <TableHead className="text-xs">Status</TableHead>
+                            <TableHead className="text-xs text-right">Balance</TableHead>
+                            <TableHead className="text-xs text-right">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentLoyaltyCards.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-xs text-center text-muted-foreground py-4">
+                                No current loyalty cards assigned.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            currentLoyaltyCards.map(card => (
+                              <TableRow key={card.id || card.referenceNumber}>
+                                <TableCell className="text-xs">{card.referenceNumber || '-'}</TableCell>
+                                <TableCell className="text-xs">{card.cardHolderName || '-'}</TableCell>
+                                <TableCell className="text-xs">{card.active === false ? 'Inactive' : 'Active'}</TableCell>
+                                <TableCell className="text-xs text-right">{card.wallet?.balance ?? 0}</TableCell>
+                                <TableCell className="text-xs text-right">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleUnassignCard(card)}
+                                    disabled={!card.id || updating || unassigningCardId === card.id}
+                                  >
+                                    {unassigningCardId === card.id ? 'Unassigning...' : 'Unassign'}
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 )}

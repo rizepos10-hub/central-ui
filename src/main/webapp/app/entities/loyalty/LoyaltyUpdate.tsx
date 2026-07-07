@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { translate, Translate } from "react-jhipster";
 import { ArrowLeft, Save } from 'lucide-react';
 
@@ -9,6 +9,7 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import LoyaltyPointHistoryTable from './components/LoyaltyPointHistoryTable';
 
 export const LoyaltyUpdate = () => {
   const { id: customerId } = useParams<'id'>();
@@ -19,9 +20,8 @@ export const LoyaltyUpdate = () => {
   const updating = useAppSelector(state => state.loyalty.updating);
   const updateSuccess = useAppSelector(state => state.loyalty.updateSuccess);
 
-  const navigate = useNavigate();
-
   const [points, setPoints] = useState<number>(0);
+  const [historyReloadKey, setHistoryReloadKey] = useState(0);
 
   const handlePointsChange = (e) => {
     setPoints(Number(e.target.value));
@@ -42,9 +42,10 @@ export const LoyaltyUpdate = () => {
 
   useEffect(() => {
     if (updateSuccess) {
-      navigate('/loyalty');
+      dispatch(getEntity(customerId));
+      setHistoryReloadKey(prev => prev + 1);
     }
-  }, [updateSuccess])
+  }, [customerId, dispatch, updateSuccess])
 
   return (
     <PageWrapper>
@@ -56,7 +57,7 @@ export const LoyaltyUpdate = () => {
         {loading ? (
           <p className="text-xs">Loading...</p>
         ) : (
-          <div className="max-w-2xl">
+          <div className="max-w-4xl space-y-4">
             <Card>
               <CardContent className="space-y-4 pt-6">
                 <div className="space-y-4">
@@ -96,6 +97,12 @@ export const LoyaltyUpdate = () => {
                     </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <LoyaltyPointHistoryTable customerId={customerId} reloadKey={historyReloadKey} />
               </CardContent>
             </Card>
           </div>

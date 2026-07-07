@@ -14,6 +14,7 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { FilterMatchMode } from 'primereact/api';
 import _ from 'lodash';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { formatDiscountLabel } from 'app/shared/util/format-discount-label';
 
 export const PricingPoint = () => {
   const dispatch = useAppDispatch();
@@ -149,6 +150,7 @@ export const PricingPoint = () => {
                   />
                 </div>
               </TableHead>
+              <TableHead className="text-xs">Discount</TableHead>
               <TableHead className="text-xs w-20">Edit</TableHead>
               <TableHead className="text-xs w-20">Delete</TableHead>
             </TableRow>
@@ -156,13 +158,13 @@ export const PricingPoint = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-xs">
+                <TableCell colSpan={4} className="text-center text-xs">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : pricingPoints.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-xs">
+                <TableCell colSpan={4} className="text-center text-xs">
                   No pricing points found
                 </TableCell>
               </TableRow>
@@ -176,6 +178,9 @@ export const PricingPoint = () => {
                     >
                       {pricingPoint.name}
                     </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {formatDiscountLabel(pricingPoint.discount)}
                   </TableCell>
                   <TableCell className="text-xs">
                     <Link

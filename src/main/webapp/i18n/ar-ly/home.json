@@ -1,14 +1,30 @@
 {
   "home": {
     "title": "Welcome, Java Hipster!",
-    "sales": "Sales",
+    "sales": "طلب جديد",
     "revenue": "Revenue",
-    "visitors": "Visitors",
-    "stock": "Stock",
+    "visitors": "عملاء جدد",
+    "stock": "عناصر كتالوج مضافة",
     "revenueOverview": "Revenue Overview",
     "salesByCategory": "Sales by Category",
     "recentSales": "Recent Sales",
-    "topProducts": "Top Products",
+    "reportSummary": "ملخص التقرير",
+    "onAccountTotal": "إجمالي الذمم المدينة",
+    "dateFilter": {
+      "fromDate": "من",
+      "toDate": "إلى",
+      "apply": "تطبيق",
+      "clear": "مسح",
+      "pickDateRange": "اختر نطاق التاريخ",
+      "last7Days": "آخر 7 أيام",
+      "last30Days": "آخر 30 يومًا",
+      "thisMonth": "هذا الشهر",
+      "reset": "إعادة تعيين"
+    },
+    "topProducts": {
+      "title": "أفضل المنتجات",
+      "variantCount": "{{count}} مباع"
+    },
     "table": {
       "name": "Name",
       "category": "Category",

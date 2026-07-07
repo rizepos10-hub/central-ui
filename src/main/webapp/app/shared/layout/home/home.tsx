@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartConfig } from '@/components/ui/chart';
 import type { ChartDataState, ChartOptionsState, Demo } from '../../sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
@@ -11,14 +11,12 @@ import {
   fetchTopFields,
   fetchTopItems
 } from "app/modules/analytics/api";
-import {format, subWeeks} from "date-fns";
 import {translate, Translate} from "react-jhipster";
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   ColumnDef,
   flexRender,
   SortingState,
@@ -28,12 +26,20 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/src/main/webapp/app/lib/utils';
-import { Download, Search, ArrowUp, ArrowDown, ArrowUpDown, Star, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Search, ArrowUp, ArrowDown, ArrowUpDown, Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import DashboardDateFilter, { getDefaultDashboardDateRange } from 'app/shared/components/dashboard-date-filter';
+
+function formatItemWithVariantName(itemName: string, variantName?: string) {
+  const name = itemName ?? '';
+  const variant = variantName?.trim();
+  if (!variant || variant === name.trim()) {
+    return name;
+  }
+  return `${name} (${variant})`;
+}
 
 export default function Home() {
 
@@ -48,8 +54,9 @@ export default function Home() {
 
 
 
-  const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
-  const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const defaultDateRange = getDefaultDashboardDateRange();
+  const [fromDate, setFromDate] = useState(defaultDateRange.from);
+  const [toDate, setToDate] = useState(defaultDateRange.to);
   const [topFields, setTopFields]:any = useState({})
   const [onAccountTotalBalance, setOnAccountTotalBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState({
@@ -90,12 +97,11 @@ export default function Home() {
   const { layoutConfig } = useContext(LayoutContext);
 
   const exportCSV = () => {
-    const headers = ['Name', 'Category', 'Price', 'Status'];
+    const headers = ['Name', 'Category', 'Price'];
     const rows = recentSales.map((item: any) => [
-      `${item.itemName} (${item.variantName})`,
+      formatItemWithVariantName(item.itemName, item.variantName),
       item.categories?.[0]?.name || '',
-      item.currentPrice != null ? formatFixed(item.currentPrice) : '',
-      item.inventoryStatus || 'INSTOCK'
+      item.price?.toFixed(2) || '',
     ]);
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -109,14 +115,12 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  const formatCurrency = (value?: number | null) => {
-    return (value ?? 0).toLocaleString('en-US', {
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD'
     });
   };
-
-  const formatFixed = (value?: number | null, digits = 2) => Number(value ?? 0).toFixed(digits);
 
   const onGlobalFilterChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     setGlobalFilterValue(e.target.value);
@@ -137,11 +141,16 @@ export default function Home() {
           </Button>
         );
       },
-      cell: ({ row }) => (
-        <span className="font-medium text-base">
-          {row.original.itemName} <span className="text-sm text-muted-foreground">({row.original.variantName})</span>
-        </span>
-      ),
+      cell: ({ row }) => {
+        const { itemName, variantName } = row.original;
+        const showVariant = variantName?.trim() && variantName.trim() !== (itemName ?? '').trim();
+        return (
+          <span className="font-medium text-base">
+            {itemName}
+            {showVariant && <span className="text-sm text-muted-foreground"> ({variantName})</span>}
+          </span>
+        );
+      },
     },
     {
       accessorFn: (row) => row.categories?.[0]?.name,
@@ -161,7 +170,7 @@ export default function Home() {
       cell: ({ row }) => row.original.categories?.[0]?.name || '-',
     },
     {
-      accessorKey: 'currentPrice',
+      accessorKey: 'price',
       header: ({ column }) => {
         return (
           <Button
@@ -174,33 +183,7 @@ export default function Home() {
           </Button>
         );
       },
-      cell: ({ row }) => <span>${formatFixed(row.original.currentPrice)}</span>,
-    },
-    {
-      accessorKey: 'inventoryStatus',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-8 px-2"
-          >
-            {translate('home.table.status')}
-            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.original.inventoryStatus || 'INSTOCK';
-        const statusLower = status.toLowerCase();
-        return (
-          <Badge
-            variant={statusLower === 'instock' ? 'default' : statusLower === 'lowstock' ? 'secondary' : 'destructive'}
-          >
-            {status}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => <span>${row.original.price?.toFixed(2) || '0.00'}</span>,
     },
   ];
 
@@ -216,25 +199,8 @@ export default function Home() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: 'includesString',
-    initialState: {
-      pagination: {
-        pageSize: 20,
-      },
-    },
   });
-
-  const setAllLoading = (value) => {
-    setLoading((prev) => ({
-      ...prev,
-      chartsData: value,
-      topFieldsData: value,
-      topItemsData: value,
-      recentSalesData: value,
-      onAccountTotalBalanceData: value,
-    }));
-  };
 
   const setSingleLoading = (index, value) => {
     const keys = ['chartsData', 'topFieldsData', 'topItemsData', 'recentSalesData', 'onAccountTotalBalanceData'];
@@ -244,50 +210,92 @@ export default function Home() {
     }));
   };
 
+  const loadDateFilteredSections = async (from?: string | null, to?: string | null) => {
+    const fromParam = from?.trim() || null;
+    const toParam = to?.trim() || null;
+
+    setLoading((prev) => ({
+      ...prev,
+      topFieldsData: true,
+      topItemsData: true,
+      recentSalesData: true,
+    }));
+
+    const results = await Promise.allSettled([
+      fetchTopFields(fromParam, toParam),
+      fetchTopItems(5, fromParam, toParam),
+      fetchRecentSales(fromParam, toParam),
+    ]);
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        switch (index) {
+          case 0:
+            setTopFields(result.value);
+            break;
+          case 1:
+            setBestSellers(result.value);
+            break;
+          case 2:
+            setRecentSales(result.value);
+            break;
+          default:
+            break;
+        }
+      } else {
+        console.error('Error fetching filtered dashboard data:', result.reason);
+      }
+      setSingleLoading(index + 1, false);
+    });
+  };
+
+  const handleDateRangeChange = (from: string, to: string) => {
+    setFromDate(from);
+    setToDate(to);
+    loadDateFilteredSections(from, to);
+  };
+
+  const handleClearDateFilter = () => {
+    const { from, to } = getDefaultDashboardDateRange();
+    setFromDate(from);
+    setToDate(to);
+    loadDateFilteredSections(from, to);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setAllLoading(true);
+        setLoading((prev) => ({
+          ...prev,
+          topFieldsData: true,
+          topItemsData: true,
+          recentSalesData: true,
+          onAccountTotalBalanceData: true,
+        }));
 
-        const promises = [
+        const staticResults = await Promise.allSettled([
           fetchTopCategories(),
-          fetchTopFields(fromDate, toDate),
-          fetchTopItems(5),
-          fetchRecentSales(),
           fetchOnAccountTotalBalance(),
-        ];
+        ]);
 
-        const results = await Promise.allSettled(promises);
-
-        results.forEach((result, index) => {
+        staticResults.forEach((result, index) => {
           if (result.status === 'fulfilled') {
-            switch (index) {
-              case 0:
-                setTopCategories(result.value);
-                break;
-              case 1:
-                setTopFields(result.value);
-                break;
-              case 2:
-                setBestSellers(result.value);
-                break;
-              case 3:
-                setRecentSales(result.value);
-                break;
-              case 4:
-                setOnAccountTotalBalance(result.value?.totalBalance ?? 0);
-                break;
-              default:
-                break;
+            if (index === 0) {
+              setTopCategories(result.value);
+            } else {
+              setOnAccountTotalBalance(result.value?.totalBalance ?? 0);
             }
           } else {
-            console.error('Error fetching data:', result.reason);
+            console.error('Error fetching dashboard data:', result.reason);
           }
-          setSingleLoading(index, false);
+          if (index === 1) {
+            setSingleLoading(4, false);
+          }
         });
 
-      } finally {
-        setAllLoading(false);
+        await loadDateFilteredSections(fromDate, toDate);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
       }
     };
 
@@ -355,10 +363,13 @@ export default function Home() {
 
     // Prepare pie chart data for Recharts
     if (topCategories.length > 0) {
-      const pieData = topCategories.map((category) => ({
-        name: category.categoryName,
-        value: category.amount
-      }));
+      const pieData = topCategories
+        .map((category) => ({
+          name: category.categoryName,
+          value: category.amount,
+          netTotal: category.netTotal ?? 0,
+        }))
+        .sort((a, b) => b.netTotal - a.netTotal);
       setPieChartData(pieData);
 
       const pieConfig: ChartConfig = {};
@@ -382,8 +393,20 @@ export default function Home() {
   return (
     <PageWrapper>
       <div className="grid grid-cols-1 gap-2">
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
+      {/* Report Summary */}
+      <Card>
+        <CardContent className="p-2">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-sm font-semibold"><Translate contentKey="home.reportSummary" /></span>
+              <DashboardDateFilter
+                fromDate={fromDate}
+                toDate={toDate}
+                onDateRangeChange={handleDateRangeChange}
+                onReset={handleClearDateFilter}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
         <Card>
           <CardContent className="p-2">
             <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.sales'}/></span>
@@ -393,10 +416,6 @@ export default function Home() {
               ) : (
                 <div className="flex-1">
                   <span className="text-2xl font-bold block">{topFields.sales}</span>
-                  <div className="text-green-500 mt-2 flex items-center">
-                    <span className="font-medium">+12%</span>
-                    <ArrowUp className="ml-2 h-3 w-3" />
-                  </div>
                 </div>
               )}
               <div className="flex-1">
@@ -419,11 +438,7 @@ export default function Home() {
                 <Skeleton className="h-12 w-32" />
               ) : (
                 <div className="flex-1">
-                  <span className="text-2xl font-bold block">{formatCurrency(topFields?.revenue)}</span>
-                  <div className="text-green-500 mt-2 flex items-center">
-                    <span className="font-medium">+20%</span>
-                    <ArrowUp className="ml-2 h-3 w-3" />
-                  </div>
+                  <span className="text-2xl font-bold block">{formatCurrency(topFields?.revenue ?? 0)}</span>
                 </div>
               )}
               <div className="flex-1">
@@ -447,10 +462,6 @@ export default function Home() {
               ) : (
                 <div className="flex-1">
                   <span className="text-2xl font-bold block">{topFields?.visitors}</span>
-                  <div className="text-pink-500 mt-2 flex items-center">
-                    <span className="font-medium">+24%</span>
-                    <ArrowDown className="ml-2 h-3 w-3" />
-                  </div>
                 </div>
               )}
               <div className="flex-1">
@@ -474,10 +485,6 @@ export default function Home() {
               ) : (
                 <div className="flex-1">
                   <span className="text-2xl font-bold block">{topFields?.stock}</span>
-                  <div className="text-green-500 mt-2 flex items-center">
-                    <span className="font-medium">+30%</span>
-                    <ArrowUp className="ml-2 h-3 w-3" />
-                  </div>
                 </div>
               )}
               <div className="flex-1">
@@ -494,7 +501,7 @@ export default function Home() {
 
         <Card>
           <CardContent className="p-2">
-            <span className="font-semibold text-sm block mb-1">On Account Total</span>
+            <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.onAccountTotal'}/></span>
             <div className="flex justify-between items-start">
               {loading.onAccountTotalBalanceData ? (
                 <Skeleton className="h-12 w-32" />
@@ -517,102 +524,112 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-        <div className="xl:col-span-2">
-          <Card>
-            <CardContent className="p-2">
-              <div className="flex items-start justify-between mb-1">
-                <span className="text-sm font-semibold"><Translate contentKey={'home.revenueOverview'}/></span>
-                <Select value={selectedYear.toString()} onValueChange={onYearChange}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {loading.chartsData ? (
-                <Skeleton className="h-[350px] w-full" />
-              ) : (
-                <ChartContainer config={lineChartConfig} className="h-[350px] w-full overflow-hidden">
-                  <LineChart data={lineChartData} margin={{ bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend
-                      content={<ChartLegendContent />}
-                      wrapperStyle={{
-                        paddingTop: '20px',
-                        maxWidth: '100%',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        whiteSpace: 'nowrap'
-                      }}
+      {/* Revenue Overview */}
+      <div>
+        <Card>
+          <CardContent className="p-2">
+            <div className="flex items-start justify-between mb-1">
+              <span className="text-sm font-semibold"><Translate contentKey={'home.revenueOverview'}/></span>
+              <Select value={selectedYear.toString()} onValueChange={onYearChange}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {loading.chartsData ? (
+              <Skeleton className="h-[350px] w-full" />
+            ) : (
+              <ChartContainer config={lineChartConfig} className="h-[350px] w-full overflow-hidden">
+                <LineChart data={lineChartData} margin={{ bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend
+                    content={<ChartLegendContent />}
+                    wrapperStyle={{
+                      paddingTop: '20px',
+                      maxWidth: '100%',
+                      overflowX: 'auto',
+                      overflowY: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  />
+                  {Object.keys(lineChartConfig).map((key) => (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={key}
+                      stroke={lineChartConfig[key].color}
+                      strokeWidth={2}
+                      dot={false}
                     />
-                    {Object.keys(lineChartConfig).map((key) => (
-                      <Line
-                        key={key}
-                        type="monotone"
-                        dataKey={key}
-                        stroke={lineChartConfig[key].color}
-                        strokeWidth={2}
-                        dot={false}
+                  ))}
+                </LineChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sales by Category */}
+      <div>
+        <Card>
+          <CardContent className="p-2">
+            <div className="text-sm font-semibold mb-1"><Translate contentKey={'home.salesByCategory'}/></div>
+            {loading.chartsData ? (
+              <Skeleton className="h-[400px] w-full" />
+            ) : (
+              <ChartContainer
+                config={pieChartConfig}
+                className="w-full overflow-hidden"
+                style={{ height: Math.max(400, pieChartData.length * 40) }}
+              >
+                <BarChart
+                  data={pieChartData}
+                  layout="vertical"
+                  margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={140}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, _name, item) => (
+                          <span className="font-mono font-medium tabular-nums">
+                            {Number(item.payload?.value ?? 0).toLocaleString()} · {formatCurrency(Number(value))}
+                          </span>
+                        )}
                       />
+                    }
+                  />
+                  <Bar dataKey="netTotal" radius={[0, 4, 4, 0]}>
+                    {pieChartData.map((entry) => (
+                      <Cell key={entry.name} fill={pieChartConfig[entry.name]?.color || '#000'} />
                     ))}
-                  </LineChart>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div>
-          <Card>
-            <CardContent className="p-2">
-              <div className="text-sm font-semibold mb-1"><Translate contentKey={'home.salesByCategory'}/></div>
-              {loading.chartsData ? (
-                <Skeleton className="h-[368px] w-full" />
-              ) : (
-                <ChartContainer config={pieChartConfig} className="h-[368px] w-full overflow-hidden">
-                  <PieChart margin={{ bottom: 20 }}>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Pie
-                      data={pieChartData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={Object.values(pieChartConfig)[index]?.color || '#000'} />
-                      ))}
-                    </Pie>
-                    <ChartLegend
-                      content={<ChartLegendContent />}
-                      wrapperStyle={{
-                        paddingTop: '20px',
-                        maxWidth: '100%',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        whiteSpace: 'nowrap'
-                      }}
-                    />
-                  </PieChart>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Sales Table and Top Products */}
@@ -620,8 +637,16 @@ export default function Home() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-2">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-3">
-                <div className="text-xl font-semibold"><Translate contentKey={'home.recentSales'}/></div>
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="text-xl font-semibold"><Translate contentKey={'home.recentSales'}/></div>
+                  <DashboardDateFilter
+                    fromDate={fromDate}
+                    toDate={toDate}
+                    onDateRangeChange={handleDateRangeChange}
+                    onReset={handleClearDateFilter}
+                  />
+                </div>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1 md:w-64">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -688,35 +713,6 @@ export default function Home() {
                       </TableBody>
                     </Table>
                   </div>
-
-                  {/* Pagination */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
-                      {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} of{' '}
-                      {table.getFilteredRowModel().rows.length} results
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
                 </>
               )}
             </CardContent>
@@ -725,15 +721,29 @@ export default function Home() {
         <div>
           <Card>
             <CardContent className="p-2">
-              <div className="text-xl font-semibold mb-4"><Translate contentKey={'home.topProducts'}/></div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <div className="text-xl font-semibold"><Translate contentKey={'home.topProducts.title'}/></div>
+                <DashboardDateFilter
+                  fromDate={fromDate}
+                  toDate={toDate}
+                  onDateRangeChange={handleDateRangeChange}
+                  onReset={handleClearDateFilter}
+                />
+              </div>
               {loading.topItemsData ? (
                 <div className="space-y-4">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton className="h-[75px] w-[75px] rounded" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-3 w-24" />
+                    <div key={i} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <Skeleton className="h-[75px] w-[75px] rounded" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-3 w-16" />
                       </div>
                     </div>
                   ))}
@@ -757,28 +767,21 @@ export default function Home() {
                           className="rounded shadow-sm object-contain"
                           style={{maxHeight: '75px'}}
                         />
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium text-base">
-                            {product.itemName} <span className="text-sm text-muted-foreground">({product.variantName})</span>
-                          </span>
-                          <div className="flex items-center gap-0.5">
-                            {[...Array(5)].map((_, starIndex) => (
-                              <Star
-                                key={starIndex}
-                                className={cn(
-                                  "h-3 w-3",
-                                  starIndex < (product.rating || 0)
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "fill-muted text-muted"
-                                )}
-                              />
-                            ))}
-                          </div>
-                        </div>
+                        <span className="font-medium text-base">
+                          {product.itemName}
+                          {product.variantName?.trim() && product.variantName.trim() !== (product.itemName ?? '').trim() && (
+                            <span className="text-sm text-muted-foreground"> ({product.variantName})</span>
+                          )}
+                        </span>
                       </div>
-                      <span className="font-semibold text-lg text-muted-foreground">
-                        ${formatFixed(product.currentPrice)}
-                      </span>
+                      <div className="text-right flex flex-col gap-0.5">
+                        <span className="font-semibold text-lg text-muted-foreground">
+                          {formatCurrency(product.netTotal ?? 0)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          <Translate contentKey="home.topProducts.variantCount" interpolate={{ count: product.variantCount ?? 0 }} />
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>

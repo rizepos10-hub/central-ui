@@ -13,6 +13,7 @@ import AddBalance from './add-balance';
 import TransferFunds from './transfer-funds';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import type { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -152,6 +153,28 @@ export const GiftCard = () => {
 
   const totalPages = Math.ceil(totalItems / paginationState.itemsPerPage);
 
+  const formatAssignedCustomer = (customer?: ICustomer | null) => {
+    if (!customer) {
+      return '-';
+    }
+
+    const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim();
+    const secondary = customer.mobileNumber || customer.phone || customer.email || customer.accountNumber || customer.id;
+
+    if (fullName && secondary) {
+      return `${fullName} (${secondary})`;
+    }
+
+    return fullName || secondary || '-';
+  };
+
+  const getAssignedCustomerLink = (customer?: ICustomer | null) => {
+    if (!customer?.id) {
+      return null;
+    }
+    return `/customer/${customer.id}?page=1&sort=id,asc`;
+  };
+
   return (
     <PageWrapper>
       <TransferFunds transferDialogVisibile={transferDialogVisibile} onCloseHandle={onTransferFundsCloseHandle} />
@@ -197,6 +220,9 @@ export const GiftCard = () => {
               </TableHead>
               <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.referenceNumber">Reference Number</Translate>
+              </TableHead>
+              <TableHead className="text-sm font-bold">
+                Assigned Customer
               </TableHead>
               <TableHead className="text-sm font-bold">
                 <Translate contentKey="common.code">Code</Translate>
@@ -247,6 +273,9 @@ export const GiftCard = () => {
                 />
               </TableHead>
               <TableHead>
+                <Input placeholder="Assigned Customer" className="h-7 text-xs" disabled />
+              </TableHead>
+              <TableHead>
                 <Input
                   placeholder={translate('common.code')}
                   className="h-7 text-xs"
@@ -264,18 +293,19 @@ export const GiftCard = () => {
               <TableHead />
               <TableHead />
               <TableHead />
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading && loyaltyCardList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-xs py-4">
+                <TableCell colSpan={10} className="text-center text-xs py-4">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : loyaltyCardList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-xs py-4">
+                <TableCell colSpan={10} className="text-center text-xs py-4">
                   No records found
                 </TableCell>
               </TableRow>
@@ -284,6 +314,18 @@ export const GiftCard = () => {
                 <TableRow key={card.id}>
                   <TableCell className="text-xs">{card.cardHolderName}</TableCell>
                   <TableCell className="text-xs">{card.referenceNumber}</TableCell>
+                  <TableCell className="text-xs">
+                    {getAssignedCustomerLink(card?.wallet?.assignedTo) ? (
+                      <Link
+                        to={getAssignedCustomerLink(card?.wallet?.assignedTo)!}
+                        className="text-primary hover:underline"
+                      >
+                        {formatAssignedCustomer(card?.wallet?.assignedTo)}
+                      </Link>
+                    ) : (
+                      formatAssignedCustomer(card?.wallet?.assignedTo)
+                    )}
+                  </TableCell>
                   <TableCell className="text-xs">{card.code}</TableCell>
                   <TableCell className="text-xs text-right">{card?.wallet?.balance}</TableCell>
                   <TableCell className="text-xs">{card.printed?.toString()}</TableCell>

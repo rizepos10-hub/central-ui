@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { translate, Translate } from 'react-jhipster';
 import { Pencil, Trash2, RefreshCw, Plus } from 'lucide-react';
+import { FilterMatchMode } from "primereact/api";
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './giftcard-item.reducer';
 import { SummarizeText } from "app/shared/util/SummarizeText";
@@ -16,6 +17,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+const getFilterValue = (filters, field: string) => {
+  const filter = filters?.[field];
+  if (!filter) return '';
+  if (typeof filter === 'string') return filter;
+  return typeof filter.value === 'string' ? filter.value : '';
+};
 
 export const GiftCardItem = () => {
   const dispatch = useAppDispatch();
@@ -69,12 +76,15 @@ export const GiftCardItem = () => {
   const handleFilterValueChange = useCallback((field, value) => {
     const updatedFilters = {
       ...localFilters,
-      [field]: value
+      [field]: {
+        value,
+        matchMode: localFilters?.[field]?.matchMode || FilterMatchMode.CONTAINS,
+      },
     };
 
     const cleanedFilters = updateTableFilters(updatedFilters);
     setLocalFilters(cleanedFilters)
-  }, [query.filters, localFilters]);
+  }, [localFilters]);
 
   const handleClear = () => {
     setLocalFilters({});
@@ -93,16 +103,24 @@ export const GiftCardItem = () => {
   const filteredData = giftCardItemsList.filter(item => {
     if (!localFilters) return true;
 
+    const nameFilter = getFilterValue(localFilters, 'name').toLowerCase();
+    const codeFilter = getFilterValue(localFilters, 'code').toLowerCase();
+    const tagsFilter = getFilterValue(localFilters, 'tags').toLowerCase();
+    const descFilter = getFilterValue(localFilters, 'desc').toLowerCase();
+
     let matches = true;
-    if (localFilters.name && typeof localFilters.name === 'string' && item.name) {
-      matches = matches && item.name.toLowerCase().includes(localFilters.name.toLowerCase());
+    if (nameFilter) {
+      matches = matches && (item.name || '').toLowerCase().includes(nameFilter);
     }
-    if (localFilters.tags && typeof localFilters.tags === 'string' && item.tags) {
+    if (codeFilter) {
+      matches = matches && (item?.variants?.[0]?.giftCardCoupon?.code || '').toLowerCase().includes(codeFilter);
+    }
+    if (tagsFilter && item.tags) {
       const tagsString = item.tags.map(tag => tag?.name).join(' ');
-      matches = matches && tagsString.toLowerCase().includes(localFilters.tags.toLowerCase());
+      matches = matches && tagsString.toLowerCase().includes(tagsFilter);
     }
-    if (localFilters.desc && typeof localFilters.desc === 'string' && item.desc) {
-      matches = matches && item.desc.toLowerCase().includes(localFilters.desc.toLowerCase());
+    if (descFilter) {
+      matches = matches && (item.desc || '').toLowerCase().includes(descFilter);
     }
     return matches;
   });
@@ -157,6 +175,7 @@ export const GiftCardItem = () => {
                 {/* Header Row */}
                 <TableRow className="h-8">
                   <TableHead className="h-8 px-2 text-xs">{translate('items.view.fields.name')}</TableHead>
+                  <TableHead className="h-8 px-2 text-xs">Card Number</TableHead>
                   <TableHead className="h-8 px-2 text-xs">Tag</TableHead>
                   <TableHead className="h-8 px-2 text-xs">{translate('items.view.fields.image')}</TableHead>
                   <TableHead className="h-8 px-2 text-xs">{translate('items.view.fields.description')}</TableHead>
@@ -168,15 +187,23 @@ export const GiftCardItem = () => {
                   <TableHead className="h-8 px-2">
                     <Input
                       placeholder={translate('items.view.filters.name')}
-                      value={localFilters?.name || ''}
+                      value={getFilterValue(localFilters, 'name')}
                       onChange={(e) => handleFilterValueChange('name', e.target.value)}
                       className="h-7 text-xs"
                     />
                   </TableHead>
                   <TableHead className="h-8 px-2">
                     <Input
+                      placeholder="Filter code..."
+                      value={getFilterValue(localFilters, 'code')}
+                      onChange={(e) => handleFilterValueChange('code', e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="h-8 px-2">
+                    <Input
                       placeholder="Filter tags..."
-                      value={localFilters?.tags || ''}
+                      value={getFilterValue(localFilters, 'tags')}
                       onChange={(e) => handleFilterValueChange('tags', e.target.value)}
                       className="h-7 text-xs"
                     />
@@ -185,7 +212,7 @@ export const GiftCardItem = () => {
                   <TableHead className="h-8 px-2">
                     <Input
                       placeholder="Filter description..."
-                      value={localFilters?.desc || ''}
+                      value={getFilterValue(localFilters, 'desc')}
                       onChange={(e) => handleFilterValueChange('desc', e.target.value)}
                       className="h-7 text-xs"
                     />
@@ -208,7 +235,7 @@ export const GiftCardItem = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-16 text-center text-xs">
+                    <TableCell colSpan={7} className="h-16 text-center text-xs">
                       <RefreshCw className="h-4 w-4 animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
@@ -222,6 +249,11 @@ export const GiftCardItem = () => {
                         >
                           {item.name}
                         </Link>
+                      </TableCell>
+                      <TableCell className="px-2 py-1 text-xs">
+                        <div className="inline-flex min-w-[10rem] items-center rounded-md border bg-muted/40 px-2 py-1 font-mono text-[11px]">
+                          {item?.variants?.[0]?.giftCardCoupon?.code || 'Not generated yet'}
+                        </div>
                       </TableCell>
                       <TableCell className="px-2 py-1 text-xs">
                         {item?.tags?.map(cat => cat?.name).join(' | ')}
@@ -269,7 +301,7 @@ export const GiftCardItem = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-16 text-center text-xs">
+                    <TableCell colSpan={7} className="h-16 text-center text-xs">
                       <Translate contentKey="entity.noResults" />
                     </TableCell>
                   </TableRow>

@@ -32,9 +32,11 @@ import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-r
 import AuditLogs from 'app/shared/components/logs/audit-logs';
 import VariantBranchPrice from 'app/shared/components/item/variant-branch-price';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
+import { useVariantBranchPrice } from 'app/shared/hooks/useVariantBranchPrice';
+import { VariantDetailHeader, VariantListPanel } from 'app/shared/components/item/variant-editor';
 import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
-import { IMeasureValue, IScheduledBranchPrice, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { IMeasureValue, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
@@ -171,6 +173,7 @@ export const ProductUpdate = () => {
 
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [activeVariantIndex, setActiveVariantIndex] = useState(0);
   const [defaultPrice, setDefaultPrice] = useState(0);
   const [formIsValid, setFormIsValid] = useState(false);
   const [showFormErrors, setShowFormErrors] = useState(false);
@@ -507,68 +510,8 @@ export const ProductUpdate = () => {
     });
   };
 
-  const handleBranchPriceChange = (variantIndex, branchId, priceType, price) => {
-    setProduct(prev => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
-            branch: { id: branchId },
-            [priceType]: price,
-          },
-        },
-      };
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
-
-  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
-    setProduct(prev => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
-            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
-          },
-        },
-      };
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
-
-  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
-    setProduct(prev => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
-            branch: { id: branchId },
-            scheduledPrices,
-          },
-        },
-      };
-
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
+  const { handleBranchPriceChange, handleHideItemPerBranch, handleSaveScheduledPrices } =
+    useVariantBranchPrice(setProduct);
 
   const handleAddAttribute = () => {
     setProduct(prev => ({
@@ -1704,57 +1647,38 @@ export const ProductUpdate = () => {
                                     </Button>
                                   )}
                                 </div>
-                                <div className="space-y-0">
-                                  {product?.variants?.map((variant, variantIndex) => (
+                                {/* Two-panel variant editor */}
+                                <div className="flex gap-4 min-h-[600px] mt-2">
+                                  {/* Left: variant list */}
+                                  <div className="w-44 flex-shrink-0 border-r pr-3">
+                                    <VariantListPanel
+                                      variants={product.variants || []}
+                                      activeIndex={Math.min(activeVariantIndex, (product.variants?.length ?? 1) - 1)}
+                                      onSelectVariant={setActiveVariantIndex}
+                                      onAddVariant={handleAddVariant}
+                                      draggable
+                                      draggedIndex={draggedIndex}
+                                      dragOverIndex={dragOverIndex}
+                                      onDragStart={setDraggedIndex}
+                                      onDragOver={(e, idx) => handleDragOver(e, idx)}
+                                      onDragLeave={handleDragLeave}
+                                      onDrop={handleDrop}
+                                      renderLabel={(v) => <span>{(v as IVariableItemVariant).name || (v as IVariableItemVariant).sku || 'Unnamed'}</span>}
+                                    />
+                                  </div>
+                                  {/* Right: active variant details */}
+                                  <div className="flex-1 min-w-0 space-y-0">
+                                {product?.variants?.map((variant, variantIndex) => (
+                                  variantIndex !== Math.min(activeVariantIndex, (product.variants?.length ?? 1) - 1) ? null :
                                     <React.Fragment key={variantIndex}>
-                                      {variantIndex > 0 ? <Separator className="my-4 bg-border/80" /> : null}
-                                      <div
-                                        className={`flex gap-2 items-stretch ${dragOverIndex === variantIndex ? 'border-t-2 border-primary pt-2 -mt-0.5' : ''}`}
-                                        draggable
-                                        onDragStart={() => setDraggedIndex(variantIndex)}
-                                        onDragOver={e => handleDragOver(e, variantIndex)}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={() => handleDrop(variantIndex)}
-                                      >
-                                        <div
-                                          className="flex flex-col items-center justify-start gap-1 shrink-0 w-10 pt-3 pb-2 rounded-md border border-border/60 bg-muted/30 text-muted-foreground cursor-grab active:cursor-grabbing select-none"
-                                          title="Drag to reorder"
-                                        >
-                                          <GripVertical className="h-4 w-4 shrink-0" aria-hidden />
-                                          <span className="text-[11px] font-semibold tabular-nums text-foreground leading-none">
-                                            #{variantIndex + 1}
-                                          </span>
-                                        </div>
-                                        <Accordion type="single" collapsible className="flex-1 min-w-0">
-                                        <AccordionItem value={`variant-${variantIndex}`} className="border-b-0">
-                                          <AccordionPrimitive.Header className="flex w-full min-w-0">
-                                            <AccordionPrimitive.Trigger
-                                              className={cn(
-                                                'group flex flex-1 w-full min-w-0 items-start gap-2 py-3 pr-1 text-left text-xs font-medium',
-                                                'rounded-md transition-colors hover:bg-muted/40 hover:no-underline'
-                                              )}
-                                            >
-                                              <div className="min-w-0 flex-1">{VariantAccordionForm(variantIndex)}</div>
-                                              <div className="flex shrink-0 items-center gap-2 self-start pt-7">
-                                                <Button
-                                                  type="button"
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-500/10"
-                                                  onClick={e => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    setDeleteVariantDialog({ open: true, index: variantIndex });
-                                                  }}
-                                                  aria-label="Delete variant"
-                                                >
-                                                  <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                                              </div>
-                                            </AccordionPrimitive.Trigger>
-                                          </AccordionPrimitive.Header>
-                                          <AccordionContent>
+                                      <VariantDetailHeader
+                                        label={variant.name || variant.sku || `Variant ${variantIndex + 1}`}
+                                        onDelete={() => setDeleteVariantDialog({ open: true, index: variantIndex })}
+                                        canDelete={(product.variants?.length ?? 0) > 1}
+                                      />
+                                      <div className="mb-3">{VariantAccordionForm(variantIndex)}</div>
+                                      {/* variant detail tabs – same content as before, accordion removed */}
+                                      <div className="border rounded-md p-3">
                                             <Tabs defaultValue="general">
                                               <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
                                                 <TabsTrigger value="general" className="text-xs h-7">General</TabsTrigger>
@@ -1999,12 +1923,10 @@ export const ProductUpdate = () => {
                                                 </div>
                                               </TabsContent>
                                             </Tabs>
-                                          </AccordionContent>
-                                        </AccordionItem>
-                                      </Accordion>
                                       </div>
                                     </React.Fragment>
                                   ))}
+                                  </div>
                                 </div>
                               </div>
                             </RetailFormSection>
@@ -2120,7 +2042,7 @@ export const ProductUpdate = () => {
               <ProductImageGallery
                 attachments={product.attachments}
                 onAttachmentsChange={atts => handleFieldChange('attachments', atts)}
-                title={<Translate contentKey="items.update.image">Catalog images</Translate>}
+                title={<Translate contentKey="items.update.productGallery">Product Gallery</Translate>}
                 description={
                   isVariableItem
                     ? 'Shared product-level photos (menus, online, POS). Variant-specific images are set under each variant in General.'

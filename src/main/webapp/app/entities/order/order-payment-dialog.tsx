@@ -12,7 +12,9 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { getEntity as getCustomerEntity } from 'app/entities/customer/customer.reducer';
 import { getOnAccountSettings } from 'app/entities/settings/on-account/on-account-settings.reducer';
+import { getEntity as getLoyaltyExchange } from 'app/entities/loyalty/loyalty-exchange.reducer';
 import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import { ILoyaltyExChange } from 'app/shared/model/CUSTOMER/loyalty.model';
 import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
 import { getOnAccountPaymentValidation } from './order-on-account.utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
@@ -40,10 +42,65 @@ interface OrderPaymentDialogProps {
   totalPaid?: number | null;
   defaultPaymentAmount?: number;
   submitLabel: string;
-  onSubmit: (payload: { amount: number; tipAmount: number; transactionMethod: string }) => void | Promise<void>;
+  onSubmit: (payload: { amount: number; tipAmount: number; loyaltyPointsToRedeem?: number; transactionMethod: string }) => void | Promise<void>;
   submitting?: boolean;
   submitDisabled?: boolean;
 }
+
+const incrementIntegerString = (value: string) => {
+  let carry = 1;
+  const digits = value.split('');
+
+  for (let index = digits.length - 1; index >= 0; index -= 1) {
+    const nextDigit = Number(digits[index]) + carry;
+    if (nextDigit >= 10) {
+      digits[index] = '0';
+      carry = 1;
+    } else {
+      digits[index] = String(nextDigit);
+      carry = 0;
+      break;
+    }
+  }
+
+  return carry > 0 ? `1${digits.join('')}` : digits.join('');
+};
+
+const toPlainDecimalString = (value: number) => {
+  const absoluteValue = Math.abs(value);
+  const asString = absoluteValue.toString();
+
+  if (!asString.includes('e') && !asString.includes('E')) {
+    return asString;
+  }
+
+  return absoluteValue.toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+};
+
+const scaleMoney = (value?: number | null) => {
+  const numericValue = Number(value ?? 0);
+
+  if (!Number.isFinite(numericValue) || numericValue === 0) {
+    return 0;
+  }
+
+  const sign = numericValue < 0 ? -1 : 1;
+  const absoluteString = toPlainDecimalString(numericValue);
+  const [wholePart = '0', decimalPart = ''] = absoluteString.split('.');
+  let cents = decimalPart.slice(0, 2).padEnd(2, '0');
+  const guardDigit = Number(decimalPart.charAt(2) || '0');
+
+  if (guardDigit >= 5) {
+    const incremented = incrementIntegerString(`${wholePart}${cents}`);
+    cents = incremented.slice(-2).padStart(2, '0');
+    const nextWholePart = incremented.slice(0, -2);
+    return sign * Number(`${nextWholePart || '0'}.${cents}`);
+  }
+
+  return sign * Number(`${wholePart}.${cents}`);
+};
+
+const scalePoints = (value?: number | null) => scaleMoney(value);
 
 const OrderPaymentDialog = ({
   open,
@@ -67,21 +124,22 @@ const OrderPaymentDialog = ({
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const onAccountSettings = useAppSelector(state => state.onAccountSettings.entity);
   const onAccountSettingsLoading = useAppSelector(state => state.onAccountSettings.loading);
+  const loyaltyExchange: ILoyaltyExChange = useAppSelector(state => state.loyaltyExchange.entity);
   const paymentMethodSettings = useAppSelector(state => state.paymentMethodSetting.entities);
   const paymentMethodSettingsLoading = useAppSelector(state => state.paymentMethodSetting.loading);
 
   const [paymentAmount, setPaymentAmount] = useState<number>(Math.max(0, defaultPaymentAmount));
   const [paymentTipAmount, setPaymentTipAmount] = useState<number>(0);
   const [paymentTransactionMethod, setPaymentTransactionMethod] = useState<string>('');
+  const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState<number>(0);
+  const [loyaltyRemainderMethod, setLoyaltyRemainderMethod] = useState<string>('');
 
-  const normalizedBaseOrderTotal = baseOrderTotal ?? 0;
-  const normalizedTotalAmount = totalAmount ?? 0;
-  const normalizedTotalPaid = totalPaid ?? 0;
-  const remaining = Math.max(0, normalizedTotalAmount - normalizedTotalPaid);
+  const normalizedBaseOrderTotal = scaleMoney(baseOrderTotal);
+  const normalizedTotalAmount = scaleMoney(totalAmount);
+  const normalizedTotalPaid = scaleMoney(totalPaid);
+  const remaining = scaleMoney(Math.max(0, normalizedTotalAmount - normalizedTotalPaid));
   const visibleChargeRows = chargePreviewRows.filter(charge => (charge.amount ?? 0) > 0);
   const paymentCustomer = customerEntity?.id && customerEntity.id === customerId ? customerEntity : null;
-  const isOnAccountPayment = paymentTransactionMethod === TransactionMethodEnum.onAccount;
-  const shouldShowLoyaltyPreview = loyaltyPreviewEligible && Boolean(customerId);
 
   const paymentMethodOptions = useMemo(
     () =>
@@ -96,11 +154,25 @@ const OrderPaymentDialog = ({
     [paymentMethodSettings]
   );
   const hasVisiblePaymentMethods = paymentMethodOptions.length > 0;
+  const selectedPaymentMethod = paymentMethodOptions.find(method => method.value === paymentTransactionMethod);
+  const isLoyaltyPayment = (selectedPaymentMethod?.setting?.name || '').trim().toLowerCase() === 'loyalty';
+  const pointToCashExchange = scalePoints(loyaltyExchange?.pointToCashExchange ?? 0);
+  const availableLoyaltyPoints = scalePoints(Math.max(0, Number(paymentCustomer?.loyaltyPointsRemaining ?? 0)));
+  const loyaltyCashCoverage = pointToCashExchange > 0
+    ? scaleMoney(Math.min(remaining, scalePoints(Math.max(0, loyaltyPointsToRedeem)) / pointToCashExchange))
+    : 0;
+  const autoCalculatedRemainder = scaleMoney(Math.max(0, remaining - loyaltyCashCoverage));
+  const effectivePaymentAmount = scaleMoney(paymentAmount);
+  const totalCovered = scaleMoney(Math.min(remaining, effectivePaymentAmount + loyaltyCashCoverage));
+  const uncoveredAmount = scaleMoney(Math.max(0, remaining - totalCovered));
+  const activeNonLoyaltyMethod = isLoyaltyPayment ? loyaltyRemainderMethod : paymentTransactionMethod;
+  const isOnAccountPayment = activeNonLoyaltyMethod === TransactionMethodEnum.onAccount;
+  const shouldShowLoyaltyPreview = loyaltyPreviewEligible && Boolean(customerId) && !isLoyaltyPayment;
 
   const onAccountValidation = getOnAccountPaymentValidation({
     customer: paymentCustomer,
     orderBranchId,
-    paymentAmount,
+    paymentAmount: effectivePaymentAmount,
     onAccountBalanceType: onAccountSettings?.onAccountBalanceType,
   });
 
@@ -110,7 +182,7 @@ const OrderPaymentDialog = ({
   const canProceedWithOnAccountPayment = !isOnAccountPayment || (!onAccountDataLoading && onAccountValidation.canProceed);
 
   const formatCurrencyAmount = (value?: number | null) => {
-    const numericValue = Number(value ?? 0);
+    const numericValue = scaleMoney(value);
 
     if (!Number.isFinite(numericValue)) {
       return '$0.00';
@@ -124,17 +196,7 @@ const OrderPaymentDialog = ({
       return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
     }
 
-    const [wholePart, decimalPart = ''] = absoluteString.split('.');
-
-    if (decimalPart.length === 0) {
-      return `${sign}$${wholePart}.00`;
-    }
-
-    if (decimalPart.length === 1) {
-      return `${sign}$${wholePart}.${decimalPart}0`;
-    }
-
-    return `${sign}$${wholePart}.${decimalPart}`;
+    return `${sign}$${Math.abs(normalizedValue).toFixed(2)}`;
   };
 
   useEffect(() => {
@@ -143,6 +205,7 @@ const OrderPaymentDialog = ({
     }
 
     dispatch(getOnAccountSettings());
+    dispatch(getLoyaltyExchange());
     if (customerId) {
       dispatch(getCustomerEntity(customerId));
     }
@@ -156,8 +219,9 @@ const OrderPaymentDialog = ({
       return;
     }
 
-    setPaymentAmount(Math.max(0, Math.min(defaultPaymentAmount, remaining)));
+    setPaymentAmount(scaleMoney(Math.max(0, Math.min(Number(defaultPaymentAmount ?? 0), remaining))));
     setPaymentTipAmount(0);
+    setLoyaltyPointsToRedeem(0);
   }, [defaultPaymentAmount, open, remaining]);
 
   useEffect(() => {
@@ -176,6 +240,30 @@ const OrderPaymentDialog = ({
     }
   }, [hasVisiblePaymentMethods, open, paymentMethodOptions, paymentTransactionMethod]);
 
+  useEffect(() => {
+    if (!open || !isLoyaltyPayment) {
+      return;
+    }
+    const nonLoyaltyOptions = paymentMethodOptions.filter(
+      method => (method.setting?.name || '').trim().toLowerCase() !== 'loyalty'
+    );
+    if (!nonLoyaltyOptions.length) {
+      setLoyaltyRemainderMethod('');
+      return;
+    }
+    const hasCurrentSelection = nonLoyaltyOptions.some(method => method.value === loyaltyRemainderMethod);
+    if (!hasCurrentSelection) {
+      setLoyaltyRemainderMethod(nonLoyaltyOptions[0].value);
+    }
+  }, [isLoyaltyPayment, loyaltyRemainderMethod, open, paymentMethodOptions]);
+
+  useEffect(() => {
+    if (!open || !isLoyaltyPayment) {
+      return;
+    }
+    setPaymentAmount(autoCalculatedRemainder);
+  }, [autoCalculatedRemainder, isLoyaltyPayment, open]);
+
   const handleSubmit = async () => {
     if (isOnAccountPayment) {
       if (onAccountDataLoading) {
@@ -190,19 +278,24 @@ const OrderPaymentDialog = ({
     }
 
     await onSubmit({
-      amount: paymentAmount,
-      tipAmount: paymentTipAmount,
-      transactionMethod: paymentTransactionMethod,
+      amount: effectivePaymentAmount,
+      tipAmount: scaleMoney(paymentTipAmount),
+      loyaltyPointsToRedeem: isLoyaltyPayment ? loyaltyPointsToRedeem : 0,
+      transactionMethod: isLoyaltyPayment ? (effectivePaymentAmount > 0 ? loyaltyRemainderMethod : 'loyalty') : paymentTransactionMethod,
     });
   };
 
+  const nonLoyaltyPaymentOptions = paymentMethodOptions.filter(
+    method => (method.setting?.name || '').trim().toLowerCase() !== 'loyalty'
+  );
+
   return (
     <Dialog open={open} onOpenChange={openState => !submitting && onOpenChange(openState)}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="flex max-h-[calc(100vh-2rem)] max-w-4xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        <div className="flex-1 overflow-y-auto py-4 pr-1">
           <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
             <div className="space-y-2">
               <div className="text-sm font-medium">Payment Method</div>
@@ -260,32 +353,103 @@ const OrderPaymentDialog = ({
                   <span className="font-semibold">Remaining:</span>
                   <span className="font-bold text-lg">{formatCurrencyAmount(remaining)}</span>
                 </div>
+                {isLoyaltyPayment ? (
+                  <>
+                    <div className="mt-3 flex justify-between gap-3 rounded-md bg-amber-50 px-3 py-2 text-amber-800">
+                      <span>Loyalty covers</span>
+                      <span className="font-semibold">{formatCurrencyAmount(loyaltyCashCoverage)}</span>
+                    </div>
+                    <div className="mt-2 flex justify-between gap-3 rounded-md bg-slate-50 px-3 py-2 text-slate-700">
+                      <span>Still unpaid</span>
+                      <span className="font-semibold">{formatCurrencyAmount(uncoveredAmount)}</span>
+                    </div>
+                  </>
+                ) : null}
                 {shouldShowLoyaltyPreview ? (
                   <div className="mt-3 flex justify-between gap-3 rounded-md bg-emerald-50 px-3 py-2 text-emerald-700">
                     <span>This customer will earn</span>
-                    <span className="font-semibold">{Number(loyaltyPreviewPoints ?? 0).toFixed(2)} points</span>
+                    <span className="font-semibold">{scalePoints(loyaltyPreviewPoints ?? 0).toFixed(2)} points</span>
                   </div>
                 ) : null}
               </div>
+              {isLoyaltyPayment && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-sm space-y-3">
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">Available loyalty points</span>
+                    <span className="font-semibold">{availableLoyaltyPoints.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">Exchange rate</span>
+                    <span className="font-semibold">
+                      {pointToCashExchange > 0 ? `${pointToCashExchange.toFixed(2)} points = $1.00` : 'Not configured'}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">How many points to redeem</label>
+                    <Input
+                      type="number"
+                      value={loyaltyPointsToRedeem}
+                      onChange={e => {
+                        const nextValue = scalePoints(Math.max(0, Number(e.target.value)));
+                        const maxByBalance = availableLoyaltyPoints;
+                        const maxByBill = pointToCashExchange > 0 ? scalePoints(remaining * pointToCashExchange) : 0;
+                        setLoyaltyPointsToRedeem(scalePoints(Math.min(nextValue, maxByBalance, maxByBill || nextValue)));
+                      }}
+                      min={0}
+                      step={0.01}
+                      max={availableLoyaltyPoints}
+                      className="h-9"
+                      disabled={submitting || pointToCashExchange <= 0}
+                    />
+                  </div>
+                </div>
+              )}
               <div>
-                <label className="text-sm font-medium mb-1 block">Payment Amount</label>
+                <label className="text-sm font-medium mb-1 block">{isLoyaltyPayment ? 'Cash / remainder amount' : 'Payment Amount'}</label>
                 <Input
                   type="number"
-                  value={paymentAmount}
-                  onChange={e => setPaymentAmount(Math.max(0, Math.min(remaining, Number(e.target.value))))}
+                  value={effectivePaymentAmount}
+                  onChange={e => {
+                    const nextValue = scaleMoney(Math.max(0, Number(e.target.value)));
+                    const maxCashAmount = scaleMoney(Math.max(0, remaining - loyaltyCashCoverage));
+                    setPaymentAmount(scaleMoney(Math.min(maxCashAmount, nextValue)));
+                  }}
                   min={0}
                   step={0.01}
-                  max={remaining}
+                  max={scaleMoney(Math.max(0, remaining - loyaltyCashCoverage))}
                   className="h-9"
                   disabled={submitting}
                 />
               </div>
+              {isLoyaltyPayment && effectivePaymentAmount > 0 && nonLoyaltyPaymentOptions.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Remainder payment method</label>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {nonLoyaltyPaymentOptions.map(method => (
+                      <button
+                        key={method.value}
+                        type="button"
+                        className={cn(
+                          'rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                          loyaltyRemainderMethod === method.value
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-background hover:bg-muted'
+                        )}
+                        onClick={() => setLoyaltyRemainderMethod(method.value)}
+                        disabled={submitting}
+                      >
+                        {method.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-sm font-medium mb-1 block">Tip Amount (Optional)</label>
                 <Input
                   type="number"
                   value={paymentTipAmount}
-                  onChange={e => setPaymentTipAmount(Math.max(0, Number(e.target.value)))}
+                  onChange={e => setPaymentTipAmount(scaleMoney(Math.max(0, Number(e.target.value))))}
                   min={0}
                   step={0.01}
                   className="h-9"
@@ -341,7 +505,7 @@ const OrderPaymentDialog = ({
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 border-t pt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -352,7 +516,15 @@ const OrderPaymentDialog = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || submitDisabled || paymentAmount <= 0 || !canProceedWithOnAccountPayment || !paymentTransactionMethod}
+            disabled={
+              submitting ||
+              submitDisabled ||
+              totalCovered <= 0 ||
+              (isLoyaltyPayment && uncoveredAmount > 0.0001) ||
+              !canProceedWithOnAccountPayment ||
+              (!isLoyaltyPayment && !paymentTransactionMethod) ||
+              (isLoyaltyPayment && effectivePaymentAmount > 0 && !loyaltyRemainderMethod)
+            }
             className="h-8 text-xs"
           >
             {submitting ? (

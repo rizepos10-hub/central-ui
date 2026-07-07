@@ -13,6 +13,7 @@ import ScheduledBranchPricesModal from './scheduled-branch-prices-dialog';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { getPricingPointAssignmentSummary } from 'app/shared/util/format-discount-label';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,9 +106,25 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
     );
   }
 
+  const formatAssignmentSummary = (branchId: string) => {
+    const summary = getPricingPointAssignmentSummary(branchId, variant, getFilteredPricingPoints(branchId));
+    const parts: string[] = [];
+    if (summary.priceCount > 0) {
+      parts.push(translate('items.update.pricingPointSummaryPrices', { count: summary.priceCount }));
+    }
+    if (summary.discountCount > 0) {
+      parts.push(translate('items.update.pricingPointSummaryDiscounts', { count: summary.discountCount }));
+    }
+    return parts.join(' · ');
+  }
+
+  if (!variant) {
+    return null;
+  }
+
   return (
     <div className="space-y-4 mt-3">
-      {pricesModal.show && (
+      {variant && pricesModal.show && (
         <PricingPointModal
           toggle={handleShowPricesModal}
           isOpen={pricesModal.show}
@@ -162,7 +179,9 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
             </TableRow>
           </TableHeader>
           <TableBody>
-            {branchList.map(branch => (
+            {branchList.map(branch => {
+              const assignmentSummary = formatAssignmentSummary(branch.id);
+              return (
               <TableRow key={branch.id}>
                 <TableCell className="text-xs p-2">{branch.name}</TableCell>
                 <TableCell className="text-xs p-2">
@@ -204,18 +223,25 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                 <TableCell className="text-xs p-2">
                   {
                     getFilteredPricingPoints(branch.id).length > 0 ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={e => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          handleShowPricesModal(branch.id);
-                        }}
-                      >
-                        Pricing Points
-                      </Button>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-7 text-xs w-fit"
+                          onClick={e => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleShowPricesModal(branch.id);
+                          }}
+                        >
+                          <Translate contentKey="items.update.pricingPoints">Pricing Points</Translate>
+                        </Button>
+                        {assignmentSummary && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {assignmentSummary}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <></>
                     )
@@ -259,7 +285,8 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   />
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
           </TableBody>
         </Table>
       </div>

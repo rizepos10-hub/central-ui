@@ -84,6 +84,17 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const unassignCard = createAsyncThunk(
+  'loyaltycard/unassign_card',
+  async (id: string, thunkAPI) => {
+    await axios.post<void>(`${apiUrl}/${id}/unassign`);
+    const result = await axios.get<ILoyaltyCard>(`${apiUrl}/${id}`);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const partialUpdateEntity = createAsyncThunk(
   'loyaltycard/partial_update_entity',
   async (entity: ILoyaltyCard, thunkAPI) => {
@@ -137,18 +148,20 @@ export const LoyaltyCardSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, unassignCard), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
-        state.entity = action.payload.data;
+        if (action.payload?.data) {
+          state.entity = action.payload.data;
+        }
       })
       .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, unassignCard), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

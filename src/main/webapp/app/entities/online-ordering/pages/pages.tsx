@@ -7,42 +7,51 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { getEntities, publishEntity, archiveEntity } from './pages.reducer';
-import { getEntity as getUiSettings, updateEntity as updateUiSettings, changeEntityField } from '../settings/settings.reducer';
 import { PageStatus } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import { IOnlineOrderingPage } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import PageTemplatePreview from './page-template-preview';
 import PageTemplatePicker from './page-template-picker';
+import { flushStorefrontCache, getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
+import { getEntity as getStorefrontSettings } from '../settings/storefront-settings.reducer';
+import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 
 const OnlineOrderingPages = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const pages: IOnlineOrderingPage[] = useAppSelector(state => state.onlineOrderingPage.entities);
-  const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);
-  const updating = useAppSelector(state => state.onlineOrderingPage.updating || state.uiSettings.updating);
+  const landingPageSettings: ILandingPageSettings = useAppSelector(state => state.landingPageSettings.entity);
+  const storefrontSettings: IStorefrontSettings = useAppSelector(state => state.storefrontSettings.entity);
+  const updating = useAppSelector(state => state.onlineOrderingPage.updating || state.landingPageSettings.updating || state.storefrontSettings.updating);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const uiSettings: IUiSettings = {
+    ...landingPageSettings,
+    ...storefrontSettings,
+  };
 
   useEffect(() => {
     dispatch(getEntities());
-    dispatch(getUiSettings());
+    dispatch(getLandingPageSettings());
+    dispatch(getStorefrontSettings());
   }, [dispatch]);
 
   const handleTogglePageBuilder = async (enabled: boolean) => {
-    const next = { ...uiSettings, usePageBuilder: enabled };
-    await dispatch(updateUiSettings(next)).unwrap();
+    const next = { ...landingPageSettings, usePageBuilder: enabled };
+    await dispatch(updateLandingPageSettings(next)).unwrap();
     toast.success(enabled ? 'Page builder enabled' : 'Legacy layouts enabled');
   };
 
   const handleSetActive = async (page: IOnlineOrderingPage) => {
     const next = {
-      ...uiSettings,
+      ...landingPageSettings,
       usePageBuilder: true,
       defaultPageId: page.id,
       defaultPageSlug: page.slug,
     };
-    await dispatch(updateUiSettings(next)).unwrap();
+    await dispatch(updateLandingPageSettings(next)).unwrap();
     toast.success(`"${page.name}" is now the active landing page`);
   };
 
@@ -55,6 +64,15 @@ const OnlineOrderingPages = () => {
   const handleArchive = async (page: IOnlineOrderingPage) => {
     await dispatch(archiveEntity(page.id));
     toast.success(`"${page.name}" archived`);
+  };
+
+  const handleFlushStorefrontCache = async () => {
+    try {
+      await dispatch(flushStorefrontCache()).unwrap();
+      toast.success('Storefront cache flushed successfully');
+    } catch {
+      toast.error('Failed to flush storefront cache. Check the storefront settings first.');
+    }
   };
 
   return (
@@ -88,6 +106,22 @@ const OnlineOrderingPages = () => {
             <Label htmlFor="usePageBuilder" className="text-sm">
               Use page builder for the online ordering home page
             </Label>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-3">
+            <CardTitle className="text-sm">Storefront cache</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold">Flush cached landing page data</p>
+              <p className="text-xs text-muted-foreground">Clear cached storefront UI settings and landing page content.</p>
+            </div>
+            <Button type="button" variant="outline" className="h-8 text-xs" disabled={updating || !uiSettings.domain} onClick={handleFlushStorefrontCache}>
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Flush storefront cache
+            </Button>
           </CardContent>
         </Card>
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getSortState, translate, Translate } from 'react-jhipster';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Sparkles } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './giftcard-item.reducer';
@@ -17,7 +17,7 @@ import { IGiftCardItem } from 'app/shared/model/ITEM/virtual/giftcard-item.model
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 
@@ -39,11 +39,9 @@ export const GiftCardItemUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
   const giftCardItemEntity = useAppSelector(state => state.GiftCardItem.entity);
-  const giftCardsCouponEntities = useAppSelector(state => state.GiftCardCoupon.entities);
   const loading = useAppSelector(state => state.GiftCardItem.loading);
   const updating = useAppSelector(state => state.GiftCardItem.updating);
   const updateSuccess = useAppSelector(state => state.GiftCardItem.updateSuccess);
-  const branchList = useAppSelector(state => state.branch.entities);
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('details');
   const [paginationState, setPaginationState] = useState(
@@ -56,17 +54,6 @@ export const GiftCardItemUpdate = () => {
       branchVariantDetails: {},
     }]
   });
-
-  const findGiftCardById = (id) => {
-    return giftCardsCouponEntities.find((giftCard) => giftCard.id === id);
-  };
-
-  const [selectedGiftCard, setSelectedGiftCard] = useState(giftCardItem?.variants ? giftCardItem?.variants[0]?.giftCard : null);
-
-  const handleGiftCardChange = (selectedOption) => {
-    setSelectedGiftCard(selectedOption);
-    handleGiftCardItemVariantChange("giftCard", findGiftCardById(selectedOption));
-  };
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -155,6 +142,11 @@ export const GiftCardItemUpdate = () => {
     );
   }
 
+  const generatedCode = useMemo(
+    () => giftCardItem?.variants?.[0]?.giftCardCoupon?.code || '',
+    [giftCardItem]
+  );
+
   return (
     <form>
       <div className="flex gap-2 p-2">
@@ -185,28 +177,72 @@ export const GiftCardItemUpdate = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 bg-white p-2">
-                      <SharedVirtualItemUpdate item={giftCardItem} onFieldChange={handleFieldChange} />
+                    <div className="flex flex-col gap-4 bg-white p-2">
+                      <Card>
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-sm">Basic information</CardTitle>
+                          <CardDescription className="text-xs">
+                            Customer-facing gift card item details shown in the catalog.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2">
+                          <SharedVirtualItemUpdate item={giftCardItem} onFieldChange={handleFieldChange} />
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex flex-col gap-2 mt-2">
-                        <div className="w-1/2">
-                          <Label className="text-xs font-semibold">
-                            <Translate contentKey={'items.update.price'}>Price</Translate>
-                          </Label>
-                          <Input
-                            type="number"
-                            name="price"
-                            id="price"
-                            required={true}
-                            min={0}
-                            step={0.01}
-                            className="h-7 text-xs mt-1"
-                            placeholder={translate('items.update.placeholders.itemPrice')}
-                            value={giftCardItem?.variants?.[0]?.price ?? ''}
-                            onChange={(e) => handleGiftCardItemVariantChange('price', parseFloat(e.target.value))}
-                          />
-                        </div>
-                      </div>
+                      <Card>
+                        <CardHeader className="p-4 pb-2">
+                          <CardTitle className="text-sm">Gift card details</CardTitle>
+                          <CardDescription className="text-xs">
+                            Price and backend-generated card number details.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2 space-y-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                              <Label className="text-xs font-semibold">
+                                <Translate contentKey={'items.update.price'}>Price</Translate>
+                              </Label>
+                              <Input
+                                type="number"
+                                name="price"
+                                id="price"
+                                required={true}
+                                min={0}
+                                step={0.01}
+                                className="h-8 text-xs mt-1"
+                                placeholder={translate('items.update.placeholders.itemPrice')}
+                                value={giftCardItem?.variants?.[0]?.price ?? ''}
+                                onChange={(e) => handleGiftCardItemVariantChange('price', parseFloat(e.target.value))}
+                              />
+                            </div>
+
+                            <div>
+                              <Label className="text-xs font-semibold">Card Number</Label>
+                              <Input
+                                readOnly
+                                className="h-8 text-xs mt-1 font-mono"
+                                value={generatedCode || 'Will be generated automatically after save'}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg border bg-muted/40 p-3">
+                            <div className="flex items-start gap-2">
+                              <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold">Card number is auto-generated</p>
+                                <p className="text-xs text-muted-foreground">
+                                  This value comes from the backend `giftCardCoupon.code` field. Users do not enter it manually.
+                                  {isNew
+                                    ? ' It appears after the gift card is created.'
+                                    : ' It is already assigned to this gift card.'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </TabsContent>
 

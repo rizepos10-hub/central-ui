@@ -110,6 +110,9 @@ beforeEach(() => {
       entity: {
         id: 'order-1',
         sequenceNumber: 42,
+        sourceApp: {
+          type: 'CENTRAL_APP',
+        },
         branchId: 'branch-1',
         customer: {
           id: 'customer-1',
@@ -201,7 +204,7 @@ describe('OrderDetail payment integration', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill #7');
+      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill AD-7');
     });
   });
 
@@ -222,7 +225,7 @@ describe('OrderDetail payment integration', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /add payment/i })[0]);
 
     await waitFor(() => {
-      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill #3');
+      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill AD-3');
     });
 
     expect(orderReducer.createDraftBill).not.toHaveBeenCalled();
@@ -246,7 +249,7 @@ describe('OrderDetail payment integration', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /add payment/i })[0]);
 
     await waitFor(() => {
-      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill #3');
+      expect(screen.getByTestId('payment-dialog').textContent).toContain('Add Payment to Bill AD-3');
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Submit Payment' }));
