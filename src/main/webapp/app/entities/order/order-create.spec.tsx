@@ -52,6 +52,10 @@ jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => 
   getOnAccountSettings: jest.fn(() => ({ type: 'onAccountSettings/get' })),
 }));
 
+jest.mock('app/entities/loyalty/loyalty-exchange.reducer', () => ({
+  getEntity: jest.fn(() => ({ type: 'loyaltyExchange/getEntity' })),
+}));
+
 jest.mock('app/entities/settings/payment-method-setting/payment-method-setting.reducer', () => ({
   getAllEntities: jest.fn(() => ({ type: 'paymentMethodSetting/getAllEntities' })),
 }));
@@ -246,6 +250,11 @@ beforeEach(() => {
         onAccountBalanceType: 'BY_BUSINESS',
       },
       loading: false,
+    },
+    loyaltyExchange: {
+      entity: {
+        pointToCashExchange: 1,
+      },
     },
     paymentMethodSetting: {
       entities: [
@@ -1306,20 +1315,22 @@ describe('OrderCreate payment flow', () => {
       );
     });
 
-    expect(await screen.findByRole('button', { name: /^pay$/i })).not.toBeNull();
-    expect(screen.queryByText('Service Charges')).toBeNull();
-    expect(screen.queryByText('Shipping Fee')).toBeNull();
-    expect(screen.getByText('Platform Fee')).not.toBeNull();
-    expect(screen.getAllByText('$17.00').length).toBeGreaterThan(0);
+      expect(await screen.findByRole('button', { name: /^pay$/i })).not.toBeNull();
+      expect(screen.queryByText('Service Charges')).toBeNull();
+      expect(screen.getByText('Shipping Fee')).not.toBeNull();
+      expect(screen.getByText('Platform Fee')).not.toBeNull();
+      expect(screen.getAllByText('$20.00').length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: /^pay$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^pay$/i }));
 
-    expect(screen.getByText('Base Total:')).not.toBeNull();
-    expect(screen.getByText('Final Total:')).not.toBeNull();
-    expect(screen.getAllByText('$15.00').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('$2.00').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('$17.00').length).toBeGreaterThan(0);
-  });
+      expect(screen.getByText('Base Total:')).not.toBeNull();
+      expect(screen.getByText('Final Total:')).not.toBeNull();
+      expect(screen.getAllByText('Shipping Fee').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$15.00').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$3.00').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$2.00').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('$20.00').length).toBeGreaterThan(0);
+    });
 
   it('requests a charge preview even before a delivery address is selected', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR']);

@@ -41,12 +41,13 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
-import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { useVariantBranchPrice } from 'app/shared/hooks/useVariantBranchPrice';
 
 const stepItems = [
   {
@@ -139,70 +140,8 @@ export const PizzaItemUpdate = () => {
     }))
   };
 
-  const handleBranchPriceChange = (variantIndex = 0, branchId, priceType, price) => {
-    setPizzaItem(prev => {
-      const updatedVariants = [...(prev.variants || [])];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-            branch: { id: branchId },
-            [priceType]: price,
-          },
-        },
-      };
-
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
-
-  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
-    setPizzaItem(prev => {
-      const updatedVariants = [...(prev.variants || [])];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
-            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
-          },
-        },
-      };
-
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
-
-  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
-    setPizzaItem(prev => {
-      const updatedVariants = [...(prev.variants || [])];
-      updatedVariants[variantIndex] = {
-        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
-        branchVariantDetails: {
-          ...(prev.variants?.[variantIndex]?.branchVariantDetails || {}),
-          [branchId]: {
-            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
-            branch: { id: branchId },
-            scheduledPrices,
-          },
-        },
-      };
-
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
+  const { handleBranchPriceChange, handleHideItemPerBranch, handleSaveScheduledPrices } =
+    useVariantBranchPrice(setPizzaItem);
 
 
   const handleSinglePizzaValuesChange = (fieldName, value) => {
@@ -554,7 +493,25 @@ export const PizzaItemUpdate = () => {
 
   useEffect(() => {
     if (!isNew) {
-      setPizzaItem(pizzaItemEntity);
+      if (!pizzaItemEntity) {
+        return;
+      }
+      const existingVariant = pizzaItemEntity.variants?.[0];
+      setPizzaItem({
+        ...pizzaItemEntity,
+        variants: existingVariant
+          ? [{
+              ...existingVariant,
+              branchVariantDetails: existingVariant.branchVariantDetails ?? {},
+              pricingPointBranchPrices: existingVariant.pricingPointBranchPrices ?? [],
+            }]
+          : [{
+              multiple: false,
+              multiplePizzaDetails: [],
+              branchVariantDetails: {},
+              pricingPointBranchPrices: [],
+            }],
+      });
     } else {
       setPizzaItem({
         ...pizzaItemEntity,
@@ -932,17 +889,19 @@ export const PizzaItemUpdate = () => {
                                 </div>
                               </div>
 
+                              {pizzaItem?.variants?.[0] ? (
                               <VariantBranchPrice
                                 branchList={branchList}
                                 handleBranchPriceChange={handleBranchPriceChange}
                                 variantIndex={0}
-                                branchVariantDetails={pizzaItem?.variants?.[0]?.branchVariantDetails}
+                                branchVariantDetails={pizzaItem.variants[0].branchVariantDetails}
                                 itemVariantType={'RESTAURANT'}
                                 handleHideItemPerBranch={handleHideItemPerBranch}
                                 handleSaveScheduledPrices={handleSaveScheduledPrices}
-                                variant={pizzaItem?.variants?.[0]}
+                                variant={pizzaItem.variants[0]}
                                 setItem={setPizzaItem}
                               />
+                              ) : null}
                             </div>
 
                             {pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ?
@@ -1449,7 +1408,20 @@ export const PizzaItemUpdate = () => {
                   </div>
                 </CardContent>
               </Card>
-              {pizzaItemEntity?.id && <AuditLogs entityId={pizzaItemEntity?.id} />}
+              {pizzaItemEntity?.id ? (
+                <>
+                  <Separator className="opacity-60" />
+                  <Card className="border-border/80 shadow-sm">
+                    <CardHeader className="p-3 pb-2">
+                      <CardTitle className="text-base font-semibold tracking-tight text-foreground">Audit history</CardTitle>
+                      <CardDescription className="text-xs">Read-only log of changes to this item.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <AuditLogs entityId={pizzaItemEntity?.id} />
+                    </CardContent>
+                  </Card>
+                </>
+              ) : null}
             </div>
           </>
         ) : null}

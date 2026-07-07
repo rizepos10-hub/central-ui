@@ -51,7 +51,7 @@ export interface GiftCardItemVariant {
   stockQuantities?: IStockQuantity[];
   purchaseConfig?: IPurchaseConfig;
   mixAndMatchRule?: IMixAndMatchRule;
-  giftCard?: GiftCard
+  giftCardCoupon?: GiftCard
 }
 
 export interface IGiftCardItem extends IItem {

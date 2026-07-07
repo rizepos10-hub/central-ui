@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CalendarIcon, Pencil, RefreshCw } from 'lucide-react';
+import { Award, CalendarIcon, CreditCard, Pencil, RefreshCw, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
@@ -16,6 +16,7 @@ import { ICustomerOrderPayment } from 'app/shared/model/customer-order-payment.m
 import { ICustomerPayByOnAccountRequest } from 'app/shared/model/customer-pay-by-on-account.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -28,6 +29,7 @@ import { cn } from '@/src/main/webapp/app/lib/utils';
 import { TransactionType } from 'app/shared/model/ENUMS/transaction-type.model';
 import CustomerPayOnAccountDialog from './components/CustomerPayOnAccountDialog';
 import { getCustomerOnAccountPaydownValidation } from './customer-pay-by-on-account.utils';
+import LoyaltyPointHistoryTable from 'app/entities/loyalty/components/LoyaltyPointHistoryTable';
 
 const EmptyTabState = ({ title }: { title: string }) => (
   <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
@@ -227,6 +229,8 @@ export const CustomerDashboard = () => {
 
   const customerTitle = [customerEntity?.firstName, customerEntity?.lastName].filter(Boolean).join(' ').trim();
   const headerTitle = customerTitle || customerEntity?.businessDetails?.businessName || 'Customer';
+  const loyaltyPointsRemaining = customerEntity?.loyaltyPointsRemaining ?? 0;
+  const assignedLoyaltyCards = customerEntity?.loyaltyCards || [];
   const onAccountDebitLimit = customerEntity?.onAccountDebitLimit ?? 0;
   const onAccountDebitUsed = customerEntity?.onAccountDebitUsed ?? 0;
   const onAccountRemaining = onAccountDebitLimit - onAccountDebitUsed;
@@ -308,7 +312,133 @@ export const CustomerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="loyalty" className="space-y-3">
-              <EmptyTabState title="Loyalty" />
+              {customerLoading ? (
+                <div className="text-xs text-muted-foreground">Loading loyalty information...</div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="overflow-hidden rounded-xl border bg-gradient-to-br from-amber-50 via-background to-orange-50">
+                    <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)]">
+                      <div className="p-5 md:p-5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="rounded-full border-amber-200 bg-amber-100/80 text-[11px] font-semibold text-amber-800">
+                            Loyalty Overview
+                          </Badge>
+                          {/* <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                            Synced from central
+                          </div> */}
+                        </div>
+
+                        <div className="mt-4 flex items-start justify-between gap-4">
+                          <div>
+                            <div className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">Available Points</div>
+                            <div className="mt-2 text-3xl font-semibold leading-none tracking-tight">{loyaltyPointsRemaining.toFixed(2)}</div>
+                            <p className="mt-2 max-w-[18rem] text-xs leading-5 text-muted-foreground">
+                              This balance is read directly from the customer loyalty record and reflects the current available points.
+                            </p>
+                          </div>
+                          <div className="hidden rounded-2xl bg-amber-100 p-3 text-amber-700 md:block">
+                            <Award className="h-6 w-6" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t bg-background/70 p-5 md:border-l md:border-t-0 md:p-5">
+                        <div className="flex items-center gap-2">
+                          <div className="rounded-lg bg-slate-100 p-2 text-slate-700">
+                            <CreditCard className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground">Current Loyalty Cards</div>
+                            <div className="mt-0.5 text-sm font-semibold">
+                              {assignedLoyaltyCards.length > 0 ? `${assignedLoyaltyCards.length} assigned` : 'No card assigned'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="rounded-full bg-background/80">
+                            {assignedLoyaltyCards.length} total
+                          </Badge>
+                          <Badge variant="outline" className="rounded-full bg-background/80">
+                            {assignedLoyaltyCards.filter(card => card.active !== false).length} active
+                          </Badge>
+                          {assignedLoyaltyCards.some(card => card.active === false) ? (
+                            <Badge variant="outline" className="rounded-full border-red-200 bg-red-50 text-red-700">
+                              {assignedLoyaltyCards.filter(card => card.active === false).length} inactive
+                            </Badge>
+                          ) : null}
+                        </div>
+
+                        <div className="mt-4">
+                          {assignedLoyaltyCards.length === 0 ? (
+                            <div className="rounded-lg border border-dashed bg-background p-3 text-xs text-muted-foreground">
+                              No loyalty cards are currently assigned to this customer.
+                            </div>
+                          ) : (
+                            <div className="w-full overflow-x-auto rounded-xl border bg-background/40">
+                              <div className="flex min-w-max gap-3 p-3">
+                                {assignedLoyaltyCards.map((card, index) => (
+                                  <div
+                                    key={card.id || card.referenceNumber}
+                                    className="flex w-[260px] shrink-0 flex-col whitespace-normal rounded-xl border bg-background p-3 shadow-sm"
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                          Card {index + 1}
+                                        </div>
+                                        <div className="mt-1 truncate font-mono text-sm font-semibold">
+                                          {card.referenceNumber || '-'}
+                                        </div>
+                                      </div>
+                                      <Badge
+                                        variant="outline"
+                                        className={
+                                          card.active === false
+                                            ? 'shrink-0 rounded-full border-red-200 bg-red-50 text-red-700'
+                                            : 'shrink-0 rounded-full border-emerald-200 bg-emerald-50 text-emerald-700'
+                                        }
+                                      >
+                                        {card.active === false ? 'Inactive' : 'Active'}
+                                      </Badge>
+                                    </div>
+
+                                    <div className="mt-3 text-xs text-muted-foreground">
+                                      {card.cardHolderName || 'No holder name'}
+                                    </div>
+
+                                    <div className="mt-4 grid grid-cols-2 gap-3">
+                                      <div className="rounded-lg bg-muted/40 p-2">
+                                        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Balance</div>
+                                        <div className="mt-1 text-sm font-semibold">{(card.wallet?.balance ?? 0).toFixed(2)}</div>
+                                      </div>
+                                      <div className="rounded-lg bg-muted/40 p-2">
+                                        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Expiry</div>
+                                        <div className="mt-1 break-words text-sm font-semibold">
+                                          {card.expiryDate ? formatDateForDisplay(card.expiryDate) : '-'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {assignedLoyaltyCards.length === 0 && loyaltyPointsRemaining === 0 ? (
+                    <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+                      This customer has no assigned loyalty card and no available loyalty points yet.
+                    </div>
+                  ) : null}
+
+                  <LoyaltyPointHistoryTable customerId={id} title="Points Activity" />
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="account" className="space-y-3">

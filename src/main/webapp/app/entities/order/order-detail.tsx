@@ -39,6 +39,7 @@ import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import OrderPaymentDialog from './order-payment-dialog';
@@ -473,10 +474,12 @@ export const OrderDetail = () => {
   const handleAddPayment = async ({
     amount,
     tipAmount,
+    loyaltyPointsToRedeem,
     transactionMethod,
   }: {
     amount: number;
     tipAmount: number;
+    loyaltyPointsToRedeem?: number;
     transactionMethod: string;
   }) => {
     if (!selectedBillForPayment) return;
@@ -489,6 +492,7 @@ export const OrderDetail = () => {
           billId: selectedBillForPayment.id,
           amount,
           tipAmount,
+          loyaltyPointsToRedeem,
           transactionMethod,
         })
       ).unwrap();
@@ -755,7 +759,9 @@ export const OrderDetail = () => {
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Order Details</span>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Order #{orderEntity?.sequenceNumber}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+                      Order {formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, orderEntity?.sequenceNumber, orderEntity?.id)}
+                    </h1>
                     {orderEntity?.refund && (
                       <Badge className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700 hover:bg-orange-100">
                         <BanknoteArrowDown className="mr-1 h-3.5 w-3.5" />
@@ -858,7 +864,9 @@ export const OrderDetail = () => {
                               <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div>
                                   <div className="flex flex-wrap items-center gap-3">
-                                    <h3 className="text-base font-semibold text-slate-900">Bill #{bill.sequenceNumber}</h3>
+                                    <h3 className="text-base font-semibold text-slate-900">
+                                      Bill {formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, bill.sequenceNumber, bill.id)}
+                                    </h3>
                                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getBillStatusColor(billStatus)}`}>
                                       {billStatus}
                                     </span>
@@ -1305,7 +1313,9 @@ export const OrderDetail = () => {
       <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Refund Bill #{selectedBillForRefund?.sequenceNumber}</DialogTitle>
+            <DialogTitle>
+              Refund Bill {formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, selectedBillForRefund?.sequenceNumber, selectedBillForRefund?.id)}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             {selectedBillForRefund && (
@@ -1383,7 +1393,7 @@ export const OrderDetail = () => {
             resetPaymentDialog();
           }
         }}
-        title={`Add Payment to Bill #${selectedBillForPayment?.sequenceNumber ?? ''}`}
+        title={`Add Payment to Bill ${formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, selectedBillForPayment?.sequenceNumber, selectedBillForPayment?.id)}`}
         orderBranchId={orderEntity.branchId}
         customerId={orderEntity.customer?.id}
         loyaltyPreviewEligible={Boolean(orderEntity.loyaltyPreview?.eligible)}

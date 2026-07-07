@@ -30,7 +30,10 @@
       "Bash(npm uninstall *)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(node -e \"console.log\\(require\\('jspdf/package.json'\\).version\\)\")",
-      "Bash(echo \"ESLINT_EXIT:$?\")"
+      "Bash(echo \"ESLINT_EXIT:$?\")",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(openssl version *)"
     ],
     "deny": [],
     "ask": []

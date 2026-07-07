@@ -2,6 +2,7 @@ import type { IStoreCreditReportRow } from 'app/shared/model/store-credit-report
 import type { IHouseChargesReportRow } from 'app/shared/model/house-charges-report.model';
 import type { ICommissionFeesReport } from 'app/shared/model/commission-fees-report.model';
 import type { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import type { ILoyaltyPointHistory } from 'app/shared/model/CUSTOMER/loyalty-point-history.model';
 import type {
   ICashierNegativeRow,
   ICollectedSalesTaxRow,
@@ -618,6 +619,42 @@ export const buildCustomerWorkbook = (rows: ICustomer[], options: ExportWorkbook
         titleRowIndices: workbookHeader.titleRowIndices,
         headerRowIndices: [headerRowIndex],
         totalRowIndices: [totalRowIndex],
+      },
+    ],
+  };
+};
+
+export const buildLoyaltyPointHistoryWorkbook = (rows: ILoyaltyPointHistory[], options: ExportWorkbookOptions): ExportWorkbook => {
+  const workbookHeader = getWorkbookHeader(options);
+  const sheetRows = [...workbookHeader.rows];
+  const headerRowIndex = sheetRows.length;
+
+  sheetRows.push(['Date', 'Action', 'Points Change', 'Balance After', 'Order', 'Created By', 'Note']);
+
+  if (rows.length === 0) {
+    sheetRows.push(['No loyalty points history found']);
+  } else {
+    rows.forEach(row => {
+      sheetRows.push([
+        row.createdDate || '-',
+        row.eventType || '-',
+        row.pointsDelta ?? '-',
+        row.balanceAfter ?? '-',
+        row.orderId || '-',
+        row.createdBy || '-',
+        row.note || '-',
+      ]);
+    });
+  }
+
+  return {
+    sheets: [
+      {
+        name: 'Loyalty Points History',
+        rows: sheetRows,
+        columnWidths: [24, 20, 14, 14, 24, 18, 32],
+        titleRowIndices: workbookHeader.titleRowIndices,
+        headerRowIndices: [headerRowIndex],
       },
     ],
   };

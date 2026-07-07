@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { ServiceChargeKey } from 'app/shared/model/service-charge.model';
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 
 type DiscountLike = {
   value?: number | null;
@@ -279,7 +280,7 @@ const PrintOrder = () => {
     uiSettings?.email,
   ].filter(Boolean);
 
-  const invoiceNumber = orderEntity?.sequenceNumber ? `${orderEntity.sequenceNumber}`.padStart(7, '0') : '-';
+  const invoiceNumber = formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, orderEntity?.sequenceNumber, orderEntity?.id, 7);
   return (
     <div>
       <div className={styles.printWrapper}>

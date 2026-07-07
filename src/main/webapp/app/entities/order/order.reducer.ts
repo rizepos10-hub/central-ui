@@ -229,8 +229,28 @@ export const createDraftBill = createAsyncThunk(
 
 export const addPaymentToBill = createAsyncThunk(
   'order/add_payment_to_bill',
-  async ({ orderId, billId, amount, tipAmount, transactionMethod }: { orderId: string | number; billId: string | number; amount: number; tipAmount?: number; transactionMethod: string }, thunkAPI) => {
-    const result = await axios.post<IBill>(`${apiUrl}/${orderId}/bills/${billId}/add-payment`, cleanEntity({ amount, tipAmount, transactionMethod }));
+  async (
+    {
+      orderId,
+      billId,
+      amount,
+      tipAmount,
+      loyaltyPointsToRedeem,
+      transactionMethod,
+    }: {
+      orderId: string | number;
+      billId: string | number;
+      amount: number;
+      tipAmount?: number;
+      loyaltyPointsToRedeem?: number;
+      transactionMethod: string;
+    },
+    thunkAPI
+  ) => {
+    const result = await axios.post<IBill>(
+      `${apiUrl}/${orderId}/bills/${billId}/add-payment`,
+      cleanEntity({ amount, tipAmount, loyaltyPointsToRedeem, transactionMethod })
+    );
     thunkAPI.dispatch(getEntity(orderId));
     return result;
   },

@@ -39,10 +39,20 @@ export const fetchSalesReport = async ({ dateRange, measure, type, branchId = nu
 };
 
 
-export const fetchTopItems = async (limit?: null | number) => {
-  const limitsize = limit ? `?limit=${limit}` : ''
+export const fetchTopItems = async (limit?: null | number, fromDate?: string | null, toDate?: string | null) => {
+  const params = new URLSearchParams();
+  if (limit) {
+    params.set('limit', String(limit));
+  }
+  if (fromDate) {
+    params.set('fromDate', `${fromDate}T00:00:00.000Z`);
+  }
+  if (toDate) {
+    params.set('toDate', `${toDate}T00:00:00.000Z`);
+  }
+  const query = params.toString();
   try {
-    const response = await axios.get(`/api/report/top-items${limitsize}`);
+    const response = await axios.get(`/api/report/top-items${query ? `?${query}` : ''}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -72,9 +82,17 @@ export const fetchTopCustomers = async () => {
   }
 };
 
-export const fetchRecentSales = async () => {
+export const fetchRecentSales = async (fromDate?: string | null, toDate?: string | null) => {
+  const params = new URLSearchParams();
+  if (fromDate) {
+    params.set('fromDate', `${fromDate}T00:00:00.000Z`);
+  }
+  if (toDate) {
+    params.set('toDate', `${toDate}T00:00:00.000Z`);
+  }
+  const query = params.toString();
   try {
-    const response = await axios.get('/api/report/recent-sales');
+    const response = await axios.get(`/api/report/recent-sales${query ? `?${query}` : ''}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -93,14 +111,15 @@ export const fetchTopCategories = async () => {
   }
 };
 
-export const fetchTopFields = async (fromDate, toDate) => {
+export const fetchTopFields = async (fromDate?: string | null, toDate?: string | null) => {
   try {
-    const formattedFromDate = `${fromDate}T00:00:00.000Z`;
-    const formattedToDate = `${toDate}T00:00:00.000Z`;
-
     const formData = new FormData();
-    formData.append('fromDate', formattedFromDate);
-    formData.append('toDate', formattedToDate);
+    if (fromDate) {
+      formData.append('fromDate', `${fromDate}T00:00:00.000Z`);
+    }
+    if (toDate) {
+      formData.append('toDate', `${toDate}T00:00:00.000Z`);
+    }
 
     const response = await axios.post('/api/report/summary', formData, {
       headers: {

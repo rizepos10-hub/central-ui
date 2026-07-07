@@ -9,6 +9,7 @@ import styles from './print-bill.module.css';
 import { useReactToPrint } from 'react-to-print';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { Button } from '@/components/ui/button';
 
@@ -93,7 +94,7 @@ const PrintBill = () => {
 
                         {billEntity?.paymentTransactions?.map((item, index) => (
                             <tr key={index} className={styles.item}>
-                                <td>{orderEntity?.sequenceNumber}</td>
+                                <td>{formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, billEntity?.sequenceNumber, billEntity?.id)}</td>
                                 <td>{formatDateForDisplay(item.createdDate)}</td>
                                 <td>{item.amount.toFixed(2)}</td>
                             </tr>

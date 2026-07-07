@@ -33,13 +33,15 @@ import {
 } from './pages.reducer';
 import { ISectionTypeDescriptor } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
-import { getEntity as getUiSettings, updateEntity as updateUiSettings, flushStorefrontCache } from '../settings/settings.reducer';
+import { flushStorefrontCache, getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
+import { getEntity as getStorefrontSettings } from '../settings/storefront-settings.reducer';
 import PageEditorPreview from './page-editor-preview';
 import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './page-preview-utils';
 import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppearance } from './section-appearance-fields';
 import { isPrimeColorPickerTarget } from './color-input-field';
 import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-slides-editor';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 
 const sectionLabel = (type: SectionType, sectionTypes: ISectionTypeDescriptor[]) =>
   sectionTypes.find(s => s.type === type)?.label ?? type;
@@ -50,8 +52,10 @@ const OnlineOrderingPageEditor = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const sectionTypes = useAppSelector(state => state.onlineOrderingPage.sectionTypes);
-  const updating = useAppSelector(state => state.onlineOrderingPage.updating || state.uiSettings.updating);
-  const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);
+  const updating = useAppSelector(state => state.onlineOrderingPage.updating || state.landingPageSettings.updating || state.storefrontSettings.updating);
+  const landingPageSettings: ILandingPageSettings = useAppSelector(state => state.landingPageSettings.entity);
+  const storefrontSettings: IStorefrontSettings = useAppSelector(state => state.storefrontSettings.entity);
+  const uiSettings: IUiSettings = { ...landingPageSettings, ...storefrontSettings };
   const [page, setPage] = useState<IOnlineOrderingPage>({ ...defaultPageValue });
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
@@ -62,7 +66,8 @@ const OnlineOrderingPageEditor = () => {
   useEffect(() => {
     dispatch(getSectionTypes());
     dispatch(getRestaurantCategories({}));
-    dispatch(getUiSettings());
+    dispatch(getLandingPageSettings());
+    dispatch(getStorefrontSettings());
     if (!isNew && id) {
       dispatch(getEntity(id)).unwrap().then(res => setPage(res.data));
     }
@@ -199,9 +204,10 @@ const OnlineOrderingPageEditor = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const livePreviewUrl = getLivePreviewUrl(uiSettings);
   const previewUrl =
-    canOpenLivePreview(page, uiSettings) && getLivePreviewUrl(uiSettings)
-      ? getLivePreviewUrl(uiSettings)!
+    canOpenLivePreview(page, uiSettings) && livePreviewUrl
+      ? livePreviewUrl
       : LOCAL_STOREFRONT_URL;
 
   const handleSetActiveAndPreview = async () => {
@@ -210,12 +216,12 @@ const OnlineOrderingPageEditor = () => {
       return;
     }
     const next = {
-      ...uiSettings,
+      ...landingPageSettings,
       usePageBuilder: true,
       defaultPageId: page.id,
       defaultPageSlug: page.slug,
     };
-    await dispatch(updateUiSettings(next)).unwrap();
+    await dispatch(updateLandingPageSettings(next)).unwrap();
     toast.success('Landing page set as active');
     openPreview(LOCAL_STOREFRONT_URL);
   };
@@ -336,7 +342,7 @@ const OnlineOrderingPageEditor = () => {
                     onFeaturedItemsChange={items => updateSectionFeaturedItems(index, items)}
                     onPickItems={() => {
                       setEditingSectionIndex(index);
-                      setSelectedItems(((section.config?.items as IItem[]) ?? []) as IItem[]);
+                      setSelectedItems((section.config?.items as IItem[]) ?? []);
                       setItemModalOpen(true);
                     }}
                   />
@@ -371,14 +377,14 @@ const OnlineOrderingPageEditor = () => {
             <SheetTitle className="text-base">Section appearance</SheetTitle>
             <SheetDescription className="text-xs">
               {appearanceSectionIndex != null &&
-                sectionLabel(page.sections?.[appearanceSectionIndex]?.type as SectionType, sectionTypes)}
+                sectionLabel(page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL, sectionTypes)}
             </SheetDescription>
           </SheetHeader>
           {appearanceSectionIndex != null && (
             <SectionAppearanceFields
               embedded
-              sectionType={page.sections?.[appearanceSectionIndex]?.type as SectionType}
-              appearance={(page.sections?.[appearanceSectionIndex]?.config?.appearance as Record<string, unknown>) ?? {}}
+              sectionType={page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL}
+              appearance={(page.sections?.[appearanceSectionIndex]?.config?.appearance ?? {}) as Record<string, unknown>}
               onChange={next => updateSectionConfig(appearanceSectionIndex, 'appearance', next)}
             />
           )}

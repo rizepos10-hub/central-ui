@@ -31,6 +31,7 @@ import { Settings, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Check, X
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import { formatNumber } from 'app/shared/util/price-utils';
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
@@ -309,27 +310,28 @@ export const Order = ({
 
 
 
-  const handleRowClick = (orderId: string, items: any[], sequenceNumber: string) => {
+  const handleRowClick = (orderId: string, items: any[], displaySequenceNumber: string) => {
     if (items?.length > 0) {
       navigate(`/order/${orderId}`);
     } else {
-      toast.warn(`No Order Items - Order ID: ${sequenceNumber}`, { autoClose: 3000 });
+      toast.warn(`No Order Items - Order ID: ${displaySequenceNumber}`, { autoClose: 3000 });
     }
   };
 
-  const handleDeleteOrder = async (orderId: string, sequenceNumber: string) => {
+  const handleDeleteOrder = async (orderId: string, displaySequenceNumber: string) => {
     try {
       await dispatch(deleteEntity(orderId));
       await dispatch(filterOrders(buildOrderQueryParams()));
-      toast.success(`Order ${sequenceNumber} deleted successfully`, { autoClose: 3000 });
+      toast.success(`Order ${displaySequenceNumber} deleted successfully`, { autoClose: 3000 });
     } catch (error) {
       toast.error(`Failed to delete order: ${error.message}`, { autoClose: 3000 });
     }
   };
 
   const handleReorder = (order: IOrder) => {
+    const displaySequenceNumber = formatSourceScopedIdentifier(order.sourceApp?.type, order.sequenceNumber, order.id);
     if (!order?.items?.length) {
-      toast.warn(`No Order Items - Order ID: ${order.sequenceNumber}`, { autoClose: 3000 });
+      toast.warn(`No Order Items - Order ID: ${displaySequenceNumber}`, { autoClose: 3000 });
       return;
     }
 
@@ -1178,16 +1180,18 @@ export const Order = ({
                   </TableCell>
                 </TableRow>
               ) : (
-                orderList.map((order) => (
+                orderList.map((order) => {
+                  const displaySequenceNumber = formatSourceScopedIdentifier(order.sourceApp?.type, order.sequenceNumber, order.id);
+                  return (
                   <TableRow
                     key={order.id}
                     className="cursor-pointer border-b border-border/60 transition-colors hover:bg-muted/40"
-                    onClick={() => handleRowClick(order.id, order.items, order.sequenceNumber)}
+                    onClick={() => handleRowClick(order.id, order.items, displaySequenceNumber)}
                   >
                     {visibleColumns.orderId && (
                       <TableCell className={cellClass}>
                         <Link to={`/order/${order.id}`} className="font-medium text-primary hover:underline">
-                          #{order.sequenceNumber}
+                          {displaySequenceNumber}
                         </Link>
                       </TableCell>
                     )}
@@ -1311,13 +1315,13 @@ export const Order = ({
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Order</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete order {order.sequenceNumber}? This action cannot be undone.
+                                    Are you sure you want to delete order {displaySequenceNumber}? This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteOrder(order.id, order.sequenceNumber)}
+                                    onClick={() => handleDeleteOrder(order.id, displaySequenceNumber)}
                                     className="bg-red-600 hover:bg-red-700"
                                   >
                                     Delete
@@ -1330,7 +1334,8 @@ export const Order = ({
                       </Popover>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>

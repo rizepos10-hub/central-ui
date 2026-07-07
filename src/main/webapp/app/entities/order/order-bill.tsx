@@ -5,12 +5,14 @@ import { format } from 'date-fns';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from "primereact/column";
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
+import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
 
 interface OrderBills {
   list: any;
-  orderedItems: any
+  orderedItems: any;
+  sourceAppType?: string | null;
 }
-export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
+export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems, sourceAppType }) => {
 
   const transformAddonToTreeNode = (addon) => {
 
@@ -69,7 +71,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
         const treeNode = {
           key: `bill-${bill.id}-item-${orderedItem.id}`,
           data: {
-            id: bill.sequenceNumber,
+            id: formatSourceScopedIdentifier(sourceAppType, bill.sequenceNumber, bill.id),
             name: orderedItem.itemName,
             amount: billItem.amount.toFixed(2),
             price: orderedItem.price.toFixed(2),
@@ -168,7 +170,14 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
                 <div className="d-flex gap-2 ">
                   <div className="flex-grow-1 flex-shrink-1-l" style={{ marginBottom: '20px', width: '80%' }}>
                     {/* maxHeight: '300px', overflowY: 'auto', */}
-                    <h4><Translate contentKey={'orders.details.billsCard.subTitle'} interpolate={{ billId: bill.sequenceNumber }}>Order Bill {bill.sequenceNumber}</Translate></h4>
+                    <h4>
+                      <Translate
+                        contentKey={'orders.details.billsCard.subTitle'}
+                        interpolate={{ billId: formatSourceScopedIdentifier(sourceAppType, bill.sequenceNumber, bill.id) }}
+                      >
+                        Order Bill {formatSourceScopedIdentifier(sourceAppType, bill.sequenceNumber, bill.id)}
+                      </Translate>
+                    </h4>
 
                     <TreeTable value={transformedTreeData} resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '50rem' }} className="mt-4">
                       <Column field="id" header={translate('orders.details.billsCard.table.id')} />

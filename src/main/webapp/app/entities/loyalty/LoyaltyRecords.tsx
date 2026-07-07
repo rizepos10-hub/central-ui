@@ -4,7 +4,7 @@ import { getEntities } from 'app/entities/loyalty/loyalty-records.reducer';
 import { searchCustomers } from 'app/entities/customer/customer.reducer';
 import { Link } from "react-router-dom";
 import { translate, Translate } from "react-jhipster";
-import { Pencil, RefreshCw, Save } from 'lucide-react';
+import { Eye, RefreshCw, Save } from 'lucide-react';
 
 import { updateEntity as updateExchange, getEntity as getLoyaltyExchange } from "app/entities/loyalty/loyalty-exchange.reducer";
 import { ILoyaltyExChange } from "app/shared/model/CUSTOMER/loyalty.model";
@@ -24,6 +24,61 @@ interface LazyTableState {
   sortOrder?: any;
   filters: any;
 }
+
+const incrementIntegerString = (value: string) => {
+  let carry = 1;
+  const digits = value.split('');
+
+  for (let index = digits.length - 1; index >= 0; index -= 1) {
+    const nextDigit = Number(digits[index]) + carry;
+    if (nextDigit >= 10) {
+      digits[index] = '0';
+      carry = 1;
+    } else {
+      digits[index] = String(nextDigit);
+      carry = 0;
+      break;
+    }
+  }
+
+  return carry > 0 ? `1${digits.join('')}` : digits.join('');
+};
+
+const toPlainDecimalString = (value: number) => {
+  const absoluteValue = Math.abs(value);
+  const asString = absoluteValue.toString();
+
+  if (!asString.includes('e') && !asString.includes('E')) {
+    return asString;
+  }
+
+  return absoluteValue.toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+};
+
+const scaleValue = (value?: number | null) => {
+  const numericValue = Number(value ?? 0);
+
+  if (!Number.isFinite(numericValue) || numericValue === 0) {
+    return 0;
+  }
+
+  const sign = numericValue < 0 ? -1 : 1;
+  const absoluteString = toPlainDecimalString(numericValue);
+  const [wholePart = '0', decimalPart = ''] = absoluteString.split('.');
+  let cents = decimalPart.slice(0, 2).padEnd(2, '0');
+  const guardDigit = Number(decimalPart.charAt(2) || '0');
+
+  if (guardDigit >= 5) {
+    const incremented = incrementIntegerString(`${wholePart}${cents}`);
+    cents = incremented.slice(-2).padStart(2, '0');
+    const nextWholePart = incremented.slice(0, -2);
+    return sign * Number(`${nextWholePart || '0'}.${cents}`);
+  }
+
+  return sign * Number(`${wholePart}.${cents}`);
+};
+
+const formatPoints = (value?: number | null) => scaleValue(value).toFixed(2);
 
 export const LoyaltyRecords = () => {
   const ROWS_PER_PAGE = 5;
@@ -215,21 +270,21 @@ export const LoyaltyRecords = () => {
     return pages;
   };
 
-  const filteredRecords = records.filter(record => record.customer !== null);
+  const filteredRecords = records.filter(record => Boolean(record.customerId || record.customer));
 
   return (
     <PageWrapper>
       <div className="space-y-4">
-        <div className="max-w-3xl">
+        <div className="w-full">
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Loyalty Points Exchange</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="cashToPointExchange" className="text-xs font-semibold">
-                    Cash To Point Exchange
+                    Value to Point Ratio (Dollar Amount to Make One Point)
                   </Label>
                   <Input
                     type="number"
@@ -244,7 +299,7 @@ export const LoyaltyRecords = () => {
 
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="pointToCashExchange" className="text-xs font-semibold">
-                    Point To Cash Exchange
+                    Point to Value Percentage (Number of Points to Redeem one Dollar)
                   </Label>
                   <Input
                     type="number"
@@ -288,7 +343,7 @@ export const LoyaltyRecords = () => {
                   <TableHead className="text-xs">{translate('loyalty.view.table.fields.lastName')}</TableHead>
                   <TableHead className="text-xs">{translate('loyalty.view.table.fields.phone')}</TableHead>
                   <TableHead className="text-xs text-right">{translate('loyalty.view.table.fields.points')}</TableHead>
-                  <TableHead className="text-xs w-12 text-center">{translate('loyalty.view.table.fields.edit')}</TableHead>
+                  <TableHead className="text-xs w-12 text-center">{translate('loyalty.view.table.fields.view')}</TableHead>
                 </TableRow>
                 <TableRow>
                   <TableHead className="text-xs">
@@ -349,15 +404,47 @@ export const LoyaltyRecords = () => {
                 ) : filteredRecords.length > 0 ? (
                   filteredRecords.map((record) => (
                     <TableRow key={record.id}>
-                      <TableCell className="text-xs">{record.customer?.email}</TableCell>
-                      <TableCell className="text-xs">{record.customer?.firstName}</TableCell>
-                      <TableCell className="text-xs">{record.customer?.lastName}</TableCell>
-                      <TableCell className="text-xs">{record.customer?.phone}</TableCell>
-                      <TableCell className="text-xs text-right">{record.points}</TableCell>
+                      <TableCell className="text-xs">
+                        {record.customerId || record.customer?.id ? (
+                          <Link to={`/customer/${record.customerId || record.customer?.id}`} className="text-blue-600 hover:underline">
+                            {record.customer?.email || '-'}
+                          </Link>
+                        ) : (
+                          record.customer?.email || '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {record.customerId || record.customer?.id ? (
+                          <Link to={`/customer/${record.customerId || record.customer?.id}`} className="text-blue-600 hover:underline">
+                            {record.customer?.firstName || '-'}
+                          </Link>
+                        ) : (
+                          record.customer?.firstName || '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {record.customerId || record.customer?.id ? (
+                          <Link to={`/customer/${record.customerId || record.customer?.id}`} className="text-blue-600 hover:underline">
+                            {record.customer?.lastName || '-'}
+                          </Link>
+                        ) : (
+                          record.customer?.lastName || '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {record.customerId || record.customer?.id ? (
+                          <Link to={`/customer/${record.customerId || record.customer?.id}`} className="text-blue-600 hover:underline">
+                            {record.customer?.phone || '-'}
+                          </Link>
+                        ) : (
+                          record.customer?.phone || '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-right">{formatPoints(record.points)}</TableCell>
                       <TableCell className="text-xs text-center">
-                        <Link to={`/loyalty/${record.customer?.id}/edit`}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Pencil className="h-3 w-3" />
+                        <Link to={`/loyalty/${record.customerId || record.customer?.id}/edit`}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title={translate('loyalty.view.table.fields.view')}>
+                            <Eye className="h-3 w-3" />
                           </Button>
                         </Link>
                       </TableCell>

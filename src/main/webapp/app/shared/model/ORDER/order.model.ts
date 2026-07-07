@@ -16,6 +16,11 @@ export interface IOrder extends IOrderAudit {
   walkin?: boolean | null;
   status?: OrderStatus | null;
   sequenceNumber?: number | null;
+  sourceApp?: {
+    id?: string | null;
+    name?: string | null;
+    type?: string | null;
+  } | null;
   branchId?: string | null;
   orderSources?: string | null;
   orderMethod?: OrderMethod | null;
@@ -78,6 +83,7 @@ export interface IPlacePaidOrderRequest {
   payment: {
     amount: number;
     tipAmount: number;
+    loyaltyPointsToRedeem?: number;
     transactionMethod: string;
   };
 }

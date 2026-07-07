@@ -7,6 +7,7 @@ import { ITax } from "../model/TAX/tax.model"
 import { ICustomer } from "../model/CUSTOMER/customer.model"
 import { IPricingPoint } from "../model/PRICING-POINT/pricing-point"
 import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
+import { hasPricingPointDiscount } from "app/shared/util/format-discount-label";
 
 const calculateDiscount = (discounts: IDiscount[], price: number) => {
     let discountedPrice = price
@@ -82,6 +83,18 @@ export const getPriceAfterTax = (
     return taxPrice + price
 }
 
+const resolvePricingPointForBranchPrice = (
+    ppbp: IPricingPointBranchPrice,
+    pricingPoints?: IPricingPoint[]
+): IPricingPoint | undefined => {
+    return pricingPoints?.find(p => p.id === ppbp.pricingPoint?.id) ?? ppbp.pricingPoint;
+};
+
+const shouldUsePricingPointBranchPrice = (
+    ppbp: IPricingPointBranchPrice,
+    pricingPoints?: IPricingPoint[]
+): boolean => !hasPricingPointDiscount(resolvePricingPointForBranchPrice(ppbp, pricingPoints));
+
 export const getPriceForBranch = (
     price: number,
     branchDetails: IBranchVariantDetails | null,
@@ -105,7 +118,7 @@ export const getPriceForBranch = (
 
     if(pricingPointId && pricingPoints) {
         const resultPricingPoint = result.find((item) => item.pricingPoint.id === pricingPointId);
-        if(resultPricingPoint) {
+        if(resultPricingPoint && shouldUsePricingPointBranchPrice(resultPricingPoint, pricingPoints)) {
             return resultPricingPoint.price;
         }
     }
@@ -114,6 +127,9 @@ export const getPriceForBranch = (
     let resultPricingPoint: number | null = null;
     let customerPriceAssigned = false;
     for (const item of result) {
+        if (!shouldUsePricingPointBranchPrice(item, pricingPoints)) {
+            continue;
+        }
         if (item.pricingPoint.automaticType === "CUSTOMER") {
             if (customer?.pricingPoints) {
                 for (const [key, pricingPoint] of Object.entries(customer.pricingPoints)) {

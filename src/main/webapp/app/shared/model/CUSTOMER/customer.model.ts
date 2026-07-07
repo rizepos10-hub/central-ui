@@ -22,7 +22,8 @@ export interface ICustomer {
   accountNumber?: string;
   firstName?: string;
   lastName?: string;
-  loyaltyCard?: ILoyaltyCard | null;
+  loyaltyCards?: ILoyaltyCard[] | null;
+  loyaltyPointsRemaining?: number | null;
   email?: string;
   image?: string;
   pricingPoints?: IPricingPointsMap;

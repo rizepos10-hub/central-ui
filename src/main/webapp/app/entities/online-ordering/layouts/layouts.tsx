@@ -1,9 +1,15 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ICarouselItem, ILayouts, SelectedLayoutEnum } from 'app/shared/model/ONLINE_ORDERING/layouts/layouts.module';
-import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
+import {
+    IColorSetting,
+    IFontSetting,
+    IUiSettings,
+    IOnlineOrderingLogo,
+    variantsUiLayoutOptions,
+} from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { Checkbox } from '@/components/ui/checkbox';
 import React, { useEffect, useMemo, useState } from 'react'
-import { getEntity, updateEntity, reset, changeEntityField } from 'app/entities/online-ordering/settings/settings.reducer';
+import { getEntity, updateEntity, changeEntityField } from 'app/entities/online-ordering/settings/layouts-settings.reducer';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ItemSelectionModal from 'app/entities/menu/item-selection-modal';
@@ -32,10 +38,21 @@ import { searchEntities as SearchRestaurantCategories } from 'app/entities/term/
 import AsyncSelect from 'app/shared/components/select/async-select';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Carousel, CarouselItem, CarouselControl } from 'reactstrap';
+import { hslToHex, hexToHSL } from 'app/shared/util/color-utils';
+import { ILayoutsSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
-    const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);
+    const themeSettings: ILayoutsSettings = useAppSelector(state => state.layoutsSettings.entity);
+    const loading = useAppSelector(state => state.layoutsSettings.loading);
+    const updating = useAppSelector(state => state.layoutsSettings.updating);
+    const [fontSettings] = useState<IFontSetting>({
+        fontFamily: '',
+        fontSize: '',
+        fontWeight: '',
+        lineHeight: '',
+        letterSpacing: ''
+    });
 
     useEffect(() => {
         dispatch(getEntity())
@@ -45,8 +62,8 @@ const Layouts = () => {
         <PageWrapper className="max-w-7xl mx-auto">
             <div className="space-y-4">
                 <div>
-                    <h2 className="text-lg font-semibold mb-1">Layout Settings</h2>
-                    <p className="text-xs text-muted-foreground">Choose and configure your online ordering layout</p>
+                    <h2 className="text-lg font-semibold mb-1">Pick A Layout</h2>
+                    <p className="text-xs text-muted-foreground">Layout selection and layout-specific storefront sections</p>
                 </div>
 
                 <Card>
@@ -56,14 +73,14 @@ const Layouts = () => {
                     <CardContent className="p-3">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <LayoutsCard
-                                layouts={uiSettings.layouts}
+                                layouts={themeSettings.layouts}
                                 layoutKey={SelectedLayoutEnum.LAYOUT_DEFAULT}
                                 imageSrc="/content/images/LAYOUT_DEFAULT.png"
                                 title="Default Layout"
                                 description="Standard layout with slider and categories"
                             />
                             <LayoutsCard
-                                layouts={uiSettings.layouts}
+                                layouts={themeSettings.layouts}
                                 layoutKey={SelectedLayoutEnum.LAYOUT_ONE}
                                 imageSrc="/content/images/LAYOUT_ONE.png"
                                 title="Gabriel Pizza Layout"
@@ -73,28 +90,22 @@ const Layouts = () => {
                     </CardContent>
                 </Card>
 
-                {uiSettings.layouts?.selectedLayout && (
+                {themeSettings.layouts?.selectedLayout && (
                     <Card>
                         <CardContent className="p-0">
-                            {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE &&
-                                <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
-                            {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT &&
-                                <LayoutDefaultForm layouts={uiSettings.layouts} />}
+                            {themeSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE &&
+                                <LayoutGabrielPizzaForm layouts={themeSettings.layouts} />}
+                            {themeSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT &&
+                                <LayoutDefaultForm layouts={themeSettings.layouts} />}
                         </CardContent>
                     </Card>
                 )}
 
                 <div className="flex justify-end gap-2">
                     <Button
-                        variant="outline"
                         className="h-8 text-xs"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className="h-8 text-xs"
-                        onClick={() => dispatch(updateEntity(uiSettings))}
-                        disabled={!uiSettings.layouts?.selectedLayout}
+                        onClick={() => dispatch(updateEntity(themeSettings))}
+                        disabled={loading || updating || !themeSettings.layouts?.selectedLayout}
                     >
                         Save Changes
                     </Button>
@@ -196,7 +207,7 @@ const LayoutGabrielPizzaForm = ({
     const layoutOne: ILayouts["LAYOUT_ONE"] | undefined = layouts?.[SelectedLayoutEnum.LAYOUT_ONE];
     const selectedItems: IItem[] =
         useAppSelector(state =>
-            state.uiSettings.entity?.layouts?.[SelectedLayoutEnum.LAYOUT_ONE]?.sections?.body?.featuredItems?.rightColumn?.items
+            state.layoutsSettings.entity?.layouts?.[SelectedLayoutEnum.LAYOUT_ONE]?.sections?.body?.featuredItems?.rightColumn?.items
         ) || [];
     const [isModalOpen, setIsModalOpen] = useState(false);
 

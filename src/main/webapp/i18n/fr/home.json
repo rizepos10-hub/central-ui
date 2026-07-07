@@ -1,14 +1,30 @@
 {
   "home": {
     "title": "Welcome, Java Hipster!",
-    "sales": "Sales",
+    "sales": "Nouvelle commande",
     "revenue": "Revenue",
-    "visitors": "Visitors",
-    "stock": "Stock",
+    "visitors": "Nouveaux clients",
+    "stock": "Articles du catalogue ajoutés",
     "revenueOverview": "Revenue Overview",
     "salesByCategory": "Sales by Category",
     "recentSales": "Recent Sales",
-    "topProducts": "Top Products",
+    "reportSummary": "Résumé du rapport",
+    "onAccountTotal": "Total des créances clients",
+    "dateFilter": {
+      "fromDate": "Du",
+      "toDate": "Au",
+      "apply": "Appliquer",
+      "clear": "Effacer",
+      "pickDateRange": "Choisir une plage de dates",
+      "last7Days": "7 derniers jours",
+      "last30Days": "30 derniers jours",
+      "thisMonth": "Ce mois-ci",
+      "reset": "Réinitialiser"
+    },
+    "topProducts": {
+      "title": "Meilleurs produits",
+      "variantCount": "{{count}} vendus"
+    },
     "table": {
       "name": "Name",
       "category": "Category",

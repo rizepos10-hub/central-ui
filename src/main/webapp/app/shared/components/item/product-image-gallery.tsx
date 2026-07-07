@@ -5,9 +5,9 @@ import { IAttachment } from 'app/shared/model/attachment.model';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImagePlus, Trash2 } from 'lucide-react';
+import { Maximize2, Trash2 } from 'lucide-react';
 import { cn } from 'app/lib/utils';
+import ImageLightbox from 'app/shared/components/image-lightbox';
 
 export type ProductImageGalleryProps = {
   attachments: IAttachment[] | null | undefined;
@@ -41,6 +41,7 @@ export const ProductImageGallery = ({
 }: ProductImageGalleryProps) => {
   const fileItems = useMemo(() => toFileItems(attachments), [attachments]);
   const [mainIndex, setMainIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setMainIndex(i => {
@@ -89,17 +90,38 @@ export const ProductImageGallery = ({
               ) : (
                 <span className="text-xs text-muted-foreground">No preview</span>
               )}
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="absolute top-2 right-2 h-8 w-8 p-0 opacity-90 shadow-md"
-                onClick={() => removeAt(mainIndex)}
-                aria-label="Remove image"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="absolute top-2 right-2 flex gap-1">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 w-8 p-0 opacity-90 shadow-md"
+                  onClick={() => setLightboxOpen(true)}
+                  aria-label="Enlarge image"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 w-8 p-0 opacity-90 shadow-md"
+                  onClick={() => removeAt(mainIndex)}
+                  aria-label="Remove image"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
+
+            {lightboxOpen && main?.thumbnailUrl && (
+              <ImageLightbox
+                src={main.thumbnailUrl}
+                alt={main.title || main.name || main.fileName}
+                open={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+              />
+            )}
 
             {fileItems.length > 1 ? (
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
@@ -144,16 +166,11 @@ export const ProductImageGallery = ({
   }
 
   return (
-    <Card className={cn('border-border/80 shadow-sm overflow-hidden', className)}>
-      <CardHeader className="p-3 pb-2 space-y-0">
-        <CardTitle className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
-          <ImagePlus className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
-          {title}
-        </CardTitle>
-        {description ? <CardDescription className="text-xs pt-1">{description}</CardDescription> : null}
-      </CardHeader>
-      <CardContent className="p-3 pt-0">{body}</CardContent>
-    </Card>
+    <div className={cn('border rounded-md p-3 space-y-3', className)}>
+      <span className="text-xs font-semibold block">{title}</span>
+      {description ? <p className="text-xs text-muted-foreground -mt-2">{description}</p> : null}
+      {body}
+    </div>
   );
 };
 

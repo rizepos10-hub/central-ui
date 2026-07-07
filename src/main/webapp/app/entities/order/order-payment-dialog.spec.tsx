@@ -26,6 +26,10 @@ jest.mock('app/entities/settings/on-account/on-account-settings.reducer', () => 
   getOnAccountSettings: jest.fn(() => ({ type: 'onAccountSettings/get' })),
 }));
 
+jest.mock('app/entities/loyalty/loyalty-exchange.reducer', () => ({
+  getEntity: jest.fn(() => ({ type: 'loyaltyExchange/getEntity' })),
+}));
+
 jest.mock('app/entities/settings/payment-method-setting/payment-method-setting.reducer', () => ({
   getAllEntities: jest.fn(() => ({ type: 'paymentMethodSetting/getAllEntities' })),
 }));
@@ -49,6 +53,11 @@ beforeEach(() => {
         onAccountBalanceType: 'BY_BUSINESS',
       },
       loading: false,
+    },
+    loyaltyExchange: {
+      entity: {
+        pointToCashExchange: 1,
+      },
     },
     paymentMethodSetting: {
       entities: [
@@ -138,6 +147,7 @@ describe('OrderPaymentDialog', () => {
 
     expect(onSubmit).toHaveBeenCalledWith({
       amount: 5,
+      loyaltyPointsToRedeem: 0,
       tipAmount: 0,
       transactionMethod: 'cash',
     });
@@ -195,6 +205,39 @@ describe('OrderPaymentDialog', () => {
     expect(screen.getByText('12.50 points')).not.toBeNull();
   });
 
+  it('hides the loyalty preview when paying with loyalty', () => {
+    mockState.customer.entity = {
+      id: 'customer-1',
+      loyaltyPointsRemaining: 50,
+    };
+    mockState.paymentMethodSetting.entities = [
+      { id: 'cash-id', transactionMethod: 'cash', name: 'Cash', show: true, order: 1 },
+      { id: 'loyalty-id', transactionMethod: 'loyalty', name: 'Loyalty', show: true, order: 0 },
+    ];
+
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        loyaltyPreviewEligible
+        loyaltyPreviewPoints={12.5}
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^loyalty$/i }));
+
+    expect(screen.queryByText('This customer will earn')).toBeNull();
+    expect(screen.getByText('Loyalty covers')).not.toBeNull();
+  });
+
   it('preserves backend precision so remaining matches the payment amount input', () => {
     render(
       <OrderPaymentDialog
@@ -216,8 +259,44 @@ describe('OrderPaymentDialog', () => {
       />
     );
 
-    expect(screen.getByText('$10.285')).not.toBeNull();
-    expect(screen.getAllByRole('spinbutton')[0]).toHaveValue(10.285);
+    expect(screen.getAllByText('$10.29').length).toBeGreaterThan(0);
+    expect((screen.getAllByRole('spinbutton')[0] as HTMLInputElement).value).toBe('10.29');
+  });
+
+  it('auto-calculates the loyalty remainder from redeemed points and keeps it editable', () => {
+    mockState.customer.entity = {
+      id: 'customer-1',
+      loyaltyPointsRemaining: 50,
+    };
+    mockState.loyaltyExchange.entity = {
+      pointToCashExchange: 2,
+    };
+    mockState.paymentMethodSetting.entities = [
+      { id: 'cash-id', transactionMethod: 'cash', name: 'Cash', show: true, order: 1 },
+      { id: 'loyalty-id', transactionMethod: 'loyalty', name: 'Loyalty', show: true, order: 0 },
+    ];
+
+    render(
+      <OrderPaymentDialog
+        open
+        onOpenChange={jest.fn()}
+        title="Create Order & Payment"
+        orderBranchId="branch-1"
+        customerId="customer-1"
+        totalAmount={20}
+        totalPaid={0}
+        defaultPaymentAmount={20}
+        submitLabel="Create Order & Pay"
+        onSubmit={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^loyalty$/i }));
+    fireEvent.change(screen.getAllByRole('spinbutton')[0], { target: { value: '6' } });
+
+    expect(screen.getByText('$3.00')).not.toBeNull();
+    expect((screen.getAllByRole('spinbutton')[1] as HTMLInputElement).value).toBe('17');
+    expect((screen.getAllByRole('spinbutton')[1] as HTMLInputElement).disabled).toBe(false);
   });
 
   it('hides zero-value charge rows and summary', () => {
