@@ -10,7 +10,7 @@ export interface IPizzaSettings {
 
 export interface IPizzaSettingsByBranch {
     branch: IBranch
-    selectedPizzaFallbackOption: 'BASE' | 'MAKE_YOUR_OWN'
+    selectedPizzaFallbackOption: 'BASE' | 'MAKE_YOUR_OWN' | 'APPEND_ADDITIONAL_TOPPINGS'
     showToppingsOnPredefinedPizza: boolean
 }
 

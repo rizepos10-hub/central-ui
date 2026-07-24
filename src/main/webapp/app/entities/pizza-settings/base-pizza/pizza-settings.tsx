@@ -106,7 +106,8 @@ export const PizzaSettings = () => {
 
     const fallbackOptions = [
         { label: 'Make Your Own', value: 'MAKE_YOUR_OWN' },
-        { label: 'Base', value: 'BASE' }
+        { label: 'Base', value: 'BASE' },
+        { label: 'Append additional toppings', value: 'APPEND_ADDITIONAL_TOPPINGS' }
     ];
 
     // Replace handleFallbackChange with a dynamic handler
