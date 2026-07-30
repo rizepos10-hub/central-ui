@@ -17,6 +17,7 @@ export interface IBrandingSettings {
   email?: string;
   phoneNumber?: string;
   address?: string;
+  workingHours?: string;
   socialProfiles?: ISocialProfiles | null;
 }
 

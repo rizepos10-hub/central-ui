@@ -19,6 +19,7 @@ import {
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -280,6 +281,19 @@ export const UiSettingsUpdate = () => {
                       value={UiSettingsEntity.address || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'address', value: e.target.value }))}
                       className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="UiSettings-workingHours" className="text-xs font-semibold">
+                      {translate('tempApp.UiSettings.workingHours')}
+                    </Label>
+                    <Textarea
+                      id="UiSettings-workingHours"
+                      value={UiSettingsEntity.workingHours || ''}
+                      onChange={e => dispatch(changeEntityField({ name: 'workingHours', value: e.target.value }))}
+                      className="min-h-[72px] text-xs"
+                      placeholder={'Mon–Fri 9:00 AM – 9:00 PM\nSat–Sun 10:00 AM – 6:00 PM'}
                     />
                   </div>
 

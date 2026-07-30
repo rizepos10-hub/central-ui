@@ -45,6 +45,7 @@
       "email": "Email",
       "phoneNumber": "Phone Number",
       "address": "Address",
+      "workingHours": "Working Hours",
       "hideBranchesSection": "Hide Branches Section",
       "defaultLanguage": "Default Language",
       "enabledLanguages": "Enabled Languages",

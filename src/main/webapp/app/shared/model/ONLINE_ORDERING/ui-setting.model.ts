@@ -52,6 +52,8 @@ export interface IUiSettings {
   email?: string;
   phoneNumber?: string;
   applicationName?: string;
+  /** Free-text working hours displayed in the storefront footer. */
+  workingHours?: string;
   orderConfirmation?: boolean;
   guestCheckout?: boolean;
   branchDetail?: IBranchDetails[];

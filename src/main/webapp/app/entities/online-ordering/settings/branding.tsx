@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IBrandingSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
@@ -57,6 +58,21 @@ const BrandingSettingsPage = () => {
               value={entity.address || ''}
               onChange={value => dispatch(changeEntityField({ name: 'address', value }))}
             />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="branding-workingHours" className="text-xs font-semibold">
+                Working Hours
+              </Label>
+              <Textarea
+                id="branding-workingHours"
+                value={entity.workingHours || ''}
+                onChange={e => dispatch(changeEntityField({ name: 'workingHours', value: e.target.value }))}
+                className="min-h-[88px] text-xs"
+                placeholder={'Mon–Fri 9:00 AM – 9:00 PM\nSat–Sun 10:00 AM – 6:00 PM'}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Shown as text in the storefront footer. Use new lines for multiple rows.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
