@@ -11,6 +11,7 @@ import {
 } from "app/shared/reducers/reducer.utils";
 import {ITerm, defaultValue} from "app/shared/model/term.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<ITerm> = {
   loading: false,
@@ -29,8 +30,16 @@ const apiSearchUrl = 'api/_search/tag-values';
 // Actions
 
 export const searchEntities = createAsyncThunk('tag-value/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ITerm[]>(requestUrl);
+  return axios.post<ITerm[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('tag-value/fetch_entity_list', async ({ id, page, size, sort }: IQueryParams) => {

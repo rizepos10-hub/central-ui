@@ -11,6 +11,7 @@ import {
 } from "app/shared/reducers/reducer.utils";
 import { ITerm, defaultValue } from 'app/shared/model/term.model';
 import { IUiSettings } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<ITerm> = {
   loading: false,
@@ -28,8 +29,16 @@ const apiSearchUrl = 'api/_search/retail-categories';
 // Actions
 
 export const searchEntities = createAsyncThunk('retail-category/search_entity', async ({ query, page, size, sort, taxonomyName }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}${taxonomyName ? `&name=${encodeURIComponent(taxonomyName)}` : ''}`;
-  return axios.get<ITerm[]>(requestUrl);
+  return axios.post<ITerm[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('retail-category/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {

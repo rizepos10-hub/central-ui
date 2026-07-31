@@ -35,7 +35,7 @@ const AdvancedSettingsPage = () => {
       <div className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Advanced / Scripts</h2>
-          <p className="text-xs text-muted-foreground">Storefront domain, cookie text, custom scripts, and operational actions</p>
+          <p className="text-xs text-muted-foreground">Cookie text, custom scripts, and operational actions</p>
         </div>
 
         <Card>
@@ -47,12 +47,8 @@ const AdvancedSettingsPage = () => {
               <Label htmlFor="advanced-domain" className="text-xs font-semibold">
                 Domain
               </Label>
-              <Input
-                id="advanced-domain"
-                value={entity.domain || ''}
-                onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
-                className="h-8 text-xs"
-              />
+              <Input id="advanced-domain" value={entity.domain || ''} disabled className="h-8 text-xs" />
+              <p className="text-xs text-muted-foreground">Set on the Online Ordering application in Admin.</p>
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="advanced-cookie" className="text-xs font-semibold">

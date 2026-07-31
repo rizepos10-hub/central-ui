@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as getCustomers } from 'app/entities/customer/customer.reducer';
@@ -599,7 +599,13 @@ const RouteOrders = () => {
                                       )}
                                       {stop.orderId && (
                                         <>
-                                          <span className="text-xs">{getCustomerName(stop)}</span>
+                                          {stop.order?.customer?.id ? (
+                                            <Link to={`/customer/${stop.order.customer.id}`} className="text-xs text-primary hover:underline">
+                                              {getCustomerName(stop)}
+                                            </Link>
+                                          ) : (
+                                            <span className="text-xs">{getCustomerName(stop)}</span>
+                                          )}
                                           <Button variant="outline" className="text-xs" size="sm" onClick={() => openOrderModal(originalIndex)}>
                                             Change
                                           </Button>
@@ -783,12 +789,34 @@ const RouteOrders = () => {
                   {selectedCustomerId && !ordersLoading &&
                    orders.filter(order => !stops.some(stop => stop.orderId === order.id)).map(order => (
                       <TableRow key={order.id}>
-                        <TableCell>{order.sequenceNumber ?? '—'}</TableCell>
-                        <TableCell className="text-xs">{order.id}</TableCell>
                         <TableCell>
-                          {order.customer
-                            ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() || '—'
-                            : '—'}
+                          {order.id ? (
+                            <Link to={`/order/${order.id}`} className="text-primary hover:underline">
+                              {order.sequenceNumber ?? '—'}
+                            </Link>
+                          ) : (
+                            order.sequenceNumber ?? '—'
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {order.id ? (
+                            <Link to={`/order/${order.id}`} className="text-primary hover:underline">
+                              {order.id}
+                            </Link>
+                          ) : (
+                            order.id
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {order.customer?.id ? (
+                            <Link to={`/customer/${order.customer.id}`} className="text-primary hover:underline">
+                              {order.customer.businessDetails?.businessName || `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() || '—'}
+                            </Link>
+                          ) : order.customer ? (
+                            `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() || '—'
+                          ) : (
+                            '—'
+                          )}
                         </TableCell>
                         <TableCell>{getBranchDisplay(order.branchId || undefined)}</TableCell>
                         <TableCell>{order.orderProcessingStatus || order.processingStatus || order.status || '—'}</TableCell>

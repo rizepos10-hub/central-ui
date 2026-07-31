@@ -1,196 +1,207 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getSortState } from 'react-jhipster';
-import { Pencil, Trash2, RefreshCw, Plus, Eye } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { FilterMatchMode } from 'primereact/api';
+import { Eye, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 
-import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities } from './tv.reducer';
-import { ITv } from "app/shared/model/TV/tv.model";
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { getEntities, searchEntities } from './tv.reducer';
+import { ITv } from 'app/shared/model/TV/tv.model';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-} from '@/components/ui/pagination';
+import Select from 'app/shared/components/select/select';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100];
+const DEFAULT_PAGE_SIZE = 20;
+
+const initialState = {
+  first: 0,
+  rows: DEFAULT_PAGE_SIZE,
+  page: 0,
+  sortField: 'name',
+  sortOrder: 1,
+  filters: {
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    'branch.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
+    'dimensions.width': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'dimensions.height': { value: null, matchMode: FilterMatchMode.EQUALS },
+  },
+};
+
+const hasActiveFilters = (filters: Record<string, { value?: unknown }>) =>
+  Object.values(filters).some(filter => filter?.value !== null && filter?.value !== '');
+
+const parseNumericFilterValue = (value: string) => {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return null;
+  }
+
+  const numericValue = Number(trimmedValue);
+  return Number.isFinite(numericValue) ? numericValue : null;
+};
+
+const formatInputValue = (value: unknown) => (value ?? '').toString();
 
 export const FloorPlanTv = () => {
   const dispatch = useAppDispatch();
-
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const tvsList: ITv[] = useAppSelector(state => state.tv.entities);
   const loading = useAppSelector(state => state.tv.loading);
   const totalItems = useAppSelector(state => state.tv.totalItems);
-  const [nameFilter, setNameFilter] = useState('');
 
-  const getAllEntities = () => {
-
-    dispatch(
-      getEntities({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
+  const rawQuery = JSON.parse(searchParams.get('query') || 'null') || {};
+  const query = {
+    ...initialState,
+    ...rawQuery,
+    filters: {
+      ...initialState.filters,
+      ...(rawQuery.filters || {}),
+    },
   };
 
-
-
-
   useEffect(() => {
-    getAllEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+    const shouldSearch = hasActiveFilters(query.filters as Record<string, { value?: unknown }>);
+    const action = shouldSearch ? searchEntities : getEntities;
+    const payload = shouldSearch
+      ? { query: applyMatchModeMap(query) }
+      : {
+          page: query.page,
+          size: query.rows,
+          sort: query.sortField ? `${query.sortField},${query.sortOrder === -1 ? 'desc' : 'asc'}` : undefined,
+        };
 
+    dispatch(action(payload as any));
+  }, [dispatch, searchParams]);
 
-
-
+  const setQueryState = (nextQuery: typeof query) => {
+    setSearchParams({ query: JSON.stringify(nextQuery) }, { replace: true });
+  };
 
   const handleSyncList = () => {
-    getAllEntities();
+    const shouldSearch = hasActiveFilters(query.filters as Record<string, { value?: unknown }>);
+    const action = shouldSearch ? searchEntities : getEntities;
+    const payload = shouldSearch
+      ? { query: applyMatchModeMap(query) }
+      : {
+          page: query.page,
+          size: query.rows,
+          sort: query.sortField ? `${query.sortField},${query.sortOrder === -1 ? 'desc' : 'asc'}` : undefined,
+        };
+
+    dispatch(action(payload as any));
   };
 
   const handleCreate = () => {
     navigate('/tv/new');
   };
 
-  const filteredTvs = tvsList.filter(tv =>
-    tv.name?.toLowerCase().includes(nameFilter.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(totalItems / 20);
-  const currentPage = paginationState.activePage;
-
-  const handlePageChange = (page: number) => {
-    setPaginationState({
-      ...paginationState,
-      activePage: page,
+  const handleTextFilterChange = (field: 'name' | 'branch.name', value: string | null) => {
+    setQueryState({
+      ...query,
+      first: 0,
+      page: 0,
+      filters: {
+        ...query.filters,
+        [field]: {
+          ...query.filters[field],
+          value,
+        },
+      },
     });
   };
 
-  const renderPaginationItems = () => {
-    const items = [];
-    const maxVisible = 7;
+  const handleNumericFilterChange = (field: 'dimensions.width' | 'dimensions.height', value: string) => {
+    setQueryState({
+      ...query,
+      first: 0,
+      page: 0,
+      filters: {
+        ...query.filters,
+        [field]: {
+          ...query.filters[field],
+          value: parseNumericFilterValue(value),
+        },
+      },
+    });
+  };
 
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              onClick={() => handlePageChange(i)}
-              isActive={currentPage === i}
-              className="h-7 w-7 text-xs cursor-pointer"
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    } else {
-      items.push(
-        <PaginationItem key={1}>
-          <PaginationLink
-            onClick={() => handlePageChange(1)}
-            isActive={currentPage === 1}
-            className="h-7 w-7 text-xs cursor-pointer"
-          >
-            1
-          </PaginationLink>
-        </PaginationItem>
-      );
-
-      if (currentPage > 3) {
-        items.push(
-          <PaginationItem key="ellipsis-1">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              onClick={() => handlePageChange(i)}
-              isActive={currentPage === i}
-              className="h-7 w-7 text-xs cursor-pointer"
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-
-      if (currentPage < totalPages - 2) {
-        items.push(
-          <PaginationItem key="ellipsis-2">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-
-      items.push(
-        <PaginationItem key={totalPages}>
-          <PaginationLink
-            onClick={() => handlePageChange(totalPages)}
-            isActive={currentPage === totalPages}
-            className="h-7 w-7 text-xs cursor-pointer"
-          >
-            {totalPages}
-          </PaginationLink>
-        </PaginationItem>
-      );
+  const handleSort = (field: string) => {
+    let nextSortOrder = 1;
+    if (query.sortField === field) {
+      nextSortOrder = query.sortOrder === 1 ? -1 : 1;
     }
 
-    return items;
+    setQueryState({
+      ...query,
+      sortField: field,
+      sortOrder: nextSortOrder,
+    });
   };
+
+  const handlePageSizeChange = (rows: number) => {
+    setQueryState({
+      ...query,
+      rows,
+      first: 0,
+      page: 0,
+    });
+  };
+
+  const goToPreviousPage = () => {
+    const nextPage = Math.max(0, query.page - 1);
+    setQueryState({
+      ...query,
+      page: nextPage,
+      first: nextPage * query.rows,
+    });
+  };
+
+  const goToNextPage = () => {
+    const totalPages = Math.max(1, Math.ceil(totalItems / query.rows));
+    const nextPage = Math.min(totalPages - 1, query.page + 1);
+    setQueryState({
+      ...query,
+      page: nextPage,
+      first: nextPage * query.rows,
+    });
+  };
+
+  const pageSize = query.rows;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(query.page + 1, totalPages);
+  const pageStartIndex = totalItems === 0 ? 0 : query.page * pageSize + 1;
+  const pageEndIndex = Math.min(query.page * pageSize + pageSize, totalItems);
 
   return (
     <PageWrapper>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold">Tvs</h1>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="h-8 text-xs"
-              onClick={handleSyncList}
-              disabled={loading}
-            >
+            <Button variant="outline" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
               <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
               Refresh List
             </Button>
-            <Button
-              className="h-8 text-xs"
-              onClick={handleCreate}
-              disabled={loading}
-            >
+            <Button className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
               <Plus className="h-3 w-3 mr-1" />
               Add New Tv
             </Button>
           </div>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="h-8 text-xs">Name</TableHead>
+                <TableHead className="h-8 text-xs cursor-pointer" onClick={() => handleSort('name')}>
+                  Name
+                </TableHead>
                 <TableHead className="h-8 text-xs">Branch</TableHead>
                 <TableHead className="h-8 text-xs">Width</TableHead>
                 <TableHead className="h-8 text-xs">Height</TableHead>
@@ -202,130 +213,124 @@ export const FloorPlanTv = () => {
                 <TableHead className="h-8 p-1">
                   <Input
                     placeholder="Search by name"
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
+                    value={formatInputValue(query.filters.name?.value)}
+                    onChange={event => handleTextFilterChange('name', event.target.value || null)}
                     className="h-7 text-xs"
                   />
                 </TableHead>
-                <TableHead className="h-8"></TableHead>
-                <TableHead className="h-8"></TableHead>
-                <TableHead className="h-8"></TableHead>
-                <TableHead className="h-8"></TableHead>
-                <TableHead className="h-8"></TableHead>
-                <TableHead className="h-8"></TableHead>
+                <TableHead className="h-8 p-1">
+                  <Input
+                    placeholder="Search by branch"
+                    value={formatInputValue(query.filters['branch.name']?.value)}
+                    onChange={event => handleTextFilterChange('branch.name', event.target.value || null)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="h-8 p-1">
+                  <Input
+                    placeholder="Width"
+                    value={formatInputValue(query.filters['dimensions.width']?.value)}
+                    onChange={event => handleNumericFilterChange('dimensions.width', event.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="h-8 p-1">
+                  <Input
+                    placeholder="Height"
+                    value={formatInputValue(query.filters['dimensions.height']?.value)}
+                    onChange={event => handleNumericFilterChange('dimensions.height', event.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="h-8" />
+                <TableHead className="h-8" />
+                <TableHead className="h-8" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTvs.map((tv) => {
-                const editUrl = `/tv/${tv.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-                const deleteUrl = `/tv/${tv.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-                const viewUrl = `/tv/${tv.id}/view`;
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-xs p-4">
+                    <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2" />
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : tvsList.length > 0 ? (
+                tvsList.map(tv => {
+                  const editUrl = `/tv/${tv.id}/edit${location.search}`;
+                  const deleteUrl = `/tv/${tv.id}/delete${location.search}`;
+                  const viewUrl = `/tv/${tv.id}/view`;
 
-                return (
-                  <TableRow key={tv.id}>
-                    <TableCell className="text-xs">
-                      <Link to={editUrl} className="text-primary hover:underline">
-                        {tv?.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-xs">{tv?.branch?.name}</TableCell>
-                    <TableCell className="text-xs">{tv.dimensions?.width}</TableCell>
-                    <TableCell className="text-xs">{tv.dimensions?.height}</TableCell>
-                    <TableCell className="text-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 p-0"
-                              asChild
-                            >
-                              <Link to={editUrl}>
-                                <Pencil className="h-3 w-3" />
-                              </Link>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Edit</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                              asChild
-                            >
-                              <Link to={deleteUrl}>
-                                <Trash2 className="h-3 w-3" />
-                              </Link>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 p-0"
-                              asChild
-                            >
-                              <Link to={viewUrl} target="_blank" rel="noopener noreferrer">
-                                <Eye className="h-3 w-3" />
-                              </Link>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>View</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                  return (
+                    <TableRow key={tv.id}>
+                      <TableCell className="text-xs">
+                        <Link to={editUrl} className="text-primary hover:underline">
+                          {tv.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">{tv.branch?.name || '-'}</TableCell>
+                      <TableCell className="text-xs">{tv.dimensions?.width ?? '-'}</TableCell>
+                      <TableCell className="text-xs">{tv.dimensions?.height ?? '-'}</TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0" asChild>
+                          <Link to={editUrl}>
+                            <Pencil className="h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0 text-destructive hover:text-destructive" asChild>
+                          <Link to={deleteUrl}>
+                            <Trash2 className="h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0" asChild>
+                          <Link to={viewUrl} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-xs p-4 text-muted-foreground">
+                    No records found
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-2">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationLink
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    className="h-7 px-2 text-xs cursor-pointer"
-                    aria-disabled={currentPage === 1}
-                  >
-                    Previous
-                  </PaginationLink>
-                </PaginationItem>
-                {renderPaginationItems()}
-                <PaginationItem>
-                  <PaginationLink
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    className="h-7 px-2 text-xs cursor-pointer"
-                    aria-disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+        {totalItems > 0 && (
+          <div className="flex items-center justify-between border-t px-2 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Rows per page:</span>
+              <Select
+                value={{ value: pageSize, label: pageSize.toString() }}
+                onChange={(option: any) => handlePageSizeChange(option?.value ?? DEFAULT_PAGE_SIZE)}
+                options={PAGE_SIZE_OPTIONS.map(value => ({ value, label: value.toString() }))}
+                isSearchable={false}
+                className="w-20"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {pageStartIndex} - {pageEndIndex} of {totalItems}
+              </span>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={goToPreviousPage} disabled={safeCurrentPage <= 1 || loading}>
+                  ‹
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={goToNextPage} disabled={safeCurrentPage >= totalPages || loading}>
+                  ›
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>

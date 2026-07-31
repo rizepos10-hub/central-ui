@@ -11,13 +11,10 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './pricing-point.reducer';
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { ApplicationTypes, AutomaticType, IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
-import CatalogSelect from 'app/shared/components/select/select';
 import ReactSelect from 'react-select'
 import { IBranch } from 'app/shared/model/branch.model';
-import { IDiscount } from 'app/shared/model/discount.model';
 
 export const PricingPointUpdate = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +26,6 @@ export const PricingPointUpdate = () => {
   const loading = useAppSelector(state => state.pricingPoint.loading);
   const updating = useAppSelector(state => state.pricingPoint.updating);
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
-  const discountList: IDiscount[] = useAppSelector(state => state.discount.entities);
 
   useEffect(() => {
     if (!isNew) {
@@ -42,19 +38,7 @@ export const PricingPointUpdate = () => {
       size: 500,
       sort: 'asc',
     }));
-    dispatch(getDiscounts({
-      page: 0,
-      size: 500,
-    }));
   }, []);
-
-  const resolveDiscount = () => {
-    const discount = pricingPoint.discount;
-    if (!discount?.id || discount.value == null || !discount.type) {
-      return null;
-    }
-    return { id: discount.id, type: discount.type, value: discount.value };
-  };
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -64,7 +48,6 @@ export const PricingPointUpdate = () => {
       automaticType: pricingPoint.type === PricingPointType.AUTOMATIC ? pricingPoint.automaticType : null,
       orderTypes: (pricingPoint.type === PricingPointType.AUTOMATIC && pricingPoint.automaticType === AutomaticType.ORDER_TYPE) ? pricingPoint.orderTypes : [],
       applicationTypes: (pricingPoint.type === PricingPointType.AUTOMATIC && pricingPoint.automaticType === AutomaticType.APP) ? pricingPoint.applicationTypes : [],
-      discount: resolveDiscount(),
     }
 
     if (isNew) {
@@ -287,29 +270,6 @@ export const PricingPointUpdate = () => {
                     />
                   </div>
                 )}
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="pricing-point-discount" className="text-xs font-semibold">
-                    Discount
-                  </Label>
-                  <CatalogSelect
-                    inputId="pricing-point-discount"
-                    value={pricingPoint.discount || null}
-                    options={discountList}
-                    isClearable
-                    getOptionLabel={option => (option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`)}
-                    getOptionValue={option => option.id}
-                    onChange={selectedDiscount =>
-                      dispatch(changeEntityField({
-                        name: 'discount',
-                        value: selectedDiscount ?? null,
-                      }))
-                    }
-                    className="text-xs"
-                  />
-                </div>
               </div>
             </div>
 

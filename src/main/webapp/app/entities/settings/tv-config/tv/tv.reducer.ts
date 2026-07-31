@@ -10,6 +10,7 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { ITv, defaultValue } from 'app/shared/model/TV/tv.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<ITv> = {
   loading: false,
@@ -27,8 +28,16 @@ const apiSearchUrl = 'api/_search/tvs';
 // Actions
 
 export const searchEntities = createAsyncThunk('tv/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ITv[]>(requestUrl);
+  return axios.post<ITv[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('tv/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {

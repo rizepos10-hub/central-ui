@@ -1,11 +1,11 @@
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
+import { BusinessTypeEnum } from 'app/shared/model/business-type';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeTerminalField, updateEntity, getEntity} from './branch-registry.reducer';
+import { changeTerminalField, updateEntity } from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import Select from 'app/shared/components/select/select';
-import Printer from '../printing/printer/printer';
 import { getEntities } from '../tv-config/tv/tv.reducer';
 import { ITv } from 'app/shared/model/TV/tv.model';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,45 @@ import { Label } from '@/components/ui/label';
 type MenuItem = {
     label: string;
     component: React.FC;
+};
+
+const fontScaleOptions = [
+    { label: 'Small', value: 0.85 },
+    { label: 'Smaller', value: 0.93 },
+    { label: 'Medium', value: 1.0 },
+    { label: 'Bigger', value: 1.25 },
+    { label: 'Big', value: 1.5 },
+];
+
+const customerScreenFontSizeOptions = [
+    { label: 'Regular', value: 'regular' },
+    { label: 'Large', value: 'large' },
+];
+
+const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
+    businessType === BusinessTypeEnum.RETAIL
+        ? Object.values(OrderMethod).filter(method => method !== OrderMethod.DineIn)
+        : Object.values(OrderMethod);
+
+const normalizeString = (value: string) => {
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+};
+
+const parseNumberOrNull = (value: string) => {
+    if (value.trim() === '') {
+        return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+};
+
+const getNearestFontScale = (fontScale?: number | null) => {
+    const current = fontScale ?? 1.0;
+    return fontScaleOptions.reduce((closest, option) => (
+        Math.abs(option.value - current) < Math.abs(closest.value - current) ? option : closest
+    ));
 };
 
 const FieldWrapper: React.FC<{
@@ -39,7 +78,6 @@ const FieldWrapper: React.FC<{
 );
 
 const BranchRegistryTerminalSettings = () => {
-    const [activeSection, setActiveSection] = useState<MenuItem>(sections[0]);
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
@@ -87,6 +125,8 @@ const BranchRegistryTerminalSettings = () => {
 function GeneralSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
+    const selectedBusinessType = branchRegistry?.terminalSettings?.businessType;
+    const orderMethods = getAllowedOrderMethods(selectedBusinessType);
 
     return (
         <div className="space-y-1">
@@ -95,8 +135,13 @@ function GeneralSettings() {
                 description="Choose business type"
             >
                 <ShadcnSelect
-                    value={branchRegistry?.terminalSettings?.businessType}
-                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'businessType', value }))}
+                    value={selectedBusinessType}
+                    onValueChange={(value: BusinessTypeEnum) => {
+                        dispatch(changeTerminalField({ name: 'businessType', value }));
+                        if (value === BusinessTypeEnum.RETAIL && branchRegistry?.terminalSettings?.orderType === OrderMethod.DineIn) {
+                            dispatch(changeTerminalField({ name: 'orderType', value: OrderMethod.WalkIn }));
+                        }
+                    }}
                 >
                     <SelectTrigger className="w-48">
                         <SelectValue placeholder="Select type" />
@@ -120,7 +165,7 @@ function GeneralSettings() {
                         <SelectValue placeholder="Select order type" />
                     </SelectTrigger>
                     <SelectContent>
-                        {Object.values(OrderMethod).map(method => (
+                        {orderMethods.map(method => (
                             <SelectItem key={method} value={method}>{method}</SelectItem>
                         ))}
                     </SelectContent>
@@ -138,6 +183,16 @@ function GeneralSettings() {
             </FieldWrapper>
 
             <FieldWrapper
+                title="Enable walk in"
+                description='Enable the option to specify the walk-in order is "for here" or "to go"'
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableWalkInType}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableWalkInType', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
                 title="Receive Online Order Popups"
                 description="Receive Online Order Popups"
             >
@@ -148,23 +203,12 @@ function GeneralSettings() {
             </FieldWrapper>
 
             <FieldWrapper
-                title="Enable walk in"
-                description="Enable walk in"
-            >
-                <Checkbox
-                    checked={branchRegistry?.terminalSettings?.enableWalkInType}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableWalkInType', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
                 title="HST Number"
                 description="Enter HST number"
             >
                 <Input
-                    type="number"
                     value={branchRegistry?.terminalSettings?.hstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: normalizeString(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -174,9 +218,8 @@ function GeneralSettings() {
                 description="Enter GST number"
             >
                 <Input
-                    type="number"
                     value={branchRegistry?.terminalSettings?.gstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: normalizeString(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -186,9 +229,8 @@ function GeneralSettings() {
                 description="Enter PST number"
             >
                 <Input
-                    type="number"
                     value={branchRegistry?.terminalSettings?.pstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: normalizeString(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -252,6 +294,39 @@ function PersonalizationSettings() {
                 />
             </FieldWrapper>
 
+            {branchRegistry?.terminalSettings?.alwaysShowScrollbar && (
+                <FieldWrapper
+                    title="Scrollbar Thickness"
+                    description="Thickness in pixels"
+                >
+                    <Input
+                        type="number"
+                        value={branchRegistry?.terminalSettings?.scrollbarThickness ?? ''}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: parseNumberOrNull(e.target.value) }))}
+                        className="w-48"
+                    />
+                </FieldWrapper>
+            )}
+
+            <FieldWrapper
+                title="UI Font Scale"
+                description="Text size: Small, Smaller, Medium, Bigger, or Big"
+            >
+                <ShadcnSelect
+                    value={String(getNearestFontScale(branchRegistry?.terminalSettings?.fontScale).value)}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'fontScale', value: Number(value) }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select font scale" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {fontScaleOptions.map(option => (
+                            <SelectItem key={option.value} value={String(option.value)}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
             <FieldWrapper
                 title="Enable Custom On-Screen Keyboard"
                 description="Show custom keyboard when text fields are focused (Windows only)"
@@ -259,18 +334,6 @@ function PersonalizationSettings() {
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.enableCustomKeyboard}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableCustomKeyboard', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="Scrollbar Thickness"
-                description="Thickness in pixels"
-            >
-                <Input
-                    type="number"
-                    value={branchRegistry?.terminalSettings?.scrollbarThickness ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: parseFloat(e.target.value) ?? null }))}
-                    className="w-48"
                 />
             </FieldWrapper>
 
@@ -319,7 +382,7 @@ function ScaleSettings() {
             >
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'readScaleBarCodes', value: checked }))}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'scaleSettings.readScaleBarCodes', value: checked }))}
                 />
             </FieldWrapper>
 
@@ -330,7 +393,7 @@ function ScaleSettings() {
                 <Input
                     type="number"
                     value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.totalNumberOfDigits', value: parseNumberOrNull(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -341,7 +404,7 @@ function ScaleSettings() {
             >
                 <Input
                     value={branchRegistry?.terminalSettings?.scaleSettings?.prefix || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'prefix', value: e.target.value }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.prefix', value: e.target.value }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -353,7 +416,7 @@ function ScaleSettings() {
                 <Input
                     type="number"
                     value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.pluStartPosition', value: parseNumberOrNull(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -365,7 +428,7 @@ function ScaleSettings() {
                 <Input
                     type="number"
                     value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.pluTotalDigitCount', value: parseNumberOrNull(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -377,7 +440,7 @@ function ScaleSettings() {
                 <Input
                     type="number"
                     value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.priceStartPosition', value: parseNumberOrNull(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -389,7 +452,7 @@ function ScaleSettings() {
                 <Input
                     type="number"
                     value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: parseFloat(e.target.value) ?? null }))}
+                    onChange={(e) => dispatch(changeTerminalField({ name: 'scaleSettings.priceTotalDigitCount', value: parseNumberOrNull(e.target.value) }))}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -744,6 +807,8 @@ function CustomerAppSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const tvsList: ITv[] = useAppSelector(state => state.tv.entities);
     const dispatch = useAppDispatch()
+    const enableCustomerApp = !!branchRegistry?.terminalSettings?.enableCustomerApp;
+    const customerAppIsOnSameDevice = !!branchRegistry?.terminalSettings?.customerAppIsOnSameDevice;
 
     return (
         <div className="space-y-1">
@@ -762,11 +827,24 @@ function CustomerAppSettings() {
                 description="If checked, it will enable the capability to open the app from the pos window (only available on windows)"
             >
                 <Checkbox
-                    disabled={!branchRegistry?.terminalSettings?.enableCustomerApp}
-                    checked={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                    disabled={!enableCustomerApp}
+                    checked={enableCustomerApp && customerAppIsOnSameDevice}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: checked }))}
                 />
             </FieldWrapper>
+
+            {enableCustomerApp && customerAppIsOnSameDevice && (
+                <FieldWrapper
+                    title="Path To Customer App"
+                    description="Path of the customer screen executable on the same device"
+                >
+                    <Input
+                        value={branchRegistry.terminalSettings?.pathToCustomerApp || ''}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'pathToCustomerApp', value: e.target.value }))}
+                        className="w-48"
+                    />
+                </FieldWrapper>
+            )}
 
             <FieldWrapper
                 title="Customer App IP"
@@ -789,6 +867,25 @@ function CustomerAppSettings() {
                     onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: parseFloat(e.target.value) ?? null }))}
                     className="w-48"
                 />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Customer Screen Font Size"
+                description="Choose font size used by the customer screen"
+            >
+                <ShadcnSelect
+                    value={branchRegistry.terminalSettings?.customerScreenFontSize || 'regular'}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'customerScreenFontSize', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select font size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {customerScreenFontSizeOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
             </FieldWrapper>
 
             <FieldWrapper
@@ -857,8 +954,11 @@ const CreditCardSettings = () => {
                 description="Select credit card integration provider"
             >
                 <ShadcnSelect
-                    value={selectedType}
-                    onValueChange={value => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: value || null }))}
+                    value={selectedType ?? 'none'}
+                    onValueChange={value => dispatch(changeTerminalField({
+                        name: "creditCardIntegrationType",
+                        value: value === 'none' ? null : value
+                    }))}
                 >
                     <SelectTrigger className="w-64">
                         <SelectValue placeholder="Select Integration Type" />
@@ -1501,7 +1601,7 @@ const sections: MenuItem[] = [
     { label: 'Admin Actions', component: AdminActionsSettings },
     { label: 'Devices', component: Devices },
     // { label: 'Scale Settings', component: ScaleSettings },
-    { label: 'Email Logs settings', component: EmailLogsSettings },
+    { label: 'Email Logs Settings', component: EmailLogsSettings },
     // { label: 'Customer App', component: CustomerAppSettings },
     // { label: 'Credit Card Processing', component: CreditCardSettings },
     // { label: 'Server Properties', component: ServerProperties },

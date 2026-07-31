@@ -98,9 +98,6 @@
             "giftCard": "Gift Card Item Visibility"
           }
         },
-        "general": "General",
-        "pricing": "Pricing",
-        "branchPrices": "Branch Prices",
         "addons": {
           "label": "Addons"
         },
@@ -227,9 +224,6 @@
       },
       "WholesalePrices": "Wholesale Prices",
       "pricingPoints": "Pricing Points",
-      "pricingPointDiscountOnly": "Branch price not used — discount applies to catalog price",
-      "pricingPointSummaryPrices": "{{count}} price(s)",
-      "pricingPointSummaryDiscounts": "{{count}} discount(s)",
       "hideItem": "Hide Item POS",
       "hideOnline": "Hide Item Online",
       "baseMeasure": "Select Base Measure",
@@ -262,7 +256,6 @@
       "addSingleVariant": "Add Single Variant",
       "removeAttribute": "Remove",
       "deleteVariant": "Delete Variant",
-      "productGallery": "Product Gallery",
       "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
       "importAddons": "Import",

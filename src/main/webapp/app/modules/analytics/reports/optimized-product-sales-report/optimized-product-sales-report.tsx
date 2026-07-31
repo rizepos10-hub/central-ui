@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import type { DateRange } from 'react-day-picker';
 import { CalendarIcon, Loader2, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -471,7 +472,15 @@ const OptimizedProductSalesReport = () => {
                   <TableBody className={reportTableBodyClassName}>
                     {reportData?.items?.map(item => (
                       <TableRow key={item.itemId || item.receiptAlias}>
-                        <TableCell className="text-xs">{item.receiptAlias || '-'}</TableCell>
+                        <TableCell className="text-xs">
+                          {item.itemId && item.receiptAlias ? (
+                            <Link to={`/product/${item.itemId}/edit`} className="text-primary hover:underline">
+                              {item.receiptAlias}
+                            </Link>
+                          ) : (
+                            item.receiptAlias || '-'
+                          )}
+                        </TableCell>
                         <TableCell className="text-xs text-right">{formatQuantity(item.quantity)}</TableCell>
                         <TableCell className="text-xs text-right">{formatPercent(item.quantityPercent)}</TableCell>
                         <TableCell className="text-xs text-right">{formatAmount(item.extCost)}</TableCell>

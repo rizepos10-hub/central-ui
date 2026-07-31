@@ -41,6 +41,7 @@ const serializeFlyerEntity = (entity: IFlyer): IFlyer => {
         itemId: entry.item?.id || entry.itemId,
         variantId: entry.variant?.id || entry.variantId,
         price: entry.price ?? null,
+        mixAndMatchRuleId: entry.mixAndMatchRule?.id || entry.mixAndMatchRuleId || null,
       })),
   };
 

@@ -411,10 +411,12 @@ const SectionConfigForm = ({
 }) => {
   const config = section.config ?? {};
   const restaurantCategories = useAppSelector(state => state.restaurantCategory.entities);
+  const updateArrayItem = <T,>(list: T[], index: number, value: T) => list.map((entry, entryIndex) => (entryIndex === index ? value : entry));
 
   if (section.type === SectionType.HERO_CAROUSEL) {
     const slides = (config.slides as Array<Record<string, unknown>>) ?? [];
     const layout = (config.layout as string) ?? 'default';
+    const promoSide = (config.promoSide as Record<string, unknown>) ?? {};
     return (
       <div className="space-y-3">
         <Label>Layout</Label>
@@ -430,6 +432,48 @@ const SectionConfigForm = ({
           layout={layout}
           onChange={next => onConfigChange('slides', next)}
         />
+        {layout === 'riode-split' && (
+          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+            <Label className="text-xs font-medium">Side promo</Label>
+            <Label>Eyebrow</Label>
+            <Input value={(promoSide.eyebrow as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, eyebrow: e.target.value })} />
+            <Label>Title</Label>
+            <Input value={(promoSide.title as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, title: e.target.value })} />
+            <Label>Subtitle</Label>
+            <Input value={(promoSide.subtitle as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, subtitle: e.target.value })} />
+            <Label>Image</Label>
+            <SelectedImagePreview
+              image={(promoSide.image as IAttachment) ?? null}
+              onClear={() => onConfigChange('promoSide', { ...promoSide, image: undefined })}
+            />
+            <MediaLibrary
+              handleFilesSelectCallback={files => {
+                const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                onConfigChange('promoSide', { ...promoSide, image });
+              }}
+            />
+            <Label>CTA text</Label>
+            <Input
+              value={((promoSide.cta as Record<string, string> | undefined)?.text) ?? ''}
+              onChange={e =>
+                onConfigChange('promoSide', {
+                  ...promoSide,
+                  cta: { ...((promoSide.cta as Record<string, string>) ?? {}), text: e.target.value },
+                })
+              }
+            />
+            <Label>CTA URL</Label>
+            <Input
+              value={((promoSide.cta as Record<string, string> | undefined)?.url) ?? ''}
+              onChange={e =>
+                onConfigChange('promoSide', {
+                  ...promoSide,
+                  cta: { ...((promoSide.cta as Record<string, string>) ?? {}), url: e.target.value },
+                })
+              }
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -438,10 +482,22 @@ const SectionConfigForm = ({
     const items = (config.items as IItem[]) ?? [];
     return (
       <div className="space-y-2">
+        <Label>Layout</Label>
+        <SectionTypeSelect value={(config.layout as string) ?? 'LAYOUT_ONE'} onValueChange={value => onConfigChange('layout', value)}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
+            <SelectItem value="DISH_GRID">Dish grid</SelectItem>
+          </SelectContent>
+        </SectionTypeSelect>
         <Label>Title</Label>
         <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
         <Label>Eyebrow (optional)</Label>
         <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
+        <div className="flex items-center gap-2">
+          <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
+          <Label>Show item images</Label>
+        </div>
         <div className="space-y-2 rounded-md border bg-muted/20 p-3">
           <div className="flex items-center justify-between gap-2">
             <Label className="text-xs">Featured items ({items.length})</Label>
@@ -475,10 +531,12 @@ const SectionConfigForm = ({
 
   if (section.type === SectionType.CATEGORY_STRIP) {
     const categories = (config.categories as ITerm[]) ?? [];
+    const layout = (config.layout as string) ?? 'default';
+    const groups = (config.groups as Array<Record<string, unknown>>) ?? [];
     return (
       <div className="space-y-2">
         <Label>Layout</Label>
-        <SectionTypeSelect value={(config.layout as string) ?? 'default'} onValueChange={value => onConfigChange('layout', value)}>
+        <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="default">Default strip</SelectItem>
@@ -486,18 +544,97 @@ const SectionConfigForm = ({
             <SelectItem value="riode-grid">Riode category grid</SelectItem>
           </SelectContent>
         </SectionTypeSelect>
+        <Label>Eyebrow (optional)</Label>
+        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
         <Label>Title</Label>
         <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <Label>Categories</Label>
-        <CategorySelect
-          isMulti
-          options={restaurantCategories}
-          value={categories}
-          onChange={(value: ITerm[]) => onConfigChange('categories', value ?? [])}
-          getOptionLabel={(option: ITerm) => option.name}
-          getOptionValue={(option: ITerm) => option.id}
-          placeholder="Select categories"
-        />
+        <div className="flex items-center gap-2">
+          <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
+          <Label>Show category images</Label>
+        </div>
+        {layout === 'riode-grid' ? (
+          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+            <Label className="text-xs">Category groups ({groups.length})</Label>
+            {groups.map((group, groupIndex) => {
+              const links = (group.links as Array<Record<string, string>>) ?? [];
+              return (
+                <div key={groupIndex} className="space-y-2 rounded border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium">Group {groupIndex + 1}</span>
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('groups', groups.filter((_, index) => index !== groupIndex))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Label>Name</Label>
+                  <Input value={(group.name as string) ?? ''} onChange={e => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, name: e.target.value }))} />
+                  <Label>Image</Label>
+                  <SelectedImagePreview
+                    image={(group.image as IAttachment) ?? null}
+                    onClear={() => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, image: undefined }))}
+                  />
+                  <MediaLibrary
+                    handleFilesSelectCallback={files => {
+                      const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, image }));
+                    }}
+                  />
+                  <Label>Links</Label>
+                  {links.map((link, linkIndex) => (
+                    <div key={linkIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                      <div>
+                        <Label>Label</Label>
+                        <Input
+                          value={link.label ?? ''}
+                          onChange={e => {
+                            const nextLinks = updateArrayItem(links, linkIndex, { ...link, label: e.target.value });
+                            onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, links: nextLinks }));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>URL</Label>
+                        <Input
+                          value={link.url ?? ''}
+                          onChange={e => {
+                            const nextLinks = updateArrayItem(links, linkIndex, { ...link, url: e.target.value });
+                            onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, links: nextLinks }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={() => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, links: [...links, { label: '', url: '' }] }))}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add link
+                  </Button>
+                </div>
+              );
+            })}
+            <Button
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => onConfigChange('groups', [...groups, { name: '', links: [{ label: '', url: '' }] }])}
+            >
+              <Plus className="h-3 w-3 mr-1" /> Add group
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Label>Categories</Label>
+            <CategorySelect
+              isMulti
+              options={restaurantCategories}
+              value={categories}
+              onChange={(value: ITerm[]) => onConfigChange('categories', value ?? [])}
+              getOptionLabel={(option: ITerm) => option.name}
+              getOptionValue={(option: ITerm) => option.id}
+              placeholder="Select categories"
+            />
+          </>
+        )}
       </div>
     );
   }
@@ -605,7 +742,7 @@ const SectionConfigForm = ({
                     <Plus className="h-3 w-3 mr-1" /> Add line
                   </Button>
                   {actions.map((action, actionIndex) => (
-                    <div key={actionIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                    <div key={actionIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-3">
                       <div>
                         <Label>Button {actionIndex + 1} text</Label>
                         <Input
@@ -631,6 +768,25 @@ const SectionConfigForm = ({
                             onConfigChange('cards', next);
                           }}
                         />
+                      </div>
+                      <div>
+                        <Label>Button {actionIndex + 1} style</Label>
+                        <SectionTypeSelect
+                          value={action.variant ?? 'gold'}
+                          onValueChange={value => {
+                            const next = [...cards];
+                            const nextActions = [...actions];
+                            nextActions[actionIndex] = { ...nextActions[actionIndex], variant: value };
+                            next[cardIndex] = { ...next[cardIndex], actions: nextActions };
+                            onConfigChange('cards', next);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="gold">Gold</SelectItem>
+                            <SelectItem value="outline">Outline</SelectItem>
+                          </SelectContent>
+                        </SectionTypeSelect>
                       </div>
                     </div>
                   ))}
@@ -668,10 +824,12 @@ const SectionConfigForm = ({
   if (section.type === SectionType.HERO_BANNER) {
     const primaryCta = (config.primaryCta as Record<string, string>) ?? {};
     const secondaryCta = (config.secondaryCta as Record<string, string>) ?? {};
+    const variant = (config.variant as string) ?? 'hero';
+    const banners = (config.banners as Array<Record<string, unknown>>) ?? [];
     return (
       <div className="space-y-2">
         <Label>Variant</Label>
-        <SectionTypeSelect value={(config.variant as string) ?? 'hero'} onValueChange={value => onConfigChange('variant', value)}>
+        <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="hero">Full hero</SelectItem>
@@ -681,31 +839,113 @@ const SectionConfigForm = ({
             <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
           </SelectContent>
         </SectionTypeSelect>
-        <Label>Background image</Label>
-        <SelectedImagePreview
-          image={(config.image as IAttachment) ?? null}
-          onClear={() => onConfigChange('image', undefined)}
-        />
-        <MediaLibrary
-          handleFilesSelectCallback={files => {
-            const image = transformAttachmentStructure(files, 'toIAttachment')[0];
-            onConfigChange('image', image);
-          }}
-        />
-        <Label>Eyebrow</Label>
-        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
-        <Label>Headline</Label>
-        <Input value={(config.headline as string) ?? ''} onChange={e => onConfigChange('headline', e.target.value)} />
-        <Label>Subtitle</Label>
-        <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
-        <Label>Primary CTA text</Label>
-        <Input value={primaryCta.text ?? ''} onChange={e => onConfigChange('primaryCta', { ...primaryCta, text: e.target.value })} />
-        <Label>Primary CTA URL</Label>
-        <Input value={primaryCta.url ?? ''} onChange={e => onConfigChange('primaryCta', { ...primaryCta, url: e.target.value })} />
-        <Label>Secondary CTA text</Label>
-        <Input value={secondaryCta.text ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, text: e.target.value })} />
-        <Label>Secondary CTA URL</Label>
-        <Input value={secondaryCta.url ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, url: e.target.value })} />
+        {variant === 'riode-duo' ? (
+          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+            <Label className="text-xs">Promo banners ({banners.length})</Label>
+            {banners.map((banner, bannerIndex) => {
+              const links = (banner.links as Array<Record<string, string>>) ?? [];
+              return (
+                <div key={bannerIndex} className="space-y-2 rounded border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium">Banner {bannerIndex + 1}</span>
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('banners', banners.filter((_, index) => index !== bannerIndex))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Label>Title</Label>
+                  <Input value={(banner.title as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, title: e.target.value }))} />
+                  <Label>Subtitle</Label>
+                  <Input value={(banner.subtitle as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, subtitle: e.target.value }))} />
+                  <Label>Background</Label>
+                  <Input value={(banner.background as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, background: e.target.value }))} />
+                  <Label>Image</Label>
+                  <SelectedImagePreview
+                    image={(banner.image as IAttachment) ?? null}
+                    onClear={() => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, image: undefined }))}
+                  />
+                  <MediaLibrary
+                    handleFilesSelectCallback={files => {
+                      const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, image }));
+                    }}
+                  />
+                  {links.map((link, linkIndex) => (
+                    <div key={linkIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                      <div>
+                        <Label>Link text</Label>
+                        <Input
+                          value={link.text ?? ''}
+                          onChange={e => {
+                            const nextLinks = updateArrayItem(links, linkIndex, { ...link, text: e.target.value });
+                            onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, links: nextLinks }));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>Link URL</Label>
+                        <Input
+                          value={link.url ?? ''}
+                          onChange={e => {
+                            const nextLinks = updateArrayItem(links, linkIndex, { ...link, url: e.target.value });
+                            onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, links: nextLinks }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={() => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, links: [...links, { text: '', url: '' }] }))}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add link
+                  </Button>
+                </div>
+              );
+            })}
+            <Button
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => onConfigChange('banners', [...banners, { title: '', subtitle: '', background: '', links: [{ text: '', url: '' }] }])}
+            >
+              <Plus className="h-3 w-3 mr-1" /> Add banner
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Label>Background image</Label>
+            <SelectedImagePreview
+              image={(config.image as IAttachment) ?? null}
+              onClear={() => onConfigChange('image', undefined)}
+            />
+            <MediaLibrary
+              handleFilesSelectCallback={files => {
+                const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                onConfigChange('image', image);
+              }}
+            />
+            {(variant === 'retail' || variant === 'retail-cta') && (
+              <>
+                <Label>Badge (optional)</Label>
+                <Input value={(config.badge as string) ?? ''} onChange={e => onConfigChange('badge', e.target.value)} />
+              </>
+            )}
+            <Label>Eyebrow</Label>
+            <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
+            <Label>Headline</Label>
+            <Input value={(config.headline as string) ?? ''} onChange={e => onConfigChange('headline', e.target.value)} />
+            <Label>Subtitle</Label>
+            <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
+            <Label>Primary CTA text</Label>
+            <Input value={primaryCta.text ?? ''} onChange={e => onConfigChange('primaryCta', { ...primaryCta, text: e.target.value })} />
+            <Label>Primary CTA URL</Label>
+            <Input value={primaryCta.url ?? ''} onChange={e => onConfigChange('primaryCta', { ...primaryCta, url: e.target.value })} />
+            <Label>Secondary CTA text</Label>
+            <Input value={secondaryCta.text ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, text: e.target.value })} />
+            <Label>Secondary CTA URL</Label>
+            <Input value={secondaryCta.url ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, url: e.target.value })} />
+          </>
+        )}
       </div>
     );
   }
@@ -800,10 +1040,20 @@ const SectionConfigForm = ({
   if (section.type === SectionType.BUSINESS_INFO) {
     return (
       <div className="space-y-2">
+        <Label>Brand name (optional)</Label>
+        <Input value={(config.brandName as string) ?? ''} onChange={e => onConfigChange('brandName', e.target.value)} />
+        <Label>Brand accent (optional)</Label>
+        <Input value={(config.brandAccent as string) ?? ''} onChange={e => onConfigChange('brandAccent', e.target.value)} />
         <Label>Title</Label>
         <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
         <Label>Subtitle</Label>
         <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
+        <Label>Address (optional)</Label>
+        <Input value={(config.address as string) ?? ''} onChange={e => onConfigChange('address', e.target.value)} />
+        <Label>Phone (optional)</Label>
+        <Input value={(config.phone as string) ?? ''} onChange={e => onConfigChange('phone', e.target.value)} />
+        <Label>Secondary phone (optional)</Label>
+        <Input value={(config.secondaryPhone as string) ?? ''} onChange={e => onConfigChange('secondaryPhone', e.target.value)} />
         <div className="flex items-center gap-2">
           <Checkbox checked={config.showContact !== false} onCheckedChange={checked => onConfigChange('showContact', checked === true)} />
           <Label>Show contact from UI settings</Label>
@@ -853,7 +1103,7 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
         },
       };
     case SectionType.CATEGORY_STRIP:
-      return { title: 'Categories', layout: 'LAYOUT_ONE', showImages: true, categories: [], appearance };
+      return { title: 'Categories', eyebrow: '', layout: 'LAYOUT_ONE', showImages: true, categories: [], groups: [], appearance };
     case SectionType.BRANCH_DIRECTORY:
       return {
         variant: 'default',
@@ -867,10 +1117,12 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
       return {
         variant: 'hero',
         eyebrow: '',
+        badge: '',
         headline: '',
         subtitle: '',
         primaryCta: { text: 'View menu', url: '/shop' },
         secondaryCta: { text: 'Contact', url: '#contact' },
+        banners: [],
         appearance,
       };
     case SectionType.FEATURE_GRID:
@@ -886,7 +1138,7 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
     case SectionType.RICH_TEXT:
       return { layout: 'split', background: 'primary', eyebrow: 'About', title: '', body: '', cta: { text: 'Visit us', url: '#contact' }, appearance };
     case SectionType.BUSINESS_INFO:
-      return { title: '', subtitle: '', showContact: true, showHours: true, appearance };
+      return { brandName: '', brandAccent: '', title: '', subtitle: '', address: '', phone: '', secondaryPhone: '', showContact: true, showHours: true, appearance };
     case SectionType.SPACER:
       return { height: 48, appearance: {} };
     default:

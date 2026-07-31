@@ -1,80 +1,70 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
 import { getSortState, translate, Translate } from 'react-jhipster';
-import { isEqual } from 'lodash';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { Button as PrimeButton } from "primereact/button"
+
 import { createEntity, getEntity, reset, updateEntity } from './variable-item.reducer';
-import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
-import { IVariableItem, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
+import { IVariableItem, IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import Select from 'app/shared/components/select/select';
-import { getEntities as getAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
-import { ITaxonomy } from 'app/shared/model/taxonomy.model';
-import { ITerm } from 'app/shared/model/term.model';
+import { getEntities as getAttributes } from "app/entities/item/retail/attributes/retail-attribute.reducer";
+import { ITaxonomy } from "app/shared/model/taxonomy.model";
+import { ITerm } from "app/shared/model/term.model";
 import {
   getEntities as getAttributeValues,
-  reset as resetAttributeValues,
-} from 'app/entities/item/retail/attributes/retail-attribute-values.reducer';
+  reset as resetAttributeValues
+} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
+import { Accordion, AccordionTab } from "primereact/accordion";
 import AsyncSelect from 'app/shared/components/select/async-select';
-import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
+import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
+import { isEqual } from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
-import ItemStockTab from 'app/shared/components/item/item-stock-tab';
-import { IExchangeMeasure } from 'app/shared/model/ITEM/retail/simple-item.model';
-import { getEntities as getMeasures } from 'app/entities/item-measure/item-measure.reducer';
-import ItemLoyaltyTab from 'app/shared/components/item/item-loyalty-tab';
-import WholesalePrices from 'app/shared/components/item/wholsale-prices-modal';
-import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
-import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-rule/mix-and-match-rule.reducer';
-import AuditLogs from 'app/shared/components/logs/audit-logs';
-import MediaLibrary from 'app/shared/components/media-library/media-library';
-import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { preventEnterSubmit } from 'app/shared/util/form-utils';
-import { useVariantBranchPrice } from 'app/shared/hooks/useVariantBranchPrice';
-import { VariantEditor, VariantListPanel } from 'app/shared/components/item/variant-editor';
+import { TabPanel, TabView } from "primereact/tabview";
+import ItemStockTab from "app/shared/components/item/item-stock-tab";
+import { IExchangeMeasure } from "app/shared/model/ITEM/retail/simple-item.model";
+import { getEntities as getMeasures } from "app/entities/item-measure/item-measure.reducer";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
+import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import MediaLibrary from "app/shared/components/media-library/media-library";
+import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import SkuEditor from 'app/shared/components/item/sku-editor';
+import { getVariantSkus, normalizeSkuList } from 'app/shared/util/sku-utils';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { ArrowLeft, Save, Plus, Loader2 } from 'lucide-react';
-import { PageWrapper } from 'app/shared/layout/page-wrapper';
+
+const defaultItemPriceNumber = {
+  "PRICE_1": null,
+  "PRICE_2": null,
+  "PRICE_3": null,
+  "PRICE_4": null,
+  "PRICE_5": null,
+};
 
 const defaultSpecialPrices = {
-  WHOLE_SALE: { PRICE_1: null, PRICE_2: null, PRICE_3: null, PRICE_4: null, PRICE_5: null },
-  RETAIL: { PRICE_1: null, PRICE_2: null, PRICE_3: null, PRICE_4: null, PRICE_5: null },
+  "WHOLE_SALE": { ...defaultItemPriceNumber },
+  "RETAIL": { ...defaultItemPriceNumber }
 };
+
 
 export const VariableItemUpdate = () => {
   const dispatch = useAppDispatch();
+
   const navigate = useNavigate();
+
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
   const variableItemEntity = useAppSelector(state => state.variableRetailItem.entity);
@@ -87,27 +77,37 @@ export const VariableItemUpdate = () => {
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const location = useLocation();
+
+
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
 
-  const [paginationState] = useState(
+
+  const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
   const [variableItem, setVariableItem] = useState<IVariableItem>({
-    itemType: 'RETAIL',
+    itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_VARIABLE,
-    variants: [],
+    variants: []
   });
   const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
-  const [itemAttribute, setItemAttribute] = useState<{ attributeTax: ITaxonomy; attributeTerms: ITerm[] } | null>(null);
-  const [activeVariantIndex, setActiveVariantIndex] = useState(0);
-  const [deleteVariantDialog, setDeleteVariantDialog] = useState<{ open: boolean; index: number | null }>({ open: false, index: null });
-  const [deleteAttributeDialog, setDeleteAttributeDialog] = useState<{ open: boolean; index: number | null }>({ open: false, index: null });
-  const [pricesModal, setPricesModal] = useState({ show: false, branchId: '', variantIndex: null });
 
-  const { handleBranchPriceChange, handleHideItemPerBranch, handleSaveScheduledPrices } =
-    useVariantBranchPrice(setVariableItem);
+  const [itemAttribute, setItemAttribute] = useState<{
+    attributeTax: ITaxonomy;
+    attributeTerms: ITerm[];
+  } | null>(null);
+
+  const [pricesModal, setPricesModal] = useState({
+    show: false,
+    branchId: '',
+    variantIndex: null
+  });
+
+  const refreshProduct =() => {
+    dispatch(getEntity(id));
+  }
 
   const filteredAvailableAttributes = () => {
     const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
@@ -115,153 +115,252 @@ export const VariableItemUpdate = () => {
   };
 
   const filteredMeasures = useMemo(() => {
-    const exchangeMeasuresIds = variableItem?.measures?.map(exMeasure => exMeasure.itemMeasure.id);
-    return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id));
+    const exchangeMeasuresIds = variableItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
+    return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id))
   }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]);
 
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
     !itemAttribute ||
-    (itemAttribute?.attributeTax &&
-      Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
-      itemAttribute?.attributeTerms?.length === 0);
+    itemAttribute?.attributeTax &&
+    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
+    itemAttribute?.attributeTerms?.length === 0;
+
+
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
-    navigate(fromMenuId ? `/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc` : '/product');
-  };
+    if (fromMenuId) {
+      navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+    } else {
+      navigate("/product");
+    }
+  }
 
   const handleFieldChange = useCallback((fieldName, value) => {
-    setVariableItem(prevState => ({ ...prevState, [fieldName]: value }));
-  }, []);
+    setVariableItem((prevState) => ({
+      ...prevState,
+      [fieldName]: value,
+    }));
+  }, [])
 
-  const handleVariantFieldChange = (variantIndex: number, fieldName: string, value: any) => {
-    setVariableItem(prev => {
+  const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
+    setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         [fieldName]: value,
       };
-      return { ...prev, variants: updatedVariants };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
     });
   };
 
-  const addImage = (variantIndex: number, files: any) => {
+  const addImage = (variantIndex, files) => {
     handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleBaseMeasureChange = (baseMeasure) => {
     if (!variableItem?.measures || variableItem?.measures?.length === 0) {
-      setVariableItem(prev => ({ ...prev, baseMeasure }));
+      setVariableItem(prev => ({ ...prev, baseMeasure }))
     } else {
-      setVariableItem(prevState => ({
-        ...prevState,
-        baseMeasure,
-        measures: prevState.measures
-          .filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
-          .map(exMeasure => ({ ...exMeasure, exchangeRate: null })),
-      }));
+      setVariableItem(prevState => {
+        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+          .map((exMeasure) => ({ ...exMeasure, exchangeRate: null }));
+        return {
+          ...prevState,
+          baseMeasure,
+          measures: updatedMeasures
+        };
+      });
     }
-    setMeasureToAdd({});
+    setMeasureToAdd({})
   };
 
   const handleShowPricesModal = (branchId, variantIndex) => {
-    setPricesModal(prev => ({ ...prev, show: !prev.show, branchId, variantIndex }));
+    setPricesModal(prev => ({
+      ...prev,
+      show: !prev.show,
+      branchId,
+      variantIndex
+    }));
   };
 
   const handleSaveWholesalePrices = (prices) => {
     const { variantIndex, branchId } = pricesModal;
-    setVariableItem(prev => ({
-      ...prev,
-      variants: prev.variants.map((variant, index) => {
+    setVariableItem((prev) => {
+      const updatedVariants = prev.variants.map((variant, index) => {
+        console.log(variantIndex, 'variantsds')
         if (index !== variantIndex) return variant;
-        return {
-          ...variant,
-          branchVariantDetails: {
-            ...variant.branchVariantDetails,
-            [branchId]: { ...variant.branchVariantDetails?.[branchId], wholesalePrices: prices },
+
+        const updatedBranchVariantDetails = {
+          ...variant.branchVariantDetails,
+          [branchId]: {
+            ...variant.branchVariantDetails?.[branchId],
+            wholesalePrices: prices,
           },
         };
-      }),
-    }));
+
+        return {
+          ...variant,
+          branchVariantDetails: updatedBranchVariantDetails,
+        };
+      });
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
+
   const handleAddMeasure = () => {
-    setVariableItem(prevState => ({
+    setVariableItem((prevState) => ({
       ...prevState,
-      measures: [measureToAdd, ...(prevState.measures || [])],
+      measures: [measureToAdd, ...(prevState.measures || [])]
     }));
-    setMeasureToAdd({});
+    setMeasureToAdd({})
   };
 
   const handleMeasuresChange = (measureIndex, newRate) => {
-    setVariableItem(prevState => ({
-      ...prevState,
-      measures: prevState.measures.map((exMeasure, index) =>
-        measureIndex === index ? { ...exMeasure, exchangeRate: newRate } : exMeasure
-      ),
-    }));
+    setVariableItem((prevState) => {
+      const updatedMeasures = prevState.measures.map((exMeasure, index) => {
+        if (measureIndex === index) {
+          return { ...exMeasure, exchangeRate: newRate };
+        }
+        return exMeasure;
+      });
+
+      return {
+        ...prevState,
+        measures: updatedMeasures
+      };
+    });
   };
 
   const handleRemoveMeasure = (measureIndex) => {
-    setVariableItem(prevState => ({
-      ...prevState,
-      measures: prevState.measures.filter((_, index) => index !== measureIndex),
-    }));
+    setVariableItem((prevState) => {
+      const updatedMeasures = prevState.measures.filter((_, index) => index !== measureIndex);
+      return {
+        ...prevState,
+        measures: updatedMeasures
+      };
+    });
   };
 
+  const handleBranchPriceChange = (variantIndex, branchId, priceType, price) => {
+    setVariableItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            branch: { id: branchId },
+            [priceType]: price,
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+
   const handleAddAttribute = () => {
-    setVariableItem(prev => ({
+
+    setVariableItem((prev) => ({
       ...prev,
-      attributes: [...(prev.attributes || []), itemAttribute],
+      attributes: [
+        ...(prev.attributes || []),
+        itemAttribute,
+      ],
     }));
-    setItemAttribute(null);
+    setItemAttribute(null)
   };
 
   const handleItemAttributeSelect = (selectedOption) => {
     if (!selectedOption) {
       setItemAttribute(null);
-      return;
+      return
     }
+
     dispatch(getAttributeValues({
       id: selectedOption?.id,
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    setItemAttribute(prevState => ({ ...prevState, attributeTax: selectedOption }));
+    setItemAttribute((prevState) => ({ ...prevState, attributeTax: selectedOption }))
   };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
-    setVariableItem(prev => ({
+    setVariableItem((prev) => ({
       ...prev,
       attributes: prev.attributes.map((attr, i) =>
-        i === index ? { ...attr, attributeTerms: selectedTerms } : attr
+        i === index
+          ? {
+            ...attr,
+            attributeTerms: selectedTerms,
+          }
+          : attr
       ),
     }));
   };
 
-  const handleRemoveAttribute = (attributeIndex: number) => {
-    setVariableItem(prev => {
-      const updateAttributes = [...prev.attributes];
-      updateAttributes.splice(attributeIndex, 1);
-      return { ...prev, attributes: updateAttributes };
-    });
-  };
+  const generateCombinations = () => {
+    const combinations = [];
 
-  const handleDeleteVariant = (variantIndex: number) => {
-    setVariableItem(prev => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants.splice(variantIndex, 1);
-      return { ...prev, variants: updatedVariants };
-    });
-    if (activeVariantIndex >= variantIndex && activeVariantIndex > 0) {
-      setActiveVariantIndex(activeVariantIndex - 1);
-    }
+    const generate = (index, currentCombination) => {
+      if (index === variableItem?.attributes?.length) {
+        const newVariant = {
+          name: variableItem?.name || '',
+          attachments: [],
+          discounts: [],
+          sku: '',
+          price: null,
+          salePrice: null,
+          branchVariantDetails: {},
+          attributeValues: { ...currentCombination },
+          specialPrices: { ...defaultSpecialPrices }
+        };
+
+        const isDuplicate = variableItem?.variants.some((variant) => {
+          return isEqual(variant.attributeValues, newVariant.attributeValues)
+        });
+        if (!isDuplicate) {
+          combinations.push(newVariant);
+        }
+        return;
+      }
+
+      const attribute = variableItem?.attributes[index];
+      const { attributeTax, attributeTerms } = attribute;
+
+      for (const term of attributeTerms) {
+        generate(index + 1, {
+          ...currentCombination,
+          [attributeTax.id]: term,
+        });
+      }
+    };
+    generate(0, {});
+    console.log(combinations, 'combinationscombinations')
+    setVariableItem((prevState) => ({
+      ...prevState,
+      variants: [...prevState.variants, ...combinations],
+    }));
+    return combinations;
   };
 
   const handleAddVariant = () => {
-    setVariableItem(prev => ({
+    setVariableItem((prev) => ({
       ...prev,
       variants: [
         ...prev.variants,
@@ -274,58 +373,16 @@ export const VariableItemUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
-          specialPrices: { ...defaultSpecialPrices },
+          specialPrices: { ...defaultSpecialPrices }
         },
       ],
     }));
-    setActiveVariantIndex(variableItem.variants?.length ?? 0);
   };
 
-  const generateCombinations = () => {
-    const combinations = [];
-    const generate = (index, currentCombination) => {
-      if (index === variableItem?.attributes?.length) {
-        const newVariant = {
-          name: variableItem?.name || '',
-          attachments: [],
-          discounts: [],
-          sku: '',
-          price: null,
-          salePrice: null,
-          branchVariantDetails: {},
-          attributeValues: { ...currentCombination },
-          specialPrices: { ...defaultSpecialPrices },
-        };
-        const isDuplicate = variableItem?.variants.some(v => isEqual(v.attributeValues, newVariant.attributeValues));
-        if (!isDuplicate) {
-          combinations.push(newVariant);
-        }
-        return;
-      }
-      const attribute = variableItem?.attributes[index];
-      const { attributeTax, attributeTerms } = attribute;
-      for (const term of attributeTerms) {
-        generate(index + 1, { ...currentCombination, [attributeTax.id]: term });
-      }
-    };
-    generate(0, {});
-    setVariableItem(prevState => ({ ...prevState, variants: [...prevState.variants, ...combinations] }));
-  };
 
-  const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {
-    setVariableItem(prev => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[variantIndex] = {
-        ...updatedVariants[variantIndex],
-        attributeValues: { ...updatedVariants[variantIndex]?.attributeValues, [attributeId]: selectedOption },
-      };
-      return { ...prev, variants: updatedVariants };
-    });
-  };
 
-  const refreshProduct = () => {
-    dispatch(getEntity(id));
-  };
+
+  console.log(variableItem, 'variableItem')
 
   const handleNavigate = (variableItemId) => {
     navigate(`/retail/variable/${variableItemId}/edit` + location.search);
@@ -333,30 +390,67 @@ export const VariableItemUpdate = () => {
 
   useEffect(() => {
     if (isNew) {
-      dispatch(reset());
+      dispatch(reset())
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getBranches({ page: paginationState.activePage - 1, size: paginationState.itemsPerPage, sort: `${paginationState.sort},${paginationState.order}` }));
-    dispatch(getAttributes({ page: paginationState.activePage - 1, size: paginationState.itemsPerPage, sort: `${paginationState.sort},${paginationState.order}` }));
-    dispatch(getMeasures({ page: paginationState.activePage - 1, size: paginationState.itemsPerPage, sort: `${paginationState.sort},${paginationState.order}` }));
-    dispatch(getDiscounts({ page: paginationState.activePage - 1, size: paginationState.itemsPerPage, sort: `${paginationState.sort},${paginationState.order}` }));
-    dispatch(getMixAndMatchRules({ page: paginationState.activePage - 1, size: paginationState.itemsPerPage, sort: `${paginationState.sort},${paginationState.order}` }));
+
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getAttributes({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getMeasures({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
   }, [id, isNew]);
 
   useEffect(() => {
+
     if (!isNew) {
       setVariableItem(variableItemEntity);
     }
-    const variableItemId = variableItemEntity?.id;
+    const variableItemId = variableItemEntity?.id
     if (updateSuccess) {
       handleNavigate(variableItemId);
     }
+
   }, [variableItemEntity, updateSuccess]);
+
 
   const saveEntity = e => {
     e.preventDefault();
-    const entity = { ...variableItem };
+    const entity = {
+      ...variableItem,
+      variants: variableItem.variants.map(variant => ({
+        ...variant,
+        skus: normalizeSkuList(getVariantSkus(variant)),
+        sku: undefined,
+      })),
+    };
+    console.table(entity)
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -365,448 +459,505 @@ export const VariableItemUpdate = () => {
   };
 
   const loadOptions = (attributeId) => {
-    dispatch(resetAttributeValues());
+
+    dispatch(resetAttributeValues())
     dispatch(getAttributeValues({
       id: attributeId,
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    })).then(response => console.log(response, 'responseresponse'))
   };
 
-  const safeVariantIndex = Math.min(activeVariantIndex, (variableItem.variants?.length ?? 1) - 1);
-  const activeVariant = variableItem.variants?.[safeVariantIndex];
+  const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {
+    setVariableItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      const updatedAttributeValues = {
+        ...updatedVariants[variantIndex]?.attributeValues,
+        [attributeId]: selectedOption,
+      };
+
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        attributeValues: updatedAttributeValues,
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const confirm1 = (variantIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteVariant(variantIndex)
+    });
+  };
+
+  const handleDeleteVariant = (variantIndex) => {
+    setVariableItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(variantIndex, 1);
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const confirm2 = (attributeIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleRemoveAttribute(attributeIndex)
+    });
+  };
+
+  const handleRemoveAttribute = (attributeIndex) => {
+    setVariableItem((prev) => {
+      const updateAttributes = [...prev.attributes];
+      updateAttributes.splice(attributeIndex, 1);
+      return {
+        ...prev,
+        attributes: updateAttributes,
+      };
+    });
+  };
+
+  const AttributeAccordionHeader = (attributeIndex) => (
+    <div onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation()
+    }} className={"d-flex gap-3 ml-2 w-full"}>
+      <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
+
+      <PrimeButton className={"ml-auto"} color="danger" onClick={() => confirm2(attributeIndex)}>
+        <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
+      </PrimeButton>
+    </div>
+  )
+
+
+  const VariantAccordionHeader = (variantIndex) => (
+    <div onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation()
+    }} className={"d-flex gap-3 ml-2"}>
+      <label className={"mt-2"}><strong>{variableItem?.variants?.[variantIndex]?.name}</strong></label>
+      {variableItem?.attributes?.map((attribute, index) => {
+        return (
+          <AsyncSelect
+            key={index}
+            value={variableItem?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
+            getOptionLabel={option => option.name}
+            getOptionValue={option => option.id}
+            isLoading={loadingAttributesValues}
+            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+            defaultOptions={attribute?.attributeTerms}
+            onChange={(selectedOption) => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
+          />
+        )
+      })}
+      <Button className={"ml-auto"} color="danger" onClick={() => confirm1(variantIndex)}>
+        <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
+      </Button>
+    </div>
+  )
+
+
+
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <Spinner />
   }
 
   return (
-    <PageWrapper>
-      <form onKeyDown={preventEnterSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <div className="lg:col-span-9">
-            <Card>
-              <CardContent className="p-4">
-                <Tabs defaultValue="details">
-                  <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
-                    <TabsTrigger value="details" className="text-xs h-7">
-                      {translate('items.update.tabs.details.label')}
-                    </TabsTrigger>
-                    <TabsTrigger value="attributes" className="text-xs h-7">
-                      {translate('items.update.attributes', null, 'Attributes')}
-                    </TabsTrigger>
-                    <TabsTrigger value="variants" className="text-xs h-7">
-                      {translate('items.update.variants', null, 'Variants')}
-                    </TabsTrigger>
-                    <TabsTrigger value="visibility" className="text-xs h-7">
-                      {translate('items.update.tabs.visibility.label')}
-                    </TabsTrigger>
-                    <TabsTrigger value="loyalty" className="text-xs h-7">
-                      {translate('items.update.tabs.excludedFromLoyaltyPoints.label')}
-                    </TabsTrigger>
-                    {!isNew && (
-                      <TabsTrigger value="stock" className="text-xs h-7">
-                        {translate('items.update.tabs.stock.label')}
-                      </TabsTrigger>
-                    )}
-                    <TabsTrigger value="measures" className="text-xs h-7">
-                      {translate('items.update.measures', null, 'Measures')}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* Details tab: item-level fields */}
-                  <TabsContent value="details" className="space-y-4">
-                    <div className="text-lg font-semibold">
-                      {isNew
-                        ? <Translate contentKey="items.update.tabs.details.titles.create.variable">Create New Variable Item</Translate>
-                        : <span>Edit {variableItem.name}</span>}
-                    </div>
-                    <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
-                  </TabsContent>
-
-                  {/* Attributes tab */}
-                  <TabsContent value="attributes">
-                    <div className="space-y-4 mt-2">
-                      <div className="flex gap-3 items-end">
-                        <div className="flex-1 space-y-1">
-                          <Label className="text-xs font-semibold">
-                            <Translate contentKey="items.update.selectAttribute">Select Attribute</Translate>
-                          </Label>
-                          <Select
-                            value={itemAttribute?.attributeTax || null}
-                            options={filteredAvailableAttributes()}
-                            isClearable
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={attribute => handleItemAttributeSelect(attribute)}
-                          />
+    <form>
+      <div className={'d-flex row'}>
+        <Col md={9}>
+          <Card>
+            <CardBody>
+              <Row>
+                <div>
+                  <TabView>
+                    <TabPanel header={translate('items.update.tabs.details.label')}>
+                      <div className="w-100">
+                        <div className="text-xl font-semibold">
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {variableItem.name}</span>}
                         </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="h-8 text-xs"
-                          disabled={isAttributeAddButtonDisabled}
-                          onClick={handleAddAttribute}
-                        >
-                          <Translate contentKey="items.update.addAttribute">Add Attribute</Translate>
-                        </Button>
                       </div>
 
-                      <div className="flex gap-3 flex-wrap">
-                        <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={generateCombinations}>
-                          <Translate contentKey="items.update.generateVariants">Generate Variants</Translate>
-                        </Button>
-                      </div>
+                      <Row>
+                        <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
+                          <div className={`d-flex flex-column p-1 bg-white w-100`}>
+                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
-                      <Accordion type="multiple">
-                        {variableItem?.attributes?.map((attribute, index) => (
-                          <AccordionItem key={index} value={`attr-${index}`}>
-                            <AccordionTrigger className="text-xs hover:no-underline">
-                              <div className="flex items-center justify-between w-full pr-2">
-                                <span className="font-medium">{attribute?.attributeTax?.name}</span>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  className="h-6 text-xs"
-                                  onClick={e => { e.stopPropagation(); setDeleteAttributeDialog({ open: true, index }); }}
-                                >
-                                  <Translate contentKey="items.update.removeAttribute">Remove</Translate>
-                                </Button>
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="flex gap-3 items-center">
-                                <span className="text-xs shrink-0">{translate('items.update.name')}: {attribute?.attributeTax?.name}</span>
-                                <div className="flex-1">
-                                  <AsyncSelect
-                                    value={attribute?.attributeTerms}
-                                    isMulti
-                                    getOptionLabel={option => option.name}
-                                    getOptionValue={option => option.id}
-                                    onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                    isLoading={loadingAttributesValues}
-                                    onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                    defaultOptions={attributeValuesList}
-                                  />
-                                </div>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </div>
-                  </TabsContent>
-
-                  {/* Variants tab: two-panel layout */}
-                  <TabsContent value="variants">
-                    <div className="mt-2">
-                      {pricesModal?.show && pricesModal?.variantIndex !== null && (
-                        <WholesalePrices
-                          toggle={handleShowPricesModal}
-                          isOpen={pricesModal?.show}
-                          branchWholesalePrices={
-                            variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices
-                          }
-                          savePrices={handleSaveWholesalePrices}
-                        />
-                      )}
-
-                      <div className="flex gap-4 min-h-[500px]">
-                        {/* Left: variant list */}
-                        <div className="w-44 flex-shrink-0 border-r pr-3">
-                          <VariantListPanel
-                            variants={variableItem.variants || []}
-                            activeIndex={safeVariantIndex}
-                            onSelectVariant={setActiveVariantIndex}
-                            onAddVariant={handleAddVariant}
-                            renderLabel={(v: IVariableItemVariant) => (
-                              <div>
-                                <div className="truncate">{v.name || 'Unnamed'}</div>
-                                {v.attributeValues && variableItem?.attributes?.map((attr, i) => {
-                                  const val = v.attributeValues?.[attr?.attributeTax?.id];
-                                  return val ? <span key={i} className="text-[10px] text-muted-foreground mr-1">{val.name}</span> : null;
-                                })}
-                              </div>
-                            )}
-                          />
-                        </div>
-
-                        {/* Right: active variant editor */}
-                        <div className="flex-1 min-w-0">
-                          {activeVariant ? (
-                            <>
-                              {/* Attribute value pickers for active variant */}
-                              {variableItem?.attributes?.length > 0 && (
-                                <div className="flex flex-wrap gap-3 mb-3">
-                                  {variableItem.attributes.map((attribute, attrIdx) => (
-                                    <div key={attrIdx} className="flex-1 min-w-[120px] space-y-1">
-                                      <Label className="text-xs font-semibold">{attribute?.attributeTax?.name}</Label>
-                                      <AsyncSelect
-                                        value={activeVariant?.attributeValues?.[attribute?.attributeTax?.id]}
-                                        getOptionLabel={option => option.name}
-                                        getOptionValue={option => option.id}
-                                        isLoading={loadingAttributesValues}
-                                        onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                        defaultOptions={attribute?.attributeTerms}
-                                        onChange={selectedOption => handleHeaderChange(safeVariantIndex, attribute?.attributeTax?.id, selectedOption)}
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              <VariantEditor
-                                variant={activeVariant}
-                                variantIndex={safeVariantIndex}
-                                itemVariantType="RETAIL"
-                                branchList={branchList}
-                                setItem={setVariableItem}
-                                handleVariantFieldChange={handleVariantFieldChange}
-                                handleBranchPriceChange={handleBranchPriceChange}
-                                handleHideItemPerBranch={handleHideItemPerBranch}
-                                handleSaveScheduledPrices={handleSaveScheduledPrices}
-                                mixAndMatchRuleList={mixAndMatchRuleList}
-                                showName
-                                showSku
-                                showDescription
-                                showPrice
-                                showSalePrice
-                                defaultTab="general"
-                                onDeleteVariant={() => setDeleteVariantDialog({ open: true, index: safeVariantIndex })}
-                                canDeleteVariant={(variableItem.variants?.length ?? 0) > 1}
-                                variantLabel={activeVariant?.name || `Variant ${safeVariantIndex + 1}`}
-                                generalTabContent={
-                                  <div className="space-y-2">
-                                    <Label className="text-xs font-semibold">
-                                      <Translate contentKey="items.update.image">Image</Translate>
-                                    </Label>
-                                    <MediaLibrary
-                                      handleFilesSelectCallback={files => addImage(safeVariantIndex, files)}
-                                      defaultValues={transformAttachmentStructure(activeVariant?.attachments, 'toFileLibraryListItem')}
+                            <Row className={'mb-3'}>
+                              <Row>
+                                <Col md="4">
+                                  <div className={'d-flex flex-column gap-2'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                    </label>
+                                    <Select
+                                      value={itemAttribute?.attributeTax || null}
+                                      options={filteredAvailableAttributes()}
+                                      isClearable
+                                      getOptionValue={option => option.id}
+                                      getOptionLabel={option => option.name}
+                                      onChange={attribute => handleItemAttributeSelect(attribute)}
                                     />
                                   </div>
-                                }
-                              />
-                            </>
-                          ) : (
-                            <div className="flex items-center justify-center h-40 text-xs text-muted-foreground border rounded-md">
-                              No variant selected. Add a variant or select one from the list.
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
+                                </Col>
 
-                  <TabsContent value="visibility">
-                    <Visibility
-                      initialState={variableItem.visibility}
-                      title={translate('items.update.tabs.visibility.titles.variable')}
-                      onStateChanged={visibility => setVariableItem(prev => ({ ...prev, visibility }))}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="loyalty">
-                    <ItemLoyaltyTab
-                      excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints}
-                      onFieldChange={handleFieldChange}
-                    />
-                  </TabsContent>
-
-                  {!isNew && (
-                    <TabsContent value="stock">
-                      <ItemStockTab refreshProduct={refreshProduct} variants={variableItem?.variants} itemId={variableItem.id} />
-                    </TabsContent>
-                  )}
-
-                  <TabsContent value="measures">
-                    <div className="space-y-4 mt-2">
-                      <div className="grid grid-cols-4 gap-3 items-end">
-                        <div className="space-y-1">
-                          <Label className="text-xs font-semibold">
-                            <Translate contentKey="items.update.baseMeasure">Base Measure</Translate>
-                          </Label>
-                          <Select
-                            value={variableItem?.baseMeasure}
-                            options={measureList}
-                            name="baseMeasure"
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={handleBaseMeasureChange}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs font-semibold">
-                            <Translate contentKey="items.update.measure">Measure</Translate>
-                          </Label>
-                          <Select
-                            value={measureToAdd?.itemMeasure || null}
-                            isDisabled={!variableItem?.baseMeasure}
-                            options={filteredMeasures}
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs font-semibold">
-                            <Translate contentKey="items.update.exchangeRate">Exchange Rate</Translate>
-                          </Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            value={measureToAdd?.exchangeRate ?? ''}
-                            disabled={!measureToAdd?.itemMeasure}
-                            onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: parseFloat(e.target.value) }))}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="h-8 text-xs"
-                          disabled={!measureToAdd?.exchangeRate}
-                          onClick={handleAddMeasure}
-                        >
-                          Add
-                        </Button>
-                      </div>
-
-                      <div className="border rounded-md">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs"><Translate contentKey="items.update.measure">Measure</Translate></TableHead>
-                              <TableHead className="text-xs"><Translate contentKey="items.update.exchangeRate">Exchange Rate</Translate></TableHead>
-                              <TableHead className="text-xs">Remove</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {variableItem?.measures?.map((exMeasure, index) => (
-                              <TableRow key={index}>
-                                <TableCell className="text-xs">{exMeasure?.itemMeasure?.name}</TableCell>
-                                <TableCell>
-                                  <Input
-                                    type="number"
-                                    value={exMeasure?.exchangeRate ?? ''}
-                                    required
-                                    onChange={e => handleMeasuresChange(index, parseFloat(e.target.value))}
-                                    className="w-24 h-7 text-xs"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    onClick={() => handleRemoveMeasure(index)}
+                                <Col md="3">
+                                  <PrimeButton
+                                    color="primary"
+                                    disabled={isAttributeAddButtonDisabled}
+                                    className={'mt-5'}
+                                    onClick={handleAddAttribute}
                                   >
-                                    <Translate contentKey="items.update.remove">Remove</Translate>
+                                    <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                  </PrimeButton>
+                                </Col>
+
+                                <Col md={'12'} className={'mt-2'}>
+                                  <Accordion multiple>
+                                    {variableItem?.attributes?.map((attribute, index) => (
+                                      <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
+                                        <div className={'d-flex gap-3'}>
+                                          <label className={'mt-2'}>
+                                            {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                          </label>
+                                          <Col md={'9'}>
+                                            <AsyncSelect
+                                              value={attribute?.attributeTerms}
+                                              isMulti
+                                              getOptionLabel={option => option.name}
+                                              getOptionValue={option => option.id}
+                                              onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                              isLoading={loadingAttributesValues}
+                                              onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                              defaultOptions={attributeValuesList}
+                                            />
+                                          </Col>
+                                        </div>
+                                      </AccordionTab>
+                                    ))}
+                                  </Accordion>
+                                </Col>
+                              </Row>
+                            </Row>
+                          </div>
+                        </FormGroup>
+                      </Row>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.variants')}>
+                      <Col md="5" className={'d-flex gap-3'}>
+                        <Button color="primary" className={'mt-5'} onClick={generateCombinations}>
+                          <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
+                        </Button>
+
+                        <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
+                          <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
+                        </Button>
+                      </Col>
+                      <Col md={'12'} className={'mt-2'}>
+                        <Row className={'mt-2'}>
+                          {pricesModal?.show && pricesModal?.variantIndex !== null && (
+                            <WholesalePrices
+                              toggle={handleShowPricesModal}
+                              isOpen={pricesModal?.show}
+                              branchWholesalePrices={
+                                variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]
+                                  ?.wholesalePrices
+                              }
+                              savePrices={handleSaveWholesalePrices}
+                            />
+                          )}
+                          {variableItem?.variants?.map((variant, variantIndex) => (
+                            <Col md={'12'} key={variantIndex} className={'mt-2'}>
+                              <Accordion multiple>
+                                <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
+                                  <Row>
+                                    <Col md="4">
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.name'}>Name</Translate>
+                                        </label>
+                                        <InputText
+                                          name="variant-name"
+                                          id="name"
+                                          required={true}
+                                          placeholder={translate('items.update.placeholders.variantName')}
+                                          value={variant?.name}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                        </label>
+                                        <SkuEditor
+                                          value={getVariantSkus(variant)}
+                                          onChange={value => handleVariantFieldChange(variantIndex, 'skus', value)}
+                                          placeholder="Variant SKU"
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label htmlFor="price" className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.price'}>Price</Translate>
+                                        </label>
+                                        <InputNumber
+                                          name="price"
+                                          id="price"
+                                          inputId={'price'}
+                                          inputClassName={'w-1'}
+                                          required={true}
+                                          placeholder="Variant Price"
+                                          value={variant?.price}
+                                          min={0}
+                                          maxFractionDigits={2}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                        </label>
+                                        <InputNumber
+                                          name="sale-price"
+                                          id="sale-price"
+                                          placeholder="Variant Sale Price"
+                                          min={0}
+                                          maxFractionDigits={2}
+                                          value={variant?.salePrice}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                        />
+                                      </div>
+                                    </Col>
+                                  </Row>
+
+                                  <Row>
+                                    <Col md="7">
+                                      <div className={'d-flex flex-column '}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.image'}>Image</Translate>
+                                        </label>
+                                        <MediaLibrary
+                                          handleFilesSelectCallback={files => addImage(variantIndex, files)}
+                                          defaultValues={transformAttachmentStructure(variant?.attachments, 'toFileLibraryListItem')}
+                                        />
+                                      </div>
+                                    </Col>
+                                  </Row>
+
+                                  <Row>
+                                    <Col md="7">
+                                      <DiscountDropdown
+                                        discounts={variant.discounts}
+                                        handleVariantChange={handleVariantFieldChange}
+                                        variantIndex={variantIndex}
+                                      />
+
+                                      <div className={'d-flex flex-column gap-2'}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                        </label>
+                                        <Select
+                                          isClearable
+                                          value={variant?.mixAndMatchRule}
+                                          options={mixAndMatchRuleList}
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={mixAndMatchRule =>
+                                            handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                          }
+                                        />
+                                      </div>
+                                    </Col>
+                                  </Row>
+
+                                  {/* <VariantBranchPrice
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    variantIndex={variantIndex}
+                                    branchVariantDetails={variant.branchVariantDetails}
+                                    itemVariantType={'RETAIL'}
+                                  /> */}
+                                </AccordionTab>
+                              </Accordion>
+                            </Col>
+                          ))}
+                        </Row>
+                      </Col>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                      <Visibility
+                        initialState={variableItem.visibility}
+                        title={translate('items.update.tabs.visibility.titles.variable')}
+                        onStateChanged={visibility =>
+                          setVariableItem(prev => {
+                            return { ...prev, visibility };
+                          })
+                        }
+                      />
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                      <ItemLoyaltyTab
+                        excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints}
+                        onFieldChange={handleFieldChange}
+                      />
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
+                      <ItemStockTab refreshProduct={refreshProduct} variants={variableItem?.variants} itemId={variableItem.id} />
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.measures')}>
+                      <Row className={'mb-3 d-flex flex-column gap-3'}>
+                        <Col md="12" className={'d-flex gap-3 mb-3'}>
+                          <div className={'d-flex flex-column gap-2 w-6 mt-3'}>
+                            <label className={'font-semibold'}>
+                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
+                            </label>
+                            <Select
+                              value={variableItem?.baseMeasure}
+                              options={measureList}
+                              name="baseMeasure"
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={handleBaseMeasureChange}
+                            />
+                          </div>
+
+                          <Table>
+                            <thead>
+                              <tr>
+                                <th>Measure</th>
+                                <th className="w-1">Exchange Rate</th>
+                              </tr>
+                            </thead>
+                            <thead>
+                              <tr>
+                                <td>
+                                  <Select
+                                    value={measureToAdd?.itemMeasure || null}
+                                    isDisabled={!variableItem?.baseMeasure}
+                                    options={filteredMeasures}
+                                    getOptionValue={option => option.id}
+                                    getOptionLabel={option => option.name}
+                                    onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
+                                  />
+                                </td>
+                                <td>
+                                  <InputNumber
+                                    value={measureToAdd?.exchangeRate}
+                                    disabled={!measureToAdd?.itemMeasure}
+                                    onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
+                                  />
+                                </td>
+                                <td>
+                                  <Button
+                                    disabled={!measureToAdd?.exchangeRate}
+                                    onClick={handleAddMeasure}
+                                    color="primary"
+                                    className={'mb-2'}
+                                  >
+                                    Add
                                   </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
+                                </td>
+                              </tr>
+                            </thead>
+                          </Table>
+                        </Col>
 
-          <div className="lg:col-span-3">
-            <div className="sticky top-4 space-y-4">
-              <Card>
-                <CardHeader className="p-3">
-                  <CardTitle className="text-sm">Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 space-y-2">
-                  <Button
-                    className="text-xs h-8 w-full"
-                    onClick={handleBackClick}
-                    type="button"
-                    variant="secondary"
-                  >
-                    <ArrowLeft className="h-3 w-3 mr-2" />
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </Button>
-                  <Button
-                    className="text-xs h-8 w-full"
-                    onClick={saveEntity}
-                    type="button"
-                    disabled={updating}
-                  >
-                    {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <Save className="h-3 w-3 mr-2" />}
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </Button>
-                </CardContent>
-              </Card>
-              {variableItemEntity?.id && <AuditLogs entityId={variableItemEntity?.id} />}
+                        <Col md="8">
+                          <Table>
+                            <thead>
+                              <tr>
+                                <th>
+                                  <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                                </th>
+                                <th>
+                                  <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
+                                </th>
+                                <th>Remove</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {variableItem?.measures?.map((exMeasure, index) => (
+                                <tr key={index}>
+                                  <td>{exMeasure?.itemMeasure?.name}</td>
+                                  <td>
+                                    <InputNumber
+                                      value={exMeasure?.exchangeRate}
+                                      required
+                                      onChange={e => handleMeasuresChange(index, e.value)}
+                                    />
+                                  </td>
+                                  <td>
+                                    <PrimeButton type={'button'} onClick={() => handleRemoveMeasure(index)} severity={'danger'}>
+                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                                    </PrimeButton>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </Col>
+                      </Row>
+                    </TabPanel>
+                  </TabView>
+                </div>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col
+          md={3}
+          style={{
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+          }}
+        >
+          <Card>
+            <CardHeader>Actions</CardHeader>
+            <div className={'d-flex gap-3 mt-2'}>
+              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
+                <FontAwesomeIcon icon="arrow-left" />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
+              </PrimeButton>
+              &nbsp;
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="button" onClick={saveEntity} disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </PrimeButton>
             </div>
-          </div>
-        </div>
-      </form>
-
-      {/* Confirm delete variant */}
-      <AlertDialog
-        open={deleteVariantDialog.open}
-        onOpenChange={open => setDeleteVariantDialog({ open, index: null })}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">Are you sure you want to delete this variant?</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="h-8 text-xs"
-              onClick={() => {
-                handleDeleteVariant(deleteVariantDialog.index);
-                setDeleteVariantDialog({ open: false, index: null });
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Confirm remove attribute */}
-      <AlertDialog
-        open={deleteAttributeDialog.open}
-        onOpenChange={open => setDeleteAttributeDialog({ open, index: null })}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">Are you sure you want to remove this attribute?</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="h-8 text-xs"
-              onClick={() => {
-                handleRemoveAttribute(deleteAttributeDialog.index);
-                setDeleteAttributeDialog({ open: false, index: null });
-              }}
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </PageWrapper>
+          </Card>
+          {variableItemEntity?.id && <AuditLogs entityId={variableItemEntity?.id} />}
+        </Col>
+      </div>
+    </form>
   );
 };
 

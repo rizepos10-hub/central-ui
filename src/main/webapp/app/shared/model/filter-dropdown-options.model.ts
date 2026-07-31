@@ -21,7 +21,7 @@ export interface IDropDownMap {
 }
 
 interface DropDownCategory<T> {
-  options: T[];
+  options?: T[];
   getEntities: AsyncThunk<AxiosResponse<T[]>, IQueryParams, any>;
   searchEntities: any;
 }

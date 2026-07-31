@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Translate } from 'react-jhipster';
+import Select from 'react-select/dist/declarations/src/Select';
 import { filterEntities } from 'app/entities/item/retail/product/product.reducer';
 import { applyMatchModeMap } from './util/filter-match-model-util';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
@@ -12,14 +13,7 @@ import { IItem } from './model/ITEM/item.model';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2 } from 'lucide-react';
-
-function getIngredientLabel(ingredient: IIngredient): string {
-  const itemName = ingredient.item?.name ?? '—';
-  const variant = ingredient.item?.variants?.find(v => v.id === ingredient.variantId);
-  return variant?.name ? `(${itemName}) ${variant.name}` : itemName;
-}
 
 const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient[]; onChange: (ingredients: IIngredient[]) => void }) => {
   const dispatch = useAppDispatch();
@@ -49,7 +43,11 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
       const payload = response.payload as any;
       const data = payload?.data;
 
+      // flattedData now is array of objects with variantId and name
+      // we need to return array of objects with two fields: variant which holds
+
       const flattedData = data?.flatMap(item =>
+        // filter selected variants
         item?.variants?.filter(variant => !ingredients.some(ingredient => ingredient.variantId === variant.id))?.map(variant => ({
           variant,
           item,
@@ -101,12 +99,13 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
     onChange(newIngredients);
   };
 
+  console.log(ingredients, 'ingredients');
+
   return (
-    <div className="border rounded-md p-3 space-y-3">
+    <div className="space-y-3">
       <Label htmlFor="ingredients" className="text-xs font-semibold">
         <Translate contentKey={'common.ingredients'}>ingredients</Translate>
       </Label>
-
       <div className="flex gap-2">
         <AsyncSelect
           value={selectedItemWithVariant}
@@ -138,60 +137,36 @@ const IngredientsPicker = ({ ingredients, onChange }: { ingredients: IIngredient
           <Translate contentKey={'common.add'}>Add</Translate>
         </Button>
       </div>
-
-      <div className="border rounded">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs">
-                <Translate contentKey={'common.name'}>Name</Translate>
-              </TableHead>
-              <TableHead className="text-xs w-28">
-                <Translate contentKey={'common.quantity'}>Quantity</Translate>
-              </TableHead>
-              <TableHead className="text-xs w-28" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ingredients?.length > 0 ? (
-              ingredients.map((ingredient, index) => (
-                <TableRow key={ingredient.variantId ?? index}>
-                  <TableCell className="text-xs">{getIngredientLabel(ingredient)}</TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      value={ingredient.quantity}
-                      onChange={e => {
-                        updateIngredientQuantity(ingredient, parseFloat(e.target.value) ?? 1);
-                      }}
-                      min={1}
-                      step={1}
-                      className="h-7 text-xs w-20"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      type="button"
-                      onClick={() => removeIngredient(ingredient)}
-                      size="sm"
-                      className="h-7 text-xs"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      <Translate contentKey={'common.remove'}>Remove</Translate>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={3} className="text-xs text-muted-foreground text-center py-4">
-                  No ingredients added yet
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {ingredients?.map((ingredient, index) => (
+          <div key={index} className="grid grid-cols-12 gap-2 items-center">
+            <div className="col-span-7 text-xs">{ingredient.item?.name}</div>
+            <div className="col-span-3">
+              <Input
+                type="number"
+                value={ingredient.quantity}
+                onChange={e => {
+                  updateIngredientQuantity(ingredient, parseFloat(e.target.value) ?? 1);
+                }}
+                min={1}
+                step={1}
+                className="h-7 text-xs"
+              />
+            </div>
+            <div className="col-span-2">
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={() => removeIngredient(ingredient)}
+                size="sm"
+                className="h-7 text-xs"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                <Translate contentKey={'common.remove'}>Remove</Translate>
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

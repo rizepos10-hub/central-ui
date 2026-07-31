@@ -284,9 +284,9 @@ beforeEach(() => {
 
   mockDispatch.mockImplementation(action => {
     if (action?.type === 'customer/searchCustomers') {
-      const firstNameFilter = action.payload?.filters?.firstName?.value;
-      const businessNameFilter = action.payload?.filters?.['businessDetails.businessName']?.value;
-      const searchValue = firstNameFilter || businessNameFilter || '';
+      const groupedConstraints = action.payload?.groups?.[0]?.constraints ?? [];
+      const groupedSearchValue = groupedConstraints.find(constraint => constraint?.field === 'firstName')?.value;
+      const searchValue = groupedSearchValue || '';
 
       if (!searchValue) {
         return Promise.resolve({
@@ -303,23 +303,6 @@ beforeEach(() => {
           },
         });
       }
-
-      if (firstNameFilter) {
-        return Promise.resolve({
-          type: 'customer/searchCustomers/fulfilled',
-          payload: {
-            data: [
-              {
-                id: 'customer-1',
-                firstName: 'John',
-                lastName: 'Doe',
-                businessDetails: { businessName: 'Acme LLC' },
-              },
-            ],
-          },
-        });
-      }
-
       return Promise.resolve({
         type: 'customer/searchCustomers/fulfilled',
         payload: {
@@ -1466,13 +1449,14 @@ describe('OrderCreate payment flow', () => {
 
     const customerSearchAction = mockDispatch.mock.calls.find(([action]) => action?.type === 'customer/searchCustomers')?.[0];
     expect(customerSearchAction.payload.filters).toEqual({});
+    expect(customerSearchAction.payload.groups).toEqual([]);
 
     await waitFor(() => {
       expect(screen.getByRole('option', { name: 'John Doe (Acme LLC)' })).not.toBeNull();
     });
   });
 
-  it('searches by both customer name and business name and merges duplicate results', async () => {
+  it('searches customers with one grouped request across name and business fields', async () => {
     renderOrderCreate(['ROLE_ADMINISTRATOR']);
 
     await waitFor(() => {
@@ -1483,26 +1467,35 @@ describe('OrderCreate payment flow', () => {
 
     mockDispatch.mockClear();
 
-    fireEvent.change(screen.getByLabelText('Customer input'), { target: { value: 'acme' } });
+    const openCustomerButton = screen.queryByRole('button', { name: 'Open Customer' });
+    if (openCustomerButton) {
+      fireEvent.click(openCustomerButton);
+      mockDispatch.mockClear();
+    }
+
+    fireEvent.change(await screen.findByLabelText('Customer input'), { target: { value: 'acme' } });
 
     await waitFor(() => {
       expect(
         mockDispatch.mock.calls.filter(([action]) => action?.type === 'customer/searchCustomers')
-      ).toHaveLength(2);
+      ).toHaveLength(1);
     });
 
-    const customerSearchCalls = mockDispatch.mock.calls
+    const customerSearchCall = mockDispatch.mock.calls
       .map(([action]) => action)
-      .filter(action => action?.type === 'customer/searchCustomers');
+      .find(action => action?.type === 'customer/searchCustomers');
 
-    expect(customerSearchCalls[0].payload.filters.firstName).toEqual({
-      value: 'acme',
-      matchMode: 'CONTAINS',
-    });
-    expect(customerSearchCalls[1].payload.filters['businessDetails.businessName']).toEqual({
-      value: 'acme',
-      matchMode: 'CONTAINS',
-    });
+    expect(customerSearchCall.payload.filters).toEqual({});
+    expect(customerSearchCall.payload.groups).toEqual([
+      {
+        operator: 'OR',
+        constraints: [
+          { field: 'firstName', value: 'acme', matchMode: 'CONTAINS' },
+          { field: 'lastName', value: 'acme', matchMode: 'CONTAINS' },
+          { field: 'businessDetails.businessName', value: 'acme', matchMode: 'CONTAINS' },
+        ],
+      },
+    ]);
 
     await waitFor(() => {
       expect(screen.getByRole('option', { name: 'John Doe (Acme LLC)' })).not.toBeNull();

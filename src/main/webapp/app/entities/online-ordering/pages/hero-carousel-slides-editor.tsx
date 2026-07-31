@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { IAttachment } from 'app/shared/model/attachment.model';
@@ -209,6 +210,32 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                             updateSlideField(index, 'buttonSetting', { ...buttonSetting, text: e.target.value })
                           }
                         />
+                      </div>
+                      <ColorInputField
+                        label="Button color"
+                        placeholder="#ffffff"
+                        value={buttonSetting.color ?? ''}
+                        onChange={value =>
+                          updateSlideField(index, 'buttonSetting', { ...buttonSetting, color: value })
+                        }
+                      />
+                      <div>
+                        <Label className="text-xs">Button alignment</Label>
+                        <Select
+                          value={buttonSetting.alignment ?? 'CENTER'}
+                          onValueChange={value =>
+                            updateSlideField(index, 'buttonSetting', { ...buttonSetting, alignment: value })
+                          }
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="LEFT">Left</SelectItem>
+                            <SelectItem value="CENTER">Center</SelectItem>
+                            <SelectItem value="RIGHT">Right</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   )}

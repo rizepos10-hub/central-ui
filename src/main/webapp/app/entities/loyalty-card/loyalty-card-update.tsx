@@ -26,8 +26,8 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import AsyncSelect from 'app/shared/components/select/async-select';
-import { FilterMatchMode } from 'primereact/api';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { buildCustomerSearchGroups } from 'app/shared/util/customer-search-filter-util';
 
 interface CustomerSearchOption {
   value: string;
@@ -109,9 +109,8 @@ export const LoyaltyCardUpdate = () => {
       sortField: null,
       sortOrder: null,
       query: '',
-      filters: {
-        firstName: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
-      },
+      filters: {},
+      groups: buildCustomerSearchGroups(inputValue),
     };
 
     const updatedQuery = applyMatchModeMap(query);

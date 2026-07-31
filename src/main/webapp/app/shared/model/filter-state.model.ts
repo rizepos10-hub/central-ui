@@ -19,7 +19,7 @@ export interface ILazyState {
   filters: {
     "categories.id": Filter;
     "attributes": Filter;
-    "variants.sku"?: Filter;
+    "variants.skus"?: Filter;
     name: Filter;
     itemVariantType?: Filter
   };

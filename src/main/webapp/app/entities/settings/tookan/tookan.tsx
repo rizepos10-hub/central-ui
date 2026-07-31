@@ -4,6 +4,7 @@ import { ArrowLeft, Copy, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { runtimeConfig } from 'app/config/runtime-config';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import {
   defaultTookanSettingValue,
@@ -35,7 +36,7 @@ const TookanSettings = () => {
   const [webhookSecretInput, setWebhookSecretInput] = useState('');
 
   const tenant = getTenantFromURL() || '{tenant}';
-  const webhookBaseUrl = useMemo(() => SERVER_API_URL.replace(/\/$/, ''), []);
+  const webhookBaseUrl = useMemo(() => runtimeConfig.SERVER_DOMAIN.replace(/\/$/, ''), []);
   const webhookUrl = useMemo(() => `${webhookBaseUrl}/api/tookan/event/${tenant}`, [tenant, webhookBaseUrl]);
   const tookanPlatformFeeQuery = useMemo(
     () =>

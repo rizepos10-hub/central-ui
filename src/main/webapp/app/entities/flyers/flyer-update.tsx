@@ -12,13 +12,16 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeEntityField, createEntity, getEntity, reset, updateEntity } from './flyer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as searchAllItems } from 'app/entities/item/all-items.reducer';
+import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-rule/mix-and-match-rule.reducer';
 import AsyncSelect from 'app/shared/components/select/async-select';
 import { IFlyer, IFlyerEntry, IFlyerSchedule, IFlyerVariantRef } from 'app/shared/model/flyer.model';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import { IMixAndMatchRule } from 'app/shared/model/mix-and-match-rule.model';
 import { DayOfWeek } from 'app/shared/model/ENUMS/day-of-week.model';
 import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { ISchedule } from 'app/shared/model/visibility.model';
+import { formatSkuList } from 'app/shared/util/sku-utils';
 import {
   Select,
   SelectContent,
@@ -144,6 +147,8 @@ const buildEntry = (): IFlyerEntry => ({
   item: null,
   variant: null,
   price: null,
+  mixAndMatchRuleId: null,
+  mixAndMatchRule: null,
 });
 
 const getVariantOptions = (item?: IItem | null): VariantOption[] =>
@@ -151,7 +156,7 @@ const getVariantOptions = (item?: IItem | null): VariantOption[] =>
     .map(variant => {
       const variantId = variant?.id || variant?.variantId;
       const variantName = variant?.name || variant?.variantName;
-      const variantSku = variant?.sku;
+      const variantSku = formatSkuList(variant);
 
       if (!variantId) {
         return null;
@@ -202,6 +207,10 @@ const normalizeEntry = (entry?: IFlyerEntry | null): IFlyerEntry => ({
         }
       : null),
   price: entry?.price ?? null,
+  mixAndMatchRuleId: entry?.mixAndMatchRule?.id || entry?.mixAndMatchRuleId || null,
+  mixAndMatchRule:
+    entry?.mixAndMatchRule ||
+    (entry?.mixAndMatchRuleId ? { id: entry.mixAndMatchRuleId, name: entry.mixAndMatchRuleId } : null),
 });
 
 export const FlyerUpdate = () => {
@@ -215,6 +224,7 @@ export const FlyerUpdate = () => {
   const updating = useAppSelector(state => state.flyer.updating);
   const updateSuccess = useAppSelector(state => state.flyer.updateSuccess);
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
+  const mixAndMatchRuleList: IMixAndMatchRule[] = useAppSelector(state => state.mixAndMatchRule.entities);
 
   const createNewRef = useRef(false);
   const [itemLoadingByIndex, setItemLoadingByIndex] = useState<Record<number, boolean>>({});
@@ -230,6 +240,7 @@ export const FlyerUpdate = () => {
     }
 
     dispatch(getBranches({ page: 0, size: 500, sort: 'name,asc' }));
+    dispatch(getMixAndMatchRules({ page: 0, size: 500, sort: 'name,asc' }));
   }, [dispatch, id, isNew]);
 
   useEffect(() => {
@@ -485,6 +496,8 @@ export const FlyerUpdate = () => {
         item: entry.item,
         variant: entry.variant,
         price: entry.price,
+        mixAndMatchRuleId: entry.mixAndMatchRule?.id || entry.mixAndMatchRuleId || null,
+        mixAndMatchRule: entry.mixAndMatchRule,
       })),
     };
 
@@ -727,7 +740,7 @@ export const FlyerUpdate = () => {
                 <div>
                   <h3 className="text-sm font-semibold">Entries</h3>
                   <p className="text-xs text-muted-foreground">
-                    Search an item, pick one of its variants, then set the flyer entry price.
+                    Search an item, pick a variant, optionally override Mix &amp; Match for this flyer schedule, then set the special price.
                   </p>
                 </div>
                 <Button type="button" variant="outline" className="h-8 text-xs" onClick={handleAddEntry}>
@@ -745,7 +758,7 @@ export const FlyerUpdate = () => {
                         ...options,
                         {
                           value: entry.variant.id,
-                          label: entry.variant.name || entry.variant.sku || entry.variant.id,
+                          label: entry.variant.name || formatSkuList(entry.variant) || entry.variant.id,
                           variant: entry.variant,
                         },
                       ];
@@ -762,10 +775,12 @@ export const FlyerUpdate = () => {
                       }
                     : null;
 
+                  const selectedMixAndMatchId = entry.mixAndMatchRule?.id || entry.mixAndMatchRuleId || '';
+
                   return (
                     <div
                       key={`flyer-entry-${entryIndex}`}
-                      className="grid gap-3 rounded-md border p-3 md:grid-cols-[minmax(0,1fr)_220px_160px_100px]"
+                      className="grid gap-3 rounded-md border p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_140px_100px]"
                     >
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold">Item</Label>
@@ -807,6 +822,41 @@ export const FlyerUpdate = () => {
                             {variantOptions.map(option => (
                               <SelectItem key={option.value} value={option.value} className="text-xs">
                                 {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Mix &amp; Match</Label>
+                        <Select
+                          value={selectedMixAndMatchId || '__default__'}
+                          onValueChange={value => {
+                            if (value === '__default__') {
+                              handleEntryChange(entryIndex, {
+                                mixAndMatchRuleId: null,
+                                mixAndMatchRule: null,
+                              });
+                              return;
+                            }
+                            const selectedRule = mixAndMatchRuleList.find(rule => rule.id === value) || null;
+                            handleEntryChange(entryIndex, {
+                              mixAndMatchRuleId: selectedRule?.id || null,
+                              mixAndMatchRule: selectedRule,
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Use item default" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__default__" className="text-xs">
+                              Use item default
+                            </SelectItem>
+                            {mixAndMatchRuleList.map(rule => (
+                              <SelectItem key={rule.id} value={rule.id} className="text-xs">
+                                {rule.name || rule.id}
                               </SelectItem>
                             ))}
                           </SelectContent>

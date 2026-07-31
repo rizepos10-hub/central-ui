@@ -37,6 +37,9 @@ const getTsLoaderRule = env => {
 
 module.exports = async options => {
   const development = options.env === 'development';
+  const runtimeEnvironment = development
+    ? { ...environment, ...environmentDev }
+    : { ...environment, ...environmentProd };
   const languagesHash = await hashElement(path.resolve(__dirname, '../src/main/webapp/i18n'), {
     algo: 'md5',
     encoding: 'hex',
@@ -103,16 +106,6 @@ module.exports = async options => {
           I18N_HASH: JSON.stringify(languagesHash.hash),
           DEVELOPMENT: JSON.stringify(development),
           VERSION: JSON.stringify(environment.VERSION),
-          SERVER_API_URL: `${development ? JSON.stringify(environmentDev.SERVER_API_URL) : JSON.stringify(environmentProd.SERVER_API_URL)}`,
-          SERVER_ADMIN_API_URL: `${
-            development ? JSON.stringify(environmentDev.SERVER_ADMIN_API_URL) : JSON.stringify(environmentProd.SERVER_ADMIN_API_URL)
-          }`,
-          SERVER_DOMAIN: `${development ? JSON.stringify(environmentDev.SERVER_DOMAIN) : JSON.stringify(environmentProd.SERVER_DOMAIN)}`,
-          GOOGLE_MAPS_API_KEY: `${
-            development ? JSON.stringify(environmentDev.GOOGLE_MAPS_API_KEY) : JSON.stringify(environmentProd.GOOGLE_MAPS_API_KEY)
-          }`,
-          BUSINESS_ID: `${development ? JSON.stringify(environmentDev.BUSINESS_ID) : JSON.stringify(environmentProd.BUSINESS_ID)}`,
-          APP_ID: `${development ? JSON.stringify(environmentDev.APP_ID) : JSON.stringify(environmentProd.APP_ID)}`,
         }),
         new ESLintPlugin({
           baseConfig: {
@@ -141,6 +134,19 @@ module.exports = async options => {
             { from: './src/main/webapp/manifest.webapp', to: 'manifest.webapp' },
             // jhipster-needle-add-assets-to-webpack - JHipster will add/remove third-party resources in this array
             { from: './src/main/webapp/robots.txt', to: 'robots.txt' },
+            {
+              from: './src/main/webapp/env-config.js',
+              to: 'env-config.js',
+              transform() {
+                return `window.__ENV__ = Object.assign({}, window.__ENV__, ${JSON.stringify({
+                  SERVER_API_URL: runtimeEnvironment.SERVER_API_URL || '',
+                  SERVER_ADMIN_API_URL: runtimeEnvironment.SERVER_ADMIN_API_URL || '/admin-api',
+                  SERVER_DOMAIN: runtimeEnvironment.SERVER_DOMAIN || 'https://pos-central.rize-pos.com',
+                  GOOGLE_MAPS_API_KEY: runtimeEnvironment.GOOGLE_MAPS_API_KEY || '',
+                  APP_ID: runtimeEnvironment.APP_ID || 'central-app',
+                }, null, 2)});\n`;
+              },
+            },
           ],
         }),
         new HtmlWebpackPlugin({
@@ -164,3 +170,4 @@ module.exports = async options => {
     // jhipster-needle-add-webpack-config - JHipster will add custom config
   );
 };
+

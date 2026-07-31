@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { getStockQuantitiesForVariant } from 'app/entities/inventory/stock-config/stock-quantity.reducer';
@@ -188,7 +189,11 @@ const ItemStock = ({
                       const stockQuantity = variant?.stockQuantities?.find(stock => stock.location.id === warehouse.id);
                       return (
                         <TableRow key={warehouse.id}>
-                          <TableCell className="text-xs font-bold">{warehouse.name}</TableCell>
+                          <TableCell className="text-xs font-bold">
+                            <Link to={`/inventory/warehouse/${warehouse.id}/edit`} className="text-primary hover:underline">
+                              {warehouse.name}
+                            </Link>
+                          </TableCell>
                           <TableCell className="text-xs">
                             <Input
                               type="number"
@@ -311,7 +316,11 @@ const ItemStock = ({
                       const stockQuantity = variant?.stockQuantities?.find(stock => stock.location.id === salesLocation.id);
                       return (
                         <TableRow key={salesLocation.id}>
-                          <TableCell className="text-xs font-bold">{salesLocation.name}</TableCell>
+                          <TableCell className="text-xs font-bold">
+                            <Link to={`/inventory/sales-location/${salesLocation.id}/edit`} className="text-primary hover:underline">
+                              {salesLocation.name}
+                            </Link>
+                          </TableCell>
                           <TableCell className="text-xs">
                             <Input
                               type="number"

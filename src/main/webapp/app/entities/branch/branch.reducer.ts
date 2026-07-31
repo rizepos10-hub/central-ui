@@ -4,6 +4,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IBranch, defaultValue } from 'app/shared/model/branch.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<IBranch> = {
   loading: false,
@@ -21,8 +22,16 @@ const apiSearchUrl = 'api/_search/branches';
 // Actions
 
 export const searchEntities = createAsyncThunk('branch/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IBranch[]>(requestUrl);
+  return axios.post<IBranch[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('branch/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {

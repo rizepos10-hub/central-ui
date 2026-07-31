@@ -2,11 +2,12 @@ import { IBranch } from 'app/shared/model/branch.model';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { ISchedule } from 'app/shared/model/visibility.model';
+import { IMixAndMatchRule } from 'app/shared/model/mix-and-match-rule.model';
 
 export interface IFlyerVariantRef {
   id?: string | null;
   name?: string | null;
-  sku?: string | null;
+  skus?: string[];
 }
 
 export interface IFlyerEntry {
@@ -15,6 +16,8 @@ export interface IFlyerEntry {
   item?: IItem | null;
   variant?: IFlyerVariantRef | null;
   price?: number | null;
+  mixAndMatchRuleId?: string | null;
+  mixAndMatchRule?: IMixAndMatchRule | null;
 }
 
 export interface IFlyerSchedule {
