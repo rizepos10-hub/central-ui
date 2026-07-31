@@ -233,6 +233,16 @@ function PersonalizationSettings() {
             </FieldWrapper>
 
             <FieldWrapper
+                title="Show Currency"
+                description="Show the currency code on printouts"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showCurrencyOnPrintouts}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showCurrencyOnPrintouts', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
                 title="Always Show Scrollbar"
                 description="Force scrollbar to always be visible"
             >

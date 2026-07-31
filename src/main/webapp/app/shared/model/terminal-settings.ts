@@ -7,6 +7,7 @@ export interface ITerminalSettings {
     showItemThumbnailInOrderItems: boolean;
     showCategoriesPic: boolean;
     showRetailItemsOnly: boolean;
+    showCurrencyOnPrintouts: boolean;
     countryCode: string | null;
     businessType: BusinessTypeEnum;
     languageCode: string | null;
