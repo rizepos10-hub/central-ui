@@ -716,6 +716,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   }
 
+  const handleHideOpeningHoursOnOnlineOrderingChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].hideOpeningHoursOnOnlineOrdering = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  }
+
   const dialogFooterTemplate = () => {
     return (
       <Button type="submit" onClick={() => handleSavePayments()} className="h-7 text-xs">
@@ -1033,6 +1039,14 @@ export const Branches = () => {
                         id={`hide-map-on-online-ordering-${branchIndex}`}
                       />
                       <Label htmlFor={`hide-map-on-online-ordering-${branchIndex}`} className="font-bold text-xs cursor-pointer">Hide Map On Online Ordering</Label>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Checkbox
+                        checked={branch.hideOpeningHoursOnOnlineOrdering}
+                        onCheckedChange={(checked) => handleHideOpeningHoursOnOnlineOrderingChange(branchIndex, checked)}
+                        id={`hide-opening-hours-on-online-ordering-${branchIndex}`}
+                      />
+                      <Label htmlFor={`hide-opening-hours-on-online-ordering-${branchIndex}`} className="font-bold text-xs cursor-pointer">Hide Opening Hours On Online Ordering</Label>
                     </div>
                   </div>
                 </div>

@@ -3,9 +3,24 @@ import { createAsyncThunk, isFulfilled, isPending } from '@reduxjs/toolkit';
 
 import { createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IOnlineOrderingPage, ISectionTypeDescriptor, defaultPageValue } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
+import { SectionType } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import { IPageTemplateDescriptor } from 'app/shared/model/ONLINE_ORDERING/page-template.model';
 import { createFromTemplate, getTemplates } from './page-template.actions';
 
+/** Local descriptors so newly added section types appear before the API is redeployed. */
+const LOCAL_SECTION_TYPE_FALLBACKS: ISectionTypeDescriptor[] = [
+  {
+    type: SectionType.FOOTER,
+    label: 'Footer',
+    description: 'Composable footer with columns: logo, links, text, contact, hours, social',
+    schema: { type: 'object' },
+  },
+];
+
+const mergeSectionTypes = (fromApi: ISectionTypeDescriptor[] = []): ISectionTypeDescriptor[] => {
+  const known = new Set(fromApi.map(st => st.type));
+  return [...fromApi, ...LOCAL_SECTION_TYPE_FALLBACKS.filter(st => !known.has(st.type))];
+};
 const initialState: EntityState<IOnlineOrderingPage> & {
   sectionTypes: ISectionTypeDescriptor[];
   templates: IPageTemplateDescriptor[];
@@ -92,7 +107,7 @@ export const OnlineOrderingPageSlice = createEntitySlice({
         state.entity = action.payload.data;
       })
       .addCase(getSectionTypes.fulfilled, (state, action) => {
-        state.sectionTypes = action.payload.data;
+        state.sectionTypes = mergeSectionTypes(action.payload.data);
       })
       .addCase(getTemplates.fulfilled, (state, action) => {
         state.templates = action.payload.data;

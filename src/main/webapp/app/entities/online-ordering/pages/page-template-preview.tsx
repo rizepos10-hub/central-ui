@@ -24,6 +24,7 @@ const sectionColor: Partial<Record<SectionType, string>> = {
   [SectionType.BUSINESS_INFO]: '#0f172a',
   [SectionType.RICH_TEXT]: '#fef3c7',
   [SectionType.SPACER]: '#ffffff',
+  [SectionType.FOOTER]: '#0f172a',
 };
 
 function sectionPreviewBackground(section: { type?: SectionType; config?: Record<string, unknown> }): string {
