@@ -40,6 +40,7 @@ import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './p
 import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppearance } from './section-appearance-fields';
 import { isPrimeColorPickerTarget } from './color-input-field';
 import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-slides-editor';
+import { defaultFooterColumns, FooterColumn, FooterSectionEditor } from './footer-section-editor';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 
@@ -829,6 +830,20 @@ const SectionConfigForm = ({
     );
   }
 
+  if (section.type === SectionType.FOOTER) {
+    const columns = (config.columns as FooterColumn[]) ?? [];
+    return (
+      <FooterSectionEditor
+        columns={columns}
+        showCopyright={config.showCopyright !== false}
+        copyrightText={(config.copyrightText as string) ?? ''}
+        onColumnsChange={next => onConfigChange('columns', next)}
+        onShowCopyrightChange={value => onConfigChange('showCopyright', value)}
+        onCopyrightTextChange={value => onConfigChange('copyrightText', value)}
+      />
+    );
+  }
+
   return <p className="text-xs text-muted-foreground">No extra configuration for this section type.</p>;
 };
 
@@ -889,6 +904,17 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
       return { title: '', subtitle: '', showContact: true, showHours: true, appearance };
     case SectionType.SPACER:
       return { height: 48, appearance: {} };
+    case SectionType.FOOTER:
+      return {
+        columns: defaultFooterColumns(),
+        showCopyright: true,
+        copyrightText: '',
+        appearance: {
+          ...appearance,
+          background: '#ffffff',
+          paddingY: 'default',
+        },
+      };
     default:
       return { appearance };
   }

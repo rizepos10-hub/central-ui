@@ -20,6 +20,7 @@ export enum SectionType {
   HERO_BANNER = 'HERO_BANNER',
   SPACER = 'SPACER',
   FEATURE_GRID = 'FEATURE_GRID',
+  FOOTER = 'FOOTER',
 }
 
 export type PageSection = {
