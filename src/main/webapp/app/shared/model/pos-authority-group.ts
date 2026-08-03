@@ -17,7 +17,10 @@ export enum POSAuthorityEnum {
     CHANGE_PAYMENT_TYPE = 'CHANGE_PAYMENT_TYPE',
     REPRINT_BILL = 'REPRINT_BILL',
     CLOSE_TILL = 'CLOSE_TILL',
-    CLOSE_DAY = 'CLOSE_DAY'
+    CLOSE_DAY = 'CLOSE_DAY',
+    UNTAG_ORDER = 'UNTAG_ORDER',
+    KDS_OPERATE = 'KDS_OPERATE',
+    WAITER_READY_NOTIFY = 'WAITER_READY_NOTIFY'
 }
 
 export const defaultValue: Readonly<IPosAuthorityGroup> = {}
