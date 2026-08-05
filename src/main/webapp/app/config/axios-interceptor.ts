@@ -1,28 +1,32 @@
-  import axios from 'axios';
-  import { Storage } from 'react-jhipster';
-  import { clearAccessToken } from 'app/shared/reducers/authentication';
-  import { buildAuthTokenKey, buildRefreshTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
+import axios from 'axios';
+import { Storage } from 'react-jhipster';
+import { clearAccessToken } from 'app/shared/reducers/authentication';
+import { buildAuthTokenKey, buildRefreshTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
+import { runtimeConfig } from 'app/config/runtime-config';
 
-  const TIMEOUT = 1 * 60 * 1000;
-  axios.defaults.timeout = TIMEOUT;
-  axios.defaults.baseURL = SERVER_API_URL;
+const TIMEOUT = 1 * 60 * 1000;
+const APP_ID = runtimeConfig.APP_ID;
+const API_BASE_URL = runtimeConfig.SERVER_API_URL || runtimeConfig.SERVER_DOMAIN;
 
-  const CENTRAL_APP_LOGIN_PATH_PATTERN = new RegExp(`^/api/login/[^/]+/${APP_ID}/?$`);
+axios.defaults.timeout = TIMEOUT;
+axios.defaults.baseURL = runtimeConfig.SERVER_API_URL;
 
-  const isCentralAppLoginRequest = (url?: string) => {
-    if (!url) {
-      return false;
-    }
+const CENTRAL_APP_LOGIN_PATH_PATTERN = new RegExp(`^/api/login/[^/]+/${APP_ID}/?$`);
 
-    try {
-      const resolvedUrl = new URL(url, axios.defaults.baseURL || window.location.origin);
-      return CENTRAL_APP_LOGIN_PATH_PATTERN.test(resolvedUrl.pathname);
-    } catch (error) {
-      return CENTRAL_APP_LOGIN_PATH_PATTERN.test(url);
-    }
-  };
+const isCentralAppLoginRequest = (url?: string) => {
+  if (!url) {
+    return false;
+  }
 
-  const setupAxiosInterceptors = onUnauthenticated => {
+  try {
+    const resolvedUrl = new URL(url, API_BASE_URL);
+    return CENTRAL_APP_LOGIN_PATH_PATTERN.test(resolvedUrl.pathname);
+  } catch (error) {
+    return CENTRAL_APP_LOGIN_PATH_PATTERN.test(url);
+  }
+};
+
+const setupAxiosInterceptors = onUnauthenticated => {
 
     const refreshAccessToken = async () => {
       try {
@@ -40,7 +44,7 @@
             clientId: APP_ID,
           };
 
-          const response = await axios.post(SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
+          const response = await axios.post(runtimeConfig.SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
 
           const newAccessToken = response?.data?.access_token;
           const newRefreshToken = response?.data?.refresh_token;
@@ -99,4 +103,4 @@
     axios.interceptors.response.use(onResponseSuccess, onResponseError);
   };
 
-  export default setupAxiosInterceptors;
+export default setupAxiosInterceptors;

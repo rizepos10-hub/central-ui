@@ -65,7 +65,7 @@ export interface IVariableItemVariant {
   order?: number;
   discounts?: IDiscount[];
   accountingGroups?: IProfileGroup[];
-  sku?: string;
+  skus?: string[];
   price?: number;
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;

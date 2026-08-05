@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import { translate } from "react-jhipster";
 import Select from 'app/shared/components/select/select';
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
@@ -101,7 +102,13 @@ const SupplierAssociationTab = ({
             <div key={assoc.supplierId} className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background p-3 md:flex-row md:items-center">
               <div className="min-w-0 md:w-48">
                 <div className="text-xs font-semibold text-foreground truncate">
-                  {supplier ? supplier.name : assoc.supplierId}
+                  {supplier?.id ? (
+                    <Link to={`/inventory/supplier/${supplier.id}/edit`} className="text-primary hover:underline">
+                      {supplier.name}
+                    </Link>
+                  ) : (
+                    supplier ? supplier.name : assoc.supplierId
+                  )}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
                   Supplier code

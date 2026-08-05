@@ -12,7 +12,10 @@ describe('Axios Interceptor', () => {
     let setupAxiosInterceptors;
 
     beforeAll(async () => {
-      (globalThis as typeof globalThis & { SERVER_API_URL: string }).SERVER_API_URL = 'https://rize-pos.com/central-app';
+      window.__ENV__ = {
+        SERVER_API_URL: 'https://rize-pos.com/central-app',
+        SERVER_ADMIN_API_URL: 'https://api-admin-dev.rize-pos.com',
+      };
       setupAxiosInterceptors = (await import('./axios-interceptor')).default;
       setupAxiosInterceptors(onUnauthenticated);
     });
@@ -56,7 +59,7 @@ describe('Axios Interceptor', () => {
 
       const config = (client.interceptors.request as any).handlers[0].fulfilled({
         headers: {},
-        url: 'https://pos-admin.rize-pos.com/api/login/business_1010/central-app',
+        url: 'https://api-admin-dev.rize-pos.com/api/login/business_1010/central-app',
       });
 
       expect(config.headers.Authorization).toBeUndefined();

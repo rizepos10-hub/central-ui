@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
+import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -17,6 +18,8 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
@@ -24,14 +27,14 @@ import SharedAddon from 'app/shared/components/item/addon';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
-import { useVariantBranchPrice } from 'app/shared/hooks/useVariantBranchPrice';
-import { VariantEditor } from 'app/shared/components/item/variant-editor';
+import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, PlusCircle, Loader2, Trash2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
@@ -88,8 +91,24 @@ export const ComboItemUpdate = () => {
   };
 
 
-  const { handleBranchPriceChange, handleHideItemPerBranch, handleSaveScheduledPrices } =
-    useVariantBranchPrice(setComboItem);
+  const handleBranchPriceChange = (variantIndex = 0, branchId, priceType, price) => {
+    setComboItem(prev => ({
+      ...prev,
+      variants: [
+        {
+          ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+          branchVariantDetails: {
+            ...prev.variants[variantIndex]?.branchVariantDetails,
+            [branchId]: {
+              ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+              branch: { id: branchId },
+              [priceType]: price,
+            },
+          },
+        },
+      ],
+    }));
+  };
 
   const updateSeoTags = (fieldName, value) => {
     setComboItem(prevItem => ({
@@ -279,6 +298,46 @@ export const ComboItemUpdate = () => {
     })
   }, [comboItemEntity, updateSuccess]);
 
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
+    setComboItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setComboItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
 
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
@@ -393,21 +452,99 @@ export const ComboItemUpdate = () => {
                         onFieldChange={handleFieldChange}
                       />
 
-                      <VariantEditor
-                        variant={comboItem?.variants?.[0]}
-                        variantIndex={0}
-                        itemVariantType="RESTAURANT"
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">
+                          <Translate contentKey={'items.update.description'}>Description</Translate>
+                        </Label>
+                        <Textarea
+                          name="desc"
+                          id="desc"
+                          placeholder={translate('items.update.description')}
+                          value={comboItem?.variants?.[0]?.description || ''}
+                          onChange={e => setComboItem(prev => {
+                            return {
+                              ...prev, variants: prev.variants.map(variant => {
+                                return { ...variant, description: e.target.value }
+                              })
+                            }
+                          })}
+                          className="text-xs"
+                        />
+                      </div>
+
+                      <DiscountDropdown
+                        discounts={comboItem?.variants?.[0]?.discounts}
+                        handleChange={handleComboVariantChange}
+                      />
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">
+                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                        </Label>
+                        <Select
+                          isClearable
+                          value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
+                          options={mixAndMatchRuleList}
+                          getOptionLabel={option => option.name}
+                          getOptionValue={option => option.id}
+                          onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                          onMenuOpen={() => {
+                            dispatch(getMixAndMatchRules({
+                              page: paginationState.activePage - 1,
+                              size: paginationState.itemsPerPage,
+                              sort: `${paginationState.sort},${paginationState.order}`,
+                            }));
+                          }}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">
+                            <Translate contentKey={'items.update.price'}>Price</Translate>
+                          </Label>
+                          <Input
+                            type="number"
+                            name="price"
+                            id="price"
+                            required
+                            min={0}
+                            step={0.01}
+                            placeholder={translate('items.update.placeholders.itemPrice')}
+                            value={comboItem?.variants?.[0]?.price ?? ''}
+                            onChange={(e) => handleComboVariantChange("price", parseFloat(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">
+                            <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                          </Label>
+                          <Input
+                            type="number"
+                            name="sale-price"
+                            id="sale-price"
+                            placeholder="Variant Sale Price"
+                            min={0}
+                            step={0.01}
+                            value={comboItem?.variants?.[0]?.salePrice ?? ''}
+                            onChange={(e) => handleComboVariantChange('salePrice', parseFloat(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <VariantBranchPrice
+                        branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
                         branchList={branchList}
-                        setItem={setComboItem}
-                        handleVariantFieldChange={(_, field, value) => handleComboVariantChange(field, value)}
                         handleBranchPriceChange={handleBranchPriceChange}
+                        variantIndex={0}
+                        itemVariantType={"RESTAURANT"}
                         handleHideItemPerBranch={handleHideItemPerBranch}
                         handleSaveScheduledPrices={handleSaveScheduledPrices}
-                        mixAndMatchRuleList={mixAndMatchRuleList}
-                        showDescription
-                        showPrice
-                        showSalePrice
-                        defaultTab="general"
+                        variant={comboItem?.variants?.[0]}
+                        setItem={setComboItem}
                       />
 
                       <div className="space-y-4">
@@ -603,20 +740,7 @@ export const ComboItemUpdate = () => {
                 </CardContent>
               </Card>
 
-              {comboItemEntity?.id ? (
-                <>
-                  <Separator className="opacity-60" />
-                  <Card className="border-border/80 shadow-sm">
-                    <CardHeader className="p-3 pb-2">
-                      <CardTitle className="text-base font-semibold tracking-tight text-foreground">Audit history</CardTitle>
-                      <CardDescription className="text-xs">Read-only log of changes to this item.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-3 pt-0">
-                      <AuditLogs entityId={comboItemEntity?.id} />
-                    </CardContent>
-                  </Card>
-                </>
-              ) : null}
+              {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}
             </div>
           </div>
         </div>

@@ -12,13 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Select from 'app/shared/components/select/select';
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
-import { getEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { filterEntities } from '../../product/product.reducer';
 import { useLabelTemplates } from '../store/useLabelTemplates';
 import { useLabelFlow } from '../store/label-flow-context';
 import { formatCurrency, variantKey } from '../util/label-data';
+import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import { LabelCanvasPreview } from '../components/LabelCanvas';
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { getPrimarySku, getVariantSkus } from 'app/shared/util/sku-utils';
 import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-script';
 
 const SELECT_HEIGHT = '36px';
@@ -35,7 +36,7 @@ const ProductSelectionScreen = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { getTemplate } = useLabelTemplates();
-  const { template, setTemplate, isSelected, toggle, setCopies, clear, selection, entries, totalLabels } = useLabelFlow();
+  const { template, setTemplate, isSelected, toggle, initializeOption, setCopies, clear, selection, entries, totalLabels } = useLabelFlow();
 
   const products: IProduct[] = useAppSelector(state => state.product.entities);
   const totalItems = useAppSelector(state => state.product.totalItems);
@@ -62,6 +63,18 @@ const ProductSelectionScreen = () => {
       if (found) setTemplate(found);
     }
   }, [template, templateId, getTemplate, setTemplate]);
+
+  useEffect(() => {
+    products.forEach(product => {
+      (product.variants || []).forEach(variant => {
+        const skuOptions = getVariantSkus(variant);
+        if (skuOptions.length === 0) {
+          return;
+        }
+        skuOptions.forEach(sku => initializeOption(product, variant, sku, skuOptions.length === 1));
+      });
+    });
+  }, [initializeOption, products]);
 
   const rows = Number(searchParams.get('rows')) || 20;
 
@@ -110,7 +123,7 @@ const ProductSelectionScreen = () => {
           <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-600">Step 2 of 3 · Products</p>
           <h2 className="m-0 mt-0.5 text-2xl font-bold tracking-tight text-foreground">Select products</h2>
           <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            Pick the products to print. Each variant becomes its own label with its own SKU and price.
+            Pick the SKU options to print. Each selected SKU becomes its own label with its own barcode and price.
           </p>
         </div>
         {template && (
@@ -204,11 +217,11 @@ const ProductSelectionScreen = () => {
 
       {selectedCount > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border bg-background px-4 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-          <div className="flex min-w-0 flex-col">
-            <span className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-              <CheckCircle2 className="h-4 w-4 text-sky-600" />
-              {selectedCount} product{selectedCount === 1 ? '' : 's'} selected
-            </span>
+        <div className="flex min-w-0 flex-col">
+          <span className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+            <CheckCircle2 className="h-4 w-4 text-sky-600" />
+            {selectedCount} SKU option{selectedCount === 1 ? '' : 's'} selected
+          </span>
             <span className="hidden text-xs text-muted-foreground sm:block">
               {totalLabels} label{totalLabels === 1 ? '' : 's'} will be generated
             </span>
@@ -236,27 +249,14 @@ type CategoryFilterProps = {
 };
 
 const CategoryFilter = ({ value, onChange }: CategoryFilterProps) => {
-  const dispatch = useAppDispatch();
-  const categories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
-
-  useEffect(() => {
-    dispatch(getRetailCategories({ page: 0, size: 1000, sort: 'name,asc' }));
-  }, [dispatch]);
-
-  const options = useMemo(
-    () => [...categories].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(c => ({ value: c.id ?? '', label: c.name || '' })),
-    [categories]
-  );
-
   return (
-    <Select
-      value={options.find(o => o.value === value) || null}
-      options={options}
-      onChange={(opt: { value: string } | null) => onChange(opt?.value ?? null)}
-      isClearable
+    <DropDownFilter
+      selectedOption={value || ''}
+      fieldName="categoryId"
+      dropDownOptionType="RETAIL_CATEGORY"
+      handleDropdownChange={(_fieldName, nextValue) => onChange(nextValue.value || null)}
       placeholder="All categories"
-      styles={matchInputHeight}
-      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+      classname="text-xs"
     />
   );
 };
@@ -265,27 +265,38 @@ type ProductCardProps = {
   product: IProduct;
   selection: Map<string, { copies: number }>;
   isSelected: (key: string) => boolean;
-  onToggle: (product: IProduct, variant?: IVariableItemVariant) => void;
+  onToggle: (product: IProduct, variant: IVariableItemVariant, sku: string) => void;
   onCopies: (key: string, copies: number) => void;
 };
 
 const ProductCard = ({ product, selection, isSelected, onToggle, onCopies }: ProductCardProps) => {
   const variants: IVariableItemVariant[] = product.variants || [];
-  const printable = variants.filter(v => v.sku);
-  if (printable.length === 0) return null;
+  const printableVariants = variants
+    .map(variant => ({
+      variant,
+      skuOptions: getVariantSkus(variant).map(sku => ({
+        key: variantKey(product.id ?? '', variant.id, sku),
+        sku,
+      })),
+    }))
+    .filter(entry => entry.skuOptions.length > 0);
+  if (printableVariants.length === 0) return null;
 
-  const single = printable.length === 1;
   const imageUrl = product.attachments?.[0]?.url;
-  const keyOf = (v: IVariableItemVariant) => variantKey(product.id ?? '', v.id);
-  const selectedCount = printable.filter(v => isSelected(keyOf(v))).length;
+  const allSkuOptions = printableVariants.flatMap(entry => entry.skuOptions);
+  const selectedCount = allSkuOptions.filter(option => isSelected(option.key)).length;
   const anySelected = selectedCount > 0;
-  const allSelected = selectedCount === printable.length;
+  const allSelected = selectedCount === allSkuOptions.length;
   const category = product.categories?.[0]?.name;
 
   const toggleAll = () => {
-    printable.forEach(v => {
-      const isSel = isSelected(keyOf(v));
-      if (allSelected ? isSel : !isSel) onToggle(product, v);
+    printableVariants.forEach(({ variant, skuOptions }) => {
+      skuOptions.forEach(option => {
+        const isSel = isSelected(option.key);
+        if (allSelected ? isSel : !isSel) {
+          onToggle(product, variant, option.sku);
+        }
+      });
     });
   };
 
@@ -293,40 +304,6 @@ const ProductCard = ({ product, selection, isSelected, onToggle, onCopies }: Pro
     anySelected ? 'border-sky-300 bg-sky-50/40 shadow-sm' : 'border-border bg-card hover:border-foreground/15 hover:shadow-sm'
   }`;
   const focusable = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500/40';
-
-  // Single-variant products: the whole header is one tidy, selectable row.
-  if (single) {
-    const variant = printable[0];
-    const key = keyOf(variant);
-    const selected = isSelected(key);
-    const copies = selection.get(key)?.copies ?? 1;
-    const price = variant.salePrice ?? variant.price;
-    const hasSale = variant.salePrice != null && variant.price != null && variant.salePrice !== variant.price;
-
-    return (
-      <div className={cardClass}>
-        <div className="flex items-center gap-4 px-4 py-3.5">
-          <button
-            type="button"
-            onClick={() => onToggle(product, variant)}
-            className={`-m-1 flex min-w-0 flex-1 items-center gap-4 rounded-lg p-1 text-left ${focusable}`}
-          >
-            <ProductThumb imageUrl={imageUrl} name={product.name} />
-            <div className="min-w-0 flex-1">
-              <p className="m-0 truncate text-[15px] font-semibold text-foreground">{product.name}</p>
-              <div className="mt-1.5 flex items-center gap-2.5">
-                <SkuChip sku={variant.sku} />
-                {category && <span className="truncate text-xs text-muted-foreground">{category}</span>}
-              </div>
-            </div>
-            {price != null && <PriceTag price={price} original={hasSale ? variant.price : undefined} />}
-            <Checkbox selected={selected} />
-          </button>
-          {selected && <Stepper copies={copies} onDec={() => onCopies(key, copies - 1)} onInc={() => onCopies(key, copies + 1)} />}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={cardClass}>
@@ -336,14 +313,17 @@ const ProductCard = ({ product, selection, isSelected, onToggle, onCopies }: Pro
           <p className="m-0 truncate text-[15px] font-semibold text-foreground">{product.name}</p>
           <div className="mt-1.5 flex items-center gap-2.5 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-medium text-foreground/70">
-              <Package className="h-3 w-3" /> {printable.length} variants
+              <Package className="h-3 w-3" /> {printableVariants.length} variants
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-medium text-foreground/70">
+              <Tag className="h-3 w-3" /> {allSkuOptions.length} SKUs
             </span>
             {category && <span className="truncate">{category}</span>}
           </div>
         </div>
         {anySelected && (
           <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-700">
-            {selectedCount}/{printable.length}
+            {selectedCount}/{allSkuOptions.length}
           </span>
         )}
         <button
@@ -358,31 +338,45 @@ const ProductCard = ({ product, selection, isSelected, onToggle, onCopies }: Pro
       </div>
 
       <div className="flex flex-col border-t border-border/60 bg-muted/30 px-2.5 py-2">
-        {printable.map(variant => {
-          const key = keyOf(variant);
-          const selected = isSelected(key);
-          const copies = selection.get(key)?.copies ?? 1;
-          const price = variant.salePrice ?? variant.price;
+        {printableVariants.map(({ variant, skuOptions }) => {
+          const variantLabel = formatVariant(variant.name || '', variant.attributeValues) || getPrimarySku(variant) || '';
+          const variantPrice = variant.salePrice ?? variant.price;
           const hasSale = variant.salePrice != null && variant.price != null && variant.salePrice !== variant.price;
-          const label = formatVariant(variant.name || '', variant.attributeValues) || variant.sku;
           return (
-            <div
-              key={key}
-              className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition-colors ${selected ? 'bg-sky-50' : 'hover:bg-card'}`}
-            >
-              <button
-                type="button"
-                onClick={() => onToggle(product, variant)}
-                className={`-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 text-left ${focusable}`}
-              >
-                <Checkbox selected={selected} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-foreground">{label}</span>
-                  <SkuChip sku={variant.sku} />
-                </span>
-                {price != null && <PriceTag price={price} original={hasSale ? variant.price : undefined} />}
-              </button>
-              {selected && <Stepper copies={copies} onDec={() => onCopies(key, copies - 1)} onInc={() => onCopies(key, copies + 1)} />}
+            <div key={variant.id ?? variantLabel} className="rounded-lg border border-border/50 bg-background/70 p-2.5">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-foreground">{variantLabel}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {skuOptions.length} SKU{skuOptions.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                {variantPrice != null && <PriceTag price={variantPrice} original={hasSale ? variant.price : undefined} />}
+              </div>
+              <div className="mt-2 flex flex-col gap-1.5">
+                {skuOptions.map(({ key, sku }) => {
+                  const selected = isSelected(key);
+                  const copies = selection.get(key)?.copies ?? 1;
+                  return (
+                    <div
+                      key={key}
+                      className={`flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors ${selected ? 'bg-sky-50' : 'hover:bg-card'}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onToggle(product, variant, sku)}
+                        className={`-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 text-left ${focusable}`}
+                      >
+                        <Checkbox selected={selected} />
+                        <span className="min-w-0 flex-1">
+                          <SkuChip sku={sku} />
+                        </span>
+                      </button>
+                      {selected && <Stepper copies={copies} onDec={() => onCopies(key, copies - 1)} onInc={() => onCopies(key, copies + 1)} />}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}

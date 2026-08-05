@@ -175,6 +175,33 @@ export const PurchaseOrder = () => {
     }
   };
 
+  const renderOrderLineItems = (purchaseOrder: IPurchaseOrder) => {
+    const namedOrderLines = (purchaseOrder.orderLines || []).filter(line => line.item?.name);
+    const visibleLines = namedOrderLines.slice(0, 3);
+
+    if (visibleLines.length === 0) {
+      return '';
+    }
+
+    return (
+      <>
+        {visibleLines.map((line, index) => (
+          <React.Fragment key={line.id || line.item?.id || `${purchaseOrder.id}-line-${index}`}>
+            {index > 0 ? ', ' : null}
+            {line.item?.id ? (
+              <Link to={`/product/${line.item.id}/edit`} className="text-primary hover:underline">
+                {line.item.name}
+              </Link>
+            ) : (
+              line.item?.name
+            )}
+          </React.Fragment>
+        ))}
+        {namedOrderLines.length > 3 ? ', ...' : null}
+      </>
+    );
+  };
+
   const handleFilterDateChange = (date: Date, field: string) => {
     const newQueryWithStatus = JSON.stringify({
       ...query,
@@ -445,8 +472,24 @@ export const PurchaseOrder = () => {
 
                   return (
                     <TableRow key={purchaseOrder.id}>
-                      <TableCell className="text-xs">{purchaseOrder.warehouse?.name}</TableCell>
-                      <TableCell className="text-xs">{purchaseOrder.supplier?.name}</TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder.warehouse?.id ? (
+                          <Link to={`/inventory/warehouse/${purchaseOrder.warehouse.id}/edit`} className="text-primary hover:underline">
+                            {purchaseOrder.warehouse.name}
+                          </Link>
+                        ) : (
+                          purchaseOrder.warehouse?.name
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {purchaseOrder.supplier?.id ? (
+                          <Link to={`/inventory/supplier/${purchaseOrder.supplier.id}/edit`} className="text-primary hover:underline">
+                            {purchaseOrder.supplier.name}
+                          </Link>
+                        ) : (
+                          purchaseOrder.supplier?.name
+                        )}
+                      </TableCell>
                       <TableCell className="text-xs">
                         {purchaseOrder?.datePlaced ? (typeof purchaseOrder.datePlaced === 'string' ? purchaseOrder.datePlaced.split("T")?.[0] : purchaseOrder.datePlaced.toISOString().split("T")?.[0]) : ''}
                       </TableCell>
@@ -462,13 +505,7 @@ export const PurchaseOrder = () => {
                       <TableCell className="text-xs">
                         {purchaseOrder?.costLines?.reduce((acc, line) => acc + (line.cost || 0), 0).toFixed(2) || 0}
                       </TableCell>
-                      <TableCell className="text-xs">
-                        {(() => {
-                          const names = purchaseOrder?.orderLines?.map(line => line.item?.name).filter(Boolean) || [];
-                          const displayed = names.slice(0, 3).join(', ');
-                          return names.length > 3 ? `${displayed}, ...` : displayed;
-                        })()}
-                      </TableCell>
+                      <TableCell className="text-xs">{renderOrderLineItems(purchaseOrder)}</TableCell>
                       <TableCell className="text-center">
                         <Link to={supplierReturnUrl} className={`inline-block p-1 rounded ${highlightStyle}`}>
                           <Handshake className="h-5 w-5" />

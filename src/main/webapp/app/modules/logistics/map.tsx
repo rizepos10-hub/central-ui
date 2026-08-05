@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { runtimeConfig } from 'app/config/runtime-config';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -66,7 +67,7 @@ const convertToEmbedUrl = (navigationUrl?: string): string | null => {
     
     // Build embed URL - Google Maps Embed API format
     const embedUrl = new URL('https://www.google.com/maps/embed/v1/directions');
-    embedUrl.searchParams.set('key', typeof GOOGLE_MAPS_API_KEY !== 'undefined' ? GOOGLE_MAPS_API_KEY : '');
+    embedUrl.searchParams.set('key', runtimeConfig.GOOGLE_MAPS_API_KEY || '');
     embedUrl.searchParams.set('origin', origin);
     embedUrl.searchParams.set('destination', destination);
     if (waypoints) {

@@ -10,6 +10,7 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { ITerm, defaultValue } from 'app/shared/model/term.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<ITerm> = {
   loading: false,
@@ -27,8 +28,16 @@ const apiSearchUrl = 'api/_search/restaurant-categories';
 // Actions
 
 export const searchEntities = createAsyncThunk('restaurant-category-tree/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ITerm[]>(requestUrl);
+  return axios.post<ITerm[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('restaurant-category-tree/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {

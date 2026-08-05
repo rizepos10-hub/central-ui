@@ -219,12 +219,8 @@ export const UiSettingsUpdate = () => {
                     <Label htmlFor="UiSettings-domain" className="text-xs font-semibold">
                       {translate('tempApp.UiSettings.domain')}
                     </Label>
-                    <Input
-                      id="UiSettings-domain"
-                      value={UiSettingsEntity.domain || ''}
-                      onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
-                      className="h-7 text-xs"
-                    />
+                    <Input id="UiSettings-domain" value={UiSettingsEntity.domain || ''} disabled className="h-7 text-xs" />
+                    <p className="text-xs text-muted-foreground">Set on the Online Ordering application in Admin.</p>
                   </div>
 
                   <div className="rounded-md border bg-muted/30 p-3">

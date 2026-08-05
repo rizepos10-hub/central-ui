@@ -18,11 +18,12 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import { IDiscount } from "app/shared/model/discount.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
-import { useVariantBranchPrice } from 'app/shared/hooks/useVariantBranchPrice';
-import { VariantEditor, VariantListPanel } from 'app/shared/components/item/variant-editor';
-import ProductImageGallery from 'app/shared/components/item/product-image-gallery';
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
@@ -35,13 +36,14 @@ import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import IngredientsPicker from 'app/shared/ingredients-picker';
+import { IScheduledBranchPrice } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -84,7 +86,6 @@ export const RegularItemUpdate = () => {
   const [showFormErrors, setShowFormErrors] = useState(false);
   const [showDeleteVariantDialog, setShowDeleteVariantDialog] = useState(false);
   const [variantToDelete, setVariantToDelete] = useState<number | null>(null);
-  const [activeVariantIndex, setActiveVariantIndex] = useState(0);
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -125,8 +126,26 @@ export const RegularItemUpdate = () => {
     });
   };
 
-  const { handleBranchPriceChange, handleHideItemPerBranch, handleSaveScheduledPrices } =
-    useVariantBranchPrice(setRegularItem);
+  const handleBranchPriceChange = useCallback((variantIndex, branchId, priceType, price) => {
+    setRegularItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            branch: { id: branchId },
+            [priceType]: price,
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  }, []);
 
   const handleAddVariant = () => {
     setRegularItem((prev) => ({
@@ -339,6 +358,69 @@ export const RegularItemUpdate = () => {
       setVariantToDelete(null);
     }
   };
+
+  const VariantAccordionHeader = (variantIndex) => (
+    <div
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      className="flex flex-1 gap-3 ml-2"
+    >
+      <div className="grid grid-cols-2 gap-2 w-full">
+        <div className="flex flex-col gap-2">
+          <Label className="text-xs font-semibold">
+            <Translate contentKey="items.update.name">Name</Translate>
+          </Label>
+          <Input
+            name="variant-name"
+            required
+            placeholder={translate('items.update.placeholders.variantName')}
+            value={regularItem.variants[variantIndex]?.name || ''}
+            onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+            className={`h-8 text-xs ${showFormErrors && !regularItem.variants[variantIndex]?.name ? 'border-destructive' : ''}`}
+            onKeyDown={e => {
+              if (e.key === ' ') {
+                e.stopPropagation();
+              }
+            }}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="price" className="text-xs font-semibold">
+            <Translate contentKey="items.update.price">Price</Translate>
+          </Label>
+          <Input
+            type="number"
+            name="price"
+            required
+            placeholder="Variant Price"
+            value={regularItem.variants[variantIndex]?.price ?? ''}
+            min={0}
+            step={0.01}
+            onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) ?? null)}
+            className={`h-8 text-xs ${showFormErrors && (regularItem.variants[variantIndex]?.price === null || regularItem.variants[variantIndex]?.price === undefined) ? 'border-destructive' : ''}`}
+            onKeyDown={e => {
+              if (e.key === ' ') {
+                e.stopPropagation();
+              }
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-end items-start">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+          onClick={() => confirmDeleteVariant(variantIndex)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   const openImportAddonModal = (variantId?: string) => {
     setCurrentVariantId(variantId);
@@ -580,6 +662,48 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
+    setRegularItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleSaveScheduledPrices = (variantIndex: number, branchId: string, scheduledPrices: IScheduledBranchPrice[]) => {
+    setRegularItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            branch: { id: branchId },
+            scheduledPrices,
+          },
+        },
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
   useEffect(() => {
     if (!isNew) return;
 
@@ -695,155 +819,384 @@ export const RegularItemUpdate = () => {
                         showFormErrors={showFormErrors}
                       />
 
-                      {/* Two-panel variant editor */}
-                      {(() => {
-                        const safeIndex = Math.min(activeVariantIndex, (regularItem.variants?.length ?? 1) - 1);
-                        const activeVariant = regularItem.variants?.[safeIndex];
-                        const addonsTabContent = activeVariant ? (
-                          <div className="space-y-4 pt-3">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
-                              <div className="min-w-0">
-                                <Label className="text-xs font-semibold">
-                                  <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
-                                </Label>
-                                <div>
-                                  <OrderList
-                                    value={activeVariant?.addonGroups?.map(group => group.addonGroup) || []}
-                                    onChange={e => onReorderAddonGroups(e, safeIndex)}
-                                    style={{ padding: '0px' }}
-                                    listStyle={{ padding: '0px' }}
-                                    itemTemplate={(addonGroup: IAddonGroup) => {
-                                      const idx = activeVariant?.addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
-                                      return (
-                                        <div className="p-orderlist-item flex flex-wrap gap-2 items-end p-2" onClick={() => setSelectedAddonGroup(activeVariant?.addonGroups[idx])}>
-                                          <div className='flex flex-col gap-1 min-w-[140px] flex-1'>
-                                            <Label className="text-xs font-medium">{addonGroup.name}</Label>
-                                            <Input value={activeVariant?.addonGroups[idx]?.name ?? addonGroup.name} onChange={e => handleVariantAddonGroupFieldChange(idx, 'name', e.target.value, safeIndex)} className="h-8 text-xs min-w-[80px]" placeholder="Display name" onKeyDown={e => { if (e.key === ' ') e.stopPropagation(); }} />
-                                          </div>
-                                          <div className='flex gap-2'>
-                                            <div className='flex flex-col gap-1'>
-                                              <Label className="text-xs font-medium">{translate('items.update.min')}</Label>
-                                              <Input type="number" value={activeVariant?.addonGroups[idx]?.minQuantity ?? ''} onChange={e => handleVariantAddonGroupFieldChange(idx, 'minQuantity', parseInt(e.target.value) ?? null, safeIndex)} min={0} className="w-20 min-w-20 h-8 text-xs" />
-                                            </div>
-                                            <div className='flex flex-col gap-1'>
-                                              <Label className="text-xs font-medium">{translate('items.update.max')}</Label>
-                                              <Input type="number" value={activeVariant?.addonGroups[idx]?.maxQuantity ?? ''} onChange={e => handleVariantAddonGroupFieldChange(idx, 'maxQuantity', parseInt(e.target.value) ?? null, safeIndex)} min={0} className="w-20 min-w-20 h-8 text-xs" />
-                                            </div>
-                                          </div>
-                                          <div className='flex flex-col gap-1 items-center'>
-                                            <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
-                                            <Checkbox checked={activeVariant?.addonGroups[idx]?.addAutomatically} onCheckedChange={checked => handleVariantAddonGroupFieldChange(idx, 'addAutomatically', checked, safeIndex)} className="mt-1" />
-                                          </div>
-                                          <Button type="button" variant="destructive" size="sm" className="h-8 w-8 text-xs shrink-0" onClick={() => handleRemoveAddonGroup(addonGroup.id, activeVariant, safeIndex)}>X</Button>
-                                        </div>
-                                      );
-                                    }}
-                                    header={reorderHeader(addonGroupsList.map(ag => ({ id: ag.id, name: ag.name })).filter(g => !activeVariant.addonGroups?.some(a => a.addonGroup.id === g.id)), handleAddonGroupChange, activeVariant.addonGroups || [], addonGroupsList, () => { }, activeVariant, safeIndex)}
-                                    dragdrop
-                                    dataKey="id"
-                                  />
-                                </div>
-                              </div>
-                              {activeVariant?.addonGroups.some(g => g.addonGroup.id === selectedAddonGroup?.addonGroup.id) && (
-                                <div className="min-w-0 overflow-auto">
-                                  <Label className="text-xs font-semibold flex flex-wrap justify-between gap-2">
-                                    <span><Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate></span>
-                                    <span className='flex flex-col gap-2'>
-                                      <div className='flex gap-2 items-center text-xs font-normal'><div className='h-3 w-3 bg-destructive' /><div>Price Modified</div></div>
-                                      <div className='flex gap-2 items-center text-xs font-normal'><div className='h-3 w-3 bg-black' /><div>Default Price</div></div>
-                                    </span>
-                                  </Label>
-                                  <div className='border rounded mt-2'>
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead className="text-xs"><Translate contentKey={'items.update.name'}>Name</Translate></TableHead>
-                                          <TableHead className="text-xs"><Translate contentKey={'items.update.price'}>Price</Translate></TableHead>
-                                          <TableHead className="text-xs"><Translate contentKey={'items.update.include'}>Include</Translate></TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {selectedAddonGroup?.addonGroup.addons?.map((addon, addonIdx) => (
-                                          <TableRow key={addonIdx}>
-                                            <TableCell className='text-xs'>{addon.name}</TableCell>
-                                            <TableCell className='text-xs'>
-                                              <Input type="number" value={(() => { const po = activeVariant.addonGroups?.find(g => g.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(o => o.id === addon.id)?.price; return po !== null && po !== undefined ? po : addon.price; })()} onChange={e => handleAddonGroupOverridedPriceChange(activeVariant?.addonGroups?.findIndex(g => g.addonGroup.id === selectedAddonGroup.addonGroup.id), addon.id, parseFloat(e.target.value) ?? null, safeIndex)} className={`w-[80px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(o => o.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(o => o.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`} step={0.01} />
-                                            </TableCell>
-                                            <TableCell className='text-xs'>
-                                              <Checkbox checked={!activeVariant.addonGroups?.find(g => g.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(e => e.id).includes(addon.id)} onCheckedChange={checked => handleVariantAddonGroupExcludedChange(checked, activeVariant?.addonGroups?.findIndex(g => g.addonGroup.id === selectedAddonGroup.addonGroup.id), addon, safeIndex)} />
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : null;
+                      <div>
+                        <Button type="button" size="sm" className="h-8 text-xs" onClick={handleAddVariant}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          <Translate contentKey={'items.update.addSingleVariant'}>Add Variant</Translate>
+                        </Button>
+                      </div>
 
-                        return (
-                          <div className="flex gap-4 mt-4 min-h-[500px]">
-                            <div className="w-44 flex-shrink-0 border-r pr-3">
-                              <VariantListPanel
-                                variants={regularItem.variants || []}
-                                activeIndex={safeIndex}
-                                onSelectVariant={idx => setActiveVariantIndex(idx)}
-                                onAddVariant={handleAddVariant}
+                      <div className="space-y-2">
+                        {regularItem?.variants?.map((variant, variantIndex) => (
+                          <div
+                            key={variantIndex}
+                            className={`${dragOverIndex === variantIndex && 'border-t-2 border-primary'}`}
+                            onDragOver={e => handleDragOver(e, variantIndex)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={() => handleDrop(variantIndex)}
+                          >
+                            <div className="flex gap-1">
+                              <div
+                                className="cursor-grab p-2"
                                 draggable
-                                draggedIndex={draggedIndex}
-                                dragOverIndex={dragOverIndex}
-                                onDragStart={setDraggedIndex}
-                                onDragOver={(e, idx) => handleDragOver(e, idx)}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              {activeVariant && (
-                                <VariantEditor
-                                  variant={activeVariant}
-                                  variantIndex={safeIndex}
-                                  itemVariantType="RESTAURANT"
-                                  branchList={branchList}
-                                  setItem={setRegularItem}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                  handleBranchPriceChange={handleBranchPriceChange}
-                                  handleHideItemPerBranch={handleHideItemPerBranch}
-                                  handleSaveScheduledPrices={handleSaveScheduledPrices}
-                                  mixAndMatchRuleList={mixAndMatchRuleList}
-                                  profileGroupsOptions={profileGroupsOptions}
-                                  showName
-                                  showPrice
-                                  showSalePrice
-                                  showDescription
-                                  showProfileGroups
-                                  showFormErrors={showFormErrors}
-                                  onDeleteVariant={() => confirmDeleteVariant(safeIndex)}
-                                  canDeleteVariant={(regularItem.variants?.length ?? 0) > 1}
-                                  variantLabel={activeVariant?.name || `Variant ${safeIndex + 1}`}
-                                  generalTabContent={<>
-                                    <IngredientsPicker ingredients={activeVariant.ingredients || []} onChange={newIngredients => handleVariantFieldChange(safeIndex, 'ingredients', newIngredients)} />
-                                    <ProductImageGallery
-                                      showCard={false}
-                                      attachments={activeVariant?.attachments}
-                                      onAttachmentsChange={atts => handleVariantFieldChange(safeIndex, 'attachments', atts)}
-                                      description="Photos for this variant (menus, online, POS)."
-                                    />
-                                  </>}
-                                  extraTabs={[{
-                                    id: 'addons',
-                                    label: translate('items.update.tabs.addons.label', null, 'Addons'),
-                                    content: addonsTabContent,
-                                  }]}
-                                />
-                              )}
+                                onDragStart={() => setDraggedIndex(variantIndex)}
+                              >
+                                <GripVertical className="h-4 w-4" />
+                              </div>
+                              <Accordion type="single" collapsible className="flex-1">
+                                <AccordionItem value={`variant-${variantIndex}`}>
+                                  <AccordionTrigger className="hover:no-underline">
+                                    {VariantAccordionHeader(variantIndex)}
+                                  </AccordionTrigger>
+                                  <AccordionContent>
+                                    <Tabs defaultValue="general">
+                                      <TabsList className="grid w-full grid-cols-3">
+                                        <TabsTrigger value="general" className="text-xs">General</TabsTrigger>
+                                        <TabsTrigger value="pricing" className="text-xs">Pricing</TabsTrigger>
+                                        <TabsTrigger value="addons" className="text-xs">Addons</TabsTrigger>
+                                      </TabsList>
+
+                                      <TabsContent value="general" className="space-y-4">
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <div className="space-y-2">
+                                            <Label className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.name'}>Name</Translate>
+                                            </Label>
+                                            <Input
+                                              name="variant-name"
+                                              required
+                                              placeholder={translate('items.update.placeholders.variantName')}
+                                              value={variant?.name || ''}
+                                              onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                              className={`h-8 text-xs ${showFormErrors && !variant?.name ? 'border-destructive' : ''}`}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label htmlFor="price" className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.price'}>Price</Translate>
+                                            </Label>
+                                            <Input
+                                              type="number"
+                                              name="price"
+                                              required
+                                              placeholder="Variant Price"
+                                              value={variant?.price ?? ''}
+                                              min={0}
+                                              step={0.01}
+                                              onChange={e => handleVariantFieldChange(variantIndex, 'price', parseFloat(e.target.value) ?? null)}
+                                              className={`h-8 text-xs ${showFormErrors && (variant?.price === null || variant?.price === undefined) ? 'border-destructive' : ''}`}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                            </Label>
+                                            <Input
+                                              type="number"
+                                              name="sale-price"
+                                              placeholder="Variant Sale Price"
+                                              min={0}
+                                              step={0.01}
+                                              value={variant?.salePrice ?? ''}
+                                              onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) ?? null)}
+                                              className="h-8 text-xs"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label className="text-xs font-semibold">
+                                            <Translate contentKey={'items.update.description'}>Description</Translate>
+                                          </Label>
+                                          <Textarea
+                                            name="desc"
+                                            placeholder={translate('items.update.description')}
+                                            value={variant.description || ''}
+                                            onChange={e =>
+                                              handleVariantFieldChange(
+                                                variantIndex,
+                                                'description',
+                                                e.target.value
+                                              )
+                                            }
+                                            className="text-xs"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <IngredientsPicker
+                                            ingredients={variant.ingredients || []}
+                                            onChange={newIngredients => {
+                                              handleVariantFieldChange(variantIndex, 'ingredients', newIngredients)
+                                            }}
+                                          />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label className="text-xl font-bold">
+                                            <Translate contentKey={'items.update.image'}>Image</Translate>
+                                          </Label>
+                                          <MediaLibrary
+                                            handleFilesSelectCallback={files =>
+                                              handleVariantFieldChange(
+                                                variantIndex,
+                                                'attachments',
+                                                transformAttachmentStructure(files, 'toIAttachment')
+                                              )
+                                            }
+                                            defaultValues={transformAttachmentStructure(variant?.attachments, 'toFileLibraryListItem')}
+                                          />
+                                        </div>
+                                      </TabsContent>
+
+                                      <TabsContent value="pricing" className="space-y-4">
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <div className="space-y-2">
+                                            <Label className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                            </Label>
+                                            <Select
+                                              value={variant?.accountingGroups || []}
+                                              isClearable
+                                              options={profileGroupsOptions}
+                                              getOptionLabel={option => option.name}
+                                              getOptionValue={option => option.id}
+                                              onChange={profileGroup =>
+                                                handleVariantFieldChange(
+                                                  variantIndex,
+                                                  'accountingGroups',
+                                                  profileGroup ? [profileGroup] : []
+                                                )
+                                              }
+                                            />
+                                          </div>
+
+                                          <div>
+                                            <DiscountDropdown
+                                              discounts={variant.discounts}
+                                              handleVariantChange={handleVariantFieldChange}
+                                              variantIndex={variantIndex}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                            </Label>
+                                            <Select
+                                              isClearable
+                                              value={variant?.mixAndMatchRule || null}
+                                              options={mixAndMatchRuleList}
+                                              getOptionLabel={option => option.name}
+                                              getOptionValue={option => option.id}
+                                              onChange={mixAndMatchRule =>
+                                                handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                              }
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div>
+                                          <VariantBranchPrice
+                                            branchList={branchList}
+                                            handleBranchPriceChange={handleBranchPriceChange}
+                                            variantIndex={variantIndex}
+                                            branchVariantDetails={variant.branchVariantDetails}
+                                            itemVariantType={'RESTAURANT'}
+                                            handleHideItemPerBranch={handleHideItemPerBranch}
+                                            handleSaveScheduledPrices={handleSaveScheduledPrices}
+                                            variant={variant}
+                                            setItem={setRegularItem}
+                                          />
+                                        </div>
+                                      </TabsContent>
+
+                                      <TabsContent value="addons" className="space-y-4">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                                          <div className="min-w-0">
+                                            <Label className="text-xs font-semibold">
+                                              <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
+                                            </Label>
+                                            <div>
+                                              <OrderList
+                                                value={variant?.addonGroups?.map(group => group.addonGroup) || []}
+                                                onChange={e => onReorderAddonGroups(e, variantIndex)}
+                                                style={{ padding: '0px' }}
+                                                listStyle={{ padding: '0px' }}
+                                                itemTemplate={(addonGroup: IAddonGroup) => {
+                                                  const index = variant?.addonGroups?.findIndex(group => group.addonGroup.id === addonGroup.id);
+
+                                                  return (
+                                                    <div
+                                                      className="p-orderlist-item flex flex-wrap gap-2 items-end p-2"
+                                                      onClick={() => setSelectedAddonGroup(variant?.addonGroups[index])}
+                                                    >
+                                                      <div className='flex flex-col gap-1 min-w-[140px] flex-1'>
+                                                        <Label className="text-xs font-medium">{addonGroup.name}</Label>
+                                                        <Input
+                                                          value={variant?.addonGroups[index]?.name ?? addonGroup.name}
+                                                          onChange={e => handleVariantAddonGroupFieldChange(index, 'name', e.target.value, variantIndex)}
+                                                          className="h-8 text-xs min-w-[80px]"
+                                                          placeholder="Display name"
+                                                          onKeyDown={(e) => {
+                                                            if (e.key === ' ') {
+                                                              e.stopPropagation();
+                                                            }
+                                                          }}
+                                                        />
+                                                      </div>
+                                                      <div className='flex gap-2'>
+                                                        <div className='flex flex-col gap-1'>
+                                                          <Label className="text-xs font-medium">{translate('items.update.min')}</Label>
+                                                          <Input
+                                                            type="number"
+                                                            value={variant?.addonGroups[index]?.minQuantity ?? ''}
+                                                            onChange={e => {
+                                                              handleVariantAddonGroupFieldChange(index, 'minQuantity', parseInt(e.target.value) ?? null, variantIndex)
+                                                            }}
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
+                                                          />
+                                                        </div>
+                                                        <div className='flex flex-col gap-1'>
+                                                          <Label className="text-xs font-medium">{translate('items.update.max')}</Label>
+                                                          <Input
+                                                            type="number"
+                                                            value={variant?.addonGroups[index]?.maxQuantity ?? ''}
+                                                            onChange={e => handleVariantAddonGroupFieldChange(index, 'maxQuantity', parseInt(e.target.value) ?? null, variantIndex)}
+                                                            min={0}
+                                                            className="w-20 min-w-20 h-8 text-xs"
+                                                          />
+                                                        </div>
+                                                      </div>
+                                                      <div className='flex flex-col gap-1 items-center'>
+                                                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.addAutomatically')}</Label>
+                                                        <Checkbox
+                                                          checked={variant?.addonGroups[index]?.addAutomatically}
+                                                          onCheckedChange={checked => handleVariantAddonGroupFieldChange(index, 'addAutomatically', checked, variantIndex)}
+                                                          className="mt-1"
+                                                        />
+                                                      </div>
+                                                      <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="h-8 w-8 text-xs shrink-0"
+                                                        onClick={() => handleRemoveAddonGroup(addonGroup.id, variant, variantIndex)}
+                                                      >
+                                                        X
+                                                      </Button>
+                                                    </div>
+                                                  )
+                                                }}
+                                                header={
+                                                  reorderHeader(
+                                                    addonGroupsList
+                                                      .map(addonGroup => ({
+                                                        id: addonGroup.id,
+                                                        name: addonGroup.name
+                                                      })).filter(group => !variant.addonGroups?.some(a => a.addonGroup.id === group.id)),
+                                                    handleAddonGroupChange,
+                                                    variant.addonGroups || [],
+                                                    addonGroupsList,
+                                                    () => { },
+                                                    variant,
+                                                    variantIndex
+                                                  )
+                                                }
+                                                dragdrop
+                                                dataKey="id"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          {variant?.addonGroups.some(
+                                            (group) => group.addonGroup.id === selectedAddonGroup?.addonGroup.id
+                                          ) && (
+                                              <div className="min-w-0 overflow-auto">
+                                                <Label className="text-xs font-semibold flex flex-wrap justify-between gap-2">
+                                                  <span>
+                                                    <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+                                                  </span>
+                                                  <span className='flex flex-col gap-2'>
+                                                    <div className='flex gap-2 items-center text-xs font-normal'>
+                                                      <div className='h-3 w-3 bg-destructive' />
+                                                      <div>Price Modified</div>
+                                                    </div>
+                                                    <div className='flex gap-2 items-center text-xs font-normal'>
+                                                      <div className='h-3 w-3 bg-black' />
+                                                      <div>Default Price</div>
+                                                    </div>
+                                                  </span>
+                                                </Label>
+                                                <div className='border rounded mt-2'>
+                                                  <Table>
+                                                    <TableHeader>
+                                                      <TableRow>
+                                                        <TableHead className="text-xs">
+                                                          <Translate contentKey={'items.update.name'}>Name</Translate>
+                                                        </TableHead>
+                                                        <TableHead className="text-xs">
+                                                          <Translate contentKey={'items.update.price'}>Price</Translate>
+                                                        </TableHead>
+                                                        <TableHead className="text-xs">
+                                                          <Translate contentKey={'items.update.include'}>Include</Translate>
+                                                        </TableHead>
+                                                      </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                      {selectedAddonGroup?.addonGroup.addons?.map((addon, index) => (
+                                                        <TableRow key={index}>
+                                                          <TableCell className='text-xs'>{addon.name}</TableCell>
+                                                          <TableCell className='text-xs'>
+                                                            <Input
+                                                              type="number"
+                                                              value={
+                                                                (() => {
+                                                                  const priceOverride = variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price;
+                                                                  return priceOverride !== null && priceOverride !== undefined ? priceOverride : addon.price;
+                                                                })()
+                                                              }
+                                                              onChange={e => handleAddonGroupOverridedPriceChange(
+                                                                variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
+                                                                addon.id,
+                                                                parseFloat(e.target.value) ?? null,
+                                                                variantIndex
+                                                              )}
+                                                              className={`w-[80px] h-7 text-xs ${selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'text-destructive' : ''}`}
+                                                              step={0.01}
+                                                            />
+                                                          </TableCell>
+                                                          <TableCell className='text-xs'>
+                                                            <Checkbox
+                                                              checked={!variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(excluded => excluded.id).includes(addon.id)}
+                                                              onCheckedChange={checked => handleVariantAddonGroupExcludedChange(
+                                                                checked,
+                                                                variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
+                                                                addon,
+                                                                variantIndex
+                                                              )}
+                                                            />
+                                                          </TableCell>
+                                                        </TableRow>
+                                                      ))}
+                                                    </TableBody>
+                                                  </Table>
+                                                </div>
+                                              </div>
+                                            )}
+                                        </div>
+                                      </TabsContent>
+                                    </Tabs>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
                             </div>
                           </div>
-                        );
-                      })()}
-
+                        ))}
+                      </div>
                     </div>
 
                     <div>
@@ -945,20 +1298,7 @@ export const RegularItemUpdate = () => {
                 </CardContent>
               </Card>
 
-              {regularItem?.id ? (
-                <>
-                  <Separator className="opacity-60" />
-                  <Card className="border-border/80 shadow-sm">
-                    <CardHeader className="p-3 pb-2">
-                      <CardTitle className="text-base font-semibold tracking-tight text-foreground">Audit history</CardTitle>
-                      <CardDescription className="text-xs">Read-only log of changes to this item.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-3 pt-0">
-                      <AuditLogs entityId={regularItem?.id} />
-                    </CardContent>
-                  </Card>
-                </>
-              ) : null}
+              {regularItem?.id && <AuditLogs entityId={regularItem?.id} />}
             </div>
           </div>
         </div>

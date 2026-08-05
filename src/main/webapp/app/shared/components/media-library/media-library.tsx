@@ -6,11 +6,11 @@ import { IAttachment } from '../../model/attachment.model';
 import { toast } from 'react-toastify';
 import { FileLibraryListItem } from 'react-media-library-cloud-links';
 import { useDropzone } from 'react-dropzone'
+import { TiDelete } from "react-icons/ti";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Maximize2, Trash2 } from 'lucide-react';
-import ImageLightbox from '../image-lightbox';
+import { Loader2 } from 'lucide-react';
 
 interface MediaLibraryProps {
     sizePerPage?: number
@@ -34,7 +34,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const [loading, setLoading] = useState<boolean>(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
     const dispatch = useAppDispatch();
 
@@ -43,6 +42,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             toast.error('Only one image can be added for this field');
             return;
         } else {
+            console.log(acceptedFiles, 'acceptedFiles')
+            // setAttachments(acceptedFiles);
             fileUploadCallback(acceptedFiles);
         }
     };
@@ -151,45 +152,30 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             {!isCompact ? (
                 <div className="flex flex-wrap gap-3 my-3">
                     {defaultValues?.map((item, index) => (
-                        <div
-                            key={index}
-                            className="group relative w-24 h-24 rounded-md border overflow-hidden bg-muted/40 shrink-0"
-                        >
+                        <div key={index} className="relative">
                             <img
                                 src={item.thumbnailUrl}
                                 alt={item.name}
-                                className="w-full h-full object-cover"
+                                className="object-cover"
+                                style={{
+                                    maxWidth: '100px',
+                                    maxHeight: '100px',
+                                }}
                             />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button
-                                    type="button"
-                                    className="rounded-full bg-white/20 hover:bg-white/40 p-1.5 text-white transition-colors"
-                                    onClick={() => setLightboxSrc(item.thumbnailUrl)}
-                                    aria-label="Enlarge image"
-                                >
-                                    <Maximize2 className="h-3.5 w-3.5" />
-                                </button>
-                                <button
-                                    type="button"
-                                    className="rounded-full bg-white/20 hover:bg-destructive/80 p-1.5 text-white transition-colors"
-                                    onClick={() => confirm1(index)}
-                                    aria-label="Remove image"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
+                            <TiDelete
+                                onClick={() => confirm1(index)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-0.5rem',
+                                    right: '-0.5rem'
+                                }}
+                                className='cursor-pointer text-bg-light'
+                                size={20}
+                            />
                         </div>
                     ))}
                 </div>
             ) : null}
-
-            {lightboxSrc && (
-                <ImageLightbox
-                    src={lightboxSrc}
-                    open={!!lightboxSrc}
-                    onClose={() => setLightboxSrc(null)}
-                />
-            )}
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
@@ -301,6 +287,7 @@ const MediaLibraryTest = ({
 
     const filesSelectCallback = (files: FileLibraryListItem[]) => {
         setSelectedItems(files)
+        console.log(files, 'files')
         handleFilesSelectCallback(files)
         setIsOpen(prev => !prev)
     }

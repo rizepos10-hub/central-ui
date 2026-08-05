@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { runtimeConfig } from 'app/config/runtime-config';
 import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
 import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
@@ -338,7 +339,7 @@ export const Branches = () => {
   const metrics = [Metric.KILOMETERS, Metric.MILES, Metric.NEUTRAL];
 
   // key for geocode
-  setKey(GOOGLE_MAPS_API_KEY)
+  setKey(runtimeConfig.GOOGLE_MAPS_API_KEY)
 
   useEffect(() => {
     dispatch(getEntities({})).then((res: any) => {
@@ -840,13 +841,10 @@ export const Branches = () => {
                     <Checkbox
                       checked={!!branch.enableAskOnTablePermissions}
                       onCheckedChange={(checked) => handleEnableAskOnTablePermissionsChange(branchIndex, checked)}
-                      id={`enable-ask-on-table-permissions-${branchIndex}`}
+                      id={`ask-on-table-permissions-${branchIndex}`}
                     />
-                    <Label
-                      htmlFor={`enable-ask-on-table-permissions-${branchIndex}`}
-                      className="font-bold text-xs cursor-pointer"
-                    >
-                      Enable Ask On Table Permissions
+                    <Label htmlFor={`ask-on-table-permissions-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Ask for permissions when opening a table
                     </Label>
                   </div>
 

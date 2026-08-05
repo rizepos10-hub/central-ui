@@ -24,7 +24,7 @@ const StorefrontSettingsPage = () => {
       <div className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Storefront Settings</h2>
-          <p className="text-xs text-muted-foreground">Storefront domain and cookie text</p>
+          <p className="text-xs text-muted-foreground">Cookie text and storefront domain (managed in Admin Applications)</p>
         </div>
 
         <Card>
@@ -33,16 +33,16 @@ const StorefrontSettingsPage = () => {
           </CardHeader>
           <CardContent className="p-4 space-y-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="storefront-domain" className="text-xs font-semibold">Domain</Label>
-              <Input
-                id="storefront-domain"
-                value={entity.domain || ''}
-                onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
-                className="h-8 text-xs"
-              />
+              <Label htmlFor="storefront-domain" className="text-xs font-semibold">
+                Domain
+              </Label>
+              <Input id="storefront-domain" value={entity.domain || ''} disabled className="h-8 text-xs" />
+              <p className="text-xs text-muted-foreground">Set on the Online Ordering application in Admin.</p>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="storefront-cookie" className="text-xs font-semibold">Cookie</Label>
+              <Label htmlFor="storefront-cookie" className="text-xs font-semibold">
+                Cookie
+              </Label>
               <Input
                 id="storefront-cookie"
                 value={entity.cookie || ''}

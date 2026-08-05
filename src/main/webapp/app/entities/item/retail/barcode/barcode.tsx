@@ -12,6 +12,7 @@ import { FilterMatchMode } from 'primereact/api'
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter'
 import './barcode.css'
 import { formatVariant } from 'app/shared/util/variant-utils'
+import { getVariantSkus } from 'app/shared/util/sku-utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -27,6 +28,8 @@ type BarcodePriceDisplay = {
 }
 
 type VariantSkus = {
+    selectionKey: string
+    testIdKey: string
     variantId: string
     rawVariantName: string
     formattedVariantName: string
@@ -362,20 +365,23 @@ const Barcode = () => {
         const updated: VariantSkus[] = []
         products.forEach(product => {
             product.variants?.forEach(variant => {
-                if (variant.sku) {
+                const variantSkus = getVariantSkus(variant)
+                variantSkus.forEach(sku => {
                     const rawVariantName = variant.name || ''
                     const formattedVariantName = formatVariant(rawVariantName, variant.attributeValues) || rawVariantName
                     updated.push({
+                        selectionKey: `${variant.id}-${sku}`,
+                        testIdKey: variantSkus.length > 1 ? `${variant.id}-${sku}` : variant.id,
                         variantId: variant.id,
                         rawVariantName,
                         formattedVariantName,
-                        sku: variant.sku,
+                        sku,
                         price: variant.price,
                         salePrice: variant.salePrice,
                         attributeValues: variant.attributeValues,
                         priceDisplay: resolvePriceDisplay(variant.price, variant.salePrice),
                     })
-                }
+                })
             })
         })
         setVariantsSkus(updated)
@@ -409,11 +415,11 @@ const Barcode = () => {
     }
 
     const isVariantSelected = (vSku: VariantSkus) =>
-        variantsSkusToPrint.some(item => item.variantId === vSku.variantId)
+        variantsSkusToPrint.some(item => item.selectionKey === vSku.selectionKey)
 
     const toggleVariantSelection = (vSku: VariantSkus) => {
         if (isVariantSelected(vSku)) {
-            setVariantsSkusToPrint(prev => prev.filter(item => item.variantId !== vSku.variantId))
+            setVariantsSkusToPrint(prev => prev.filter(item => item.selectionKey !== vSku.selectionKey))
         } else {
             setVariantsSkusToPrint(prev => [...prev, vSku])
         }
@@ -424,7 +430,7 @@ const Barcode = () => {
     const toggleSelectAll = () => {
         if (isAllSelected) {
             setVariantsSkusToPrint(prev =>
-                prev.filter(item => !variantsSkus.some(v => v.variantId === item.variantId))
+                prev.filter(item => !variantsSkus.some(v => v.selectionKey === item.selectionKey))
             )
         } else {
             const newSelections = variantsSkus.filter(v => !isVariantSelected(v))
@@ -823,7 +829,7 @@ const Barcode = () => {
                                 {printVariants.map(vSku => (
                                     <div
                                         key={vSku.variantId}
-                                        data-testid={`barcode-preview-${vSku.variantId}`}
+                                        data-testid={`barcode-preview-${vSku.testIdKey}`}
                                         className="barcode-label"
                                         style={{
                                             width: printSettings.labelWidth,
@@ -912,7 +918,7 @@ const Barcode = () => {
                 {printVariants.map(vSku => (
                     <div
                         key={vSku.variantId}
-                        data-testid={`barcode-print-${vSku.variantId}`}
+                        data-testid={`barcode-print-${vSku.testIdKey}`}
                         className="barcode-label barcode-label-print"
                         style={{
                             width: printSettings.labelWidth,

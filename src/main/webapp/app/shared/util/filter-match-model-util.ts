@@ -16,6 +16,32 @@ export const applyMatchModeMap = (query: any) => {
   };
 
   const updatedFilters: any = {};
+  const updatedGroups = Array.isArray(query.groups)
+    ? query.groups
+        .map((group: any) => {
+          if (!group?.operator || !Array.isArray(group.constraints)) {
+            return null;
+          }
+
+          const updatedConstraints = group.constraints
+            .map((constraint: any) => {
+              if (!constraint?.field || constraint.value == null || constraint.value === '') {
+                return null;
+              }
+              const mapKey = constraint.matchMode.toLowerCase().replace(/_/g, '');
+              const updatedMatchMode = matchModeMap[mapKey] || constraint.matchMode;
+              return { ...constraint, matchMode: updatedMatchMode };
+            })
+            .filter(Boolean);
+
+          if (updatedConstraints.length === 0) {
+            return null;
+          }
+
+          return { ...group, constraints: updatedConstraints };
+        })
+        .filter(Boolean)
+    : [];
 
   Object.keys(query.filters).forEach(key => {
     const filter = query.filters[key];
@@ -49,6 +75,7 @@ export const applyMatchModeMap = (query: any) => {
   return {
     ...query,
     filters: updatedFilters,
+    groups: updatedGroups,
   };
 };
 

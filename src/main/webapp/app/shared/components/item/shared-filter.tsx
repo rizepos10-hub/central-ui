@@ -55,9 +55,9 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
           <Label className="text-xs font-semibold">SKU</Label>
           <InputTextFilter
             onKeyDown={handleKeyDown}
-            value={filters?.['variants.sku']?.value}
+            value={filters?.['variants.skus']?.value}
             size={30}
-            field={'variants.sku'}
+            field={'variants.skus'}
             onChange={onInputChange}
           />
         </div>

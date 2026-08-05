@@ -17,21 +17,17 @@ import VersionUpdateChecker from "app/version/version-checker";
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from 'app/shared/hooks/use-theme';
-import { getActiveTenant, getTenantFromURL } from 'app/shared/util/tenant-utils';
+import { getTenantFromURL } from 'app/shared/util/tenant-utils';
+import { runtimeConfig } from 'app/config/runtime-config';
 
-const tenant = getActiveTenant();
-const baseHref = `/${tenant}/`;
+const tenant = getTenantFromURL();
+const baseHref = tenant ? `/${tenant}/` : '/';
 export const App = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const urlTenant = getTenantFromURL();
-    if (!urlTenant) {
-      const suffix = window.location.pathname === '/' ? '' : window.location.pathname;
-      window.location.replace(`/${tenant}${suffix}${window.location.search}${window.location.hash}`);
-      return;
-    }
-    dispatch(setTenant({ tenant: getActiveTenant() }));
+    // dispatch(getSession());
+    dispatch(setTenant({ tenant }));
   }, []);
 
   return (
@@ -39,7 +35,7 @@ export const App = () => {
       <ThemeProvider>
         <LayoutProvider>
           <TooltipProvider delayDuration={1}>
-            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <APIProvider apiKey={runtimeConfig.GOOGLE_MAPS_API_KEY}>
               <Layout>
                 <ErrorBoundary>
                   <VersionUpdateChecker />

@@ -1,15 +1,7 @@
 module.exports = {
-  // APP_VERSION is passed as an environment variable from the Gradle / Maven build tasks.
   VERSION: process.env.hasOwnProperty('APP_VERSION') ? process.env.APP_VERSION : 'DEV',
-  // The root URL for API calls, ending with a '/' - for example: `"https://www.jhipster.tech:8081/myservice/"`.
-  // If this URL is left empty (""), then it will be relative to the current context.
-  // If you use an API server, in `prod` mode, you will need to enable CORS
-  // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
-
-  SERVER_ADMIN_API_URL: 'https://rize-pos.com/admin-app',
-  SERVER_API_URL: 'https://rize-pos.com/central-app',
-  SERVER_DOMAIN: 'http://146.190.253.249',
-  BUSINESS_ID: 'demo10',
-  APP_ID: 'central-app',
-  GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
+  SERVER_ADMIN_API_URL: process.env.SERVER_ADMIN_API_URL || 'https://rize-pos.com/admin-app',
+  SERVER_API_URL: process.env.SERVER_API_URL || 'https://api.rize-pos.com',
+  SERVER_DOMAIN: process.env.SERVER_DOMAIN || 'https://rize-pos.com',
+  GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || '',
 };

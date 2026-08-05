@@ -21,7 +21,6 @@ import CustomerUpdate from '../customer/customer-update';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
-import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
@@ -54,6 +53,7 @@ import DeliveryAddressDialog from 'app/entities/customer/components/DeliveryAddr
 import OrderPaymentDialog from './order-payment-dialog';
 import { formatServiceChargeKey } from 'app/shared/util/service-charge-utils';
 import { getFinalPrice } from 'app/shared/util/calculations-utils';
+import { buildCustomerSearchGroups } from 'app/shared/util/customer-search-filter-util';
 
 type ChargePreviewRow = {
     key: string;
@@ -320,26 +320,9 @@ const OrderCreate = () => {
                     },
                 }
                 : {},
+            groups: !field ? buildCustomerSearchGroups(trimmedValue) : [],
         });
     }, []);
-
-    const mergeCustomerResults = useCallback((primary: ICustomer[] = [], secondary: ICustomer[] = []) => {
-        const merged: ICustomer[] = [];
-        const seenIds = new Set<string>();
-
-        [...primary, ...secondary].forEach(customer => {
-            const id = customer?.id;
-            if (!id || seenIds.has(id)) {
-                return;
-            }
-
-            seenIds.add(id);
-            merged.push(customer);
-        });
-
-        return merged;
-    }, []);
-
     const loadCustomers = useCallback(async (searchValue = '') => {
         const requestId = latestCustomerSearchRequest.current + 1;
         latestCustomerSearchRequest.current = requestId;
@@ -353,15 +336,8 @@ const OrderCreate = () => {
                 const response: any = await dispatch(searchCustomers(buildCustomerSearchPayload(null, '')));
                 results = response?.payload?.data ?? [];
             } else {
-                const [nameResponse, businessResponse]: any = await Promise.all([
-                    dispatch(searchCustomers(buildCustomerSearchPayload('firstName', trimmedValue))),
-                    dispatch(searchCustomers(buildCustomerSearchPayload('businessDetails.businessName', trimmedValue))),
-                ]);
-
-                results = mergeCustomerResults(
-                    nameResponse?.payload?.data ?? [],
-                    businessResponse?.payload?.data ?? []
-                );
+                const response: any = await dispatch(searchCustomers(buildCustomerSearchPayload(null, trimmedValue)));
+                results = response?.payload?.data ?? [];
             }
 
             if (latestCustomerSearchRequest.current === requestId) {
@@ -372,7 +348,7 @@ const OrderCreate = () => {
                 setCustomerSearchLoading(false);
             }
         }
-    }, [buildCustomerSearchPayload, dispatch, mergeCustomerResults]);
+    }, [buildCustomerSearchPayload, dispatch]);
 
     const openScheduledAtPicker = useCallback(() => {
         const input = scheduledAtInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
@@ -858,14 +834,6 @@ const OrderCreate = () => {
             })
         );
         dispatch(getBranches({}))
-        dispatch(
-            getCategories({
-                page: 0,
-                size: 1000,
-                sort: `id,desc`,
-            })
-        );
-
         dispatch(
             getEntitiesByType({
                 type: RegisterType.ONLINE,

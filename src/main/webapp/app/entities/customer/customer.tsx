@@ -27,10 +27,12 @@ import {
   saveWorkbookAsExcel,
 } from 'app/shared/util/report-export-utils';
 import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
+import { buildCustomerSearchGroups, getCustomerSearchValueFromGroups } from 'app/shared/util/customer-search-filter-util';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100, 200];
 const DEFAULT_PAGE_SIZE = 20;
 const EXPORT_PAGE_SIZE = 250;
+const TEXT_FILTER_DEBOUNCE_MS = 300;
 const REPORT_TITLE = 'Customers';
 const apiSearchUrl = 'api/_search/customers';
 
@@ -49,6 +51,7 @@ const initialState = {
     'businessDetails.businessName': { value: null, matchMode: FilterMatchMode.CONTAINS },
     onAccountEnabled: { value: null, matchMode: FilterMatchMode.EQUALS },
   },
+  groups: [],
 };
 
 const formatAmount = (value?: number | null) => (value ?? 0).toFixed(2);
@@ -58,6 +61,28 @@ const onAccountOptions = [
   { label: 'Active', value: true },
   { label: 'Inactive', value: false },
 ];
+
+const formatCustomerLabel = (customer?: Partial<ICustomer> | null) => {
+  const fullName = [customer?.firstName, customer?.lastName]
+    .filter(part => typeof part === 'string' && part.trim().length > 0)
+    .join(' ')
+    .trim();
+  const businessName = customer?.businessDetails?.businessName?.trim();
+
+  if (fullName && businessName) {
+    return `${fullName} (${businessName})`;
+  }
+
+  if (fullName) {
+    return fullName;
+  }
+
+  if (businessName) {
+    return businessName;
+  }
+
+  return 'Unnamed customer';
+};
 
 export const Customer = () => {
   const dispatch = useAppDispatch();
@@ -71,16 +96,46 @@ export const Customer = () => {
   const [exportRows, setExportRows] = useState<ICustomer[]>([]);
   const [busyAction, setBusyAction] = useState<'excel' | 'pdf' | 'print' | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const query = JSON.parse(searchParams.get('query') || 'null') || initialState;
+  const rawQuery = JSON.parse(searchParams.get('query') || 'null') || {};
+  const query = {
+    ...initialState,
+    ...rawQuery,
+    filters: {
+      ...initialState.filters,
+      ...(rawQuery.filters || {}),
+    },
+    groups: Array.isArray(rawQuery.groups) ? rawQuery.groups : [],
+  };
+  const customerSearchValue =
+    getCustomerSearchValueFromGroups(query.groups)
+    || query.filters.firstName?.value
+    || query.filters['businessDetails.businessName']?.value
+    || '';
+  const [customerSearchInput, setCustomerSearchInput] = useState(customerSearchValue);
+  const [emailInput, setEmailInput] = useState(query.filters.email?.value || '');
+  const [phoneInput, setPhoneInput] = useState(query.filters.phone?.value || '');
+  const [accountNumberInput, setAccountNumberInput] = useState(query.filters.accountNumber?.value || '');
 
   const modifiedCustomerList = customerList.map(customer => ({
     ...customer,
-    name: [customer.firstName, customer.lastName]
-      .filter(part => typeof part === 'string' && part.trim().length > 0)
-      .join(' ')
-      .trim(),
+    name: formatCustomerLabel(customer),
   }));
+
+  useEffect(() => {
+    setCustomerSearchInput(customerSearchValue);
+  }, [customerSearchValue]);
+
+  useEffect(() => {
+    setEmailInput(query.filters.email?.value || '');
+  }, [query.filters.email?.value]);
+
+  useEffect(() => {
+    setPhoneInput(query.filters.phone?.value || '');
+  }, [query.filters.phone?.value]);
+
+  useEffect(() => {
+    setAccountNumberInput(query.filters.accountNumber?.value || '');
+  }, [query.filters.accountNumber?.value]);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -90,11 +145,10 @@ export const Customer = () => {
   };
 
   const exportFilters: ReportFilterInfo[] = [
-    { label: 'Name', value: query.filters.firstName?.value || 'All' },
+    { label: 'Customer Search', value: customerSearchValue || 'All' },
     { label: 'Email', value: query.filters.email?.value || 'All' },
     { label: 'Phone', value: query.filters.phone?.value || 'All' },
     { label: 'Account Number', value: query.filters.accountNumber?.value || 'All' },
-    { label: 'Business Name', value: query.filters['businessDetails.businessName']?.value || 'All' },
     {
       label: 'On Account',
       value:
@@ -107,7 +161,7 @@ export const Customer = () => {
   ];
 
   const fileName = createReportFileName(REPORT_TITLE, [
-    query.filters.firstName?.value,
+    customerSearchValue,
     query.filters.accountNumber?.value,
     query.filters.onAccountEnabled?.value === true
       ? 'active'
@@ -144,6 +198,111 @@ export const Customer = () => {
     });
     setSearchParams({ query: queryParams }, { replace: true });
   };
+
+  const stopSortPropagation = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+  };
+
+  useEffect(() => {
+    if (customerSearchInput === customerSearchValue) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const queryParams = JSON.stringify({
+        ...query,
+        first: 0,
+        page: 0,
+        filters: {
+          ...query.filters,
+          firstName: {
+            ...query.filters.firstName,
+            value: null,
+          },
+          'businessDetails.businessName': {
+            ...query.filters['businessDetails.businessName'],
+            value: null,
+          },
+        },
+        groups: buildCustomerSearchGroups(customerSearchInput || null),
+      });
+      setSearchParams({ query: queryParams }, { replace: true });
+    }, TEXT_FILTER_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [customerSearchInput, customerSearchValue, query, setSearchParams]);
+
+  useEffect(() => {
+    if (emailInput === (query.filters.email?.value || '')) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const queryParams = JSON.stringify({
+        ...query,
+        first: 0,
+        page: 0,
+        filters: {
+          ...query.filters,
+          email: {
+            ...query.filters.email,
+            value: emailInput || null,
+          },
+        },
+      });
+      setSearchParams({ query: queryParams }, { replace: true });
+    }, TEXT_FILTER_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [emailInput, query, setSearchParams]);
+
+  useEffect(() => {
+    if (phoneInput === (query.filters.phone?.value || '')) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const queryParams = JSON.stringify({
+        ...query,
+        first: 0,
+        page: 0,
+        filters: {
+          ...query.filters,
+          phone: {
+            ...query.filters.phone,
+            value: phoneInput || null,
+          },
+        },
+      });
+      setSearchParams({ query: queryParams }, { replace: true });
+    }, TEXT_FILTER_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [phoneInput, query, setSearchParams]);
+
+  useEffect(() => {
+    if (accountNumberInput === (query.filters.accountNumber?.value || '')) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const queryParams = JSON.stringify({
+        ...query,
+        first: 0,
+        page: 0,
+        filters: {
+          ...query.filters,
+          accountNumber: {
+            ...query.filters.accountNumber,
+            value: accountNumberInput || null,
+          },
+        },
+      });
+      setSearchParams({ query: queryParams }, { replace: true });
+    }, TEXT_FILTER_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [accountNumberInput, query, setSearchParams]);
 
   const handleSort = (field: string) => {
     let newSortOrder = 1;
@@ -351,9 +510,12 @@ export const Customer = () => {
                     {getSortIcon('firstName')}
                   </div>
                   <Input
-                    placeholder={translate('common.search.name')}
-                    value={query.filters.firstName?.value || ''}
-                    onChange={e => handleFilterChange('firstName', e.target.value || null)}
+                    placeholder="Search customer"
+                    value={customerSearchInput}
+                    onChange={e => setCustomerSearchInput(e.target.value)}
+                    onClick={stopSortPropagation}
+                    onFocus={stopSortPropagation}
+                    onMouseDown={stopSortPropagation}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -366,8 +528,11 @@ export const Customer = () => {
                   </div>
                   <Input
                     placeholder={translate('common.search.email')}
-                    value={query.filters.email?.value || ''}
-                    onChange={e => handleFilterChange('email', e.target.value || null)}
+                    value={emailInput}
+                    onChange={e => setEmailInput(e.target.value)}
+                    onClick={stopSortPropagation}
+                    onFocus={stopSortPropagation}
+                    onMouseDown={stopSortPropagation}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -380,8 +545,11 @@ export const Customer = () => {
                   </div>
                   <Input
                     placeholder={translate('common.phone')}
-                    value={query.filters.phone?.value || ''}
-                    onChange={e => handleFilterChange('phone', e.target.value || null)}
+                    value={phoneInput}
+                    onChange={e => setPhoneInput(e.target.value)}
+                    onClick={stopSortPropagation}
+                    onFocus={stopSortPropagation}
+                    onMouseDown={stopSortPropagation}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -394,22 +562,11 @@ export const Customer = () => {
                   </div>
                   <Input
                     placeholder="Search account number"
-                    value={query.filters.accountNumber?.value || ''}
-                    onChange={e => handleFilterChange('accountNumber', e.target.value || null)}
-                    className="h-8 text-xs"
-                  />
-                </div>
-              </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort('businessDetails.businessName')}>
-                <div className="space-y-1">
-                  <div>
-                    Business Name
-                    {getSortIcon('businessDetails.businessName')}
-                  </div>
-                  <Input
-                    placeholder="Search business name"
-                    value={query.filters['businessDetails.businessName']?.value || ''}
-                    onChange={e => handleFilterChange('businessDetails.businessName', e.target.value || null)}
+                    value={accountNumberInput}
+                    onChange={e => setAccountNumberInput(e.target.value)}
+                    onClick={stopSortPropagation}
+                    onFocus={stopSortPropagation}
+                    onMouseDown={stopSortPropagation}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -417,13 +574,15 @@ export const Customer = () => {
               <TableHead className="min-w-[140px]">
                 <div className="space-y-1">
                   <div>On Account</div>
-                  <Select
-                    value={onAccountOptions.find(option => option.value === (query.filters.onAccountEnabled?.value ?? '')) || onAccountOptions[0]}
-                    onChange={(option: any) => handleFilterChange('onAccountEnabled', option?.value === '' ? null : option?.value)}
-                    options={onAccountOptions}
-                    isSearchable={false}
-                    className="text-xs"
-                  />
+                  <div onClick={stopSortPropagation} onMouseDown={stopSortPropagation}>
+                    <Select
+                      value={onAccountOptions.find(option => option.value === (query.filters.onAccountEnabled?.value ?? '')) || onAccountOptions[0]}
+                      onChange={(option: any) => handleFilterChange('onAccountEnabled', option?.value === '' ? null : option?.value)}
+                      options={onAccountOptions}
+                      isSearchable={false}
+                      className="text-xs"
+                    />
+                  </div>
                 </div>
               </TableHead>
               <TableHead className="min-w-[110px] text-right">Debit Limit</TableHead>
@@ -446,7 +605,6 @@ export const Customer = () => {
                 <TableCell className="text-xs">{customer.email || '-'}</TableCell>
                 <TableCell className="text-xs">{customer.phone || '-'}</TableCell>
                 <TableCell className="text-xs">{customer.accountNumber || '-'}</TableCell>
-                <TableCell className="text-xs">{customer.businessDetails?.businessName || '-'}</TableCell>
                 <TableCell className="text-xs">
                   <span className={customer.onAccountEnabled ? 'font-medium text-emerald-600' : 'text-muted-foreground'}>
                     {customer.onAccountEnabled ? 'Active' : 'Inactive'}

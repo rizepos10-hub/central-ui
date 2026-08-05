@@ -15,7 +15,8 @@ interface LabelFlowContextValue {
   setTemplate: (template: LabelTemplate) => void;
   selection: Map<string, LabelJobEntry>;
   isSelected: (key: string) => boolean;
-  toggle: (product: IProduct, variant?: IVariableItemVariant) => void;
+  toggle: (product: IProduct, variant: IVariableItemVariant, sku: string) => void;
+  initializeOption: (product: IProduct, variant: IVariableItemVariant, sku: string, autoSelect: boolean) => void;
   setCopies: (key: string, copies: number) => void;
   clear: () => void;
   entries: LabelJobEntry[];
@@ -28,21 +29,52 @@ const LabelFlowContext = createContext<LabelFlowContextValue | null>(null);
 export const LabelFlowProvider = ({ children }: { children: React.ReactNode }) => {
   const [template, setTemplate] = useState<LabelTemplate | null>(null);
   const [selection, setSelection] = useState<Map<string, LabelJobEntry>>(new Map());
+  const [, setInitializedKeys] = useState<Set<string>>(new Set());
 
   const isSelected = useCallback((key: string) => selection.has(key), [selection]);
 
-  const toggle = useCallback((product: IProduct, variant?: IVariableItemVariant) => {
-    const key = variantKey(product.id ?? '', variant?.id);
+  const buildEntry = useCallback((product: IProduct, variant: IVariableItemVariant, sku: string): LabelJobEntry => {
+    const key = variantKey(product.id ?? '', variant.id, sku);
+    return { key, datum: { product, variant, sku }, copies: 1 };
+  }, []);
+
+  const toggle = useCallback((product: IProduct, variant: IVariableItemVariant, sku: string) => {
+    const key = variantKey(product.id ?? '', variant.id, sku);
     setSelection(prev => {
       const next = new Map(prev);
       if (next.has(key)) {
         next.delete(key);
       } else {
-        next.set(key, { key, datum: { product, variant }, copies: 1 });
+        next.set(key, buildEntry(product, variant, sku));
       }
       return next;
     });
-  }, []);
+  }, [buildEntry]);
+
+  const initializeOption = useCallback((product: IProduct, variant: IVariableItemVariant, sku: string, autoSelect: boolean) => {
+    const key = variantKey(product.id ?? '', variant.id, sku);
+    let shouldSelect = false;
+    setInitializedKeys(prev => {
+      if (prev.has(key)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.add(key);
+      shouldSelect = autoSelect;
+      return next;
+    });
+    if (!shouldSelect) {
+      return;
+    }
+    setSelection(prev => {
+      if (prev.has(key)) {
+        return prev;
+      }
+      const next = new Map(prev);
+      next.set(key, buildEntry(product, variant, sku));
+      return next;
+    });
+  }, [buildEntry]);
 
   const setCopies = useCallback((key: string, copies: number) => {
     setSelection(prev => {
@@ -69,6 +101,7 @@ export const LabelFlowProvider = ({ children }: { children: React.ReactNode }) =
     selection,
     isSelected,
     toggle,
+    initializeOption,
     setCopies,
     clear,
     entries,

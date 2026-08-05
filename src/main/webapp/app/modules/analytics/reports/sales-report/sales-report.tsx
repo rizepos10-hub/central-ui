@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { startOfYear } from 'date-fns';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Loader2 } from 'lucide-react';
 
@@ -278,7 +278,15 @@ const SalesReportDataTable = ({
         <TableBody className={reportTableBodyClassName}>
           {rows.map(row => (
             <TableRow key={row.id}>
-              <TableCell className={cn(reportLabelCellClassName, 'align-top')}>{row.label}</TableCell>
+              <TableCell className={cn(reportLabelCellClassName, 'align-top')}>
+                {row.href ? (
+                  <Link to={row.href} className="text-primary hover:underline">
+                    {row.label}
+                  </Link>
+                ) : (
+                  row.label
+                )}
+              </TableCell>
               {periodColumns.map(column => (
                 <TableCell key={`${row.id}-${column.key}`} className={reportNumericCellClassName}>
                   {formatPeriodValue(row.periodValues[column.key])}
@@ -530,10 +538,11 @@ export const SalesReport = () => {
       buildSalesReportViewModel({
         report: salesReportData,
         labelColumnTitle: reportTypeLabel,
+        reportType: reportType || selectedType,
         selectedMeasure,
         selectedMeasureLabel: measureLabel,
       }),
-    [measureLabel, reportTypeLabel, salesReportData, selectedMeasure]
+    [measureLabel, reportType, reportTypeLabel, salesReportData, selectedMeasure, selectedType]
   );
 
   const fileName = createReportFileName(reportTitle, [reportTypeLabel, measureLabel, branchLabel, intervalLabel]);

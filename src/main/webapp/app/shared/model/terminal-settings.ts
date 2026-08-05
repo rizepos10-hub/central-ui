@@ -22,9 +22,9 @@ export interface ITerminalSettings {
     receiptFooter: string | null;
     alwaysShowScrollbar: boolean;
     scrollbarThickness: number | null;
-    hstNumber: number | null;
-    pstNumber: number | null;
-    gstNumber: number | null;
+    hstNumber: string | null;
+    pstNumber: string | null;
+    gstNumber: string | null;
     enableCustomerApp: boolean;
     customerAppIp: string | null;
     customerAppPort: number | null;
@@ -46,6 +46,8 @@ export interface ITerminalSettings {
     scaleIntegrationType: ScaleIntegrationTypeEnum;
     rizeIntegratorWindowsServiceSettings: RizeIntegratorWindowsServiceSettings;
     enableCustomKeyboard: boolean;
+    fontScale: number;
+    customerScreenFontSize: string | null;
 }
 
 export enum openDrawerTypeEnum {

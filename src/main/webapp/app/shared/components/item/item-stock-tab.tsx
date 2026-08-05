@@ -7,6 +7,7 @@ import { partialUpdateMiniStockLevelEntity } from "app/entities/inventory/stock-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Wallet, Ban, Settings, Plus, Pencil, Loader2 } from 'lucide-react';
+import { formatSkuList } from 'app/shared/util/sku-utils';
 
 const ItemStockTab = ({variants, itemId, refreshProduct }) => {
   const dispatch = useAppDispatch();
@@ -114,7 +115,7 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
             <TableRow key={variant.id}>
               <TableCell className="text-xs">{variant.name}</TableCell>
               <TableCell className="text-xs">{variant.price}</TableCell>
-              <TableCell className="text-xs">{variant.sku}</TableCell>
+              <TableCell className="text-xs">{formatSkuList(variant)}</TableCell>
               <TableCell className="text-xs text-center">{quantityConfigBodyTemplate(variant)}</TableCell>
               <TableCell className="text-xs text-center">{purchaseConfigBodyTemplate(variant)}</TableCell>
               <TableCell className="text-xs text-center">{minimumStockLevelBodyTemplate(variant)}</TableCell>

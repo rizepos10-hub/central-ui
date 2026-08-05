@@ -57,6 +57,7 @@ import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
 import axios from "axios";
+import { formatSkuList } from "app/shared/util/sku-utils";
 import {
   Copy,
   Pencil,
@@ -563,7 +564,7 @@ export const Product = () => {
                 <TableCell className="text-xs">
                   {formatVariant(variant?.name, variant?.attributeValues)}
                 </TableCell>
-                <TableCell className="text-xs">{variant.sku || 'N/A'}</TableCell>
+                <TableCell className="text-xs">{formatSkuList(variant) || 'N/A'}</TableCell>
                 <TableCell className="text-xs">
                   {Object.entries(variant?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
                     <div key={stock?.location?.id} className="flex flex-row gap-2">
@@ -1397,10 +1398,10 @@ export const Product = () => {
                 <select
                   className="h-8 text-xs border border-input rounded-md px-2 bg-background"
                   style={{ maxWidth: '120px' }}
-                  value={localFilters?.['variants.sku']?.matchMode || FilterMatchMode.CONTAINS}
+                  value={localFilters?.['variants.skus']?.matchMode || FilterMatchMode.CONTAINS}
                   onChange={(e) => {
-                    const currentValue = localFilters?.['variants.sku']?.value || '';
-                    handleFilterValueChange('variants.sku', { value: currentValue, matchMode: e.target.value });
+                    const currentValue = localFilters?.['variants.skus']?.value || '';
+                    handleFilterValueChange('variants.skus', { value: currentValue, matchMode: e.target.value });
                   }}
                 >
                   <option value={FilterMatchMode.CONTAINS}>Contains</option>
@@ -1413,10 +1414,10 @@ export const Product = () => {
                   type="text"
                   className="h-8 text-xs flex-1 border border-input rounded-md px-2 bg-background"
                   placeholder="Filter by SKU"
-                  value={localFilters?.['variants.sku']?.value || ''}
+                  value={localFilters?.['variants.skus']?.value || ''}
                   onChange={(e) => {
-                    const currentMatchMode = localFilters?.['variants.sku']?.matchMode || FilterMatchMode.CONTAINS;
-                    handleFilterValueChange('variants.sku', { value: e.target.value, matchMode: currentMatchMode });
+                    const currentMatchMode = localFilters?.['variants.skus']?.matchMode || FilterMatchMode.CONTAINS;
+                    handleFilterValueChange('variants.skus', { value: e.target.value, matchMode: currentMatchMode });
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && onFilter(localFilters)}
                 />

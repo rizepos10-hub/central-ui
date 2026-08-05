@@ -8,6 +8,7 @@ import { Storage } from 'react-jhipster';
 import { getAccount, logoutSession } from 'app/shared/reducers/authentication';
 import { toast } from 'react-toastify';
 import { buildAuthTokenKey, getActiveTenant } from 'app/shared/util/tenant-utils';
+import { runtimeConfig } from 'app/config/runtime-config';
 
 
 let stompClient = null;
@@ -87,7 +88,7 @@ const connect = () => {
   const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
   const headers = {};
-  let url = SERVER_API_URL + '/websocket/tracker';
+  let url = runtimeConfig.SERVER_API_URL + '/websocket/tracker';
   const authTokenKey = buildAuthTokenKey();
   const authToken = Storage.local.get(authTokenKey) || Storage.session.get(authTokenKey);
   if (authToken) {

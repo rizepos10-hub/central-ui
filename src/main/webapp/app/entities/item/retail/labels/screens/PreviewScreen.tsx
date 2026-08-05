@@ -193,7 +193,7 @@ const PreviewScreen = () => {
           />
           <SummaryChip
             icon={<Package className="h-3 w-3" />}
-            label={`${entries.length} product${entries.length === 1 ? '' : 's'}`}
+            label={`${entries.length} SKU option${entries.length === 1 ? '' : 's'}`}
             className="bg-slate-500/10 text-slate-600"
           />
           <SummaryChip

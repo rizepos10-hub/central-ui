@@ -29,6 +29,7 @@ export type SalesReportMetricColumn =
 export type SalesReportRowModel = {
   id: string;
   label: string;
+  href?: string;
   periodValues: Record<string, SalesReportCellValue>;
   metricValues: Record<string, SalesReportCellValue>;
 };
@@ -195,6 +196,25 @@ const buildMetricColumns = (selectedMeasure: string, taxKeys: string[]): SalesRe
 const getReturnsValue = (value?: { returns?: number | null; returned?: number | null } | null) =>
   value?.returns ?? value?.returned ?? null;
 
+const resolveRowHref = (reportType: string | null | undefined, rowRecord?: { id?: string | null } | null) => {
+  if (!rowRecord?.id) {
+    return undefined;
+  }
+
+  switch ((reportType || '').toLowerCase()) {
+    case 'product':
+      return `/product/${rowRecord.id}/edit`;
+    case 'category':
+      return `/category/${rowRecord.id}/retail-items/edit`;
+    case 'menu':
+      return `/menu/${rowRecord.id}`;
+    case 'user':
+      return `/branch-pos-user/${rowRecord.id}/edit`;
+    default:
+      return undefined;
+  }
+};
+
 const getStaticMetricValue = (
   row: SalesReportSourceRow | null | undefined,
   key: SalesReportStaticMetricKey
@@ -219,7 +239,12 @@ const getStaticMetricValue = (
   }
 };
 
-const buildRows = (rows: SalesReportSource['rows'], periodColumns: SalesReportPeriodColumn[], metricColumns: SalesReportMetricColumn[]) =>
+const buildRows = (
+  rows: SalesReportSource['rows'],
+  periodColumns: SalesReportPeriodColumn[],
+  metricColumns: SalesReportMetricColumn[],
+  reportType?: string | null
+) =>
   (rows || []).map((row, rowIndex) => {
     const slotMap = new Map<number, number | null | undefined>();
     (row?.slots || []).forEach(slot => {
@@ -237,6 +262,7 @@ const buildRows = (rows: SalesReportSource['rows'], periodColumns: SalesReportPe
     return {
       id: row?.rowRecord?.id || `${row?.rowRecord?.name || 'row'}-${rowIndex}`,
       label: row?.rowRecord?.name || 'Unnamed',
+      href: resolveRowHref(reportType, row?.rowRecord),
       periodValues,
       metricValues,
     };
@@ -401,12 +427,14 @@ const chunkPeriodColumns = (
 export const buildSalesReportViewModel = ({
   report,
   labelColumnTitle,
+  reportType,
   selectedMeasure,
   selectedMeasureLabel,
   exportGroupSize = DEFAULT_EXPORT_GROUP_SIZE,
 }: {
   report?: SalesReportSource | null;
   labelColumnTitle: string;
+  reportType?: string | null;
   selectedMeasure: string;
   selectedMeasureLabel: string;
   exportGroupSize?: number;
@@ -414,7 +442,7 @@ export const buildSalesReportViewModel = ({
   const periodColumns = buildPeriodColumns(report?.headerSlots);
   const taxKeys = collectTaxKeys(report?.rows, report?.totalByDateRange);
   const metricColumns = buildMetricColumns(selectedMeasure, taxKeys);
-  const rows = buildRows(report?.rows, periodColumns, metricColumns);
+  const rows = buildRows(report?.rows, periodColumns, metricColumns, reportType);
   const footerRows = buildFooterRows(periodColumns, report?.totalByDateRange, selectedMeasure, selectedMeasureLabel, taxKeys);
   const exportGroups = chunkPeriodColumns(periodColumns, rows, footerRows, metricColumns, exportGroupSize);
 

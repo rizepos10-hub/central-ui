@@ -36,6 +36,7 @@ export interface IBranchDetails {
   days: IBusinessDayDetail[];
   wholesale: boolean;
   printZeroPriceAddons?: boolean;
+  enableAskOnTablePermissions?: boolean;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
@@ -49,7 +50,6 @@ export interface IBranchDetails {
   tokenExpired?: boolean;
   logo?: IAttachment;
   ebteligible?: boolean;
-  enableAskOnTablePermissions?: boolean;
   pages?: ISeoPages
   timeZone?: string;
 }

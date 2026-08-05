@@ -10,6 +10,7 @@ import {
   buildRefreshTokenKey,
   getActiveTenant,
 } from 'app/shared/util/tenant-utils';
+import { runtimeConfig } from 'app/config/runtime-config';
 
 export const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
 export const REFRESH_TOKEN_KEY = "cloudLinks-refreshToken"
@@ -61,7 +62,7 @@ export const authenticate = createAsyncThunk(
       password: auth.password,
       rememberMe: auth.rememberMe,
     };
-    return axios.post(SERVER_ADMIN_API_URL + `/api/login/${auth.tenant}/${APP_ID}`, data);
+    return axios.post(runtimeConfig.SERVER_ADMIN_API_URL + `/api/login/${auth.tenant}/central-app`, data);
   },
   {
     serializeError: serializeAxiosError,
@@ -92,12 +93,12 @@ export const login: (username: string, password: string, tenant: string, remembe
         Storage.local.set(buildRefreshTokenKey(tenantToUse), refresh_token);
         dispatch(getSession());
       };
-    
+
     export const clearAuthToken = () => {
       const tenant = getActiveTenant();
       const authKey = buildAuthTokenKey(tenant);
       const refreshKey = buildRefreshTokenKey(tenant);
-    
+
       const removeKey = (key: string) => {
         if (Storage.local.get(key)) {
           Storage.local.remove(key);
@@ -107,11 +108,11 @@ export const login: (username: string, password: string, tenant: string, remembe
         }
         sessionStorage.removeItem(key);
       };
-    
+
       removeKey(authKey);
       removeKey(refreshKey);
     };
-    
+
     export const clearAccessToken = () => {
       const tenant = getActiveTenant();
       const authKey = buildAuthTokenKey(tenant);
@@ -123,7 +124,7 @@ export const login: (username: string, password: string, tenant: string, remembe
       }
       sessionStorage.removeItem(authKey);
     };
-    
+
 
 export const logout: () => AppThunk = () => dispatch => {
   clearAuthToken();

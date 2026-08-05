@@ -125,6 +125,7 @@ jest.mock('app/config/store', () => ({
 }));
 
 jest.mock('react-router-dom', () => ({
+  Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
   useParams: () => ({ reportType: mockReportType }),
 }));
 
@@ -222,6 +223,21 @@ describe('SalesReport', () => {
 
     await waitFor(() => {
       expect(screen.getAllByText('General Report').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('links product rows to the related product page and leaves branch rows as plain text', async () => {
+    mockReportType = 'product';
+    const { rerender } = render(<SalesReport />);
+
+    const productLink = await screen.findByRole('link', { name: 'Espresso' });
+    expect(productLink.getAttribute('href')).toBe('/product/1/edit');
+
+    mockReportType = 'branch';
+    rerender(<SalesReport />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('link', { name: 'Espresso' })).toBeNull();
     });
   });
 

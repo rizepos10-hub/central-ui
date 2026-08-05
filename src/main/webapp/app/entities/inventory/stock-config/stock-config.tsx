@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './inventory-items.reducer';
 import _ from "lodash";
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { formatSkuList } from 'app/shared/util/sku-utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -227,7 +228,7 @@ export const StockConfig = () => {
                   <TableRow key={variant.id}>
                     <TableCell className="text-xs bg-muted/30">{formatVariant(variant?.name, variant?.attributeValues)}</TableCell>
                     <TableCell className="text-xs bg-muted/30">{variant.price}</TableCell>
-                    <TableCell className="text-xs bg-muted/30">{variant.sku}</TableCell>
+                    <TableCell className="text-xs bg-muted/30">{formatSkuList(variant)}</TableCell>
                     {selectedBranchId && (
                       <TableCell className="text-xs bg-muted/30">{getBranchQuantity(variant.stockQuantities)}</TableCell>
                     )}

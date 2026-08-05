@@ -1,14 +1,17 @@
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { getPrimarySku } from 'app/shared/util/sku-utils';
 import { ComparePriceStyle, LabelElement, LabelTemplate, validateBarcodeData } from '../model/label-template.model';
 
 export interface LabelDatum {
   product: IProduct;
   variant?: IVariableItemVariant;
+  sku?: string;
 }
 
-export const variantKey = (productId: string, variantId?: string | null): string => `${productId}:${variantId ?? 'base'}`;
+export const variantKey = (productId: string, variantId?: string | null, sku?: string | null): string =>
+  `${productId}:${variantId ?? 'base'}:${(sku ?? '').trim()}`;
 
 export const formatCurrency = (value?: number | null): string => {
   const numeric = Number(value ?? 0);
@@ -54,10 +57,10 @@ export const resolvePriceParts = (variant?: IVariableItemVariant): PriceParts =>
 export const comparePriceText = (original: string, style: ComparePriceStyle = 'strikethrough'): string =>
   style === 'was' ? `Was ${original}` : original;
 
-export const resolveBarcodeData = (datum: LabelDatum): string => datum.variant?.sku ?? '';
+export const resolveBarcodeData = (datum: LabelDatum): string => datum.sku?.trim() || getPrimarySku(datum.variant) || '';
 
 export const resolveQrData = (element: LabelElement, datum: LabelDatum): string => {
-  const sku = datum.variant?.sku ?? '';
+  const sku = resolveBarcodeData(datum);
   switch (element.qrDataType ?? 'sku') {
     case 'internalId':
       return datum.product.id ?? '';
@@ -83,7 +86,7 @@ export const resolveElementText = (element: LabelElement, datum: LabelDatum, use
       return raw;
     }
     case 'sku':
-      return variant?.sku ?? '';
+      return resolveBarcodeData(datum);
     case 'price': {
       const price = resolvePrice(variant);
       return price === null ? '' : formatCurrency(price);
@@ -137,7 +140,7 @@ const DEMO_BARCODE: Record<string, string> = {
 
 export const demoBarcodeData = (symbology = 'code128'): string => DEMO_BARCODE[symbology] ?? '1234567890';
 
-export const labelHasResolvableData = (datum: LabelDatum): boolean => Boolean(datum.variant?.sku || datum.product.name);
+export const labelHasResolvableData = (datum: LabelDatum): boolean => Boolean(resolveBarcodeData(datum) || datum.product.name);
 
 export interface LabelBarcodeIssue {
   productName: string;
@@ -189,4 +192,5 @@ export const SAMPLE_DATUM: LabelDatum = {
     salePrice: 299.99,
     attributeValues: {},
   } as unknown as IVariableItemVariant,
+  sku: '5901234123457',
 };

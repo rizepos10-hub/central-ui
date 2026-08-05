@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { runtimeConfig } from 'app/config/runtime-config';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
 import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy, CheckIcon, LoaderCircleIcon, LockIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ import { getEntity as getUiSettings } from 'app/entities/online-ordering/setting
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { formatDateForDisplay } from 'app/shared/util/timezone-utils';
 import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
+import { formatOrderMethodLabel } from 'app/shared/util/format-order-method-label';
 import { buildAuthTokenKey } from 'app/shared/util/tenant-utils';
 import { formatTransactionMethodLabel } from 'app/shared/util/payment-method-utils';
 import OrderPaymentDialog from './order-payment-dialog';
@@ -563,7 +565,7 @@ export const OrderDetail = () => {
 
   const sendOrderEmail = async (url: string, successMessage: string, fallbackErrorMessage: string) => {
     try {
-      const response = await fetch(`${SERVER_API_URL}${url}`, {
+      const response = await fetch(`${runtimeConfig.SERVER_API_URL}${url}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -673,19 +675,9 @@ export const OrderDetail = () => {
           .join(' ')
       : '-';
   const orderCreatedOn = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy') : '';
-  const orderCreatedAt = filteredOrderEntity.createdDate ? formatDateForDisplay(filteredOrderEntity.createdDate, 'MMM dd, yyyy HH:mm') : '';
   const paymentStatusIsPaid = filteredOrderEntity.paymentStatus === PaymentStatus.PAID;
   const orderChargesTotal = orderEntity?.orderCharges?.reduce((acc, charge) => acc + (charge?.amount || 0), 0) || 0;
-  const orderMetaCards = [
-    { label: 'Payment status', value: formatStatusLabel(filteredOrderEntity.paymentStatus), emphasis: true },
-    { label: 'Processing status', value: formatStatusLabel(filteredOrderEntity.processingStatus), emphasis: true },
-    { label: 'Order method', value: formatStatusLabel(filteredOrderEntity.orderMethod) },
-    { label: 'Created', value: orderCreatedAt || '-' },
-  ];
-
-  if (filteredOrderEntity.deliveryStatus != null) {
-    orderMetaCards.push({ label: 'Delivery status', value: String(filteredOrderEntity.deliveryStatus) });
-  }
+  const orderTypeLabel = formatOrderMethodLabel(filteredOrderEntity.orderMethod);
 
   const getBillStatusColor = (status: string) => {
     switch (status) {
@@ -772,6 +764,7 @@ export const OrderDetail = () => {
                   <p className="mt-1 text-sm text-slate-500">
                     {orderCreatedOn || '-'}
                     {customerFullName ? ` • ${customerFullName}` : ''}
+                    {filteredOrderEntity.orderMethod ? ` • ${orderTypeLabel}` : ''}
                   </p>
                 </div>
               </div>
@@ -785,6 +778,12 @@ export const OrderDetail = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
                   {filteredOrderEntity.processingStatus || '-'}
                 </div>
+                {filteredOrderEntity.orderMethod && (
+                  <div className="flex items-center gap-2 rounded-2xl bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-700">
+                    <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+                    {orderTypeLabel}
+                  </div>
+                )}
                   {filteredOrderEntity?.items?.length > 0 && (
                     <Button variant="outline" size="sm" onClick={handleReorder} className="rounded-2xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                       <Copy className="mr-1.5 h-3.5 w-3.5" />
@@ -1059,6 +1058,12 @@ export const OrderDetail = () => {
                     <span className="font-medium text-emerald-800">Payment Status</span>
                     <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm">
                       {formatStatusLabel(filteredOrderEntity.paymentStatus)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl bg-violet-50 px-4 py-3">
+                    <span className="font-medium text-violet-800">Order Type</span>
+                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-violet-700 shadow-sm">
+                      {orderTypeLabel}
                     </span>
                   </div>
                   <div className="space-y-2 rounded-2xl bg-sky-50 px-4 py-3">

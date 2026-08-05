@@ -10,6 +10,7 @@ import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { FilterMatchMode } from 'primereact/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { formatSkuList } from 'app/shared/util/sku-utils';
 
 const customSelectStyles = {
   control: (base) => ({
@@ -134,7 +135,7 @@ const VariantPackaging = ({
                         </div>
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                             <span className="text-xs font-medium truncate">{variant.name}</span>
-                            <span className="text-xs text-muted-foreground truncate">{variant.sku}</span>
+                            <span className="text-xs text-muted-foreground truncate">{formatSkuList(variant)}</span>
                         </div>
                         <div className="flex justify-end w-8">
                             <ArrowRight className="h-5 w-5 text-muted-foreground" />

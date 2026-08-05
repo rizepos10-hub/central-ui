@@ -11,6 +11,7 @@ import {
 } from "app/shared/reducers/reducer.utils";
 import { IPrintingProfile, defaultValue } from 'app/shared/model/PRINTER/printing-profile.model';
 import { IPrinter } from "app/shared/model/PRINTER/printer.model";
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<IPrintingProfile> = {
   loading: false,
@@ -28,8 +29,16 @@ const apiSearchUrl = 'api/_search/printing-profiles';
 // Actions
 
 export const searchEntities = createAsyncThunk('printing-profiles/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IPrintingProfile[]>(requestUrl);
+  return axios.post<IPrintingProfile[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('printing-profiles/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {

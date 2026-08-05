@@ -66,6 +66,41 @@ describe('Customer', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows the customer name with the business name in the list and removes the separate business name column', () => {
+    render(
+      <MemoryRouter>
+        <Customer />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: 'John Doe (Acme)' })).not.toBeNull();
+    expect(screen.queryByRole('columnheader', { name: /business name/i })).toBeNull();
+  });
+
+  it('preserves spaces in the customer search field and debounces the search update', async () => {
+    jest.useFakeTimers();
+
+    render(
+      <MemoryRouter>
+        <Customer />
+      </MemoryRouter>
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search customer') as HTMLInputElement;
+    fireEvent.change(searchInput, { target: { value: 'John ' } });
+
+    expect(searchInput.value).toBe('John ');
+
+    await waitFor(() => {
+      jest.advanceTimersByTime(300);
+      expect(searchInput.value).toBe('John ');
+    });
+  });
+
   it('exports the full filtered customer dataset to excel', async () => {
     mockedAxios.post.mockResolvedValueOnce({
       data: mockState.customer.entities,
@@ -81,13 +116,23 @@ describe('Customer', () => {
         sortOrder: 1,
         query: '',
         filters: {
-          firstName: { value: 'John', matchMode: 'contains' },
+          firstName: { value: null, matchMode: 'contains' },
           email: { value: null, matchMode: 'contains' },
           phone: { value: null, matchMode: 'contains' },
           accountNumber: { value: 'ACC', matchMode: 'contains' },
           'businessDetails.businessName': { value: null, matchMode: 'contains' },
           onAccountEnabled: { value: true, matchMode: 'equals' },
         },
+        groups: [
+          {
+            operator: 'OR',
+            constraints: [
+              { field: 'firstName', value: 'John', matchMode: 'contains' },
+              { field: 'lastName', value: 'John', matchMode: 'contains' },
+              { field: 'businessDetails.businessName', value: 'John', matchMode: 'contains' },
+            ],
+          },
+        ],
       })
     );
 
@@ -111,6 +156,16 @@ describe('Customer', () => {
         rows: 250,
         sortField: 'accountNumber',
         sortOrder: 1,
+        groups: [
+          {
+            operator: 'OR',
+            constraints: [
+              { field: 'firstName', value: 'John', matchMode: 'CONTAINS' },
+              { field: 'lastName', value: 'John', matchMode: 'CONTAINS' },
+              { field: 'businessDetails.businessName', value: 'John', matchMode: 'CONTAINS' },
+            ],
+          },
+        ],
       })
     );
 

@@ -388,9 +388,15 @@ export const CustomerDashboard = () => {
                                         <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                           Card {index + 1}
                                         </div>
-                                        <div className="mt-1 truncate font-mono text-sm font-semibold">
-                                          {card.referenceNumber || '-'}
-                                        </div>
+                                        {card.id ? (
+                                          <Link to={`/loyalty-cards/${card.id}/edit`} className="mt-1 block truncate font-mono text-sm font-semibold text-primary hover:underline">
+                                            {card.referenceNumber || '-'}
+                                          </Link>
+                                        ) : (
+                                          <div className="mt-1 truncate font-mono text-sm font-semibold">
+                                            {card.referenceNumber || '-'}
+                                          </div>
+                                        )}
                                       </div>
                                       <Badge
                                         variant="outline"

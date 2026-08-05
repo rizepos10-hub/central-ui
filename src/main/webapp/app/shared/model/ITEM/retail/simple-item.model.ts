@@ -43,7 +43,7 @@ export interface ISimpleItemVariant {
   description?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
-  sku?: string;
+  skus?: string[];
   price?: number;
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;

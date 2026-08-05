@@ -4,6 +4,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IItemMeasure, defaultValue } from 'app/shared/model/item-measure.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<IItemMeasure> = {
   loading: false,
@@ -21,8 +22,16 @@ const apiSearchUrl = 'api/_search/item-measures';
 // Actions
 
 export const searchEntities = createAsyncThunk('item-measure/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IItemMeasure[]>(requestUrl);
+  return axios.post<IItemMeasure[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntities = createAsyncThunk('item-measure/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {

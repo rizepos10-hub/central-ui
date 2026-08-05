@@ -1,6 +1,5 @@
 import { IBranch } from '../branch.model';
 import { OrderMethod } from '../ENUMS/order-method.model';
-import { IDiscount } from '../discount.model';
 
 export interface IPricingPoint {
     id?: string;
@@ -10,7 +9,6 @@ export interface IPricingPoint {
     orderTypes?: OrderMethod[];
     applicableBranches?: IBranch[]
     applicationTypes?: ApplicationTypes[];
-    discount?: IDiscount | null;
 }
 
 export enum PricingPointType {

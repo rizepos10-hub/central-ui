@@ -32,6 +32,7 @@ import { cn } from '@/src/main/webapp/app/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import { formatNumber } from 'app/shared/util/price-utils';
 import { formatSourceScopedIdentifier } from 'app/shared/util/order-identifier-utils';
+import { formatOrderMethodLabel } from 'app/shared/util/format-order-method-label';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
@@ -107,6 +108,21 @@ const getSourceBadgeClassName = (source?: string | null) => {
       return 'border-purple-200 bg-purple-50 text-purple-700';
     case 'CENTRAL_APP':
       return 'border-amber-200 bg-amber-50 text-amber-700';
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-700';
+  }
+};
+
+const getOrderTypeBadgeClassName = (orderMethod?: string | null) => {
+  switch (orderMethod) {
+    case 'Delivery':
+      return 'border-indigo-200 bg-indigo-50 text-indigo-700';
+    case 'PickUp':
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    case 'DineIn':
+      return 'border-violet-200 bg-violet-50 text-violet-700';
+    case 'WalkIn':
+      return 'border-cyan-200 bg-cyan-50 text-cyan-700';
     default:
       return 'border-slate-200 bg-slate-50 text-slate-700';
   }
@@ -371,6 +387,7 @@ export const Order = ({
       orderStatus: true,
       paymentStatus: true,
       orderSource: true,
+      orderType: true,
       orderTable: true,
       customerEmail: true,
       customerPhone: true,
@@ -1094,6 +1111,16 @@ export const Order = ({
                     </div>
                   </TableHead>
                 )}
+                {visibleColumns.orderType && (
+                  <TableHead>
+                    <div
+                      className="text-xs font-medium cursor-pointer hover:text-primary flex items-center gap-1"
+                      onClick={() => handleSort('orderMethod')}
+                    >
+                      Order Type {renderSortIcon('orderMethod')}
+                    </div>
+                  </TableHead>
+                )}
                 {visibleColumns.orderTable && (
                   <TableHead>
                     <div
@@ -1253,6 +1280,13 @@ export const Order = ({
                       <TableCell className={cellClass}>
                         <Badge variant="outline" className={cn('rounded-full', getSourceBadgeClassName(order.sourceApp?.type))}>
                           {formatSourceLabel(order.sourceApp?.type)}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {visibleColumns.orderType && (
+                      <TableCell className={cellClass}>
+                        <Badge variant="outline" className={cn('rounded-full', getOrderTypeBadgeClassName(order.orderMethod))}>
+                          {formatOrderMethodLabel(order.orderMethod)}
                         </Badge>
                       </TableCell>
                     )}

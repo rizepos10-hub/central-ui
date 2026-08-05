@@ -40,10 +40,10 @@ const product: IProduct = {
   desc: 'Soft cotton tee',
   categories: [{ id: 'cat-1', name: 'Apparel' }],
   brand: { id: 'brand-1', name: 'Acme' },
-  variants: [{ id: 'var-1', sku: 'TSHIRT-BLUE-M', price: 20, salePrice: 15, attributeValues: {} }],
+  variants: [{ id: 'var-1', skus: ['TSHIRT-BLUE-M'], price: 20, salePrice: 15, attributeValues: {} }],
 };
 
-const datum: LabelDatum = { product, variant: product.variants[0] };
+const datum: LabelDatum = { product, variant: product.variants[0], sku: 'TSHIRT-BLUE-M' };
 
 describe('label-data resolution', () => {
   it('formats currency with two decimals', () => {
@@ -67,9 +67,20 @@ describe('label-data resolution', () => {
     expect(resolveQrData({ type: 'qrCode', qrDataType: 'internalId' } as LabelElement, datum)).toBe('prod-1');
   });
 
+  it('prefers the explicitly selected sku over the variant primary sku', () => {
+    const selectedSkuDatum: LabelDatum = {
+      product,
+      variant: { ...product.variants[0], skus: ['PRIMARY-SKU', 'SECONDARY-SKU'] } as any,
+      sku: 'SECONDARY-SKU',
+    };
+
+    expect(resolveBarcodeData(selectedSkuDatum)).toBe('SECONDARY-SKU');
+    expect(resolveElementText({ type: 'sku' } as LabelElement, selectedSkuDatum)).toBe('SECONDARY-SKU');
+  });
+
   it('builds a stable variant key', () => {
-    expect(variantKey('prod-1', 'var-1')).toBe('prod-1:var-1');
-    expect(variantKey('prod-1')).toBe('prod-1:base');
+    expect(variantKey('prod-1', 'var-1', 'SKU-1')).toBe('prod-1:var-1:SKU-1');
+    expect(variantKey('prod-1')).toBe('prod-1:base:');
   });
 
   it('splits price into original + current when on sale', () => {
