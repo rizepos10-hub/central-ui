@@ -5,102 +5,117 @@ import { buildAuthTokenKey, buildRefreshTokenKey, getActiveTenant } from 'app/sh
 import { runtimeConfig } from 'app/config/runtime-config';
 
 const TIMEOUT = 1 * 60 * 1000;
-const APP_ID = runtimeConfig.APP_ID;
-const API_BASE_URL = runtimeConfig.SERVER_API_URL || runtimeConfig.SERVER_DOMAIN;
+const APP_ID = () => runtimeConfig.APP_ID;
 
 axios.defaults.timeout = TIMEOUT;
 axios.defaults.baseURL = runtimeConfig.SERVER_API_URL;
 
-const CENTRAL_APP_LOGIN_PATH_PATTERN = new RegExp(`^/api/login/[^/]+/${APP_ID}/?$`);
-
-const isCentralAppLoginRequest = (url?: string) => {
+const resolveRequestPath = (url?: string): string => {
   if (!url) {
-    return false;
+    return '';
   }
 
   try {
-    const resolvedUrl = new URL(url, API_BASE_URL);
-    return CENTRAL_APP_LOGIN_PATH_PATTERN.test(resolvedUrl.pathname);
+    return new URL(url, axios.defaults.baseURL || window.location.origin).pathname;
   } catch (error) {
-    return CENTRAL_APP_LOGIN_PATH_PATTERN.test(url);
+    return url;
   }
 };
 
+const isCentralAppLoginRequest = (url?: string) =>
+  new RegExp(`/api/login/[^/]+/${APP_ID()}/?$`).test(resolveRequestPath(url));
+
+const isAuthRefreshRequest = (url?: string) => resolveRequestPath(url).endsWith('/api/auth/refresh');
+
 const setupAxiosInterceptors = onUnauthenticated => {
+  let refreshPromise: Promise<string | null> | null = null;
 
-    const refreshAccessToken = async () => {
-      try {
-        clearAccessToken();
-        const tenantKey = getActiveTenant();
-        const refreshKey = buildRefreshTokenKey(tenantKey);
-        const localStorageToken = Storage.local.get(refreshKey) || null;
-        const sessionStorageToken = Storage.session.get(refreshKey) || null;
-        const refreshToken = localStorageToken || sessionStorageToken;
+  const refreshAccessToken = async () => {
+    try {
+      clearAccessToken();
+      const tenantKey = getActiveTenant();
+      const refreshKey = buildRefreshTokenKey(tenantKey);
+      const localStorageToken = Storage.local.get(refreshKey) || null;
+      const sessionStorageToken = Storage.session.get(refreshKey) || null;
+      const refreshToken = localStorageToken || sessionStorageToken;
 
-        if (refreshToken) {
-          const requestBody = {
-            refresh: refreshToken,
-            realm: tenantKey,
-            clientId: APP_ID,
-          };
+      if (refreshToken) {
+        const requestBody = {
+          refresh: refreshToken,
+          realm: tenantKey,
+          clientId: APP_ID(),
+        };
 
-          const response = await axios.post(runtimeConfig.SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
+        const response = await axios.post(runtimeConfig.SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
 
-          const newAccessToken = response?.data?.access_token;
-          const newRefreshToken = response?.data?.refresh_token;
+        const newAccessToken = response?.data?.access_token;
+        const newRefreshToken = response?.data?.refresh_token;
 
-          if (newAccessToken) {
-            const authKey = buildAuthTokenKey(tenantKey);
-            if (localStorageToken) {
-              Storage.local.set(authKey, newAccessToken);
-              Storage.local.set(refreshKey, newRefreshToken);
-            } else {
-              Storage.session.set(authKey, newAccessToken);
-              Storage.session.set(refreshKey, newRefreshToken);
-            }
-              return newAccessToken;
-            }
-        }
-        return null;
-      } catch (error) {
-        onUnauthenticated();
-        throw error
-      }
-    };
-
-    const onRequestSuccess = config => {
-      const authKey = buildAuthTokenKey();
-      const token = Storage.local.get(authKey) || Storage.session.get(authKey);
-        if (token && !isCentralAppLoginRequest(config.url)) {
-          config.headers = config.headers || {};
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      };
-
-    const onResponseSuccess = response => response;
-
-    const onResponseError = async (err) => {
-      const status = err.status || (err.response ? err.response.status : 0);
-      if ( status === 401 && !err.config.url.endsWith("/refresh")  && !err.config.url.endsWith(`/${APP_ID}`)) {
-        try {
-          const newAccessToken = await refreshAccessToken();
-          if (newAccessToken) {
-            err.config.headers.Authorization = `Bearer ${newAccessToken}`;
-            return axios(err.config);
+        if (newAccessToken) {
+          const authKey = buildAuthTokenKey(tenantKey);
+          if (localStorageToken) {
+            Storage.local.set(authKey, newAccessToken);
+            Storage.local.set(refreshKey, newRefreshToken);
           } else {
-            onUnauthenticated();
+            Storage.session.set(authKey, newAccessToken);
+            Storage.session.set(refreshKey, newRefreshToken);
           }
-        } catch (error) {
+          return newAccessToken;
+        }
+      }
+      return null;
+    } catch (error) {
+      onUnauthenticated();
+      throw error;
+    }
+  };
+
+  const getRefreshedAccessToken = () => {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    return refreshPromise;
+  };
+
+  const onRequestSuccess = config => {
+    const authKey = buildAuthTokenKey();
+    const token = Storage.local.get(authKey) || Storage.session.get(authKey);
+    if (token && !isCentralAppLoginRequest(config.url) && !isAuthRefreshRequest(config.url)) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  };
+
+  const onResponseSuccess = response => response;
+
+  const onResponseError = async err => {
+    const status = err.status || (err.response ? err.response.status : 0);
+    const requestUrl = err.config?.url;
+
+    // Never try to refresh on login or refresh endpoints themselves.
+    if (status === 401 && !isAuthRefreshRequest(requestUrl) && !isCentralAppLoginRequest(requestUrl)) {
+      try {
+        const newAccessToken = await getRefreshedAccessToken();
+        if (newAccessToken) {
+          err.config.headers = err.config.headers || {};
+          err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+          return axios(err.config);
+        } else {
           onUnauthenticated();
         }
+      } catch (error) {
+        onUnauthenticated();
       }
+    }
 
-      return Promise.reject(err);
-    };
-
-    axios.interceptors.request.use(onRequestSuccess);
-    axios.interceptors.response.use(onResponseSuccess, onResponseError);
+    return Promise.reject(err);
   };
+
+  axios.interceptors.request.use(onRequestSuccess);
+  axios.interceptors.response.use(onResponseSuccess, onResponseError);
+};
 
 export default setupAxiosInterceptors;

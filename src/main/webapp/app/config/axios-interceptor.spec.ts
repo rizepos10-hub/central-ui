@@ -12,9 +12,13 @@ describe('Axios Interceptor', () => {
     let setupAxiosInterceptors;
 
     beforeAll(async () => {
-      window.__ENV__ = {
-        SERVER_API_URL: 'https://rize-pos.com/central-app',
-        SERVER_ADMIN_API_URL: 'https://api-admin-dev.rize-pos.com',
+      (globalThis as typeof globalThis & { SERVER_API_URL: string }).SERVER_API_URL = 'https://rize-pos.com/central-app';
+      (window as any).__ENV__ = {
+        SERVER_API_URL: '',
+        SERVER_ADMIN_API_URL: '/admin-api',
+        SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
+        GOOGLE_MAPS_API_KEY: '',
+        APP_ID: 'central-app',
       };
       setupAxiosInterceptors = (await import('./axios-interceptor')).default;
       setupAxiosInterceptors(onUnauthenticated);
@@ -60,6 +64,28 @@ describe('Axios Interceptor', () => {
       const config = (client.interceptors.request as any).handlers[0].fulfilled({
         headers: {},
         url: 'https://api-admin-dev.rize-pos.com/api/login/business_1010/central-app',
+      });
+
+      expect(config.headers.Authorization).toBeUndefined();
+    });
+
+    it('does not add Authorization for /admin-api prefixed central-app login requests', () => {
+      Storage.local.set(authKey, 'test-token');
+
+      const config = (client.interceptors.request as any).handlers[0].fulfilled({
+        headers: {},
+        url: '/admin-api/api/login/al_rayan/central-app',
+      });
+
+      expect(config.headers.Authorization).toBeUndefined();
+    });
+
+    it('does not add Authorization for refresh requests', () => {
+      Storage.local.set(authKey, 'test-token');
+
+      const config = (client.interceptors.request as any).handlers[0].fulfilled({
+        headers: {},
+        url: '/admin-api/api/auth/refresh',
       });
 
       expect(config.headers.Authorization).toBeUndefined();
