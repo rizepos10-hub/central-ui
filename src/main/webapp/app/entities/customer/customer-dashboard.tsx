@@ -231,9 +231,10 @@ export const CustomerDashboard = () => {
   const headerTitle = customerTitle || customerEntity?.businessDetails?.businessName || 'Customer';
   const loyaltyPointsRemaining = customerEntity?.loyaltyPointsRemaining ?? 0;
   const assignedLoyaltyCards = customerEntity?.loyaltyCards || [];
+  const unlimitedOnAccount = customerEntity?.unlimitedOnAccount === true;
   const onAccountDebitLimit = customerEntity?.onAccountDebitLimit ?? 0;
   const onAccountDebitUsed = customerEntity?.onAccountDebitUsed ?? 0;
-  const onAccountRemaining = onAccountDebitLimit - onAccountDebitUsed;
+  const onAccountRemaining = unlimitedOnAccount ? null : onAccountDebitLimit - onAccountDebitUsed;
   const canOpenPayOnAccount =
     customerEntity?.onAccountEnabled === true &&
     getCustomerOnAccountPaydownValidation({
@@ -455,7 +456,7 @@ export const CustomerDashboard = () => {
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <div className="rounded-md border p-3">
                       <div className="text-xs font-medium text-muted-foreground">Account Limit</div>
-                      <div className="mt-1 text-sm whitespace-nowrap">{formatAuditAmount(onAccountDebitLimit)}</div>
+                      <div className="mt-1 text-sm whitespace-nowrap">{unlimitedOnAccount ? 'Unlimited' : formatAuditAmount(onAccountDebitLimit)}</div>
                     </div>
                     <div className="rounded-md border p-3">
                       <div className="text-xs font-medium text-muted-foreground">Account Balance</div>
@@ -463,7 +464,7 @@ export const CustomerDashboard = () => {
                     </div>
                     <div className="rounded-md border p-3">
                       <div className="text-xs font-medium text-muted-foreground">Account Remaining</div>
-                      <div className="mt-1 text-sm whitespace-nowrap">{formatAuditAmount(onAccountRemaining)}</div>
+                      <div className="mt-1 text-sm whitespace-nowrap">{unlimitedOnAccount ? 'Unlimited' : formatAuditAmount(onAccountRemaining)}</div>
                     </div>
                   </div>
                 )}

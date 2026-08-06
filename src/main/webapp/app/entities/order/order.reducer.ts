@@ -76,8 +76,9 @@ export const getEntityLogs = createAsyncThunk('order-logs/fetch_entity_log_list'
 
 export const getOrderSources = createAsyncThunk('order/fetch_orderSource_list', async () => {
   const requestUrl = `/api/applications`;
-  const response = await axios.get<IOrder[]>(requestUrl);
-  return response
+  const response = await axios.get<string[]>(requestUrl);
+  const sources = Array.from(new Set([...(response.data || []), 'MARKETPLACE']));
+  return { ...response, data: sources };
 });
 
 export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list', async () => {

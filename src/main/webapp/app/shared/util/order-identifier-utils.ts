@@ -7,6 +7,7 @@ const SOURCE_PREFIXES: Record<string, string> = {
   CENTRAL_APP: 'AD',
   BUSINESS_ADMIN: 'AD',
   THIRD_PARTY: 'TP',
+  MARKETPLACE: 'MP',
 };
 
 export const getOrderSourcePrefix = (sourceAppType?: SourceAppType) => {
