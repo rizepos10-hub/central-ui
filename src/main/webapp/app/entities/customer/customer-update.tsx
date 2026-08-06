@@ -738,6 +738,20 @@ export const CustomerUpdate = ({
 
                   <div className="space-y-3 rounded-md border p-3">
                     <h5 className="text-sm font-medium">Business Balance</h5>
+                    <div className="flex items-start gap-2 rounded-md border bg-muted/30 px-3 py-2">
+                      <Checkbox
+                        id="customer-unlimitedOnAccount"
+                        checked={customerEntity?.unlimitedOnAccount === true}
+                        disabled={customerEntity?.onAccountEnabled !== true}
+                        onCheckedChange={checked => dispatch(changeEntityField({ name: 'unlimitedOnAccount', value: checked === true }))}
+                      />
+                      <div className="space-y-0.5">
+                        <Label htmlFor="customer-unlimitedOnAccount" className="text-xs cursor-pointer">Bypass debit limit</Label>
+                        <p className="text-[11px] text-muted-foreground">
+                          Allows on-account charges without enforcing the debit limit. Usage is still tracked.
+                        </p>
+                      </div>
+                    </div>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       <div className="flex flex-col gap-1">
                         <Label htmlFor="customer-onAccountDebitLimit" className="text-xs">Debit Limit</Label>
@@ -748,7 +762,7 @@ export const CustomerUpdate = ({
                           step="0.01"
                           className="h-8 text-xs"
                           value={customerEntity?.onAccountDebitLimit ?? 0}
-                          disabled={customerEntity?.onAccountEnabled !== true}
+                          disabled={customerEntity?.onAccountEnabled !== true || customerEntity?.unlimitedOnAccount === true}
                           onChange={e => dispatch(changeEntityField({ name: 'onAccountDebitLimit', value: parseNumericField(e.target.value) }))}
                         />
                       </div>
@@ -797,7 +811,7 @@ export const CustomerUpdate = ({
                                   step="0.01"
                                   className="h-8 text-xs"
                                   value={branchDebit.debitLimit ?? 0}
-                                  disabled={customerEntity?.onAccountEnabled !== true}
+                                  disabled={customerEntity?.onAccountEnabled !== true || customerEntity?.unlimitedOnAccount === true}
                                   onChange={e => handleBranchOnAccountDebitChange(branch.id, 'debitLimit', parseNumericField(e.target.value))}
                                 />
                               </TableCell>
