@@ -12,6 +12,7 @@ export interface ICustomer {
   onAccountDebitLimit?: number | null;
   onAccountDebitUsed?: number | null;
   onAccountEnabled?: boolean | null;
+  unlimitedOnAccount?: boolean | null;
   onAccountBalanceType?: OnAccountBalanceType | null;
   branchOnAccountDebits?: IBranchOnAccountDebitMap;
   phone?: string;

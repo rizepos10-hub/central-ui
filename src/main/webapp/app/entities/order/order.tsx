@@ -50,8 +50,8 @@ interface LazyTableState {
 type OrderProps = {
   pageType?: 'history' | 'today' | 'scheduled' | 'ai-ordering' | 'saved' | '';
   customer?: string;
-  appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
-  defaultOrderSource?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
+  appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP" | "MARKETPLACE";
+  defaultOrderSource?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP" | "MARKETPLACE";
   externalFromDate?: string;
   externalToDate?: string;
   externalBranchId?: string | null;
