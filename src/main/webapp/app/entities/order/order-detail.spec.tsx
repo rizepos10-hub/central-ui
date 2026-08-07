@@ -336,7 +336,7 @@ describe('OrderDetail delivery provider source', () => {
     expect(screen.getByText('Assign Driver')).toBeTruthy();
   });
 
-  it('renders fixed delivery progress in business-flow order regardless of API order', () => {
+  it('renders the actual provider tasks in route order regardless of API order', () => {
     mockState.order.entity.orderDeliveryDetails = {
       integrationDetails: {
         tasks: [
@@ -361,23 +361,23 @@ describe('OrderDetail delivery provider source', () => {
 
     const { container } = renderOrderDetail();
 
-    expect(screen.getByText('Delivery Progress')).toBeTruthy();
-    expect(screen.getByText('Going To Restaurant')).toBeTruthy();
-    expect(screen.getByText('Picked Up Package')).toBeTruthy();
-    expect(screen.getByText('Delivered To Customer')).toBeTruthy();
+    expect(screen.getByText('Tookan delivery')).toBeTruthy();
+    expect(screen.getByText('Pickup stop 1')).toBeTruthy();
+    expect(screen.getByText('Pickup stop 2')).toBeTruthy();
+    expect(screen.getByText('Delivery')).toBeTruthy();
     expect(screen.getByText('ARRIVED')).toBeTruthy();
     expect(screen.getByText('HANDED')).toBeTruthy();
     expect(screen.getByText('DELIVERED')).toBeTruthy();
 
     const content = container.textContent || '';
-    expect(content.indexOf('Going To Restaurant')).toBeLessThan(content.indexOf('Picked Up Package'));
-    expect(content.indexOf('Picked Up Package')).toBeLessThan(content.indexOf('Delivered To Customer'));
+    expect(content.indexOf('Pickup stop 1')).toBeLessThan(content.indexOf('Pickup stop 2'));
+    expect(content.indexOf('Pickup stop 2')).toBeLessThan(content.indexOf('Delivery'));
   });
 
   it('shows pending for created tasks and hides delivery progress when there are no tasks', () => {
     const { rerender } = renderOrderDetail();
 
-    expect(screen.queryByText('Delivery Progress')).toBeNull();
+    expect(screen.queryByText('Tookan delivery')).toBeNull();
 
     mockState.order.entity.orderDeliveryDetails = {
       integrationDetails: {
@@ -407,7 +407,7 @@ describe('OrderDetail delivery provider source', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Delivery Progress')).toBeTruthy();
+    expect(screen.getByText('Tookan delivery')).toBeTruthy();
     expect(screen.getAllByText('Pending')).toHaveLength(3);
   });
 
@@ -447,7 +447,7 @@ describe('OrderDetail delivery provider source', () => {
     );
 
     expect(screen.getByText('Order Items')).toBeTruthy();
-    expect(screen.queryByText('Delivery Progress')).toBeTruthy();
+    expect(screen.queryByText('Tookan delivery')).toBeTruthy();
     expect(screen.queryByRole('status')).toBeNull();
   });
 
