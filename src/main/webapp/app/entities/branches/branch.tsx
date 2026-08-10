@@ -56,12 +56,6 @@ const defaultTookanBookingTaskSteps = (): ITookanBookingTaskSteps => ({
   deliveredToCustomerEnabled: true,
 });
 
-const tookanBookingTaskStepOptions: { field: keyof ITookanBookingTaskSteps; label: string }[] = [
-  { field: 'goingToRestaurantEnabled', label: 'Going to restaurant' },
-  { field: 'pickedUpPackageEnabled', label: 'Picked up package' },
-  { field: 'deliveredToCustomerEnabled', label: 'Delivered to customer' },
-];
-
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
     return [{ label: 'Status', value: 'Not initialized — set coverage and rates below, then save the branch.' }];
@@ -118,16 +112,6 @@ function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefin
   } else {
     lines.push({ label: 'Free delivery', value: 'Off' });
   }
-
-  const tookanBookingTaskSteps = {
-    ...defaultTookanBookingTaskSteps(),
-    ...(dc.tookanBookingTaskSteps ?? {}),
-  };
-  const enabledTaskStepCount = tookanBookingTaskStepOptions.filter(option => tookanBookingTaskSteps[option.field]).length;
-  lines.push({
-    label: 'Tookan task steps',
-    value: `${enabledTaskStepCount}/${tookanBookingTaskStepOptions.length} enabled`,
-  });
 
   return lines;
 }
@@ -1579,40 +1563,6 @@ export const Branches = () => {
                               <p className="text-[10px] text-muted-foreground">
                                 Leave empty to keep this unset, or provide the default lead time in minutes for branch bookings.
                               </p>
-                            </dd>
-                          </div>
-                          <div className="rounded-md border bg-muted/20 px-3 py-2">
-                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tookan booking task steps</dt>
-                            <dd className="mt-2">
-                              <div className="grid gap-2">
-                                {tookanBookingTaskStepOptions.map(option => {
-                                  const checkboxId = `tookan-task-step-${branchIndex}-${option.field}`;
-                                  const isDeliveredToCustomer = option.field === 'deliveredToCustomerEnabled';
-                                  return (
-                                    <div key={option.field} className="flex items-center gap-2 rounded-md border bg-background px-2 py-2">
-                                      <Checkbox
-                                        id={checkboxId}
-                                        checked={
-                                          isDeliveredToCustomer
-                                            ? true
-                                            : (branch.deliveryConfiguration?.tookanBookingTaskSteps?.[option.field] ?? true)
-                                        }
-                                        disabled={isDeliveredToCustomer}
-                                        onCheckedChange={checked =>
-                                          handleDeliveryConfiguration(
-                                            branchIndex,
-                                            `tookanBookingTaskSteps.${option.field}`,
-                                            isDeliveredToCustomer ? true : !!checked
-                                          )
-                                        }
-                                      />
-                                      <Label htmlFor={checkboxId} className="cursor-pointer text-xs font-medium leading-tight">
-                                        {option.label}
-                                      </Label>
-                                    </div>
-                                  );
-                                })}
-                              </div>
                             </dd>
                           </div>
                         </dl>

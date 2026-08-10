@@ -140,6 +140,12 @@ export enum OrderIntegrationTaskDeliveryStatus {
 
 export interface IOrderIntegrationTask {
   taskType?: string;
+  branchId?: string | null;
+  displayText?: string | null;
+  displayAddress?: string | null;
+  sequence?: number | null;
+  statusLabel?: string | null;
+  stepState?: string | null;
   jobId?: string;
   jobToken?: string | null;
   jobHash?: string;
@@ -147,6 +153,7 @@ export interface IOrderIntegrationTask {
   deliveryStatus?: OrderIntegrationTaskDeliveryStatus | null;
   fleetId?: string;
   fleetName?: string | null;
+  fleetPhone?: string | null;
   trackingLink?: string | null;
   jobDescription?: string | null;
   pickupDate?: string | null;

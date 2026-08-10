@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { runtimeConfig } from 'app/config/runtime-config';
 import { changeProcessingStatus, createDraftBill, addPaymentToBill, getEntity, refundBill } from './order.reducer';
-import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy, CheckIcon, LoaderCircleIcon, LockIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, BanknoteArrowDown, Pencil, Plus, Copy, CheckIcon, LoaderCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -49,42 +49,7 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
 import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
-import {
-  Stepper,
-  StepperContent,
-  StepperIndicator,
-  StepperItem,
-  StepperNav,
-  StepperPanel,
-  StepperSeparator,
-  StepperTitle,
-  StepperTrigger,
-} from '@/components/ui/stepper';
-
-type TaskStepperState = 'active' | 'completed' | 'inactive';
-type DeliveryProgressTaskType = 'goingToRestaurant' | 'pickedUpPackage' | 'deliveredToCustomer';
-
-const DELIVERY_PROGRESS_TASKS: Array<{
-  taskType: DeliveryProgressTaskType;
-  title: string;
-  doneStatus: OrderIntegrationTaskDeliveryStatus;
-}> = [
-  {
-    taskType: 'goingToRestaurant',
-    title: 'Going To Restaurant',
-    doneStatus: OrderIntegrationTaskDeliveryStatus.ARRIVED,
-  },
-  {
-    taskType: 'pickedUpPackage',
-    title: 'Picked Up Package',
-    doneStatus: OrderIntegrationTaskDeliveryStatus.HANDED,
-  },
-  {
-    taskType: 'deliveredToCustomer',
-    title: 'Delivered To Customer',
-    doneStatus: OrderIntegrationTaskDeliveryStatus.DELIVERED,
-  },
-];
+type TaskStepperState = 'active' | 'completed' | 'inactive' | 'failed' | 'cancelled';
 
 const prettifyTaskType = (taskType?: string | null) => {
   if (!taskType) {
@@ -98,7 +63,11 @@ const prettifyTaskType = (taskType?: string | null) => {
     .replace(/\b\w/g, char => char.toUpperCase());
 };
 
-const formatTaskBadge = (status?: OrderIntegrationTaskDeliveryStatus | null) => {
+const formatTaskBadge = (status?: OrderIntegrationTaskDeliveryStatus | null, statusLabel?: string | null) => {
+  if (statusLabel?.trim()) {
+    return statusLabel.trim();
+  }
+
   if (!status || status === OrderIntegrationTaskDeliveryStatus.CREATED) {
     return 'Pending';
   }
@@ -106,44 +75,117 @@ const formatTaskBadge = (status?: OrderIntegrationTaskDeliveryStatus | null) => 
   return status;
 };
 
-const getTaskStepperState = (
-  status?: OrderIntegrationTaskDeliveryStatus | null,
-  doneStatus?: OrderIntegrationTaskDeliveryStatus
-): TaskStepperState => {
-  switch (status) {
-    case doneStatus:
+const getFallbackTaskBadge = (task: IOrderIntegrationTask) => {
+  if (task.jobStatus == null) {
+    return 'Pending';
+  }
+
+  switch (Number(task.jobStatus)) {
+    case 0:
+      return 'Assigned';
+    case 1:
+      return 'Started';
+    case 2:
+      return 'Successful';
+    case 3:
+      return 'Failed';
+    case 4:
+      return 'InProgress/Arrived';
+    case 6:
+      return 'Unassigned';
+    case 7:
+      return 'Accepted/Acknowledged';
+    case 8:
+      return 'Declined';
+    case 9:
+      return 'Cancelled';
+    case 10:
+      return 'Deleted';
+    default:
+      return 'Pending';
+  }
+};
+
+const getTaskBadge = (task: IOrderIntegrationTask) => {
+  if (task.statusLabel?.trim()) {
+    return task.statusLabel.trim();
+  }
+
+  if (task.jobStatus != null) {
+    return getFallbackTaskBadge(task);
+  }
+
+  return formatTaskBadge(task.deliveryStatus);
+};
+
+const getTaskStepperState = (task: IOrderIntegrationTask): TaskStepperState => {
+  const stepState = task.stepState?.toLowerCase();
+  if (stepState === 'completed') {
+    return 'completed';
+  }
+
+  if (stepState === 'active') {
+    return 'active';
+  }
+
+  if (stepState === 'failed') {
+    return 'failed';
+  }
+
+  if (stepState === 'cancelled') {
+    return 'cancelled';
+  }
+
+  switch (task.deliveryStatus) {
+    case OrderIntegrationTaskDeliveryStatus.DELIVERED:
+    case OrderIntegrationTaskDeliveryStatus.HANDED:
       return 'completed';
     case OrderIntegrationTaskDeliveryStatus.IN_DELIVERY:
     case OrderIntegrationTaskDeliveryStatus.ARRIVED:
-    case OrderIntegrationTaskDeliveryStatus.HANDED:
-      return 'active';
     case OrderIntegrationTaskDeliveryStatus.ACCEPTED:
+      return 'active';
     case OrderIntegrationTaskDeliveryStatus.CREATED:
+      return 'inactive';
     case OrderIntegrationTaskDeliveryStatus.FAILED:
+      return 'failed';
     case OrderIntegrationTaskDeliveryStatus.CANCELLED:
+      return 'cancelled';
+    default:
+      break;
+  }
+
+  switch (Number(task.jobStatus)) {
+    case 2:
+      return 'completed';
+    case 3:
+    case 8:
+      return 'failed';
+    case 9:
+    case 10:
+      return 'cancelled';
+    case 1:
+    case 4:
+    case 7:
+      return 'active';
     default:
       return 'inactive';
   }
 };
 
 const getTaskSupportText = (task: IOrderIntegrationTask, fallbackTitle?: string) => {
+  if (task.displayText?.trim()) {
+    return task.displayText.trim();
+  }
+
+  if (task.displayAddress?.trim()) {
+    return task.displayAddress.trim();
+  }
+
   if (task.jobDescription?.trim()) {
     return task.jobDescription.trim();
   }
 
   return `${fallbackTitle || prettifyTaskType(task.taskType)} task`;
-};
-
-const getTaskIcon = (state: TaskStepperState) => {
-  if (state === 'completed') {
-    return <CheckIcon className="size-4" />;
-  }
-
-  if (state === 'active') {
-    return <LoaderCircleIcon className="size-4 animate-spin" />;
-  }
-
-  return <LockIcon className="size-4" />;
 };
 
 const getBadgeClasses = (state: TaskStepperState) => {
@@ -152,111 +194,108 @@ const getBadgeClasses = (state: TaskStepperState) => {
       return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
     case 'active':
       return 'bg-sky-100 text-sky-700 hover:bg-sky-100';
+    case 'failed':
+    case 'cancelled':
+      return 'bg-red-100 text-red-700 hover:bg-red-100';
     default:
       return 'border-slate-200 text-slate-500';
   }
 };
 
-const OrderProgressStepper = ({ tasks }: { tasks?: IOrderIntegrationTask[] | null }) => {
-  const normalizedTasks = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
+const isPickupTask = (task?: IOrderIntegrationTask | null) => {
+  const type = task?.taskType?.toLowerCase();
+  return type === 'pickup' || type === 'goingtorestaurant' || type === 'pickeduppackage';
+};
+
+const getStepCircleClasses = (state: TaskStepperState) => {
+  switch (state) {
+    case 'completed':
+      return 'bg-emerald-600';
+    case 'active':
+      return 'bg-sky-600';
+    case 'failed':
+    case 'cancelled':
+      return 'bg-red-700';
+    default:
+      return 'bg-slate-900';
+  }
+};
+
+const formatDeliveryProgressStatus = (status?: string | null) => {
+  if (!status || status === 'CREATED') {
+    return 'Booked';
+  }
+
+  return prettifyTaskType(status.toLowerCase());
+};
+
+const OrderProgressStepper = ({
+  tasks,
+  deliveryStatus,
+}: {
+  tasks?: IOrderIntegrationTask[] | null;
+  deliveryStatus?: string | null;
+}) => {
+  const normalizedTasks = (Array.isArray(tasks) ? tasks.filter(Boolean) : [])
+    .map((task, index) => ({ task, index }))
+    .sort((left, right) => (left.task.sequence ?? left.index) - (right.task.sequence ?? right.index))
+    .map(({ task }) => task);
 
   if (normalizedTasks.length === 0) {
     return null;
   }
 
-  const stepTasks = DELIVERY_PROGRESS_TASKS.map(taskConfig => {
-    const task = normalizedTasks.find(candidate => candidate?.taskType === taskConfig.taskType);
-    const taskState = getTaskStepperState(task?.deliveryStatus, taskConfig.doneStatus);
+  let pickupNumber = 0;
+  const stepTasks = normalizedTasks.map(task => {
+    const title = isPickupTask(task) ? `Pickup stop ${++pickupNumber}` : 'Delivery';
+    const taskState = getTaskStepperState(task);
 
     return {
-      ...taskConfig,
-      badgeText: formatTaskBadge(task?.deliveryStatus),
-      supportText: task
-        ? getTaskSupportText(task, taskConfig.title)
-        : `${taskConfig.title} task`,
+      title,
+      badgeText: getTaskBadge(task),
+      supportText: getTaskSupportText(task, title),
       taskState,
       task,
     };
   });
 
-  const activeIndex = stepTasks.findIndex(task => task.taskState === 'active');
-  const completedCount = stepTasks.filter(task => task.taskState === 'completed').length;
-  const currentStep = activeIndex >= 0 ? activeIndex + 1 : Math.min(completedCount + 1, stepTasks.length);
-
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Delivery Progress</h2>
-          <p className="text-sm text-slate-500">Live delivery milestones from the provider integration.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Tookan delivery</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">{formatDeliveryProgressStatus(deliveryStatus)}</h2>
         </div>
       </div>
-
-      <Stepper
-        value={currentStep}
-        indicators={{
-          completed: <CheckIcon className="size-3.5" />,
-          loading: <LoaderCircleIcon className="size-3.5 animate-spin" />,
-        }}
-        className="w-full space-y-4"
-      >
-        <StepperNav className="justify-center gap-3">
-          {stepTasks.map((task, index) => {
-            return (
-              <StepperItem
-                key={task.taskType}
-                step={index + 1}
-                state={task.taskState}
-                className="relative flex-1 items-start"
-              >
-                <StepperTrigger
-                  className="flex grow flex-col items-start justify-center gap-2.5"
-                  asChild
-                >
-                  <StepperIndicator className="size-8 border-2 data-[state=inactive]:border-slate-200 data-[state=inactive]:bg-transparent data-[state=inactive]:text-slate-400 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
-                    {getTaskIcon(task.taskState)}
-                  </StepperIndicator>
-                  <div className="flex flex-col items-start gap-1">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                      Step {index + 1}
-                    </div>
-                    <StepperTitle className="text-start text-sm font-semibold text-slate-900 group-data-[state=inactive]/step:text-slate-500">
-                      {task.title}
-                    </StepperTitle>
-                    <div className="text-[11px] leading-relaxed text-slate-500">
-                      {task.supportText}
-                    </div>
-                    <div>
-                      <Badge
-                        variant={task.taskState === 'inactive' ? 'outline' : 'secondary'}
-                        className={getBadgeClasses(task.taskState)}
-                      >
-                        {task.badgeText}
-                      </Badge>
-                    </div>
-                  </div>
-                </StepperTrigger>
-
-                {stepTasks.length > index + 1 && (
-                  <StepperSeparator className="absolute inset-x-0 start-9 top-4 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none group-data-[state=completed]/step:bg-emerald-500" />
-                )}
-              </StepperItem>
-            );
-          })}
-        </StepperNav>
-
-        <StepperPanel className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500">
-          {stepTasks.map((task, index) => (
-            <StepperContent
-              key={`${task.taskType}-content`}
-              value={index + 1}
-              className="flex items-center justify-start"
-            >
-              {task.supportText}
-            </StepperContent>
-          ))}
-        </StepperPanel>
-      </Stepper>
+      <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+        The driver collects the prepared orders from each branch in sequence, then delivers them to the selected address.
+      </p>
+      <div className="mt-6 grid gap-3">
+        {stepTasks.map((task, index) => (
+          <div
+            className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            key={`${task.task.jobId || task.task.taskType || 'task'}-${index}`}
+          >
+            <div className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold text-white ${getStepCircleClasses(task.taskState)}`}>
+              {task.taskState === 'completed' ? <CheckIcon className="size-3.5" /> : task.taskState === 'active' ? <LoaderCircleIcon className="size-3.5 animate-spin" /> : index + 1}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <strong className="text-sm font-semibold text-slate-900">{task.title}</strong>
+                <Badge variant={task.taskState === 'inactive' ? 'outline' : 'secondary'} className={getBadgeClasses(task.taskState)}>
+                  {task.badgeText}
+                </Badge>
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-700">{task.supportText}</p>
+              {task.task.fleetName && (
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Driver: {task.task.fleetName}{task.task.fleetPhone ? ` - ${task.task.fleetPhone}` : ''}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -808,7 +847,10 @@ export const OrderDetail = () => {
 
           <div className="grid gap-6 xl:grid-cols-[1.65fr_0.9fr]">
             <section className="space-y-6">
-              <OrderProgressStepper tasks={filteredOrderEntity.orderDeliveryDetails?.integrationDetails?.tasks} />
+              <OrderProgressStepper
+                tasks={filteredOrderEntity.orderDeliveryDetails?.integrationDetails?.tasks}
+                deliveryStatus={filteredOrderEntity.deliveryStatus}
+              />
 
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 px-5 py-4 md:px-6">
