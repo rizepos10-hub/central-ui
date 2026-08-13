@@ -11,8 +11,6 @@ import { translate } from "react-jhipster";
 import { formatDateForDisplay } from "app/shared/util/timezone-utils";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 import { PaymentStatus } from 'app/shared/model/ENUMS/payment-status.model';
-import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
-import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { toast } from 'react-toastify';
 import Select from 'app/shared/components/select/select';
 import { Calendar } from '@/components/ui/calendar';
@@ -296,7 +294,6 @@ export const Order = ({
   const branchList = useAppSelector(state => state.branch.entities);
   const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
   const orderSources = useAppSelector(state => state.order.orderSources);
-  const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
   const businessTimeZone = useAppSelector(state => state.businessTimeZone.timeZone);
 
 
@@ -590,7 +587,6 @@ export const Order = ({
       })
     )
     dispatch(getOrderSources())
-    dispatch(getUiSettings())
     dispatch(getOrderStatuses())
       .then((response: any) => {
         setOrderStatuses(response.payload?.map((status) => ({ label: status, value: status })));
@@ -736,10 +732,10 @@ export const Order = ({
               <div className="pointer-events-none absolute inset-y-1 right-0 w-6 rounded-r-xl bg-gradient-to-l from-background via-background/85 to-transparent" />
             </div>
 
-            {UiSettingsEntity.orderConfirmation && !isSavedOrdersPage && !wholesale && (
+            {!isSavedOrdersPage && !wholesale && (
               <div className="flex items-center gap-2 rounded-full border px-3 py-1.5">
                 <Checkbox
-                  checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
+                  checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && !lazyState.filters?.orderSource?.value}
                   onCheckedChange={(checked) => {
                     if (checked === true) {
                       setLazyState((prevState) => ({
@@ -748,7 +744,7 @@ export const Order = ({
                         page: 0,
                         filters: {
                           ...prevState.filters,
-                          orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
+                          orderSource: { value: null, matchMode: 'equals' },
                           status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
                         },
                       }));

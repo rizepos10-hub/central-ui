@@ -96,5 +96,6 @@ All business entities are located in `src/main/webapp/app/entities/` with consis
 - Uses Maven wrapper (`./mvnw`) for Java builds
 - npm wrapper (`./npmw`) available for Node.js
 - JHipster entity generator creates consistent CRUD patterns
+- Never stage, commit, or push `.env` files or environment/secret configuration files unless the user explicitly asks for that exact file to be published.
 - All forms use React Hook Form for validation
 - PrimeReact components are heavily customized with SCSS
