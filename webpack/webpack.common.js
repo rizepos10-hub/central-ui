@@ -144,6 +144,8 @@ module.exports = async options => {
                   SERVER_DOMAIN: runtimeEnvironment.SERVER_DOMAIN || 'https://pos-central.rize-pos.com',
                   GOOGLE_MAPS_API_KEY: runtimeEnvironment.GOOGLE_MAPS_API_KEY || '',
                   APP_ID: runtimeEnvironment.APP_ID || 'central-app',
+                  ONLINE_ORDERING_EDITOR_URL: runtimeEnvironment.ONLINE_ORDERING_EDITOR_URL || '',
+                  ONLINE_ORDERING_EDITOR_ORIGINS: runtimeEnvironment.ONLINE_ORDERING_EDITOR_ORIGINS || '',
                 }, null, 2)});\n`;
               },
             },

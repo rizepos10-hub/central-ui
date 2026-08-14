@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { IPageChrome } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
+import { IAttachment } from 'app/shared/model/attachment.model';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 type ChromePart = Record<string, unknown>;
 type ChromeLink = { label: string; url: string };
@@ -62,6 +65,25 @@ const TextField = ({ id, label, value, placeholder, onChange }: { id: string; la
   </div>
 );
 
+const LogoField = ({ id, label, image, onChange }: { id: string; label: string; image?: IAttachment; onChange: (image?: IAttachment) => void }) => (
+  <div id={id} className="space-y-2 rounded-lg border bg-background p-3">
+    <Label className="text-xs">{label}</Label>
+    {image?.url ? (
+      <div className="flex items-center gap-2 rounded-md border bg-muted/20 p-2">
+        <img src={image.url} alt={image.name || label} className="h-10 w-16 rounded object-contain" />
+        <div className="min-w-0 flex-1"><p className="truncate text-[11px] font-medium">{image.name || 'Selected image'}</p><Button type="button" variant="ghost" className="h-6 px-1 text-[11px]" onClick={() => onChange(undefined)}>Remove</Button></div>
+      </div>
+    ) : <p className="text-[11px] text-muted-foreground">Uses the business logo until you choose a page-specific image.</p>}
+    <MediaLibrary
+      layout="compact"
+      handleFilesSelectCallback={files => {
+        const selected = transformAttachmentStructure(files, 'toIAttachment')[0] as IAttachment | undefined;
+        if (selected) onChange(selected);
+      }}
+    />
+  </div>
+);
+
 export default function PageChromeFields({ chrome, onChange }: { chrome: IPageChrome; onChange: (value: IPageChrome) => void }) {
   const header = part(chrome.header);
   const footer = part(chrome.footer);
@@ -70,6 +92,8 @@ export default function PageChromeFields({ chrome, onChange }: { chrome: IPageCh
   const headerLabels = nested(header, 'labels');
   const footerLabels = nested(footer, 'labels');
   const quickLinks = quickLinksValue(footer);
+  const headerLogo = header.logoImage && typeof header.logoImage === 'object' ? (header.logoImage as IAttachment) : undefined;
+  const footerLogo = footer.logoImage && typeof footer.logoImage === 'object' ? (footer.logoImage as IAttachment) : undefined;
 
   const updatePart = (key: 'header' | 'footer', value: ChromePart) => onChange({ ...chrome, [key]: value });
   const updateAppearance = (key: 'header' | 'footer', field: string, value: string) => {
@@ -125,9 +149,13 @@ export default function PageChromeFields({ chrome, onChange }: { chrome: IPageCh
               <TextField id="header-announcement-link" label="Announcement link" value={stringValue(header, 'announcementHref')} placeholder="/offers" onChange={value => updatePart('header', { ...header, announcementHref: value })} />
               <TextField id="header-logo-width" label="Logo width (px)" value={String(numberValue(header, 'logoWidth', 140))} onChange={value => updatePart('header', { ...header, logoWidth: Number(value) || 140 })} />
               <TextField id="header-logo-height" label="Logo height (px)" value={String(numberValue(header, 'logoHeight', 48))} onChange={value => updatePart('header', { ...header, logoHeight: Number(value) || 48 })} />
+              <TextField id="header-logo-alt" label="Logo alt text" value={stringValue(header, 'logoAlt')} placeholder="Business logo" onChange={value => updatePart('header', { ...header, logoAlt: value })} />
             </div>
 
+            <LogoField id="header-logo-image" label="Header logo image" image={headerLogo} onChange={image => updatePart('header', { ...header, logoImage: image })} />
+
             <div className="grid gap-2 sm:grid-cols-2">
+              <Toggle id="header-show-logo" label="Show logo" checked={booleanValue(header, 'showLogo', true)} onChange={value => updateBoolean('header', 'showLogo', value)} />
               <Toggle id="header-show-announcement" label="Show announcement" checked={booleanValue(header, 'showAnnouncement', false)} onChange={value => updateBoolean('header', 'showAnnouncement', value)} />
               <Toggle id="header-show-topbar" label="Show top bar" checked={booleanValue(header, 'showTopBar', true)} onChange={value => updateBoolean('header', 'showTopBar', value)} />
               <Toggle id="header-show-search" label="Show search" checked={booleanValue(header, 'showSearch', true)} onChange={value => updateBoolean('header', 'showSearch', value)} />
@@ -182,7 +210,10 @@ export default function PageChromeFields({ chrome, onChange }: { chrome: IPageCh
               <TextField id="footer-copyright" label="Copyright text" value={stringValue(footer, 'copyrightText')} placeholder="All rights reserved" onChange={value => updatePart('footer', { ...footer, copyrightText: value })} />
               <TextField id="footer-logo-width" label="Logo width (px)" value={String(numberValue(footer, 'logoWidth', 80))} onChange={value => updatePart('footer', { ...footer, logoWidth: Number(value) || 80 })} />
               <TextField id="footer-logo-height" label="Logo height (px)" value={String(numberValue(footer, 'logoHeight', 80))} onChange={value => updatePart('footer', { ...footer, logoHeight: Number(value) || 80 })} />
+              <TextField id="footer-logo-alt" label="Logo alt text" value={stringValue(footer, 'logoAlt')} placeholder="Business logo" onChange={value => updatePart('footer', { ...footer, logoAlt: value })} />
             </div>
+
+            <LogoField id="footer-logo-image" label="Footer logo image" image={footerLogo} onChange={image => updatePart('footer', { ...footer, logoImage: image })} />
 
             <div className="grid gap-2 sm:grid-cols-2">
               <Toggle id="footer-show-logo" label="Show logo" checked={booleanValue(footer, 'showLogo', true)} onChange={value => updateBoolean('footer', 'showLogo', value)} />

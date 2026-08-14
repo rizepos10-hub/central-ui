@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useReducer, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ExternalLink, Palette, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { debounce } from 'lodash';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,15 +31,15 @@ import {
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
 import { getEntity as getStorefrontSettings } from '../settings/storefront-settings.reducer';
-import PageEditorPreview from './page-editor-preview';
 import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './page-preview-utils';
 import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppearance } from './section-appearance-fields';
-import { isPrimeColorPickerTarget } from './color-input-field';
 import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-slides-editor';
 import { defaultFooterColumns, FooterColumn, FooterSectionEditor } from './footer-section-editor';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 import PageChromeFields from './page-chrome-fields';
+import LandingEditorWorkspace from './landing-editor-workspace';
+import { normalizeLandingPage } from './landing-editor-bridge';
 
 const sectionLabel = (type: SectionType) =>
   type
@@ -48,6 +47,49 @@ const sectionLabel = (type: SectionType) =>
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+
+type EditorHistoryState = {
+  present: IOnlineOrderingPage;
+  past: IOnlineOrderingPage[];
+  future: IOnlineOrderingPage[];
+  saved: string;
+};
+
+type EditorHistoryAction =
+  | { type: 'update'; updater: (page: IOnlineOrderingPage) => IOnlineOrderingPage }
+  | { type: 'load'; page: IOnlineOrderingPage }
+  | { type: 'undo' }
+  | { type: 'redo' }
+  | { type: 'mark-saved'; page: IOnlineOrderingPage };
+
+const pageSignature = (page: IOnlineOrderingPage) => JSON.stringify(page);
+
+function editorHistoryReducer(state: EditorHistoryState, action: EditorHistoryAction): EditorHistoryState {
+  if (action.type === 'load') {
+    const page = normalizeLandingPage(action.page);
+    return { present: page, past: [], future: [], saved: pageSignature(page) };
+  }
+  if (action.type === 'update') {
+    const next = action.updater(state.present);
+    if (pageSignature(next) === pageSignature(state.present)) return state;
+    return { present: next, past: [...state.past, state.present].slice(-50), future: [], saved: state.saved };
+  }
+  if (action.type === 'undo') {
+    const previous = state.past[state.past.length - 1];
+    if (!previous) return state;
+    return { present: previous, past: state.past.slice(0, -1), future: [state.present, ...state.future].slice(0, 50), saved: state.saved };
+  }
+  if (action.type === 'redo') {
+    const next = state.future[0];
+    if (!next) return state;
+    return { present: next, past: [...state.past, state.present].slice(-50), future: state.future.slice(1), saved: state.saved };
+  }
+  if (action.type === 'mark-saved') {
+    const page = normalizeLandingPage(action.page);
+    return { ...state, present: page, saved: pageSignature(page) };
+  }
+  return state;
+}
 
 const OnlineOrderingPageEditor = () => {
   const { id } = useParams<'id'>();
@@ -58,10 +100,19 @@ const OnlineOrderingPageEditor = () => {
   const landingPageSettings: ILandingPageSettings = useAppSelector(state => state.landingPageSettings.entity);
   const storefrontSettings: IStorefrontSettings = useAppSelector(state => state.storefrontSettings.entity);
   const uiSettings: IUiSettings = { ...landingPageSettings, ...storefrontSettings };
-  const [page, setPage] = useState<IOnlineOrderingPage>({ ...defaultPageValue });
+  const [history, dispatchHistory] = useReducer(editorHistoryReducer, {
+    present: { ...defaultPageValue },
+    past: [],
+    future: [],
+    saved: pageSignature(defaultPageValue),
+  });
+  const page = history.present;
+  const setPage = (updater: React.SetStateAction<IOnlineOrderingPage>) => {
+    dispatchHistory({ type: 'update', updater: typeof updater === 'function' ? updater : () => updater });
+  };
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
-  const [appearanceSectionIndex, setAppearanceSectionIndex] = useState<number | null>(null);
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState<number | null>(null);
   const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
   const itemsLoading = useAppSelector(state => state.allItems.loading);
 
@@ -74,7 +125,7 @@ const OnlineOrderingPageEditor = () => {
     dispatch(getLandingPageSettings());
     dispatch(getStorefrontSettings());
     if (!isNew && id) {
-      dispatch(getEntity(id)).unwrap().then(res => setPage(res.data));
+      dispatch(getEntity(id)).unwrap().then(res => dispatchHistory({ type: 'load', page: res.data }));
     }
     return () => {
       dispatch(reset());
@@ -157,11 +208,9 @@ const OnlineOrderingPageEditor = () => {
       toast.error('Import a template before editing a landing page');
       return;
     }
-    const payload = {
-      ...page,
-      sections: (page.sections ?? []).map((s, i) => ({ ...s, order: i })),
-    };
-    await dispatch(updateEntity(payload)).unwrap();
+    const payload = normalizeLandingPage(page);
+    const response = await dispatch(updateEntity(payload)).unwrap();
+    dispatchHistory({ type: 'mark-saved', page: response.data ?? payload });
     toast.success('Landing page saved');
   };
 
@@ -170,9 +219,10 @@ const OnlineOrderingPageEditor = () => {
       toast.error('Save the page before publishing');
       return;
     }
-    await dispatch(updateEntity({ ...page, sections: page.sections ?? [] })).unwrap();
-    await dispatch(publishEntity(page.id)).unwrap();
-    setPage(prev => ({ ...prev, status: PageStatus.PUBLISHED }));
+    const payload = normalizeLandingPage(page);
+    await dispatch(updateEntity(payload)).unwrap();
+    const response = await dispatch(publishEntity(page.id)).unwrap();
+    dispatchHistory({ type: 'mark-saved', page: { ...(response.data ?? payload), status: PageStatus.PUBLISHED } });
     toast.success('Page published');
   };
 
@@ -201,136 +251,82 @@ const OnlineOrderingPageEditor = () => {
     openPreview(LOCAL_STOREFRONT_URL);
   };
 
-  return (
-    <PageWrapper className="max-w-5xl mx-auto">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Template customization</p>
-            <h2 className="text-2xl font-semibold tracking-tight">{page.name || 'Landing page'}</h2>
-            <p className="text-xs text-muted-foreground">Customize approved content while the template structure stays locked.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="h-8 text-xs"
-              disabled={!page.id}
-              onClick={() => openPreview(previewUrl)}
-            >
-              <ExternalLink className="mr-1 h-3 w-3" />
-              Preview
-            </Button>
-            <Button variant="outline" className="h-8 text-xs" onClick={() => navigate('/online-ordering/pages')}>
-              Back
-            </Button>
-            <Button className="h-8 text-xs" disabled={updating || !page.id} onClick={savePage}>
-              Save changes
-            </Button>
-            <Button className="h-8 text-xs" disabled={updating || !page.id} onClick={publishPage}>
-              Publish
-            </Button>
-          </div>
-        </div>
+  const renderPageProperties = () => (
+    <Card>
+      <CardHeader className="p-3"><CardTitle className="text-sm">Page details</CardTitle></CardHeader>
+      <CardContent className="grid grid-cols-1 gap-3 p-3">
+        <div><Label>Name</Label><Input value={page.name ?? ''} onChange={event => updatePageField('name', event.target.value)} /></div>
+        <div><Label>Slug</Label><Input value={page.slug ?? ''} onChange={event => updatePageField('slug', event.target.value.toLowerCase())} placeholder="home" /></div>
+        <PageThemeOverrideFields themeOverride={page.themeOverride ?? {}} onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)} />
+        <div><Label>SEO title</Label><Input value={page.seo?.title ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)} placeholder="Landing page title" /></div>
+        <div><Label>SEO description</Label><Input value={page.seo?.description ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), description: event.target.value } as IPageSeo)} placeholder="Short description for search and sharing" /></div>
+      </CardContent>
+    </Card>
+  );
 
-        <Card>
-          <CardHeader className="p-3"><CardTitle className="text-sm">Page details</CardTitle></CardHeader>
-          <CardContent className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label>Name</Label>
-              <Input value={page.name ?? ''} onChange={e => updatePageField('name', e.target.value)} />
-            </div>
-            <div>
-              <Label>Slug</Label>
-              <Input value={page.slug ?? ''} onChange={e => updatePageField('slug', e.target.value.toLowerCase())} placeholder="home" />
-            </div>
-            <PageThemeOverrideFields
-              themeOverride={page.themeOverride ?? {}}
-              onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)}
-            />
-            <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
-              <div>
-                <Label>SEO title</Label>
-                <Input
-                  value={page.seo?.title ?? ''}
-                  onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)}
-                  placeholder="Landing page title"
-                />
-              </div>
-              <div>
-                <Label>SEO description</Label>
-                <Input
-                  value={page.seo?.description ?? ''}
-                  onChange={event => updatePageField('seo', { ...(page.seo ?? {}), description: event.target.value } as IPageSeo)}
-                  placeholder="Short description for search and sharing"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  const renderChromeProperties = () => <PageChromeFields chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
 
-        <PageChromeFields chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />
-
-        {!isNew && (
-          <PageEditorPreview
-            page={page}
-            uiSettings={uiSettings}
-            onSetActiveAndPreview={handleSetActiveAndPreview}
-            settingActive={updating}
+  const renderSectionProperties = (index: number) => {
+    const section = page.sections?.[index];
+    if (!section) return <p className="text-xs text-muted-foreground">This template slot is unavailable.</p>;
+    return (
+      <Card>
+        <CardHeader className="p-3"><CardTitle className="text-sm">{sectionLabel(section.type)}</CardTitle><p className="text-[11px] text-muted-foreground">Slot {index + 1} is fixed. Edit approved content only.</p></CardHeader>
+        <CardContent className="p-3">
+          <SectionConfigForm
+            section={section}
+            debouncedLoadItemOptions={debouncedLoadItemOptions}
+            itemsLoading={itemsLoading}
+            templateLocked
+            onConfigChange={(key, value) => updateSectionConfig(index, key, value)}
+            onFeaturedItemsChange={items => updateSectionFeaturedItems(index, items)}
+            onPickItems={() => {
+              setEditingSectionIndex(index);
+              setSelectedItems((section.config?.items as IItem[]) ?? []);
+              setItemModalOpen(true);
+            }}
           />
-        )}
+        </CardContent>
+      </Card>
+    );
+  };
 
-        <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Fixed template sections</CardTitle>
-            <p className="text-xs text-muted-foreground">These slots, their order, and their visual layouts are defined by the imported template. You can edit their content or hide them.</p>
-          </CardHeader>
-          <CardContent className="p-3 space-y-3">
-            {(page.sections ?? []).map((section, index) => (
-              <Card key={`${section.type}-${index}`}>
-                <CardHeader className="p-3 flex flex-row items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-sm">{sectionLabel(section.type)}</CardTitle>
-                    <Checkbox
-                      checked={section.visible !== false}
-                      onCheckedChange={checked => updateSection(index, { visible: checked === true })}
-                    />
-                    <span className="text-xs text-muted-foreground">Visible</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      title="Section appearance"
-                      onClick={() => setAppearanceSectionIndex(index)}
-                    >
-                      <Palette className="h-4 w-4" />
-                    </Button>
-                    <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">Locked slot {index + 1}</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-3">
-                  <SectionConfigForm
-                    section={section}
-                    debouncedLoadItemOptions={debouncedLoadItemOptions}
-                    itemsLoading={itemsLoading}
-                    templateLocked
-                    onConfigChange={(key, value) => updateSectionConfig(index, key, value)}
-                    onFeaturedItemsChange={items => updateSectionFeaturedItems(index, items)}
-                    onPickItems={() => {
-                      setEditingSectionIndex(index);
-                      setSelectedItems((section.config?.items as IItem[]) ?? []);
-                      setItemModalOpen(true);
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            ))}
-            {(page.sections ?? []).length === 0 && <p className="text-sm text-muted-foreground">This page has no imported template sections.</p>}
-          </CardContent>
-        </Card>
-      </div>
+  const renderAppearanceProperties = (index: number) => (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold">Visual styling</p>
+      <SectionAppearanceFields
+        embedded
+        sectionType={page.sections?.[index]?.type ?? SectionType.HERO_CAROUSEL}
+        appearance={(page.sections?.[index]?.config?.appearance ?? {}) as Record<string, unknown>}
+        onChange={next => updateSectionConfig(index, 'appearance', next)}
+      />
+    </div>
+  );
 
+  return (
+    <>
+      <LandingEditorWorkspace
+        page={page}
+        uiSettings={uiSettings}
+        updating={updating}
+        dirty={pageSignature(page) !== history.saved}
+        canUndo={history.past.length > 0}
+        canRedo={history.future.length > 0}
+        selectedSectionIndex={selectedSectionIndex}
+        onSelectSection={setSelectedSectionIndex}
+        onUpdateSection={updateSection}
+        onSave={savePage}
+        onPublish={publishPage}
+        onUndo={() => dispatchHistory({ type: 'undo' })}
+        onRedo={() => dispatchHistory({ type: 'redo' })}
+        onBack={() => navigate('/online-ordering/pages')}
+        onOpenLivePreview={() => openPreview(previewUrl)}
+        onSetActiveAndPreview={handleSetActiveAndPreview}
+        renderPageProperties={renderPageProperties}
+        renderChromeProperties={renderChromeProperties}
+        renderSectionProperties={renderSectionProperties}
+        renderAppearanceProperties={renderAppearanceProperties}
+      />
       <ItemSelectionModal
         isOpen={itemModalOpen}
         toggle={() => setItemModalOpen(false)}
@@ -338,36 +334,7 @@ const OnlineOrderingPageEditor = () => {
         setSelectedItems={setSelectedItems}
         handleToggleSelect={toggleFeaturedItems}
       />
-
-      <Sheet open={appearanceSectionIndex !== null} onOpenChange={open => !open && setAppearanceSectionIndex(null)}>
-        <SheetContent
-          side="right"
-          className="w-full overflow-y-auto sm:max-w-md"
-          onPointerDownOutside={e => {
-            if (isPrimeColorPickerTarget(e.target)) e.preventDefault();
-          }}
-          onInteractOutside={e => {
-            if (isPrimeColorPickerTarget(e.target)) e.preventDefault();
-          }}
-        >
-          <SheetHeader className="text-left">
-            <SheetTitle className="text-base">Section appearance</SheetTitle>
-            <SheetDescription className="text-xs">
-              {appearanceSectionIndex != null &&
-                sectionLabel(page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL)}
-            </SheetDescription>
-          </SheetHeader>
-          {appearanceSectionIndex != null && (
-            <SectionAppearanceFields
-              embedded
-              sectionType={page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL}
-              appearance={(page.sections?.[appearanceSectionIndex]?.config?.appearance ?? {}) as Record<string, unknown>}
-              onChange={next => updateSectionConfig(appearanceSectionIndex, 'appearance', next)}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
-    </PageWrapper>
+    </>
   );
 };
 

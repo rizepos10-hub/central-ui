@@ -11,6 +11,8 @@ module.exports = {
   // developer explicitly wants to point the UI at another environment.
   SERVER_API_URL: process.env.SERVER_API_URL || 'http://localhost:8080',
   SERVER_DOMAIN: process.env.SERVER_DOMAIN || 'http://localhost:8080',
+  ONLINE_ORDERING_EDITOR_URL: process.env.ONLINE_ORDERING_EDITOR_URL || 'http://localhost:3000',
+  ONLINE_ORDERING_EDITOR_ORIGINS: process.env.ONLINE_ORDERING_EDITOR_ORIGINS || '',
   BUSINESS_ID: 'business_1010',
   APP_ID: 'central-app',
   GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
