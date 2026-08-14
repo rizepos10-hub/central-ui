@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending } from '@reduxjs/toolkit';
 
 import { ChangeFieldPayload, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IUiSettings, defaultValue } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -33,14 +33,6 @@ export const updateEntity = createAsyncThunk(
   'online-ordering-settings/update_entity',
   async (settings: IUiSettings, thunkAPI) => {
     return await axios.put<IUiSettings>(`${apiUrl}`, { ...settings, key: 'ONLINE_ORDERING_UI' });
-  },
-  { serializeError: serializeAxiosError }
-);
-
-export const flushStorefrontCache = createAsyncThunk(
-  'online-ordering-settings/flush_storefront_cache',
-  async () => {
-    await axios.post('api/online-ordering/settings/storefront-cache/flush');
   },
   { serializeError: serializeAxiosError }
 );
@@ -105,18 +97,6 @@ export const UiSettingsSlice = createEntitySlice({
         state.updateSuccess = false;
         state.updating = true;
       })
-      .addMatcher(isPending(flushStorefrontCache), state => {
-        state.errorMessage = null;
-        state.updating = true;
-      })
-      .addMatcher(isFulfilled(flushStorefrontCache), state => {
-        state.updating = false;
-        state.updateSuccess = true;
-      })
-      .addMatcher(isRejected(flushStorefrontCache), (state, action) => {
-        state.updating = false;
-        state.errorMessage = action.error.message ?? 'Failed to flush storefront cache';
-      });
   },
 });
 

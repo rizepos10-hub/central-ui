@@ -40,8 +40,25 @@ function pageAccent(page: IOnlineOrderingPage, fallback: string): string {
   return page.themeOverride?.accent ?? fallback;
 }
 
-const PREVIEW_BY_SLUG: Record<string, PreviewSpec> = {
-  home: {
+function chromePart(page: IOnlineOrderingPage, key: 'header' | 'footer'): Record<string, unknown> {
+  const part = page.chrome?.[key];
+  return part && typeof part === 'object' ? part : {};
+}
+
+function chromeAppearance(part: Record<string, unknown>): Record<string, unknown> {
+  const appearance = part.appearance;
+  return appearance && typeof appearance === 'object' ? (appearance as Record<string, unknown>) : {};
+}
+
+function chromeLabel(part: Record<string, unknown>, key: string, fallback: string): string {
+  const labels = part.labels;
+  if (!labels || typeof labels !== 'object') return fallback;
+  const value = (labels as Record<string, unknown>)[key];
+  return typeof value === 'string' && value.trim() ? value : fallback;
+}
+
+const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
+  'home-default': {
     title: 'Restaurant showcase',
     subtitle: 'Full-screen hero, feature grid, branches',
     accent: '#f2c94c',
@@ -69,7 +86,7 @@ const PREVIEW_BY_SLUG: Record<string, PreviewSpec> = {
       </>
     ),
   },
-  'home-order': {
+  'order-first': {
     title: 'Order first',
     subtitle: 'Carousel, categories, then products',
     accent: '#f2c94c',
@@ -166,7 +183,7 @@ function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
   if (!sections.length) {
     return (
       <div className="flex h-full items-center justify-center px-2 text-center text-[8px] text-muted-foreground">
-        Add sections to see layout
+        No template sections are available for preview
       </div>
     );
   }
@@ -195,12 +212,12 @@ function getFeaturedAppearance(page: IOnlineOrderingPage): Record<string, unknow
 }
 
 function resolvePreview(page: IOnlineOrderingPage): PreviewSpec {
-  const slug = page.slug ?? '';
+  const templateKey = page.templateKey ?? '';
   const featuredBg = getFeaturedAppearance(page)?.background;
   const featuredSurface = typeof featuredBg === 'string' ? featuredBg : undefined;
 
-  if (PREVIEW_BY_SLUG[slug]) {
-    const base = PREVIEW_BY_SLUG[slug];
+  if (PREVIEW_BY_TEMPLATE[templateKey]) {
+    const base = PREVIEW_BY_TEMPLATE[templateKey];
     return {
       ...base,
       accent: pageAccent(page, base.accent),
@@ -237,6 +254,15 @@ export const PageTemplatePreview = ({
   livePreviewUrl,
 }: PageTemplatePreviewProps) => {
   const spec = resolvePreview(page);
+  const header = chromePart(page, 'header');
+  const footer = chromePart(page, 'footer');
+  const headerAppearance = chromeAppearance(header);
+  const footerAppearance = chromeAppearance(footer);
+  const announcementText = typeof header.announcementText === 'string' ? header.announcementText.trim() : '';
+  const showAnnouncement = header.showAnnouncement !== false && Boolean(announcementText);
+  const headerBackground = typeof headerAppearance.background === 'string' ? headerAppearance.background : spec.header;
+  const footerBackground = typeof footerAppearance.background === 'string' ? footerAppearance.background : '#0f172a';
+  const accent = pageAccent(page, spec.accent);
   const liveUrl =
     livePreviewUrl ??
     (isActive && page.status === PageStatus.PUBLISHED ? normalizeStorefrontUrl(storeDomain) : null);
@@ -251,10 +277,19 @@ export const PageTemplatePreview = ({
           <span className="ml-1 truncate text-[9px] text-muted-foreground">/{page.slug}</span>
         </div>
         <div className="relative flex h-[130px] flex-col overflow-hidden" style={{ background: spec.surface }}>
+          {showAnnouncement && <div className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white" style={{ background: headerAppearance.announcementBackground as string || headerBackground }}>{announcementText}</div>}
+          <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: headerBackground }}>
+            <span className="h-1.5 w-8 rounded bg-white/80" />
+            <span>{chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')} · {chromeLabel(header, 'cart', 'Cart')}</span>
+          </div>
           {spec.render()}
+          <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: footerBackground }}>
+            <span className="h-1.5 w-10 rounded bg-white/70" />
+            <span>{footer.showCopyright !== false ? 'Copyright' : 'Footer'}</span>
+          </div>
           <div
             className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5"
-            style={{ background: spec.accent }}
+            style={{ background: accent }}
           />
         </div>
       </div>

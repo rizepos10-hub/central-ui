@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Trash2, ArrowUp, ArrowDown, ExternalLink, Palette } from 'lucide-react';
+import { ExternalLink, Palette, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { debounce } from 'lodash';
 
@@ -21,19 +21,16 @@ import { getEntities as getRestaurantCategories } from 'app/entities/term/restau
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { ITerm } from 'app/shared/model/term.model';
 import { IAttachment } from 'app/shared/model/attachment.model';
-import { IOnlineOrderingPage, IPageSection, IPageThemeOverride, defaultPageValue } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
+import { IOnlineOrderingPage, IPageSection, IPageSeo, IPageThemeOverride, defaultPageValue } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { SectionType, PageStatus } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import {
-  createEntity,
   getEntity,
-  getSectionTypes,
   publishEntity,
   reset,
   updateEntity,
 } from './pages.reducer';
-import { ISectionTypeDescriptor } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
-import { flushStorefrontCache, getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
+import { getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
 import { getEntity as getStorefrontSettings } from '../settings/storefront-settings.reducer';
 import PageEditorPreview from './page-editor-preview';
 import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './page-preview-utils';
@@ -43,16 +40,20 @@ import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-
 import { defaultFooterColumns, FooterColumn, FooterSectionEditor } from './footer-section-editor';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
+import PageChromeFields from './page-chrome-fields';
 
-const sectionLabel = (type: SectionType, sectionTypes: ISectionTypeDescriptor[]) =>
-  sectionTypes.find(s => s.type === type)?.label ?? type;
+const sectionLabel = (type: SectionType) =>
+  type
+    .toLowerCase()
+    .split('_')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 
 const OnlineOrderingPageEditor = () => {
   const { id } = useParams<'id'>();
   const isNew = !id || id === 'new';
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const sectionTypes = useAppSelector(state => state.onlineOrderingPage.sectionTypes);
   const updating = useAppSelector(state => state.onlineOrderingPage.updating || state.landingPageSettings.updating || state.storefrontSettings.updating);
   const landingPageSettings: ILandingPageSettings = useAppSelector(state => state.landingPageSettings.entity);
   const storefrontSettings: IStorefrontSettings = useAppSelector(state => state.storefrontSettings.entity);
@@ -65,7 +66,10 @@ const OnlineOrderingPageEditor = () => {
   const itemsLoading = useAppSelector(state => state.allItems.loading);
 
   useEffect(() => {
-    dispatch(getSectionTypes());
+    if (isNew) {
+      navigate('/online-ordering/pages', { replace: true });
+      return;
+    }
     dispatch(getRestaurantCategories({}));
     dispatch(getLandingPageSettings());
     dispatch(getStorefrontSettings());
@@ -75,7 +79,7 @@ const OnlineOrderingPageEditor = () => {
     return () => {
       dispatch(reset());
     };
-  }, [dispatch, id, isNew]);
+  }, [dispatch, id, isNew, navigate]);
 
   const debouncedLoadItemOptions = useMemo(
     () =>
@@ -148,46 +152,17 @@ const OnlineOrderingPageEditor = () => {
     }
   };
 
-  const addSection = (type: SectionType) => {
-    setPage(prev => ({
-      ...prev,
-      sections: [
-        ...(prev.sections ?? []),
-        {
-          type,
-          visible: true,
-          order: prev.sections?.length ?? 0,
-          config: defaultConfigFor(type),
-        },
-      ],
-    }));
-  };
-
-  const removeSection = (index: number) => {
-    setPage(prev => ({ ...prev, sections: (prev.sections ?? []).filter((_, i) => i !== index) }));
-  };
-
-  const moveSection = (index: number, direction: 'up' | 'down') => {
-    const sections = [...(page.sections ?? [])];
-    const target = direction === 'up' ? index - 1 : index + 1;
-    if (target < 0 || target >= sections.length) return;
-    [sections[index], sections[target]] = [sections[target], sections[index]];
-    setPage(prev => ({ ...prev, sections: sections.map((s, i) => ({ ...s, order: i })) }));
-  };
-
   const savePage = async () => {
+    if (!page.id) {
+      toast.error('Import a template before editing a landing page');
+      return;
+    }
     const payload = {
       ...page,
       sections: (page.sections ?? []).map((s, i) => ({ ...s, order: i })),
     };
-    if (isNew) {
-      const result = await dispatch(createEntity(payload)).unwrap();
-      toast.success('Page created');
-      navigate(`/online-ordering/pages/${result.data.id}/edit`, { replace: true });
-    } else {
-      await dispatch(updateEntity(payload)).unwrap();
-      toast.success('Page saved');
-    }
+    await dispatch(updateEntity(payload)).unwrap();
+    toast.success('Landing page saved');
   };
 
   const publishPage = async () => {
@@ -218,7 +193,6 @@ const OnlineOrderingPageEditor = () => {
     }
     const next = {
       ...landingPageSettings,
-      usePageBuilder: true,
       defaultPageId: page.id,
       defaultPageSlug: page.slug,
     };
@@ -227,28 +201,20 @@ const OnlineOrderingPageEditor = () => {
     openPreview(LOCAL_STOREFRONT_URL);
   };
 
-  const handleFlushStorefrontCache = async () => {
-    try {
-      await dispatch(flushStorefrontCache()).unwrap();
-      toast.success('Storefront cache flushed successfully');
-    } catch {
-      toast.error('Failed to flush storefront cache. Check the domain and cache flush secret.');
-    }
-  };
-
   return (
     <PageWrapper className="max-w-5xl mx-auto">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">{isNew ? 'Create landing page' : 'Edit landing page'}</h2>
-            <p className="text-xs text-muted-foreground">Configure sections for the online ordering storefront</p>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Template customization</p>
+            <h2 className="text-2xl font-semibold tracking-tight">{page.name || 'Landing page'}</h2>
+            <p className="text-xs text-muted-foreground">Customize approved content while the template structure stays locked.</p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
               className="h-8 text-xs"
-              disabled={isNew}
+              disabled={!page.id}
               onClick={() => openPreview(previewUrl)}
             >
               <ExternalLink className="mr-1 h-3 w-3" />
@@ -257,10 +223,10 @@ const OnlineOrderingPageEditor = () => {
             <Button variant="outline" className="h-8 text-xs" onClick={() => navigate('/online-ordering/pages')}>
               Back
             </Button>
-            <Button className="h-8 text-xs" disabled={updating} onClick={savePage}>
-              Save draft
+            <Button className="h-8 text-xs" disabled={updating || !page.id} onClick={savePage}>
+              Save changes
             </Button>
-            <Button className="h-8 text-xs" disabled={updating || isNew} onClick={publishPage}>
+            <Button className="h-8 text-xs" disabled={updating || !page.id} onClick={publishPage}>
               Publish
             </Button>
           </div>
@@ -281,8 +247,28 @@ const OnlineOrderingPageEditor = () => {
               themeOverride={page.themeOverride ?? {}}
               onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)}
             />
+            <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
+              <div>
+                <Label>SEO title</Label>
+                <Input
+                  value={page.seo?.title ?? ''}
+                  onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)}
+                  placeholder="Landing page title"
+                />
+              </div>
+              <div>
+                <Label>SEO description</Label>
+                <Input
+                  value={page.seo?.description ?? ''}
+                  onChange={event => updatePageField('seo', { ...(page.seo ?? {}), description: event.target.value } as IPageSeo)}
+                  placeholder="Short description for search and sharing"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        <PageChromeFields chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />
 
         {!isNew && (
           <PageEditorPreview
@@ -290,29 +276,20 @@ const OnlineOrderingPageEditor = () => {
             uiSettings={uiSettings}
             onSetActiveAndPreview={handleSetActiveAndPreview}
             settingActive={updating}
-            onFlushStorefrontCache={handleFlushStorefrontCache}
-            flushingStorefrontCache={updating}
           />
         )}
 
         <Card>
-          <CardHeader className="p-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Sections</CardTitle>
-            <SectionTypeSelect onValueChange={value => addSection(value as SectionType)}>
-              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Add section" /></SelectTrigger>
-              <SelectContent>
-                {sectionTypes.map(st => (
-                  <SelectItem key={st.type} value={st.type}>{st.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </SectionTypeSelect>
+          <CardHeader className="p-3">
+            <CardTitle className="text-sm">Fixed template sections</CardTitle>
+            <p className="text-xs text-muted-foreground">These slots, their order, and their visual layouts are defined by the imported template. You can edit their content or hide them.</p>
           </CardHeader>
           <CardContent className="p-3 space-y-3">
             {(page.sections ?? []).map((section, index) => (
               <Card key={`${section.type}-${index}`}>
                 <CardHeader className="p-3 flex flex-row items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-sm">{sectionLabel(section.type, sectionTypes)}</CardTitle>
+                    <CardTitle className="text-sm">{sectionLabel(section.type)}</CardTitle>
                     <Checkbox
                       checked={section.visible !== false}
                       onCheckedChange={checked => updateSection(index, { visible: checked === true })}
@@ -329,9 +306,7 @@ const OnlineOrderingPageEditor = () => {
                     >
                       <Palette className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveSection(index, 'up')}><ArrowUp className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => moveSection(index, 'down')}><ArrowDown className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeSection(index)}><Trash2 className="h-4 w-4" /></Button>
+                    <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">Locked slot {index + 1}</span>
                   </div>
                 </CardHeader>
                 <CardContent className="p-3">
@@ -339,6 +314,7 @@ const OnlineOrderingPageEditor = () => {
                     section={section}
                     debouncedLoadItemOptions={debouncedLoadItemOptions}
                     itemsLoading={itemsLoading}
+                    templateLocked
                     onConfigChange={(key, value) => updateSectionConfig(index, key, value)}
                     onFeaturedItemsChange={items => updateSectionFeaturedItems(index, items)}
                     onPickItems={() => {
@@ -350,7 +326,7 @@ const OnlineOrderingPageEditor = () => {
                 </CardContent>
               </Card>
             ))}
-            {(page.sections ?? []).length === 0 && <p className="text-sm text-muted-foreground">Add a section to start building the page.</p>}
+            {(page.sections ?? []).length === 0 && <p className="text-sm text-muted-foreground">This page has no imported template sections.</p>}
           </CardContent>
         </Card>
       </div>
@@ -378,7 +354,7 @@ const OnlineOrderingPageEditor = () => {
             <SheetTitle className="text-base">Section appearance</SheetTitle>
             <SheetDescription className="text-xs">
               {appearanceSectionIndex != null &&
-                sectionLabel(page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL, sectionTypes)}
+                sectionLabel(page.sections?.[appearanceSectionIndex]?.type ?? SectionType.HERO_CAROUSEL)}
             </SheetDescription>
           </SheetHeader>
           {appearanceSectionIndex != null && (
@@ -399,6 +375,7 @@ const SectionConfigForm = ({
   section,
   debouncedLoadItemOptions,
   itemsLoading,
+  templateLocked,
   onConfigChange,
   onFeaturedItemsChange,
   onPickItems,
@@ -406,6 +383,7 @@ const SectionConfigForm = ({
   section: IPageSection;
   debouncedLoadItemOptions: (inputValue: string, callback: (options: Array<{ value: string; label: string; data: IItem }>) => void) => void;
   itemsLoading: boolean;
+  templateLocked?: boolean;
   onConfigChange: (key: string, value: unknown) => void;
   onFeaturedItemsChange?: (items: IItem[]) => void;
   onPickItems: () => void;
@@ -420,17 +398,20 @@ const SectionConfigForm = ({
     const promoSide = (config.promoSide as Record<string, unknown>) ?? {};
     return (
       <div className="space-y-3">
-        <Label>Layout</Label>
-        <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default carousel</SelectItem>
-            <SelectItem value="riode-split">Riode split (carousel + side promo)</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : <Label>Layout</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default carousel</SelectItem>
+              <SelectItem value="riode-split">Riode split (carousel + side promo)</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         <HeroCarouselSlidesEditor
           slides={slides}
           layout={layout}
+          fixedStructure={templateLocked}
           onChange={next => onConfigChange('slides', next)}
         />
         {layout === 'riode-split' && (
@@ -483,14 +464,16 @@ const SectionConfigForm = ({
     const items = (config.items as IItem[]) ?? [];
     return (
       <div className="space-y-2">
-        <Label>Layout</Label>
-        <SectionTypeSelect value={(config.layout as string) ?? 'LAYOUT_ONE'} onValueChange={value => onConfigChange('layout', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
-            <SelectItem value="DISH_GRID">Dish grid</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'LAYOUT_ONE')}</span></p> : <Label>Layout</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={(config.layout as string) ?? 'LAYOUT_ONE'} onValueChange={value => onConfigChange('layout', value)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
+              <SelectItem value="DISH_GRID">Dish grid</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         <Label>Title</Label>
         <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
         <Label>Eyebrow (optional)</Label>
@@ -536,15 +519,17 @@ const SectionConfigForm = ({
     const groups = (config.groups as Array<Record<string, unknown>>) ?? [];
     return (
       <div className="space-y-2">
-        <Label>Layout</Label>
-        <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default strip</SelectItem>
-            <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
-            <SelectItem value="riode-grid">Riode category grid</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : <Label>Layout</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default strip</SelectItem>
+              <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
+              <SelectItem value="riode-grid">Riode category grid</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         <Label>Eyebrow (optional)</Label>
         <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
         <Label>Title</Label>
@@ -562,9 +547,11 @@ const SectionConfigForm = ({
                 <div key={groupIndex} className="space-y-2 rounded border bg-background p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium">Group {groupIndex + 1}</span>
-                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('groups', groups.filter((_, index) => index !== groupIndex))}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {!templateLocked && (
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('groups', groups.filter((_, index) => index !== groupIndex))}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   <Label>Name</Label>
                   <Input value={(group.name as string) ?? ''} onChange={e => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, name: e.target.value }))} />
@@ -604,23 +591,27 @@ const SectionConfigForm = ({
                       </div>
                     </div>
                   ))}
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs"
-                    onClick={() => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, links: [...links, { label: '', url: '' }] }))}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Add link
-                  </Button>
+                  {!templateLocked && (
+                    <Button
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, links: [...links, { label: '', url: '' }] }))}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add link
+                    </Button>
+                  )}
                 </div>
               );
             })}
-            <Button
-              variant="outline"
-              className="h-8 text-xs"
-              onClick={() => onConfigChange('groups', [...groups, { name: '', links: [{ label: '', url: '' }] }])}
-            >
-              <Plus className="h-3 w-3 mr-1" /> Add group
-            </Button>
+            {!templateLocked && (
+              <Button
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() => onConfigChange('groups', [...groups, { name: '', links: [{ label: '', url: '' }] }])}
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add group
+              </Button>
+            )}
           </div>
         ) : (
           <>
@@ -645,16 +636,18 @@ const SectionConfigForm = ({
     const cards = (config.cards as Array<Record<string, unknown>>) ?? [];
     return (
       <div className="space-y-2">
-        <Label>Display mode</Label>
-        <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
-            <SelectItem value="cards">Location cards (configured below)</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed display mode: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Display mode</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
+              <SelectItem value="cards">Location cards (configured below)</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         <Label>Eyebrow (optional)</Label>
         <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
         <Label>Section title</Label>
@@ -675,15 +668,17 @@ const SectionConfigForm = ({
                 <div key={cardIndex} className="space-y-2 rounded border bg-background p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium">Card {cardIndex + 1}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      onClick={() => onConfigChange('cards', cards.filter((_, index) => index !== cardIndex))}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {!templateLocked && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => onConfigChange('cards', cards.filter((_, index) => index !== cardIndex))}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   <Label>Tag</Label>
                   <Input
@@ -731,17 +726,19 @@ const SectionConfigForm = ({
                       }}
                     />
                   ))}
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs"
-                    onClick={() => {
-                      const next = [...cards];
-                      next[cardIndex] = { ...next[cardIndex], lines: [...lines, ''] };
-                      onConfigChange('cards', next);
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Add line
-                  </Button>
+                  {!templateLocked && (
+                    <Button
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        const next = [...cards];
+                        next[cardIndex] = { ...next[cardIndex], lines: [...lines, ''] };
+                        onConfigChange('cards', next);
+                      }}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add line
+                    </Button>
+                  )}
                   {actions.map((action, actionIndex) => (
                     <div key={actionIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-3">
                       <div>
@@ -794,26 +791,28 @@ const SectionConfigForm = ({
                 </div>
               );
             })}
-            <Button
-              variant="outline"
-              className="h-8 text-xs"
-              onClick={() =>
-                onConfigChange('cards', [
-                  ...cards,
-                  {
-                    tag: 'Location',
-                    title: 'Branch name',
-                    lines: ['Address line'],
-                    actions: [
-                      { text: 'Call', url: 'tel:', variant: 'gold' },
-                      { text: 'Directions', url: '#', variant: 'outline' },
-                    ],
-                  },
-                ])
-              }
-            >
-              <Plus className="h-3 w-3 mr-1" /> Add card
-            </Button>
+            {!templateLocked && (
+              <Button
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() =>
+                  onConfigChange('cards', [
+                    ...cards,
+                    {
+                      tag: 'Location',
+                      title: 'Branch name',
+                      lines: ['Address line'],
+                      actions: [
+                        { text: 'Call', url: 'tel:', variant: 'gold' },
+                        { text: 'Directions', url: '#', variant: 'outline' },
+                      ],
+                    },
+                  ])
+                }
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add card
+              </Button>
+            )}
           </div>
         ) : (
           <p className="text-xs text-muted-foreground">Branches and zones are loaded automatically on the storefront.</p>
@@ -829,17 +828,19 @@ const SectionConfigForm = ({
     const banners = (config.banners as Array<Record<string, unknown>>) ?? [];
     return (
       <div className="space-y-2">
-        <Label>Variant</Label>
-        <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="hero">Full hero</SelectItem>
-            <SelectItem value="cta">CTA banner</SelectItem>
-            <SelectItem value="retail">Retail hero (electronics)</SelectItem>
-            <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
-            <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed visual variant: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Variant</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hero">Full hero</SelectItem>
+              <SelectItem value="cta">CTA banner</SelectItem>
+              <SelectItem value="retail">Retail hero (electronics)</SelectItem>
+              <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
+              <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         {variant === 'riode-duo' ? (
           <div className="space-y-3 rounded-md border bg-muted/20 p-3">
             <Label className="text-xs">Promo banners ({banners.length})</Label>
@@ -849,9 +850,11 @@ const SectionConfigForm = ({
                 <div key={bannerIndex} className="space-y-2 rounded border bg-background p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium">Banner {bannerIndex + 1}</span>
-                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('banners', banners.filter((_, index) => index !== bannerIndex))}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {!templateLocked && (
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('banners', banners.filter((_, index) => index !== bannerIndex))}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   <Label>Title</Label>
                   <Input value={(banner.title as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, title: e.target.value }))} />
@@ -894,23 +897,27 @@ const SectionConfigForm = ({
                       </div>
                     </div>
                   ))}
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs"
-                    onClick={() => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, links: [...links, { text: '', url: '' }] }))}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Add link
-                  </Button>
+                  {!templateLocked && (
+                    <Button
+                      variant="outline"
+                      className="h-8 text-xs"
+                      onClick={() => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, links: [...links, { text: '', url: '' }] }))}
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add link
+                    </Button>
+                  )}
                 </div>
               );
             })}
-            <Button
-              variant="outline"
-              className="h-8 text-xs"
-              onClick={() => onConfigChange('banners', [...banners, { title: '', subtitle: '', background: '', links: [{ text: '', url: '' }] }])}
-            >
-              <Plus className="h-3 w-3 mr-1" /> Add banner
-            </Button>
+            {!templateLocked && (
+              <Button
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() => onConfigChange('banners', [...banners, { title: '', subtitle: '', background: '', links: [{ text: '', url: '' }] }])}
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add banner
+              </Button>
+            )}
           </div>
         ) : (
           <>
@@ -981,13 +988,15 @@ const SectionConfigForm = ({
             </div>
           </div>
         ))}
-        <Button
-          variant="outline"
-          className="h-8 text-xs"
-          onClick={() => onConfigChange('items', [...items, { icon: '✦', title: 'Feature' }])}
-        >
-          <Plus className="h-3 w-3 mr-1" /> Add feature
-        </Button>
+        {!templateLocked && (
+          <Button
+            variant="outline"
+            className="h-8 text-xs"
+            onClick={() => onConfigChange('items', [...items, { icon: '✦', title: 'Feature' }])}
+          >
+            <Plus className="h-3 w-3 mr-1" /> Add feature
+          </Button>
+        )}
       </div>
     );
   }
@@ -996,15 +1005,17 @@ const SectionConfigForm = ({
     const cta = (config.cta as Record<string, string>) ?? {};
     return (
       <div className="space-y-2">
-        <Label>Layout</Label>
-        <SectionTypeSelect value={(config.layout as string) ?? 'default'} onValueChange={value => onConfigChange('layout', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="split">Split image + text</SelectItem>
-            <SelectItem value="centered">Centered</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
+        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'default')}</span></p> : <Label>Layout</Label>}
+        {!templateLocked && (
+          <SectionTypeSelect value={(config.layout as string) ?? 'default'} onValueChange={value => onConfigChange('layout', value)}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="split">Split image + text</SelectItem>
+              <SelectItem value="centered">Centered</SelectItem>
+            </SelectContent>
+          </SectionTypeSelect>
+        )}
         <Label>Background</Label>
         <SectionTypeSelect value={(config.background as string) ?? 'default'} onValueChange={value => onConfigChange('background', value)}>
           <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>

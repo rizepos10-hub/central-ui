@@ -12,8 +12,6 @@ import StorefrontSettingsPage from "app/entities/online-ordering/settings/storef
 import ScriptsSettingsPage from "app/entities/online-ordering/settings/scripts";
 import User from "app/entities/online-ordering/user";
 import OnlineOrder from "app/entities/online-ordering/online-order/online-order";
-import LayoutSettingsUpdate from './layout-settings/layout-settings';
-import Layouts from './layouts/layouts';
 import OnlineOrderingPages from './pages/pages';
 import OnlineOrderingPageEditor from './pages/page-editor';
 
@@ -31,16 +29,15 @@ export default () => {
           <Route path={"seo-content"} element={<Navigate to="/online-ordering/content-pages" replace />} />
           <Route path={"localization"} element={<LocalizationSettingsPage />} />
           <Route path={"ui-ux"} element={<UiUxSettingsPage />} />
-          <Route path={"pick-a-layout"} element={<Layouts />} />
-          <Route path={"theme"} element={<Navigate to="/online-ordering/pick-a-layout" replace />} />
+          <Route path={"pick-a-layout"} element={<Navigate to="/online-ordering/pages" replace />} />
+          <Route path={"theme"} element={<Navigate to="/online-ordering/pages" replace />} />
           <Route path={"advanced"} element={<Navigate to="/online-ordering/storefront-settings" replace />} />
           <Route path={"storefront-settings"} element={<StorefrontSettingsPage />} />
           <Route path={"scripts"} element={<ScriptsSettingsPage />} />
           <Route path={"user"} element={<User />} />
           <Route path={"order"} element={<OnlineOrder />} />
-          <Route path={"layout-settings"} element={<LayoutSettingsUpdate />} />
+          <Route path={"layout-settings"} element={<Navigate to="/online-ordering/pages" replace />} />
           <Route path={"pages"} element={<OnlineOrderingPages />} />
-          <Route path={"pages/new"} element={<OnlineOrderingPageEditor />} />
           <Route path={"pages/:id/edit"} element={<OnlineOrderingPageEditor />} />
         </Route>
       </ErrorBoundaryRoutes>

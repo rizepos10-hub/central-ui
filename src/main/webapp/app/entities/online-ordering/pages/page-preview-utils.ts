@@ -13,7 +13,12 @@ export function normalizeStorefrontUrl(domain?: string): string | null {
 }
 
 export function isPageActiveLanding(page: IOnlineOrderingPage, uiSettings: IUiSettings): boolean {
-  return Boolean(page.id && (uiSettings.defaultPageId === page.id || uiSettings.defaultPageSlug === page.slug));
+  return Boolean(
+    page.id &&
+      page.templateKey &&
+      page.status === PageStatus.PUBLISHED &&
+      (uiSettings.defaultPageId === page.id || uiSettings.defaultPageSlug === page.slug)
+  );
 }
 
 export function canOpenLivePreview(page: IOnlineOrderingPage, uiSettings: IUiSettings): boolean {

@@ -68,7 +68,6 @@ export interface ILayoutsSettings {
 }
 
 export interface ILandingPageSettings {
-  usePageBuilder?: boolean;
   defaultPageId?: string;
   defaultPageSlug?: string;
 }
@@ -129,7 +128,6 @@ export const layoutsSettingsDefaultValue: Readonly<ILayoutsSettings> = {
 };
 
 export const landingPageSettingsDefaultValue: Readonly<ILandingPageSettings> = {
-  usePageBuilder: false,
 };
 
 export const storefrontSettingsDefaultValue: Readonly<IStorefrontSettings> = {};

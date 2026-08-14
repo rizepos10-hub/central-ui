@@ -14,6 +14,7 @@ type SlideRecord = Record<string, unknown>;
 type HeroCarouselSlidesEditorProps = {
   slides: SlideRecord[];
   layout: string;
+  fixedStructure?: boolean;
   onChange: (slides: SlideRecord[]) => void;
 };
 
@@ -41,7 +42,7 @@ function defaultSlide(image: IAttachment, layout: string): SlideRecord {
   };
 }
 
-export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarouselSlidesEditorProps) => {
+export const HeroCarouselSlidesEditor = ({ slides, layout, fixedStructure = false, onChange }: HeroCarouselSlidesEditorProps) => {
   const updateSlide = (index: number, patch: SlideRecord) => {
     const next = slides.map((slide, i) => (i === index ? { ...slide, ...patch } : slide));
     onChange(next);
@@ -71,10 +72,12 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
 
   return (
     <div className="space-y-3">
-      <div className="rounded-md border bg-muted/20 p-3 space-y-2">
-        <Label className="text-xs">Add slide image</Label>
-        <MediaLibrary handleFilesSelectCallback={addSlide} />
-      </div>
+      {!fixedStructure && (
+        <div className="rounded-md border bg-muted/20 p-3 space-y-2">
+          <Label className="text-xs">Add slide image</Label>
+          <MediaLibrary handleFilesSelectCallback={addSlide} />
+        </div>
+      )}
 
       {slides.length === 0 ? (
         <p className="text-xs text-muted-foreground">No slides yet. Select or upload an image above.</p>
@@ -101,7 +104,7 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold">Slide {index + 1}</span>
-                    <div className="flex gap-1">
+                    {!fixedStructure && <div className="flex gap-1">
                       <Button
                         type="button"
                         variant="outline"
@@ -131,7 +134,7 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
-                    </div>
+                    </div>}
                   </div>
 
                   {layout === 'riode-split' ? (

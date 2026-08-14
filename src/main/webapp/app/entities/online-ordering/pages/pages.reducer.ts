@@ -22,7 +22,6 @@ const mergeSectionTypes = (fromApi: ISectionTypeDescriptor[] = []): ISectionType
   return [...fromApi, ...LOCAL_SECTION_TYPE_FALLBACKS.filter(st => !known.has(st.type))];
 };
 const initialState: EntityState<IOnlineOrderingPage> & {
-  sectionTypes: ISectionTypeDescriptor[];
   templates: IPageTemplateDescriptor[];
 } = {
   loading: false,
@@ -32,7 +31,6 @@ const initialState: EntityState<IOnlineOrderingPage> & {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
-  sectionTypes: [],
   templates: [],
 };
 
@@ -48,21 +46,7 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const getSectionTypes = createAsyncThunk('ooPage/fetch_section_types', async () => {
-  return axios.get<ISectionTypeDescriptor[]>(`${apiUrl}/section-types`);
-});
-
 export { getTemplates, createFromTemplate } from './page-template.actions';
-
-export const createEntity = createAsyncThunk(
-  'ooPage/create_entity',
-  async (entity: IOnlineOrderingPage, thunkAPI) => {
-    const result = await axios.post<IOnlineOrderingPage>(apiUrl, entity);
-    thunkAPI.dispatch(getEntities());
-    return result;
-  },
-  { serializeError: serializeAxiosError }
-);
 
 export const updateEntity = createAsyncThunk(
   'ooPage/update_entity',
@@ -112,7 +96,7 @@ export const OnlineOrderingPageSlice = createEntitySlice({
       .addCase(getTemplates.fulfilled, (state, action) => {
         state.templates = action.payload.data;
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, publishEntity, createFromTemplate), (state, action) => {
+      .addMatcher(isFulfilled(updateEntity, publishEntity, createFromTemplate), (state, action) => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = action.payload.data;
@@ -121,7 +105,7 @@ export const OnlineOrderingPageSlice = createEntitySlice({
         state.loading = true;
         state.errorMessage = null;
       })
-      .addMatcher(isPending(createEntity, updateEntity, publishEntity, archiveEntity, createFromTemplate), state => {
+      .addMatcher(isPending(updateEntity, publishEntity, archiveEntity, createFromTemplate), state => {
         state.updating = true;
         state.updateSuccess = false;
       });

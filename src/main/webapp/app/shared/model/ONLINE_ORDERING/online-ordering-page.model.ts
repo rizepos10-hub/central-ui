@@ -20,6 +20,11 @@ export interface IPageThemeOverride {
   accent?: string;
 }
 
+export interface IPageChrome {
+  header?: Record<string, unknown>;
+  footer?: Record<string, unknown>;
+}
+
 export interface IPageSection {
   id?: string;
   type: SectionType;
@@ -32,6 +37,9 @@ export interface IPublishedSnapshot {
   version?: number;
   publishedAt?: string;
   publishedBy?: string;
+  themeOverride?: IPageThemeOverride;
+  seo?: IPageSeo;
+  chrome?: IPageChrome;
   sections?: IPageSection[];
 }
 
@@ -39,10 +47,13 @@ export interface IOnlineOrderingPage {
   id?: string;
   name?: string;
   slug?: string;
+  templateKey?: string;
+  templateVersion?: number;
   status?: PageStatus;
   scope?: IPageScope;
   seo?: IPageSeo;
   themeOverride?: IPageThemeOverride;
+  chrome?: IPageChrome;
   sections?: IPageSection[];
   publishedSnapshot?: IPublishedSnapshot;
   draftVersion?: number;
