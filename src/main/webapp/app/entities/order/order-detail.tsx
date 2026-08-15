@@ -786,7 +786,7 @@ export const OrderDetail = () => {
                 </Button>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500">Rize POS</p>
+                    <p className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500">LightPayment</p>
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Order Details</span>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">

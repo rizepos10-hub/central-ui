@@ -10,7 +10,7 @@ const Footer = () => (
     <Row>
       <Col md="12">
         <Translate contentKey="footer" interpolate={commitId}>
-          RIZE POS
+          LightPayment
         </Translate>
        {commitId}
       </Col>

@@ -4,6 +4,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IAddonGroup, defaultValue } from 'app/shared/model/ADDON/addon-groups.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 
 const initialState: EntityState<IAddonGroup> = {
   loading: false,
@@ -25,8 +26,17 @@ export const getEntities = createAsyncThunk('addon-groups/fetch_entity_list', as
   return axios.get<IAddonGroup[]>(requestUrl);
 });
 
-export const searchEntities = createAsyncThunk('addon-groups/search_entity_list', async ({ query }: IQueryParams) => {
-  return axios.post<IAddonGroup[]>(apiSearchUrl, query);
+export const searchEntities = createAsyncThunk('addon-groups/search_entity_list', async ({ query, page, size, sort }: IQueryParams) => {
+  return axios.post<IAddonGroup[]>(
+    apiSearchUrl,
+    buildPostFilterSearchQuery({
+      query,
+      page,
+      size,
+      sort,
+      field: 'name',
+    })
+  );
 });
 
 export const getEntity = createAsyncThunk(

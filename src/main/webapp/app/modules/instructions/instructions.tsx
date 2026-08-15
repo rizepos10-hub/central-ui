@@ -92,7 +92,7 @@ export default function Instructions() {
       <div className="welcome-container">
         {showWelcome && <div className="welcome-content">
           <div>
-            <span className="welcome-rize">Welcome to Rize POS!</span>
+            <span className="welcome-rize">Welcome to LightPayment!</span>
           </div>
           <h2 className={"instructions"}>Please Follow the bellow instruction </h2>
         </div>}
