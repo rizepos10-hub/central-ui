@@ -63,7 +63,7 @@ const AppRoutes = () => {
             <div className="flex justify-center mb-4">
               <Building className="h-12 w-12 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Welcome To Rize POS</h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome To LightPayment</h2>
             <p className="text-sm text-muted-foreground">Account Access - Enter your account name to continue</p>
           </div>
 

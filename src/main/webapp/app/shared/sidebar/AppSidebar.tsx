@@ -9,7 +9,7 @@ import 'primereact/resources/primereact.css';
 const AppSidebar = () => {
     const { setLayoutState,layoutConfig } = useContext(LayoutContext);
 
-    const normalLogo = "/content/images/rize-pos-high-resolution-logo-white-transparent.png";
+    const normalLogo = "/content/images/lightpayment-lockup-reversed.svg";
     const smallLogo = "/content/images/circle.png"
     const anchor = () => {
         setLayoutState((prevLayoutState) => ({ ...prevLayoutState, anchored: !prevLayoutState.anchored }));

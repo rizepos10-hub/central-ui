@@ -1,0 +1,32 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flame logo mark">
+  <defs>
+    <!-- Warm disc gradient: amber (top) to coral-red (bottom) -->
+    <linearGradient id="discGrad" x1="256" y1="26" x2="256" y2="486" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFA31A"/>
+      <stop offset="0.55" stop-color="#FF7A2F"/>
+      <stop offset="1" stop-color="#FF4D4D"/>
+    </linearGradient>
+
+    <!-- Spark gradient -->
+    <radialGradient id="sparkGrad" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#FFB24D"/>
+      <stop offset="1" stop-color="#FF6A2B"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Disc with flame cut out via evenodd (flame is transparent) -->
+  <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#discGrad)"
+        d="M256 26
+           C382 26 486 129 486 256
+           C486 383 382 486 256 486
+           C129 486 26 383 26 256
+           C26 129 129 26 256 26 Z
+           M256 120
+           C300 196 351 262 346 322
+           C342 380 300 412 256 412
+           C212 412 170 380 166 322
+           C161 262 212 196 256 120 Z"/>
+
+  <!-- Spark at the heart of the flame -->
+  <circle cx="256" cy="326" r="40" fill="url(#sparkGrad)"/>
+</svg>

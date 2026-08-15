@@ -56,7 +56,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
                 {/* Logo */}
                 <div className="flex items-center gap-2">
-                    <img src="/content/images/rize-pos-align-left.png" alt="Logo" className="h-10 max-w-[150px] object-contain" />
+                    <img src="/content/images/lightpayment-lockup.svg" alt="LightPayment" className="h-10 max-w-[150px] object-contain" />
                 </div>
 
                 {/* Breadcrumb */}

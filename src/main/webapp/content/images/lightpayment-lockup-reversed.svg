@@ -1,0 +1,42 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LightPayment">
+  <!--
+    Reversed lockup for dark backgrounds (e.g. the company-web-ui sidebar, which
+    currently loads a white-transparent logo). The mark keeps its warm gradient
+    so the brand colour survives; only the wordmark flips to white.
+
+    NOTE: as with the primary lockup, convert the <text> to outlined paths before
+    treating this as the shipped production logo.
+  -->
+  <defs>
+    <linearGradient id="discGrad" x1="160" y1="30" x2="160" y2="290" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFA31A"/>
+      <stop offset="0.55" stop-color="#FF7A2F"/>
+      <stop offset="1" stop-color="#FF4D4D"/>
+    </linearGradient>
+    <radialGradient id="sparkGrad" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#FFB24D"/>
+      <stop offset="1" stop-color="#FF6A2B"/>
+    </radialGradient>
+  </defs>
+
+  <g transform="translate(30 30) scale(0.5078)">
+    <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#discGrad)"
+          d="M256 26
+             C382 26 486 129 486 256
+             C486 383 382 486 256 486
+             C129 486 26 383 26 256
+             C26 129 129 26 256 26 Z
+             M256 120
+             C300 196 351 262 346 322
+             C342 380 300 412 256 412
+             C212 412 170 380 166 322
+             C161 262 212 196 256 120 Z"/>
+    <circle cx="256" cy="326" r="40" fill="url(#sparkGrad)"/>
+  </g>
+
+  <text x="340" y="160" dominant-baseline="central" font-size="128"
+        font-family="Poppins, Montserrat, 'Helvetica Neue', Arial, sans-serif"
+        letter-spacing="-2">
+    <tspan fill="#FFFFFF" font-weight="500">light</tspan><tspan fill="#FFA31A" font-weight="700">payment</tspan>
+  </text>
+</svg>

@@ -165,12 +165,12 @@ const playNotificationSound = async () => {
 
 let titleTimeout;
 const updateTabTitle = () => {
-  document.title = `Rize Cloud - Notifications`;
+  document.title = `LightPayment - Notifications`;
   if (titleTimeout) {
     clearTimeout(titleTimeout);
   }
   setTimeout(() => {
-    document.title = "Rize Cloud";
+    document.title = "LightPayment";
   }, 5000);
 };
 
