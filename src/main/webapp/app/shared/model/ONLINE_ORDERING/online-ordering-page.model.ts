@@ -16,8 +16,24 @@ export interface IPageSeo {
 
 export interface IPageThemeOverride {
   primary?: string;
+  primaryForeground?: string;
   secondary?: string;
+  secondaryForeground?: string;
   accent?: string;
+  accentForeground?: string;
+  background?: string;
+  foreground?: string;
+  card?: string;
+  cardForeground?: string;
+  popover?: string;
+  popoverForeground?: string;
+  muted?: string;
+  mutedForeground?: string;
+  border?: string;
+  input?: string;
+  ring?: string;
+  destructive?: string;
+  destructiveForeground?: string;
 }
 
 export interface IPageChrome {

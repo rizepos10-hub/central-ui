@@ -292,33 +292,57 @@ export const PageThemeOverrideFields = ({
 }) => {
   const set = (key: string, value: string) => onChange({ ...themeOverride, [key]: value });
   const defaults = getTemplatePalette(templateKey, themeOverride);
+  const colorField = (key: keyof IPageThemeOverride, label: string) => (
+    <ColorInputField
+      key={key}
+      label={label}
+      placeholder={defaults[key]}
+      value={themeOverride[key] || defaults[key]}
+      onChange={value => set(key, value)}
+    />
+  );
 
   return (
     <PropertyEditorGroup
       title="Theme colors"
-      description="Optional overrides for this landing page"
+      description="Colors for this page and its template"
       className="landing-editor-wide-field"
       defaultOpen={false}
     >
-      <div className="landing-editor-fields-grid grid gap-2">
-        <ColorInputField
-          label="Primary"
-          placeholder={defaults.primary}
-          value={themeOverride.primary || defaults.primary}
-          onChange={value => set('primary', value)}
-        />
-        <ColorInputField
-          label="Secondary"
-          placeholder={defaults.secondary}
-          value={themeOverride.secondary || defaults.secondary}
-          onChange={value => set('secondary', value)}
-        />
-        <ColorInputField
-          label="Accent"
-          placeholder={defaults.accent}
-          value={themeOverride.accent || defaults.accent}
-          onChange={value => set('accent', value)}
-        />
+      <div className="space-y-2">
+        <PropertyEditorGroup title="Brand" description="Buttons, links, and highlights" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-2">
+            {colorField('primary', 'Primary')}
+            {colorField('primaryForeground', 'Primary text')}
+            {colorField('secondary', 'Secondary')}
+            {colorField('secondaryForeground', 'Secondary text')}
+            {colorField('accent', 'Accent')}
+            {colorField('accentForeground', 'Accent text')}
+          </div>
+        </PropertyEditorGroup>
+
+        <PropertyEditorGroup title="Surfaces & text" description="Page, card, popover, and muted colors" defaultOpen={false}>
+          <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-2">
+            {colorField('background', 'Page background')}
+            {colorField('foreground', 'Page text')}
+            {colorField('card', 'Card background')}
+            {colorField('cardForeground', 'Card text')}
+            {colorField('popover', 'Popover background')}
+            {colorField('popoverForeground', 'Popover text')}
+            {colorField('muted', 'Muted background')}
+            {colorField('mutedForeground', 'Muted text')}
+          </div>
+        </PropertyEditorGroup>
+
+        <PropertyEditorGroup title="Controls & feedback" description="Inputs, focus, and destructive states" defaultOpen={false}>
+          <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-2">
+            {colorField('border', 'Border')}
+            {colorField('input', 'Input border')}
+            {colorField('ring', 'Focus ring')}
+            {colorField('destructive', 'Destructive')}
+            {colorField('destructiveForeground', 'Destructive text')}
+          </div>
+        </PropertyEditorGroup>
       </div>
     </PropertyEditorGroup>
   );

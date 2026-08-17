@@ -163,7 +163,6 @@ export default function LandingEditorWorkspace({
   const [quickPropertiesAnchor, setQuickPropertiesAnchor] = useState<QuickPropertiesAnchor | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [editorLayout] = useState<EditorLayout>(() => readEditorLayout());
-  const [selectionSource, setSelectionSource] = useState<'canvas' | 'structure'>('structure');
 
   const handleEditorLayoutChanged = useCallback((layout: Record<string, number>, meta: { isUserInteraction: boolean }) => {
     if (!meta.isUserInteraction || typeof window === 'undefined') return;
@@ -213,7 +212,6 @@ export default function LandingEditorWorkspace({
   const selectNode = useCallback(
     (node: EditorNode | null, source: 'canvas' | 'structure' = 'structure') => {
       setSelectedNode(node);
-      setSelectionSource(source);
       if (source === 'structure') {
         setQuickPropertiesAnchor(null);
         setQuickPropertiesOpen(false);
@@ -326,7 +324,7 @@ export default function LandingEditorWorkspace({
   const activeNode = selectedNode?.id === 'page' ? pageNode : selectedNode;
 
   const properties = activeNode?.kind === 'section' && selectedSectionIndex != null
-    ? selectionSource === 'canvas' ? renderAppearanceProperties(selectedSectionIndex) : renderSectionProperties(selectedSectionIndex)
+    ? renderSectionProperties(selectedSectionIndex)
     : activeNode?.kind === 'chrome'
       ? renderChromeProperties(activeNode.fieldPath?.startsWith('chrome.footer') ? 'footer' : 'header')
       : activeNode?.kind === 'page'
@@ -528,7 +526,7 @@ export default function LandingEditorWorkspace({
             <div className="border-b px-3 py-2"><p className="truncate text-xs font-semibold text-foreground">{activeNode?.label || 'Properties'}</p></div>
             <div className="landing-editor-properties-content min-h-0 min-w-0 flex-1 w-full overflow-x-hidden overflow-y-auto overscroll-contain p-2">
               {properties}
-              {activeNode?.kind === 'section' && selectedSectionIndex != null && selectionSource === 'structure' && <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>}
+              {activeNode?.kind === 'section' && selectedSectionIndex != null && <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>}
             </div>
           </aside>
         </ResizablePanel>
@@ -570,7 +568,7 @@ export default function LandingEditorWorkspace({
         <div className="landing-editor-properties w-full min-w-0">
           <div className="mb-2 truncate text-xs font-semibold text-foreground">{activeNode?.label || 'Quick edit'}</div>
           {properties}
-          {activeNode?.kind === 'section' && selectedSectionIndex != null && selectionSource === 'structure' && (
+          {activeNode?.kind === 'section' && selectedSectionIndex != null && (
             <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>
           )}
         </div>

@@ -51,6 +51,11 @@ const sectionLabel = (type: SectionType) =>
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
+const clampPercentage = (value: unknown, fallback: number) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : fallback;
+};
+
 const setValueAtPath = (source: unknown, path: string, value: unknown): unknown => {
   const parts = path.split('.').filter(Boolean);
   if (!parts.length) return source;
@@ -833,8 +838,9 @@ const SectionConfigForm = ({
     const contentAlign = (config.contentAlign as string) ?? 'left';
     const buttonPosition = (config.buttonPosition as string) ?? contentAlign;
     const heroHeight = (config.height as string) ?? 'screen';
-    const parsedOverlayOpacity = Number(config.overlayOpacity ?? 88);
-    const overlayOpacity = Number.isFinite(parsedOverlayOpacity) ? Math.max(0, Math.min(100, parsedOverlayOpacity)) : 88;
+    const imageOpacity = clampPercentage(config.imageOpacity, 100);
+    const parsedOverlayOpacity = Number(config.overlayOpacity ?? (config.image ? 0 : 88));
+    const overlayOpacity = Number.isFinite(parsedOverlayOpacity) ? Math.max(0, Math.min(100, parsedOverlayOpacity)) : config.image ? 0 : 88;
     return (
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Template" description="The visual variant is fixed after import" defaultOpen>
@@ -885,6 +891,14 @@ const SectionConfigForm = ({
                     value={(banner.imageAlt as string) ?? ''}
                     placeholder="Describe this promo image"
                     onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, imageAlt: e.target.value }))}
+                  />
+                  <Label>Image opacity ({clampPercentage(banner.imageOpacity ?? config.imageOpacity, 100)}%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={clampPercentage(banner.imageOpacity ?? config.imageOpacity, 100)}
+                    onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, imageOpacity: clampPercentage(e.target.value, 0) }))}
                   />
                   <SelectedImagePreview
                     image={(banner.image as IAttachment) ?? null}
@@ -1005,6 +1019,16 @@ const SectionConfigForm = ({
                     <SelectItem value="right">Right</SelectItem>
                   </SelectContent>
                 </SectionTypeSelect>
+              </div>
+              <div>
+                <Label>Image opacity ({imageOpacity}%)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={imageOpacity}
+                  onChange={e => onConfigChange('imageOpacity', clampPercentage(e.target.value, 0))}
+                />
               </div>
               <div>
                 <Label>Content alignment</Label>
@@ -1296,7 +1320,8 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
         imagePosition: 'center',
         contentAlign: 'left',
         height: 'screen',
-        overlayOpacity: 88,
+        overlayOpacity: 0,
+        imageOpacity: 100,
         banners: [],
         appearance,
       };

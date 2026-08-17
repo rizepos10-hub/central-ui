@@ -28,8 +28,6 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Editor } from 'primereact/editor';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { ColorPicker } from 'primereact/colorpicker';
-import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
@@ -95,39 +93,10 @@ export const UiSettingsUpdate = () => {
     dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
 
-  const handleColorSettingChange = (field, value, isHex = false) => {
-    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
-    
-    // Auto-detect hex colors and convert them to HSL
-    let processedValue = value;
-    if (!isHex && typeof value === 'string') {
-      // Check if the value is a hex color (with or without #)
-      const hexRegex = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (hexRegex.test(value)) {
-        // Add # if it's missing
-        const hexValue = value.startsWith('#') ? value : `#${value}`;
-        processedValue = hexToHSL(hexValue);
-      }
-    } else if (isHex) {
-      processedValue = hexToHSL(value);
-    }
-    
-    newData[field] = processedValue;
-    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
-  };
-
   const handlefontSettingChange = (field, value) => {
     const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.fontSetting)) || {};
     newData[field] = value;
     dispatch(changeEntityField({ name: 'fontSetting', value: newData }));
-  };
-
-  const handleCustomThemeSelector = (theme) => {
-    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
-    Object.keys(theme).forEach(key => {
-      newData[key] = theme[key];
-    });
-    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
   };
 
   const updateHomeSeo = (index, fieldName, value) => {
@@ -629,65 +598,14 @@ export const UiSettingsUpdate = () => {
                     </div>
                   </div>
 
-                  <div className="bg-muted rounded-lg p-4 border space-y-3">
-                    <h5 className="text-sm font-semibold text-primary flex items-center gap-2">
+                  <div className="rounded-lg border bg-muted/40 p-4">
+                    <h5 className="flex items-center gap-2 text-sm font-semibold text-primary">
                       <i className="fas fa-palette"></i>
-                      {translate('tempApp.UiSettings.colorSetting.title')}
+                      Landing page colors
                     </h5>
-
-                    <PremadeColorThemes handleCustomThemeSelector={handleCustomThemeSelector} />
-
-                    {UiSettingsEntity?.colorSetting && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Object.keys(UiSettingsEntity.colorSetting).map(key => (
-                          <div
-                            key={key}
-                            className="bg-card rounded-md p-3 border shadow-sm"
-                          >
-                            <div className="flex items-center gap-3 mb-3">
-                              <div
-                                className="w-6 h-6 rounded border-2"
-                                style={{
-                                  backgroundColor: UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                    ? `hsl(${UiSettingsEntity.colorSetting[key]})`
-                                    : '#000000'
-                                }}
-                              />
-                              <Label
-                                htmlFor={`UiSettings-colorSetting.${key}`}
-                                className="text-xs font-semibold flex-1"
-                              >
-                                {translate(`tempApp.UiSettings.colorSetting.${key}`)}
-                              </Label>
-                            </div>
-
-                            <div className="flex gap-2 items-center">
-                              <Input
-                                id={`UiSettings-colorSetting.${key}`}
-                                value={UiSettingsEntity.colorSetting[key] || ''}
-                                onChange={(e) => handleColorSettingChange(key, e.target.value)}
-                                className="h-7 text-xs flex-1 font-mono"
-                                placeholder="HSL value (e.g., 0 0% 100%) or hex color (e.g., #ffffff)"
-                              />
-
-                              <ColorPicker
-                                value={
-                                  UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                    ? hslToHex(UiSettingsEntity.colorSetting[key])
-                                    : '#000000'
-                                }
-                                onChange={(e) => handleColorSettingChange(key, e.value, true)}
-                                className="border rounded"
-                              />
-                            </div>
-
-                            <div className="mt-2 text-xs text-muted-foreground italic">
-                              HSL format: hue saturation% lightness% (hex colors auto-convert)
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Storefront colors are now configured in each landing page under Theme colors, so every page and template can have its own palette.
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-2">
