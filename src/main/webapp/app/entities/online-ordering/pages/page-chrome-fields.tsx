@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -102,13 +102,6 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
     : [];
   const headerLogo = header.logoImage && typeof header.logoImage === 'object' ? (header.logoImage as IAttachment) : undefined;
   const footerLogo = footer.logoImage && typeof footer.logoImage === 'object' ? (footer.logoImage as IAttachment) : undefined;
-  const title = part === 'header' ? 'Navbar properties' : part === 'footer' ? 'Footer properties' : 'Storefront navbar & footer';
-  const description = part === 'header'
-    ? 'Customize the navbar presentation while keeping navigation, account, location, language, cart, and runtime storefront services connected.'
-    : part === 'footer'
-      ? 'Customize the footer presentation while keeping business data, links, social content, and runtime storefront services connected.'
-      : 'Customize the presentation of this landing page across the complete Online Ordering experience. Cart, checkout, account, branch, language, and runtime business data remain connected to the existing storefront services.';
-
   const updatePart = (key: 'header' | 'footer', value: ChromePart) => onChange({ ...chrome, [key]: value });
   const updateFooterColumns = (columns: ChromePart[]) => updatePart('footer', { ...footer, columns });
   const updateFooterColumn = (columnIndex: number, patch: ChromePart) => updateFooterColumns(footerColumns.map((column, index) => index === columnIndex ? { ...column, ...patch } : column));
@@ -137,18 +130,13 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
 
   return (
     <Card className="landing-editor-chrome-fields w-full min-w-0 max-w-none">
-      <CardHeader className="p-2.5 sm:p-3">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardHeader>
-      <CardContent className="space-y-2 p-2 sm:p-3">
+      <CardContent className="space-y-2 p-2">
         <div className="landing-editor-chrome-sections grid gap-4">
           {(!part || part === 'header') && (
           <section className="min-w-0 space-y-2 rounded-xl border bg-muted/20 p-2.5 sm:p-3">
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-semibold">Navbar appearance</p>
-                <p className="text-[11px] text-muted-foreground">The template layout stays fixed; styling and presentation can change.</p>
+                <p className="text-sm font-semibold">Navbar</p>
               </div>
               <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{String(header.variant ?? 'classic')} layout</span>
             </div>
@@ -240,8 +228,7 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
           <section className="min-w-0 space-y-2 rounded-xl border bg-muted/20 p-2.5 sm:p-3">
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-semibold">Footer appearance &amp; content</p>
-                <p className="text-[11px] text-muted-foreground">Keep business data live while controlling the footer’s emphasis, links, and copy.</p>
+                <p className="text-sm font-semibold">Footer</p>
               </div>
               <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{String(footer.variant ?? 'classic')} layout</span>
             </div>

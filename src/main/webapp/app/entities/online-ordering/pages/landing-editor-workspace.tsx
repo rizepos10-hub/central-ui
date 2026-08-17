@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, ExternalLink, Eye, EyeOff, Monitor, Redo2, S
 
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from 'app/lib/utils';
 import { IOnlineOrderingPage, IPageSection } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -28,6 +28,17 @@ type EditorLayout = {
   canvas: number;
   properties: number;
 };
+
+type FrameAnchorRect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  viewportWidth: number;
+  viewportHeight: number;
+};
+
+type QuickPropertiesAnchor = Pick<FrameAnchorRect, 'left' | 'top' | 'width' | 'height'>;
 
 const EDITOR_LAYOUT_STORAGE_KEY = 'landing-editor-workspace-layout-v1';
 const DEFAULT_EDITOR_LAYOUT: EditorLayout = {
@@ -99,6 +110,22 @@ const viewportWidth: Record<Viewport, string> = {
   mobile: '390px',
 };
 
+const translateFrameAnchor = (frame: HTMLIFrameElement | null, anchorRect?: FrameAnchorRect): QuickPropertiesAnchor | null => {
+  if (!frame || !anchorRect) return null;
+  const values = [anchorRect.left, anchorRect.top, anchorRect.width, anchorRect.height, anchorRect.viewportWidth, anchorRect.viewportHeight];
+  if (values.some(value => !Number.isFinite(value)) || anchorRect.viewportWidth <= 0 || anchorRect.viewportHeight <= 0) return null;
+
+  const frameRect = frame.getBoundingClientRect();
+  const scaleX = frameRect.width / anchorRect.viewportWidth;
+  const scaleY = frameRect.height / anchorRect.viewportHeight;
+  return {
+    left: frameRect.left + anchorRect.left * scaleX,
+    top: frameRect.top + anchorRect.top * scaleY,
+    width: Math.max(anchorRect.width * scaleX, 1),
+    height: Math.max(anchorRect.height * scaleY, 1),
+  };
+};
+
 export default function LandingEditorWorkspace({
   page,
   uiSettings,
@@ -132,7 +159,8 @@ export default function LandingEditorWorkspace({
   const [frameState, setFrameState] = useState<FrameState>('loading');
   const [frameError, setFrameError] = useState<string>();
   const [frameKey, setFrameKey] = useState(0);
-  const [mobilePropertiesOpen, setMobilePropertiesOpen] = useState(false);
+  const [quickPropertiesOpen, setQuickPropertiesOpen] = useState(false);
+  const [quickPropertiesAnchor, setQuickPropertiesAnchor] = useState<QuickPropertiesAnchor | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [editorLayout] = useState<EditorLayout>(() => readEditorLayout());
   const [selectionSource, setSelectionSource] = useState<'canvas' | 'structure'>('structure');
@@ -186,6 +214,10 @@ export default function LandingEditorWorkspace({
     (node: EditorNode | null, source: 'canvas' | 'structure' = 'structure') => {
       setSelectedNode(node);
       setSelectionSource(source);
+      if (source === 'structure') {
+        setQuickPropertiesAnchor(null);
+        setQuickPropertiesOpen(false);
+      }
       if (node?.kind === 'section') {
         const sectionId = node.id.slice('section.'.length);
         let index = (page.sections ?? []).findIndex(section => section.id === sectionId);
@@ -220,7 +252,7 @@ export default function LandingEditorWorkspace({
           break;
         }
         case 'frame-select': {
-          const payload = event.data.payload as { nodeId?: string; fieldPath?: string; kind?: EditorNode['kind']; label?: string; editor?: EditorNode['editor'] };
+          const payload = event.data.payload as { nodeId?: string; fieldPath?: string; kind?: EditorNode['kind']; label?: string; editor?: EditorNode['editor']; anchorRect?: FrameAnchorRect };
           const node = registry.find(entry => entry.id === payload?.nodeId) ?? (payload?.nodeId ? {
             id: payload.nodeId,
             kind: payload.kind ?? 'component',
@@ -229,8 +261,12 @@ export default function LandingEditorWorkspace({
             editor: payload.editor,
             editable: true,
           } : null);
+          const frame = iframeRefs.current.find(candidate => candidate?.contentWindow === event.source) ?? null;
+          const isMainSectionElement = Boolean(node?.fieldPath?.startsWith('sections.') && node.kind !== 'section');
+          const anchor = isMainSectionElement ? translateFrameAnchor(frame, payload.anchorRect) : null;
           selectNode(node, 'canvas');
-          setMobilePropertiesOpen(true);
+          setQuickPropertiesAnchor(anchor);
+          setQuickPropertiesOpen(Boolean(anchor));
           break;
         }
         case 'frame-error':
@@ -298,16 +334,20 @@ export default function LandingEditorWorkspace({
         : activeNode
           ? renderElementProperties(activeNode)
           : (
-            <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-dashed p-4 text-muted-foreground">
-                <p className="font-medium text-foreground">Select an element to edit</p>
-                <p className="mt-1 text-xs">Click a logo, image, text, button, or section on the storefront preview.</p>
-              </div>
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+              Select an element to edit.
             </div>
           );
 
   return (
-    <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col overflow-hidden bg-muted/20 text-foreground">
+    <Popover
+      open={quickPropertiesOpen}
+      onOpenChange={open => {
+        setQuickPropertiesOpen(open);
+        if (!open) setQuickPropertiesAnchor(null);
+      }}
+    >
+      <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col overflow-hidden bg-muted/20 text-foreground">
       <style>{`
         .landing-editor-properties {
           container-type: inline-size;
@@ -326,9 +366,37 @@ export default function LandingEditorWorkspace({
           container-type: inline-size;
         }
         @media (min-width: 40rem) {
-          .landing-editor-properties-drawer .landing-editor-property-groups {
+          .landing-editor-properties-popover .landing-editor-property-groups {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
+        }
+        .landing-editor-properties .property-editor-group-description {
+          display: none;
+        }
+        .landing-editor-properties .property-editor-group-content {
+          padding: 0.5rem;
+        }
+        .landing-editor-properties-popover .landing-editor-chrome-fields {
+          border: 0;
+          box-shadow: none;
+        }
+        .landing-editor-properties-popover .property-editor-group > summary {
+          gap: 0.375rem;
+          padding: 0.375rem 0.5rem;
+        }
+        .landing-editor-properties-popover .property-editor-group > summary > span:first-child {
+          height: 1.25rem;
+          width: 1.25rem;
+        }
+        .landing-editor-properties-popover .property-editor-group-content {
+          padding: 0.375rem;
+        }
+        .landing-editor-properties-popover .landing-editor-chrome-sections,
+        .landing-editor-properties-popover .landing-editor-property-groups {
+          gap: 0.375rem;
+        }
+        .landing-editor-properties-popover .landing-editor-chrome-sections > section {
+          padding: 0.5rem;
         }
         .landing-editor-wide-field {
           grid-column: 1 / -1;
@@ -457,8 +525,8 @@ export default function LandingEditorWorkspace({
         <ResizableHandle id="properties-resize" aria-label="Resize properties panel" withHandle />
         <ResizablePanel id="properties" defaultSize="16%" minSize="8%" maxSize="30%" className="min-w-0 overflow-hidden bg-background">
           <aside className="landing-editor-properties flex h-full min-h-0 min-w-0 flex-col">
-            <div className="border-b px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Properties</p><p className="mt-1 truncate text-[11px] text-muted-foreground">{activeNode?.label || 'Nothing selected'}</p></div>
-            <div className="landing-editor-properties-content min-h-0 min-w-0 flex-1 w-full overflow-x-hidden overflow-y-auto overscroll-contain p-2 sm:p-3">
+            <div className="border-b px-3 py-2"><p className="truncate text-xs font-semibold text-foreground">{activeNode?.label || 'Properties'}</p></div>
+            <div className="landing-editor-properties-content min-h-0 min-w-0 flex-1 w-full overflow-x-hidden overflow-y-auto overscroll-contain p-2">
               {properties}
               {activeNode?.kind === 'section' && selectedSectionIndex != null && selectionSource === 'structure' && <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>}
             </div>
@@ -471,18 +539,42 @@ export default function LandingEditorWorkspace({
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white shadow-lg"><iframe key={`mobile-${frameKey}`} ref={element => { iframeRefs.current[1] = element; }} title="Landing page storefront preview" src={iframeSrc} className="block h-full min-h-0 w-full flex-1" /></div>
           {frameState === 'error' && <div className="absolute inset-x-6 bottom-6 rounded-lg border bg-background p-3 text-center text-xs shadow-md" role="alert"><p>{frameError}</p><Button size="sm" className="mt-2" onClick={retryFrame}>Retry</Button></div>}
         </div>
-        <div className="flex shrink-0 items-center gap-2 border-t bg-background p-2"><Button variant="outline" className="flex-1 text-xs" onClick={() => setMobilePropertiesOpen(true)}>Edit selected</Button><Button className="flex-1 text-xs" disabled={updating || !page.id} onClick={saveAndFlush}>Save changes</Button></div>
+        <div className="flex shrink-0 items-center gap-2 border-t bg-background p-2">
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="flex-1 text-xs" disabled={!activeNode || !quickPropertiesAnchor}>Edit</Button>
+          </PopoverTrigger>
+          <Button className="flex-1 text-xs" disabled={updating || !page.id} onClick={saveAndFlush}>Save changes</Button>
+        </div>
       </div>
 
-      <Sheet open={mobilePropertiesOpen} onOpenChange={setMobilePropertiesOpen}>
-        <SheetContent side="bottom" className="landing-editor-properties-drawer flex max-h-[85vh] w-full max-w-none flex-col overflow-y-auto rounded-t-xl p-4 sm:p-5">
-          <SheetHeader className="w-full min-w-0 text-left"><SheetTitle className="text-base">{activeNode?.label || 'Landing page properties'}</SheetTitle><SheetDescription className="text-xs">Changes update the live preview immediately.</SheetDescription></SheetHeader>
-          <div className="landing-editor-properties mt-4 w-full min-w-0">
-            {properties}
-            {activeNode?.kind === 'section' && selectedSectionIndex != null && selectionSource === 'structure' && <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>}
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+      </div>
+
+      {quickPropertiesAnchor && (
+        <PopoverAnchor
+          aria-hidden="true"
+          className="pointer-events-none fixed h-px w-px opacity-0"
+          style={{
+            left: quickPropertiesAnchor.left,
+            top: quickPropertiesAnchor.top,
+            width: quickPropertiesAnchor.width,
+            height: quickPropertiesAnchor.height,
+          }}
+        />
+      )}
+      <PopoverContent
+        side={quickPropertiesAnchor ? 'right' : 'top'}
+        align="start"
+        sideOffset={12}
+        className="landing-editor-properties-popover max-h-[min(70vh,34rem)] w-[min(92vw,26rem)] max-w-[calc(100vw-1rem)] overflow-y-auto p-2 duration-150 ease-out sm:p-2.5"
+      >
+        <div className="landing-editor-properties w-full min-w-0">
+          <div className="mb-2 truncate text-xs font-semibold text-foreground">{activeNode?.label || 'Quick edit'}</div>
+          {properties}
+          {activeNode?.kind === 'section' && selectedSectionIndex != null && selectionSource === 'structure' && (
+            <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

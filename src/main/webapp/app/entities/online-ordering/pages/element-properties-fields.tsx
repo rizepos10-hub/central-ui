@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -230,17 +229,11 @@ function ActionProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsP
 
 export default function ElementPropertiesFields({ node, page, onUpdatePath }: ElementPropertiesFieldsProps) {
   return (
-    <Card className="border-0 shadow-none">
-      <CardHeader className="px-0 pb-2 pt-0">
-        <CardTitle className="text-sm">{node.label}</CardTitle>
-        <p className="text-[10px] text-muted-foreground">Edit this {node.kind} without opening the whole section.</p>
-      </CardHeader>
-      <CardContent className="space-y-2 px-0 pb-0">
-        {node.kind === 'media' && <MediaProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
-        {node.kind === 'text' && <TextProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
-        {node.kind === 'action' && <ActionProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
-        {!['media', 'text', 'action'].includes(node.kind) && <SharedStyleFields node={node} page={page} onUpdatePath={onUpdatePath} />}
-      </CardContent>
-    </Card>
+    <div className="space-y-2">
+      {node.kind === 'media' && <MediaProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
+      {node.kind === 'text' && <TextProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
+      {node.kind === 'action' && <ActionProperties node={node} page={page} onUpdatePath={onUpdatePath} />}
+      {!['media', 'text', 'action'].includes(node.kind) && <SharedStyleFields node={node} page={page} onUpdatePath={onUpdatePath} />}
+    </div>
   );
 }

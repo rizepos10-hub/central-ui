@@ -6,7 +6,7 @@ import { debounce } from 'lodash';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select as SectionTypeSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -275,8 +275,7 @@ const OnlineOrderingPageEditor = () => {
 
   const renderPageProperties = () => (
     <Card>
-      <CardHeader className="p-3"><CardTitle className="text-sm">Page details</CardTitle></CardHeader>
-      <CardContent className="space-y-2 p-2 sm:p-3">
+      <CardContent className="space-y-2 p-2">
         <PropertyEditorGroup title="Identity" description="Name and public URL" defaultOpen>
           <div className="landing-editor-fields-grid grid gap-2">
             <div><Label>Name</Label><Input className="h-8 text-xs" value={page.name ?? ''} onChange={event => updatePageField('name', event.target.value)} /></div>
@@ -301,8 +300,7 @@ const OnlineOrderingPageEditor = () => {
     if (!section) return <p className="text-xs text-muted-foreground">This template slot is unavailable.</p>;
     return (
       <Card>
-        <CardHeader className="p-3"><CardTitle className="text-sm">{sectionLabel(section.type)}</CardTitle><p className="text-[11px] text-muted-foreground">Slot {index + 1} is fixed. Edit approved content only.</p></CardHeader>
-        <CardContent className="p-3">
+        <CardContent className="p-2">
           <SectionConfigForm
             section={section}
             debouncedLoadItemOptions={debouncedLoadItemOptions}
@@ -322,8 +320,7 @@ const OnlineOrderingPageEditor = () => {
   };
 
   const renderAppearanceProperties = (index: number) => (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold">Visual styling</p>
+    <div className="space-y-2">
       <SectionAppearanceFields
         embedded
         sectionType={page.sections?.[index]?.type ?? SectionType.HERO_CAROUSEL}
@@ -978,41 +975,57 @@ const SectionConfigForm = ({
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Features" description="Icons and titles shown in the grid" badge={`${items.length}`} defaultOpen>
           <div className="space-y-2">
-        {items.map((item, itemIndex) => (
-          <div key={itemIndex} className="landing-editor-fields-grid grid gap-2 rounded border p-2">
-            <div>
-              <Label>Icon (emoji or text)</Label>
-              <Input
-                value={item.icon ?? ''}
-                onChange={e => {
-                  const next = [...items];
-                  next[itemIndex] = { ...next[itemIndex], icon: e.target.value };
-                  onConfigChange('items', next);
-                }}
-              />
-            </div>
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={item.title ?? ''}
-                onChange={e => {
-                  const next = [...items];
-                  next[itemIndex] = { ...next[itemIndex], title: e.target.value };
-                  onConfigChange('items', next);
-                }}
-              />
-            </div>
-          </div>
-        ))}
-        {!templateLocked && (
-          <Button
-            variant="outline"
-            className="h-8 text-xs"
-            onClick={() => onConfigChange('items', [...items, { icon: '✦', title: 'Feature' }])}
-          >
-            <Plus className="h-3 w-3 mr-1" /> Add feature
-          </Button>
-        )}
+            {!items.length && <p className="rounded border border-dashed p-2 text-xs text-muted-foreground">No features yet. Add one to start building this grid.</p>}
+            {items.map((item, itemIndex) => (
+              <div key={itemIndex} className="space-y-2 rounded border bg-muted/20 p-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold">Feature {itemIndex + 1}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    aria-label={`Remove feature ${itemIndex + 1}`}
+                    disabled={items.length <= 1}
+                    onClick={() => onConfigChange('items', items.filter((_, index) => index !== itemIndex))}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <div className="landing-editor-fields-grid grid gap-2">
+                  <div>
+                    <Label>Icon (emoji or text)</Label>
+                    <Input
+                      value={item.icon ?? ''}
+                      onChange={e => {
+                        const next = [...items];
+                        next[itemIndex] = { ...next[itemIndex], icon: e.target.value };
+                        onConfigChange('items', next);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={item.title ?? ''}
+                      onChange={e => {
+                        const next = [...items];
+                        next[itemIndex] = { ...next[itemIndex], title: e.target.value };
+                        onConfigChange('items', next);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => onConfigChange('items', [...items, { icon: '✦', title: `Feature ${items.length + 1}` }])}
+            >
+              <Plus className="mr-1 h-3 w-3" /> Add feature
+            </Button>
           </div>
         </PropertyEditorGroup>
       </div>
