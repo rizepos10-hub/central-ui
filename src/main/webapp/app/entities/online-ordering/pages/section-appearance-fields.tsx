@@ -7,11 +7,9 @@ import { IPageThemeOverride } from 'app/shared/model/ONLINE_ORDERING/online-orde
 import { SectionType } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import { ColorInputField } from './color-input-field';
 import { PropertyEditorGroup } from './property-editor-group';
+import { getHeroBoxModelDefaults, getSectionAppearanceDefaults, getTemplatePalette } from './page-template-defaults';
 
 type AppearanceConfig = Record<string, unknown>;
-
-const appearanceField = (appearance: AppearanceConfig, key: string) =>
-  (appearance[key] as string | boolean | undefined) ?? '';
 
 const showTypography = (type: SectionType) =>
   ![SectionType.HERO_CAROUSEL, SectionType.SPACER].includes(type);
@@ -22,6 +20,38 @@ const showCardFields = (type: SectionType) =>
   [SectionType.FEATURED_ITEMS, SectionType.FEATURE_GRID, SectionType.CATEGORY_STRIP].includes(type);
 
 const showBadgeFields = (type: SectionType) => type === SectionType.FEATURED_ITEMS;
+
+const HERO_BOX_MODEL_FIELDS = [
+  ['marginTop', 'Top'],
+  ['marginRight', 'Right'],
+  ['marginBottom', 'Bottom'],
+  ['marginLeft', 'Left'],
+] as const;
+
+const HERO_PADDING_FIELDS = [
+  ['paddingTop', 'Top'],
+  ['paddingRight', 'Right'],
+  ['paddingBottom', 'Bottom'],
+  ['paddingLeft', 'Left'],
+] as const;
+
+const numberText = (value: unknown): string => typeof value === 'number' && Number.isFinite(value) ? String(value) : '';
+
+function HeroDimensionField({ label, value, placeholder, min, onChange }: { label: string; value: unknown; placeholder: string; min: number; onChange: (value: number | undefined) => void }) {
+  return (
+    <div>
+      <Label className="text-[11px]">{label}</Label>
+      <Input
+        type="number"
+        min={min}
+        value={numberText(value)}
+        placeholder={placeholder}
+        className="h-8 text-xs"
+        onChange={event => onChange(event.target.value === '' ? undefined : Number(event.target.value))}
+      />
+    </div>
+  );
+}
 
 export const defaultSectionAppearance = (): AppearanceConfig => ({
   titleFont: 'serif',
@@ -35,30 +65,98 @@ export const SectionAppearanceFields = ({
   appearance,
   onChange,
   sectionType,
+  templateKey,
+  themeOverride,
+  sectionConfig,
   embedded = false,
 }: {
   appearance: AppearanceConfig;
   onChange: (next: AppearanceConfig) => void;
   sectionType: SectionType;
+  templateKey?: string;
+  themeOverride?: IPageThemeOverride;
+  sectionConfig?: Record<string, unknown>;
   embedded?: boolean;
 }) => {
   const set = (key: string, value: unknown) => onChange({ ...appearance, [key]: value });
+  const defaults = getSectionAppearanceDefaults(templateKey, themeOverride, sectionType, sectionConfig);
+  const valueFor = (key: string, fallback = '') => appearance[key] ?? defaults[key] ?? fallback;
   const typography = showTypography(sectionType);
   const padding = showPadding(sectionType);
   const cards = showCardFields(sectionType);
   const badges = showBadgeFields(sectionType);
+  const heroVariant = String(sectionConfig?.variant ?? 'hero');
+  const heroBoxDefaults = getHeroBoxModelDefaults(heroVariant);
+  const heroBoxValue = (key: string) => appearance[key] ?? heroBoxDefaults[key] ?? '';
 
   return (
     <div className={embedded ? 'space-y-2' : 'space-y-2 rounded-md border bg-muted/20 p-2'}>
       {!embedded && <p className="text-xs font-semibold">Section appearance</p>}
 
       <div className="space-y-2">
+        {sectionType === SectionType.HERO_BANNER && (
+          <PropertyEditorGroup title="Hero frame" description="Control the banner box without changing its fixed template" defaultOpen={false}>
+            <div className="space-y-3">
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold text-muted-foreground">Margin (px)</p>
+                <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-4">
+                  {HERO_BOX_MODEL_FIELDS.map(([key, label]) => (
+                    <HeroDimensionField
+                      key={key}
+                      label={label}
+                      value={heroBoxValue(key)}
+                      placeholder={String(heroBoxDefaults[key])}
+                      min={-240}
+                      onChange={value => set(key, value)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold text-muted-foreground">Padding (px)</p>
+                <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-4">
+                  {HERO_PADDING_FIELDS.map(([key, label]) => (
+                    <HeroDimensionField
+                      key={key}
+                      label={label}
+                      value={heroBoxValue(key)}
+                      placeholder={String(heroBoxDefaults[key])}
+                      min={0}
+                      onChange={value => set(key, value)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="landing-editor-fields-grid grid gap-2 sm:grid-cols-2">
+                <HeroDimensionField
+                  label="Corner radius"
+                  value={heroBoxValue('borderRadius')}
+                  placeholder={String(heroBoxDefaults.borderRadius)}
+                  min={0}
+                  onChange={value => set('borderRadius', value)}
+                />
+                <div>
+                  <Label className="text-[11px]">Shadow</Label>
+                  <SectionTypeSelect value={String(appearance.boxShadow ?? 'none')} onValueChange={value => set('boxShadow', value === 'none' ? undefined : value)}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="0 10px 30px rgba(15, 23, 42, 0.12)">Soft</SelectItem>
+                      <SelectItem value="0 24px 60px rgba(15, 23, 42, 0.2)">Strong</SelectItem>
+                    </SelectContent>
+                  </SectionTypeSelect>
+                </div>
+              </div>
+            </div>
+          </PropertyEditorGroup>
+        )}
+
         <PropertyEditorGroup title="Surface & spacing" description="Background and vertical rhythm" defaultOpen>
           <div className="landing-editor-fields-grid grid gap-2">
             <ColorInputField
               label="Background"
               placeholder={sectionType === SectionType.SPACER ? '#ffffff' : '#fff8ea'}
-              value={String(appearanceField(appearance, 'background') || '')}
+              value={String(valueFor('background', sectionType === SectionType.SPACER ? '#ffffff' : '#fff8ea') || '')}
               onChange={value => set('background', value)}
             />
 
@@ -66,7 +164,7 @@ export const SectionAppearanceFields = ({
               <div>
                 <Label className="text-xs">Section spacing</Label>
                 <SectionTypeSelect
-                  value={String(appearanceField(appearance, 'paddingY') || 'default')}
+                  value={String(valueFor('paddingY', 'default') || 'default')}
                   onValueChange={value => set('paddingY', value)}
                 >
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -87,25 +185,25 @@ export const SectionAppearanceFields = ({
               <ColorInputField
                 label="Title color"
                 placeholder="#101010"
-                value={String(appearanceField(appearance, 'titleColor') || '')}
+                value={String(valueFor('titleColor', '#101010') || '')}
                 onChange={value => set('titleColor', value)}
               />
               <ColorInputField
                 label="Eyebrow color"
                 placeholder="Uses theme primary"
-                value={String(appearanceField(appearance, 'eyebrowColor') || '')}
+                value={String(valueFor('eyebrowColor', '#062f25') || '')}
                 onChange={value => set('eyebrowColor', value)}
               />
               <ColorInputField
                 label="Subtitle / body color"
                 placeholder="#666666"
-                value={String(appearanceField(appearance, 'subtitleColor') || '')}
+                value={String(valueFor('subtitleColor', '#666666') || '')}
                 onChange={value => set('subtitleColor', value)}
               />
               <div>
                 <Label className="text-xs">Title font</Label>
                 <SectionTypeSelect
-                  value={String(appearanceField(appearance, 'titleFont') || 'serif')}
+                  value={String(valueFor('titleFont', 'serif') || 'serif')}
                   onValueChange={value => set('titleFont', value)}
                 >
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -125,14 +223,14 @@ export const SectionAppearanceFields = ({
               <ColorInputField
                 label="Card background"
                 placeholder="#ffffff"
-                value={String(appearanceField(appearance, 'cardBackground') || '')}
+                value={String(valueFor('cardBackground', '#ffffff') || '')}
                 onChange={value => set('cardBackground', value)}
               />
               {sectionType === SectionType.FEATURED_ITEMS && (
                 <ColorInputField
                   label="Card hover background"
                   placeholder="Uses theme secondary"
-                  value={String(appearanceField(appearance, 'cardHoverBackground') || '')}
+                  value={String(valueFor('cardHoverBackground', '#0b4638') || '')}
                   onChange={value => set('cardHoverBackground', value)}
                 />
               )}
@@ -147,7 +245,7 @@ export const SectionAppearanceFields = ({
                 <Label className="text-xs">Badge label</Label>
                 <Input
                   placeholder="HOT"
-                  value={String(appearanceField(appearance, 'badgeLabel') || '')}
+                  value={String(valueFor('badgeLabel', 'HOT') || '')}
                   onChange={e => set('badgeLabel', e.target.value)}
                   className="h-8 text-xs"
                 />
@@ -155,7 +253,7 @@ export const SectionAppearanceFields = ({
               <div>
                 <Label className="text-xs">Badge style</Label>
                 <SectionTypeSelect
-                  value={String(appearanceField(appearance, 'badgeVariant') || 'destructive')}
+                  value={String(valueFor('badgeVariant', 'destructive') || 'destructive')}
                   onValueChange={value => set('badgeVariant', value)}
                 >
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -185,12 +283,15 @@ export const SectionAppearanceFields = ({
 
 export const PageThemeOverrideFields = ({
   themeOverride,
+  templateKey,
   onChange,
 }: {
   themeOverride: IPageThemeOverride;
+  templateKey?: string;
   onChange: (next: IPageThemeOverride) => void;
 }) => {
   const set = (key: string, value: string) => onChange({ ...themeOverride, [key]: value });
+  const defaults = getTemplatePalette(templateKey, themeOverride);
 
   return (
     <PropertyEditorGroup
@@ -202,20 +303,20 @@ export const PageThemeOverrideFields = ({
       <div className="landing-editor-fields-grid grid gap-2">
         <ColorInputField
           label="Primary"
-          placeholder="#062f25"
-          value={themeOverride.primary ?? ''}
+          placeholder={defaults.primary}
+          value={themeOverride.primary || defaults.primary}
           onChange={value => set('primary', value)}
         />
         <ColorInputField
           label="Secondary"
-          placeholder="#0b4638"
-          value={themeOverride.secondary ?? ''}
+          placeholder={defaults.secondary}
+          value={themeOverride.secondary || defaults.secondary}
           onChange={value => set('secondary', value)}
         />
         <ColorInputField
           label="Accent"
-          placeholder="#f2c94c"
-          value={themeOverride.accent ?? ''}
+          placeholder={defaults.accent}
+          value={themeOverride.accent || defaults.accent}
           onChange={value => set('accent', value)}
         />
       </div>

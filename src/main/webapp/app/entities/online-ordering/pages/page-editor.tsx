@@ -282,7 +282,7 @@ const OnlineOrderingPageEditor = () => {
             <div><Label>Slug</Label><Input className="h-8 text-xs" value={page.slug ?? ''} onChange={event => updatePageField('slug', event.target.value.toLowerCase())} placeholder="home" /></div>
           </div>
         </PropertyEditorGroup>
-        <PageThemeOverrideFields themeOverride={page.themeOverride ?? {}} onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)} />
+        <PageThemeOverrideFields templateKey={page.templateKey} themeOverride={page.themeOverride ?? {}} onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)} />
         <PropertyEditorGroup title="Search preview" description="How this page appears in search and sharing" defaultOpen={false}>
           <div className="space-y-2">
             <div><Label>SEO title</Label><Input className="h-8 text-xs" value={page.seo?.title ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)} placeholder="Landing page title" /></div>
@@ -293,7 +293,7 @@ const OnlineOrderingPageEditor = () => {
     </Card>
   );
 
-  const renderChromeProperties = (part: 'header' | 'footer') => <PageChromeFields part={part} chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
+  const renderChromeProperties = (part: 'header' | 'footer') => <PageChromeFields part={part} templateKey={page.templateKey} chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
 
   const renderSectionProperties = (index: number) => {
     const section = page.sections?.[index];
@@ -325,6 +325,9 @@ const OnlineOrderingPageEditor = () => {
         embedded
         sectionType={page.sections?.[index]?.type ?? SectionType.HERO_CAROUSEL}
         appearance={(page.sections?.[index]?.config?.appearance ?? {}) as Record<string, unknown>}
+        templateKey={page.templateKey}
+        themeOverride={page.themeOverride}
+        sectionConfig={page.sections?.[index]?.config}
         onChange={next => updateSectionConfig(index, 'appearance', next)}
       />
     </div>
@@ -365,6 +368,7 @@ const OnlineOrderingPageEditor = () => {
         selectedItems={selectedItems}
         setSelectedItems={setSelectedItems}
         handleToggleSelect={toggleFeaturedItems}
+        variant="featured"
       />
     </>
   );
@@ -547,7 +551,7 @@ const SectionConfigForm = ({
                   </div>
                   <Label>Name</Label>
                   <Input value={(group.name as string) ?? ''} onChange={e => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, name: e.target.value }))} />
-                  <Label>Image</Label>
+                  <Label>Image alt text</Label>
                   <SelectedImagePreview
                     image={(group.image as IAttachment) ?? null}
                     onClear={() => onConfigChange('groups', updateArrayItem(groups, groupIndex, { ...group, image: undefined }))}
@@ -824,6 +828,13 @@ const SectionConfigForm = ({
     const secondaryCta = (config.secondaryCta as Record<string, string>) ?? {};
     const variant = (config.variant as string) ?? 'hero';
     const banners = (config.banners as Array<Record<string, unknown>>) ?? [];
+    const imageFit = (config.imageFit as string) ?? (variant === 'retail' ? 'contain' : 'cover');
+    const imagePosition = (config.imagePosition as string) ?? 'center';
+    const contentAlign = (config.contentAlign as string) ?? 'left';
+    const buttonPosition = (config.buttonPosition as string) ?? contentAlign;
+    const heroHeight = (config.height as string) ?? 'screen';
+    const parsedOverlayOpacity = Number(config.overlayOpacity ?? 88);
+    const overlayOpacity = Number.isFinite(parsedOverlayOpacity) ? Math.max(0, Math.min(100, parsedOverlayOpacity)) : 88;
     return (
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Template" description="The visual variant is fixed after import" defaultOpen>
@@ -865,11 +876,16 @@ const SectionConfigForm = ({
                   <Input value={(banner.subtitle as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, subtitle: e.target.value }))} />
                   <ColorInputField
                     label="Background"
-                    placeholder="#3cbea4"
-                    value={(banner.background as string) ?? ''}
+                    placeholder={bannerIndex === 0 ? '#3cbea4' : '#444443'}
+                    value={(banner.background as string) ?? (bannerIndex === 0 ? '#3cbea4' : '#444443')}
                     onChange={value => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, background: value }))}
                   />
-                  <Label>Image</Label>
+                  <Label>Image alt text</Label>
+                  <Input
+                    value={(banner.imageAlt as string) ?? ''}
+                    placeholder="Describe this promo image"
+                    onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, imageAlt: e.target.value }))}
+                  />
                   <SelectedImagePreview
                     image={(banner.image as IAttachment) ?? null}
                     onClear={() => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, image: undefined }))}
@@ -942,18 +958,16 @@ const SectionConfigForm = ({
                 onConfigChange('image', image);
               }}
             />
-            {(variant === 'retail' || variant === 'retail-cta') && (
-              <>
-                <Label>Badge (optional)</Label>
-                <Input value={(config.badge as string) ?? ''} onChange={e => onConfigChange('badge', e.target.value)} />
-              </>
-            )}
+            <Label>Image alt text</Label>
+            <Input value={(config.imageAlt as string) ?? ''} placeholder="Describe the hero image" onChange={e => onConfigChange('imageAlt', e.target.value)} />
+            <Label>Badge (optional)</Label>
+            <Input value={(config.badge as string) ?? ''} onChange={e => onConfigChange('badge', e.target.value)} />
             <Label>Eyebrow</Label>
             <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
             <Label>Headline</Label>
-            <Input value={(config.headline as string) ?? ''} onChange={e => onConfigChange('headline', e.target.value)} />
+            <Input value={(config.headline as string) ?? (config.title as string) ?? ''} onChange={e => onConfigChange('headline', e.target.value)} />
             <Label>Subtitle</Label>
-            <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
+            <Input value={(config.subtitle as string) ?? (config.body as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
             <Label>Primary CTA text</Label>
             <Input value={primaryCta.text ?? ''} onChange={e => onConfigChange('primaryCta', { ...primaryCta, text: e.target.value })} />
             <Label>Primary CTA URL</Label>
@@ -962,6 +976,90 @@ const SectionConfigForm = ({
             <Input value={secondaryCta.text ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, text: e.target.value })} />
             <Label>Secondary CTA URL</Label>
             <Input value={secondaryCta.url ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, url: e.target.value })} />
+            </div>
+          </PropertyEditorGroup>
+        )}
+        {variant !== 'riode-duo' && (
+          <PropertyEditorGroup title="Layout & image" description="Control the hero composition without changing its template" defaultOpen={false}>
+            <div className="landing-editor-fields-grid grid gap-2">
+              <div>
+                <Label>Image fit</Label>
+                <SectionTypeSelect value={imageFit} onValueChange={value => onConfigChange('imageFit', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cover">Cover</SelectItem>
+                    <SelectItem value="contain">Contain</SelectItem>
+                    <SelectItem value="fill">Fill</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              </div>
+              <div>
+                <Label>Image position</Label>
+                <SectionTypeSelect value={imagePosition} onValueChange={value => onConfigChange('imagePosition', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="top">Top</SelectItem>
+                    <SelectItem value="bottom">Bottom</SelectItem>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              </div>
+              <div>
+                <Label>Content alignment</Label>
+                <SectionTypeSelect value={contentAlign} onValueChange={value => onConfigChange('contentAlign', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              </div>
+              <div>
+                <Label>Button position</Label>
+                <SectionTypeSelect value={buttonPosition} onValueChange={value => onConfigChange('buttonPosition', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              </div>
+              {variant === 'hero' && (
+                <>
+                  <div>
+                    <Label>Hero height</Label>
+                    <SectionTypeSelect value={heroHeight} onValueChange={value => onConfigChange('height', value)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="screen">Full screen</SelectItem>
+                        <SelectItem value="large">Large</SelectItem>
+                        <SelectItem value="compact">Compact</SelectItem>
+                        <SelectItem value="auto">Content height</SelectItem>
+                      </SelectContent>
+                    </SectionTypeSelect>
+                  </div>
+                  <div>
+                    <Label>Image overlay ({overlayOpacity}%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={overlayOpacity}
+                      onChange={e => onConfigChange('overlayOpacity', Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                    />
+                  </div>
+                  <ColorInputField
+                    label="Overlay color"
+                    placeholder="#000000"
+                    value={(config.overlayColor as string) ?? '#000000'}
+                    onChange={value => onConfigChange('overlayColor', value)}
+                  />
+                </>
+              )}
             </div>
           </PropertyEditorGroup>
         )}
@@ -996,7 +1094,7 @@ const SectionConfigForm = ({
                   <div>
                     <Label>Icon (emoji or text)</Label>
                     <Input
-                      value={item.icon ?? ''}
+                      value={item.icon ?? '✦'}
                       onChange={e => {
                         const next = [...items];
                         next[itemIndex] = { ...next[itemIndex], icon: e.target.value };
@@ -1063,7 +1161,7 @@ const SectionConfigForm = ({
             </div>
             <div><Label>Eyebrow</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
             <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
-            <div className="landing-editor-wide-field"><Label>Body</Label><Input value={(config.body as string) ?? ''} onChange={e => onConfigChange('body', e.target.value)} /></div>
+            <div className="landing-editor-wide-field"><Label>Body</Label><Input value={(config.body as string) ?? (config.html as string) ?? ''} onChange={e => onConfigChange('body', e.target.value)} /></div>
           </div>
         </PropertyEditorGroup>
         <PropertyEditorGroup title="Media & call to action" description="Optional image and destination" defaultOpen={false}>
@@ -1092,10 +1190,10 @@ const SectionConfigForm = ({
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Branding & copy" description="Business identity and section text" defaultOpen>
           <div className="landing-editor-fields-grid grid gap-2">
-            <div><Label>Brand name (optional)</Label><Input value={(config.brandName as string) ?? ''} onChange={e => onConfigChange('brandName', e.target.value)} /></div>
-            <div><Label>Brand accent (optional)</Label><Input value={(config.brandAccent as string) ?? ''} onChange={e => onConfigChange('brandAccent', e.target.value)} /></div>
-            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
-            <div><Label>Subtitle</Label><Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
+            <div><Label>Brand name (optional)</Label><Input value={(config.brandName as string) ?? ''} placeholder="Uses the business name" onChange={e => onConfigChange('brandName', e.target.value)} /></div>
+            <div><Label>Brand accent (optional)</Label><Input value={(config.brandAccent as string) ?? 'Palace'} onChange={e => onConfigChange('brandAccent', e.target.value)} /></div>
+            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} placeholder="Uses the business name" onChange={e => onConfigChange('title', e.target.value)} /></div>
+            <div><Label>Subtitle</Label><Input value={(config.subtitle as string) ?? ''} placeholder="Uses the business description" onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
           </div>
         </PropertyEditorGroup>
         <PropertyEditorGroup title="Contact details" description="Optional overrides for business contact data" defaultOpen={false}>
@@ -1194,6 +1292,11 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
         subtitle: '',
         primaryCta: { text: 'View menu', url: '/shop' },
         secondaryCta: { text: 'Contact', url: '#contact' },
+        imageFit: 'cover',
+        imagePosition: 'center',
+        contentAlign: 'left',
+        height: 'screen',
+        overlayOpacity: 88,
         banners: [],
         appearance,
       };

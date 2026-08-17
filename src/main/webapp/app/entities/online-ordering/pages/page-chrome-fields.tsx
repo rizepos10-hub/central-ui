@@ -89,23 +89,56 @@ const LogoField = ({ id, label, image, onChange }: { id: string; label: string; 
 
 const footerBlockLabel = (type: string) => type.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
 
-export default function PageChromeFields({ chrome, onChange, part }: { chrome: IPageChrome; onChange: (value: IPageChrome) => void; part?: ChromePartKey }) {
+export default function PageChromeFields({ chrome, onChange, part, templateKey }: { chrome: IPageChrome; onChange: (value: IPageChrome) => void; part?: ChromePartKey; templateKey?: string }) {
   const header = chromePart(chrome.header);
   const footer = chromePart(chrome.footer);
   const headerAppearance = nested(header, 'appearance');
   const footerAppearance = nested(footer, 'appearance');
   const headerLabels = nested(header, 'labels');
   const footerLabels = nested(footer, 'labels');
-  // The storefront only has three rendered navbar implementations. Unknown
-  // values (for example the legacy `restaurant` marker used by Thai Palace)
-  // intentionally fall back to the classic navbar in onlineordering.
-  const rawHeaderVariant = stringValue(header, 'variant', 'classic').trim().toLowerCase();
-  const headerVariant = rawHeaderVariant === 'retail' || rawHeaderVariant === 'riode' ? rawHeaderVariant : 'classic';
-  const isClassicHeader = headerVariant === 'classic';
+  // Resolve legacy chrome markers to the dedicated renderer selected by the
+  // page template. This keeps older `classic`/`restaurant` pages compatible.
+  const rawHeaderVariant = stringValue(header, 'variant', '').trim().toLowerCase();
+  const templateHeaderVariant = templateKey === 'order-first'
+    ? 'order-first'
+    : templateKey === 'thai-palace'
+      ? 'thai-palace'
+      : templateKey === 'home-retail'
+        ? 'retail'
+        : templateKey === 'home-riode'
+          ? 'riode'
+          : templateKey === 'home-default'
+            ? 'minimal'
+            : undefined;
+  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode'].includes(rawHeaderVariant)
+    ? rawHeaderVariant
+    : 'minimal');
+  const rawFooterVariant = stringValue(footer, 'variant', '').trim().toLowerCase();
+  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode'].includes(rawFooterVariant)
+    ? rawFooterVariant
+    : 'minimal');
+  const headerColorDefaults: Record<string, string> = headerVariant === 'order-first'
+    ? { background: '#1a1a2e', foreground: '#fff8f0', accent: '#e94560', buttonBackground: '#e94560', buttonForeground: '#ffffff', borderColor: '#2c3551', announcementBackground: '#16213e', announcementForeground: '#fff8f0' }
+    : headerVariant === 'thai-palace'
+      ? { background: '#fff8ea', foreground: '#101010', accent: '#b78628', buttonBackground: '#b78628', buttonForeground: '#ffffff', borderColor: '#ead9b8', announcementBackground: '#ffffff', announcementForeground: '#101010' }
+      : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
+  const footerColorDefaults: Record<string, string> = footerVariant === 'order-first'
+    ? { background: '#101426', foreground: '#fff8f0', titleColor: '#fff8f0', subtitleColor: '#cbd5e1', linkColor: '#ff6b81', borderColor: '#2c3551' }
+      : footerVariant === 'thai-palace'
+        ? { background: '#062f25', foreground: '#fff8ea', titleColor: '#f2c94c', subtitleColor: '#ead9b8', linkColor: '#f2c94c', borderColor: '#8b6a2b' }
+        : footerVariant === 'retail'
+          ? { background: '#0c1e35', foreground: '#f8fafc', titleColor: '#ffffff', subtitleColor: '#cbd5e1', linkColor: '#60a5fa', borderColor: '#1e3a5f' }
+          : footerVariant === 'riode'
+            ? { background: '#f8fafc', foreground: '#1e293b', titleColor: '#1e3a5f', subtitleColor: '#64748b', linkColor: '#05b895', borderColor: '#e2e8f0' }
+            : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
+  const isMinimalHeader = headerVariant === 'minimal';
+  const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace';
   const isRetailHeader = headerVariant === 'retail';
   const isRiodeHeader = headerVariant === 'riode';
   const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader;
-  const supportsRetailUtilityLabels = supportsRetailHeaderControls;
+  const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader;
+  const supportsMainNavigationControls = supportsRetailHeaderControls;
+  const supportsRetailUtilityLabels = supportsRetailHeaderControls || isRestaurantHeader;
   const quickLinks = quickLinksValue(footer);
   const footerColumns = Array.isArray(footer.columns)
     ? footer.columns.map(column => column && typeof column === 'object' ? column as ChromePart : {})
@@ -148,20 +181,20 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Navbar</p>
               </div>
-              <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{String(header.variant ?? 'classic')} layout</span>
+              <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{headerVariant} layout</span>
             </div>
 
             <div className="landing-editor-property-groups grid gap-2">
             <PropertyEditorGroup title="Colors" description="Surface, text, buttons, and announcement" defaultOpen>
               <div className="landing-editor-fields-grid grid gap-2">
-              <ColorInputField id="header-background" label="Background" value={colorValue(headerAppearance, 'background', '#ffffff')} onChange={value => updateAppearance('header', 'background', value)} />
-              <ColorInputField id="header-foreground" label="Text color" value={colorValue(headerAppearance, 'foreground', '#111827')} onChange={value => updateAppearance('header', 'foreground', value)} />
-              <ColorInputField id="header-accent" label="Accent color" value={colorValue(headerAppearance, 'accent', '#2563eb')} onChange={value => updateAppearance('header', 'accent', value)} />
-              <ColorInputField id="header-button-background" label="Account button" value={colorValue(headerAppearance, 'buttonBackground', '#334155')} onChange={value => updateAppearance('header', 'buttonBackground', value)} />
-              <ColorInputField id="header-button-foreground" label="Account button text" value={colorValue(headerAppearance, 'buttonForeground', '#ffffff')} onChange={value => updateAppearance('header', 'buttonForeground', value)} />
-              <ColorInputField id="header-border" label="Border" value={colorValue(headerAppearance, 'borderColor', '#e5e7eb')} onChange={value => updateAppearance('header', 'borderColor', value)} />
-              <ColorInputField id="header-announcement-background" label="Announcement background" value={colorValue(headerAppearance, 'announcementBackground', '#0f2744')} onChange={value => updateAppearance('header', 'announcementBackground', value)} />
-              <ColorInputField id="header-announcement-foreground" label="Announcement text" value={colorValue(headerAppearance, 'announcementForeground', '#ffffff')} onChange={value => updateAppearance('header', 'announcementForeground', value)} />
+              <ColorInputField id="header-background" label="Background" value={colorValue(headerAppearance, 'background', headerColorDefaults.background)} onChange={value => updateAppearance('header', 'background', value)} />
+              <ColorInputField id="header-foreground" label="Text color" value={colorValue(headerAppearance, 'foreground', headerColorDefaults.foreground)} onChange={value => updateAppearance('header', 'foreground', value)} />
+              <ColorInputField id="header-accent" label="Accent color" value={colorValue(headerAppearance, 'accent', headerColorDefaults.accent)} onChange={value => updateAppearance('header', 'accent', value)} />
+              <ColorInputField id="header-button-background" label="Account button" value={colorValue(headerAppearance, 'buttonBackground', headerColorDefaults.buttonBackground)} onChange={value => updateAppearance('header', 'buttonBackground', value)} />
+              <ColorInputField id="header-button-foreground" label="Account button text" value={colorValue(headerAppearance, 'buttonForeground', headerColorDefaults.buttonForeground)} onChange={value => updateAppearance('header', 'buttonForeground', value)} />
+              <ColorInputField id="header-border" label="Border" value={colorValue(headerAppearance, 'borderColor', headerColorDefaults.borderColor)} onChange={value => updateAppearance('header', 'borderColor', value)} />
+              <ColorInputField id="header-announcement-background" label="Announcement background" value={colorValue(headerAppearance, 'announcementBackground', headerColorDefaults.announcementBackground)} onChange={value => updateAppearance('header', 'announcementBackground', value)} />
+              <ColorInputField id="header-announcement-foreground" label="Announcement text" value={colorValue(headerAppearance, 'announcementForeground', headerColorDefaults.announcementForeground)} onChange={value => updateAppearance('header', 'announcementForeground', value)} />
               </div>
             </PropertyEditorGroup>
 
@@ -182,13 +215,13 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <Toggle id="header-show-announcement" label="Show announcement" checked={booleanValue(header, 'showAnnouncement', false)} onChange={value => updateBoolean('header', 'showAnnouncement', value)} />
               {supportsRetailHeaderControls && <Toggle id="header-show-topbar" label="Show top bar" checked={booleanValue(header, 'showTopBar', true)} onChange={value => updateBoolean('header', 'showTopBar', value)} />}
               {supportsRetailHeaderControls && <Toggle id="header-show-search" label="Show search" checked={booleanValue(header, 'showSearch', true)} onChange={value => updateBoolean('header', 'showSearch', value)} />}
-              {supportsRetailHeaderControls && <Toggle id="header-show-navigation" label="Show navigation links" checked={booleanValue(header, 'showMainNavigation', true)} onChange={value => updateBoolean('header', 'showMainNavigation', value)} />}
-              {isClassicHeader && <Toggle id="header-show-branch" label="Show location/order controls" checked={booleanValue(header, 'showBranchSelector', true)} onChange={value => updateBoolean('header', 'showBranchSelector', value)} />}
+              {supportsMainNavigationControls && <Toggle id="header-show-navigation" label="Show navigation links" checked={booleanValue(header, 'showMainNavigation', true)} onChange={value => updateBoolean('header', 'showMainNavigation', value)} />}
+              {supportsRestaurantHeaderControls && <Toggle id="header-show-branch" label="Show location/order controls" checked={booleanValue(header, 'showBranchSelector', true)} onChange={value => updateBoolean('header', 'showBranchSelector', value)} />}
               <Toggle id="header-show-language" label="Show language picker" checked={booleanValue(header, 'showLanguagePicker', true)} onChange={value => updateBoolean('header', 'showLanguagePicker', value)} />
-              {isClassicHeader && <Toggle id="header-show-theme" label="Show theme toggle" checked={booleanValue(header, 'showThemeToggle', true)} onChange={value => updateBoolean('header', 'showThemeToggle', value)} />}
-              {isClassicHeader && <Toggle id="header-show-currency" label="Show currency picker" checked={booleanValue(header, 'showCurrencyPicker', true)} onChange={value => updateBoolean('header', 'showCurrencyPicker', value)} />}
+              {supportsRestaurantHeaderControls && <Toggle id="header-show-theme" label="Show theme toggle" checked={booleanValue(header, 'showThemeToggle', true)} onChange={value => updateBoolean('header', 'showThemeToggle', value)} />}
+              {supportsRestaurantHeaderControls && <Toggle id="header-show-currency" label="Show currency picker" checked={booleanValue(header, 'showCurrencyPicker', true)} onChange={value => updateBoolean('header', 'showCurrencyPicker', value)} />}
               <Toggle id="header-show-cart" label="Show cart" checked={booleanValue(header, 'showCart', true)} onChange={value => updateBoolean('header', 'showCart', value)} />
-              <Toggle id="header-show-phone" label="Show phone" checked={booleanValue(header, 'showPhone', false)} onChange={value => updateBoolean('header', 'showPhone', value)} />
+              <Toggle id="header-show-phone" label="Show phone" checked={booleanValue(header, 'showPhone', isRestaurantHeader || supportsRetailHeaderControls)} onChange={value => updateBoolean('header', 'showPhone', value)} />
               {supportsRetailHeaderControls && <Toggle id="header-show-wishlist" label="Show wishlist" checked={booleanValue(header, 'showWishlist', true)} onChange={value => updateBoolean('header', 'showWishlist', value)} />}
               {isRiodeHeader && <Toggle id="header-show-categories" label="Show category menu" checked={booleanValue(header, 'showCategoriesMenu', true)} onChange={value => updateBoolean('header', 'showCategoriesMenu', value)} />}
               </div>
@@ -200,7 +233,7 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
                 <Toggle id="header-show-login" label="Show login button" checked={booleanValue(header, 'showLogin', true)} onChange={value => updateBoolean('header', 'showLogin', value)} />
                 <Toggle id="header-show-register" label="Show register button" checked={booleanValue(header, 'showRegister', true)} onChange={value => updateBoolean('header', 'showRegister', value)} />
                 <Toggle id="header-show-account" label="Show signed-in account" checked={booleanValue(header, 'showAccount', true)} onChange={value => updateBoolean('header', 'showAccount', value)} />
-                {isClassicHeader && <Toggle id="header-show-guest-order" label="Show guest orders" checked={booleanValue(header, 'showGuestOrder', true)} onChange={value => updateBoolean('header', 'showGuestOrder', value)} />}
+                {supportsRestaurantHeaderControls && <Toggle id="header-show-guest-order" label="Show guest orders" checked={booleanValue(header, 'showGuestOrder', true)} onChange={value => updateBoolean('header', 'showGuestOrder', value)} />}
               </div>
             </PropertyEditorGroup>
 
@@ -208,9 +241,9 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <div className="landing-editor-fields-grid grid gap-2">
               <TextField id="header-label-home" label="Home label" value={stringValue(headerLabels, 'home')} onChange={value => updateLabel('header', 'home', value)} />
               {supportsRetailHeaderControls && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
-              {supportsRetailHeaderControls && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
-              {supportsRetailHeaderControls && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
-              {supportsRetailHeaderControls && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
+              {supportsMainNavigationControls && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
+              {supportsMainNavigationControls && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
+              {supportsMainNavigationControls && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
               {supportsRetailHeaderControls && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
               </div>
             </PropertyEditorGroup>
@@ -239,18 +272,18 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Footer</p>
               </div>
-              <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{String(footer.variant ?? 'classic')} layout</span>
+              <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">{footerVariant} layout</span>
             </div>
 
             <div className="landing-editor-property-groups grid gap-2">
             <PropertyEditorGroup title="Colors" description="Surface, typography, links, and border" defaultOpen>
               <div className="landing-editor-fields-grid grid gap-2">
-              <ColorInputField id="footer-background" label="Background" value={colorValue(footerAppearance, 'background', '#ffffff')} onChange={value => updateAppearance('footer', 'background', value)} />
-              <ColorInputField id="footer-foreground" label="Text color" value={colorValue(footerAppearance, 'foreground', '#111827')} onChange={value => updateAppearance('footer', 'foreground', value)} />
-              <ColorInputField id="footer-title" label="Heading color" value={colorValue(footerAppearance, 'titleColor', '#111827')} onChange={value => updateAppearance('footer', 'titleColor', value)} />
-              <ColorInputField id="footer-muted" label="Secondary text" value={colorValue(footerAppearance, 'subtitleColor', '#6b7280')} onChange={value => updateAppearance('footer', 'subtitleColor', value)} />
-              <ColorInputField id="footer-link" label="Link color" value={colorValue(footerAppearance, 'linkColor', '#2563eb')} onChange={value => updateAppearance('footer', 'linkColor', value)} />
-              <ColorInputField id="footer-border" label="Border" value={colorValue(footerAppearance, 'borderColor', '#e5e7eb')} onChange={value => updateAppearance('footer', 'borderColor', value)} />
+              <ColorInputField id="footer-background" label="Background" value={colorValue(footerAppearance, 'background', footerColorDefaults.background)} onChange={value => updateAppearance('footer', 'background', value)} />
+              <ColorInputField id="footer-foreground" label="Text color" value={colorValue(footerAppearance, 'foreground', footerColorDefaults.foreground)} onChange={value => updateAppearance('footer', 'foreground', value)} />
+              <ColorInputField id="footer-title" label="Heading color" value={colorValue(footerAppearance, 'titleColor', footerColorDefaults.titleColor)} onChange={value => updateAppearance('footer', 'titleColor', value)} />
+              <ColorInputField id="footer-muted" label="Secondary text" value={colorValue(footerAppearance, 'subtitleColor', footerColorDefaults.subtitleColor)} onChange={value => updateAppearance('footer', 'subtitleColor', value)} />
+              <ColorInputField id="footer-link" label="Link color" value={colorValue(footerAppearance, 'linkColor', footerColorDefaults.linkColor)} onChange={value => updateAppearance('footer', 'linkColor', value)} />
+              <ColorInputField id="footer-border" label="Border" value={colorValue(footerAppearance, 'borderColor', footerColorDefaults.borderColor)} onChange={value => updateAppearance('footer', 'borderColor', value)} />
               </div>
             </PropertyEditorGroup>
 

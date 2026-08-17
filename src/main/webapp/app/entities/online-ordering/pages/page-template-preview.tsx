@@ -280,7 +280,7 @@ export const PageTemplatePreview = ({
           {showAnnouncement && <div className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white" style={{ background: headerAppearance.announcementBackground as string || headerBackground }}>{announcementText}</div>}
           <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: headerBackground }}>
             <span className="h-1.5 w-8 rounded bg-white/80" />
-            <span>{chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')} · {chromeLabel(header, 'cart', 'Cart')}</span>
+            <span>{chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')}</span>
           </div>
           {spec.render()}
           <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: footerBackground }}>
