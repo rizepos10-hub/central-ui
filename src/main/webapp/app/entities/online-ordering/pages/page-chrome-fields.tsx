@@ -96,6 +96,16 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
   const footerAppearance = nested(footer, 'appearance');
   const headerLabels = nested(header, 'labels');
   const footerLabels = nested(footer, 'labels');
+  // The storefront only has three rendered navbar implementations. Unknown
+  // values (for example the legacy `restaurant` marker used by Thai Palace)
+  // intentionally fall back to the classic navbar in onlineordering.
+  const rawHeaderVariant = stringValue(header, 'variant', 'classic').trim().toLowerCase();
+  const headerVariant = rawHeaderVariant === 'retail' || rawHeaderVariant === 'riode' ? rawHeaderVariant : 'classic';
+  const isClassicHeader = headerVariant === 'classic';
+  const isRetailHeader = headerVariant === 'retail';
+  const isRiodeHeader = headerVariant === 'riode';
+  const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader;
+  const supportsRetailUtilityLabels = supportsRetailHeaderControls;
   const quickLinks = quickLinksValue(footer);
   const footerColumns = Array.isArray(footer.columns)
     ? footer.columns.map(column => column && typeof column === 'object' ? column as ChromePart : {})
@@ -170,17 +180,17 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <div className="landing-editor-fields-grid grid gap-2">
               <Toggle id="header-show-logo" label="Show logo" checked={booleanValue(header, 'showLogo', true)} onChange={value => updateBoolean('header', 'showLogo', value)} />
               <Toggle id="header-show-announcement" label="Show announcement" checked={booleanValue(header, 'showAnnouncement', false)} onChange={value => updateBoolean('header', 'showAnnouncement', value)} />
-              <Toggle id="header-show-topbar" label="Show top bar" checked={booleanValue(header, 'showTopBar', true)} onChange={value => updateBoolean('header', 'showTopBar', value)} />
-              <Toggle id="header-show-search" label="Show search" checked={booleanValue(header, 'showSearch', true)} onChange={value => updateBoolean('header', 'showSearch', value)} />
-              <Toggle id="header-show-navigation" label="Show navigation links" checked={booleanValue(header, 'showMainNavigation', true)} onChange={value => updateBoolean('header', 'showMainNavigation', value)} />
-              <Toggle id="header-show-branch" label="Show location/order controls" checked={booleanValue(header, 'showBranchSelector', true)} onChange={value => updateBoolean('header', 'showBranchSelector', value)} />
+              {supportsRetailHeaderControls && <Toggle id="header-show-topbar" label="Show top bar" checked={booleanValue(header, 'showTopBar', true)} onChange={value => updateBoolean('header', 'showTopBar', value)} />}
+              {supportsRetailHeaderControls && <Toggle id="header-show-search" label="Show search" checked={booleanValue(header, 'showSearch', true)} onChange={value => updateBoolean('header', 'showSearch', value)} />}
+              {supportsRetailHeaderControls && <Toggle id="header-show-navigation" label="Show navigation links" checked={booleanValue(header, 'showMainNavigation', true)} onChange={value => updateBoolean('header', 'showMainNavigation', value)} />}
+              {isClassicHeader && <Toggle id="header-show-branch" label="Show location/order controls" checked={booleanValue(header, 'showBranchSelector', true)} onChange={value => updateBoolean('header', 'showBranchSelector', value)} />}
               <Toggle id="header-show-language" label="Show language picker" checked={booleanValue(header, 'showLanguagePicker', true)} onChange={value => updateBoolean('header', 'showLanguagePicker', value)} />
-              <Toggle id="header-show-theme" label="Show theme toggle" checked={booleanValue(header, 'showThemeToggle', true)} onChange={value => updateBoolean('header', 'showThemeToggle', value)} />
-              <Toggle id="header-show-currency" label="Show currency picker" checked={booleanValue(header, 'showCurrencyPicker', true)} onChange={value => updateBoolean('header', 'showCurrencyPicker', value)} />
+              {isClassicHeader && <Toggle id="header-show-theme" label="Show theme toggle" checked={booleanValue(header, 'showThemeToggle', true)} onChange={value => updateBoolean('header', 'showThemeToggle', value)} />}
+              {isClassicHeader && <Toggle id="header-show-currency" label="Show currency picker" checked={booleanValue(header, 'showCurrencyPicker', true)} onChange={value => updateBoolean('header', 'showCurrencyPicker', value)} />}
               <Toggle id="header-show-cart" label="Show cart" checked={booleanValue(header, 'showCart', true)} onChange={value => updateBoolean('header', 'showCart', value)} />
               <Toggle id="header-show-phone" label="Show phone" checked={booleanValue(header, 'showPhone', false)} onChange={value => updateBoolean('header', 'showPhone', value)} />
-              <Toggle id="header-show-wishlist" label="Show wishlist" checked={booleanValue(header, 'showWishlist', true)} onChange={value => updateBoolean('header', 'showWishlist', value)} />
-              <Toggle id="header-show-categories" label="Show category menu" checked={booleanValue(header, 'showCategoriesMenu', true)} onChange={value => updateBoolean('header', 'showCategoriesMenu', value)} />
+              {supportsRetailHeaderControls && <Toggle id="header-show-wishlist" label="Show wishlist" checked={booleanValue(header, 'showWishlist', true)} onChange={value => updateBoolean('header', 'showWishlist', value)} />}
+              {isRiodeHeader && <Toggle id="header-show-categories" label="Show category menu" checked={booleanValue(header, 'showCategoriesMenu', true)} onChange={value => updateBoolean('header', 'showCategoriesMenu', value)} />}
               </div>
             </PropertyEditorGroup>
 
@@ -190,18 +200,18 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
                 <Toggle id="header-show-login" label="Show login button" checked={booleanValue(header, 'showLogin', true)} onChange={value => updateBoolean('header', 'showLogin', value)} />
                 <Toggle id="header-show-register" label="Show register button" checked={booleanValue(header, 'showRegister', true)} onChange={value => updateBoolean('header', 'showRegister', value)} />
                 <Toggle id="header-show-account" label="Show signed-in account" checked={booleanValue(header, 'showAccount', true)} onChange={value => updateBoolean('header', 'showAccount', value)} />
-                <Toggle id="header-show-guest-order" label="Show guest orders" checked={booleanValue(header, 'showGuestOrder', true)} onChange={value => updateBoolean('header', 'showGuestOrder', value)} />
+                {isClassicHeader && <Toggle id="header-show-guest-order" label="Show guest orders" checked={booleanValue(header, 'showGuestOrder', true)} onChange={value => updateBoolean('header', 'showGuestOrder', value)} />}
               </div>
             </PropertyEditorGroup>
 
             <PropertyEditorGroup title="Navigation labels" description="Localized text shown in the navbar" defaultOpen={false}>
               <div className="landing-editor-fields-grid grid gap-2">
               <TextField id="header-label-home" label="Home label" value={stringValue(headerLabels, 'home')} onChange={value => updateLabel('header', 'home', value)} />
-              <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />
-              <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />
-              <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />
-              <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />
-              <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />
+              {supportsRetailHeaderControls && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
+              {supportsRetailHeaderControls && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
+              {supportsRetailHeaderControls && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
+              {supportsRetailHeaderControls && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
+              {supportsRetailHeaderControls && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
               </div>
             </PropertyEditorGroup>
 
@@ -209,15 +219,14 @@ export default function PageChromeFields({ chrome, onChange, part }: { chrome: I
               <div className="landing-editor-fields-grid grid gap-2">
                 <TextField id="header-label-login" label="Login label" value={stringValue(headerLabels, 'login')} onChange={value => updateLabel('header', 'login', value)} />
                 <TextField id="header-label-register" label="Register label" value={stringValue(headerLabels, 'register')} onChange={value => updateLabel('header', 'register', value)} />
-                <TextField id="header-label-search" label="Search placeholder" value={stringValue(headerLabels, 'search')} onChange={value => updateLabel('header', 'search', value)} />
-                <TextField id="header-label-cart" label="Cart label" value={stringValue(headerLabels, 'cart')} onChange={value => updateLabel('header', 'cart', value)} />
-                <TextField id="header-label-wishlist" label="Wishlist label" value={stringValue(headerLabels, 'wishlist')} onChange={value => updateLabel('header', 'wishlist', value)} />
-                <TextField id="header-label-shopping-cart" label="Shopping cart label" value={stringValue(headerLabels, 'shoppingCart')} onChange={value => updateLabel('header', 'shoppingCart', value)} />
-                <TextField id="header-label-call-us" label="Call us label" value={stringValue(headerLabels, 'callUs')} onChange={value => updateLabel('header', 'callUs', value)} />
-                <TextField id="header-label-special-offers" label="Special offers label" value={stringValue(headerLabels, 'specialOffers')} onChange={value => updateLabel('header', 'specialOffers', value)} />
-                <TextField id="header-label-new-arrivals" label="New arrivals label" value={stringValue(headerLabels, 'newArrivals')} onChange={value => updateLabel('header', 'newArrivals', value)} />
-                <TextField id="header-label-support" label="Support label" value={stringValue(headerLabels, 'support')} onChange={value => updateLabel('header', 'support', value)} />
-                <TextField id="header-label-welcome" label="Welcome label" value={stringValue(headerLabels, 'welcome')} onChange={value => updateLabel('header', 'welcome', value)} />
+                {supportsRetailHeaderControls && <TextField id="header-label-search" label="Search placeholder" value={stringValue(headerLabels, 'search')} onChange={value => updateLabel('header', 'search', value)} />}
+                {supportsRetailHeaderControls && <TextField id="header-label-wishlist" label="Wishlist label" value={stringValue(headerLabels, 'wishlist')} onChange={value => updateLabel('header', 'wishlist', value)} />}
+                {isRiodeHeader && <TextField id="header-label-shopping-cart" label="Shopping cart label" value={stringValue(headerLabels, 'shoppingCart')} onChange={value => updateLabel('header', 'shoppingCart', value)} />}
+                {supportsRetailUtilityLabels && <TextField id="header-label-call-us" label="Call us label" value={stringValue(headerLabels, 'callUs')} onChange={value => updateLabel('header', 'callUs', value)} />}
+                {isRetailHeader && <TextField id="header-label-special-offers" label="Special offers label" value={stringValue(headerLabels, 'specialOffers')} onChange={value => updateLabel('header', 'specialOffers', value)} />}
+                {isRetailHeader && <TextField id="header-label-new-arrivals" label="New arrivals label" value={stringValue(headerLabels, 'newArrivals')} onChange={value => updateLabel('header', 'newArrivals', value)} />}
+                {isRetailHeader && <TextField id="header-label-support" label="Support label" value={stringValue(headerLabels, 'support')} onChange={value => updateLabel('header', 'support', value)} />}
+                {isRiodeHeader && <TextField id="header-label-welcome" label="Welcome label" value={stringValue(headerLabels, 'welcome')} onChange={value => updateLabel('header', 'welcome', value)} />}
               </div>
             </PropertyEditorGroup>
             </div>
