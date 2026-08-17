@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 type ColorInputFieldProps = {
+  id?: string;
   label: string;
   value?: string;
   onChange: (value: string) => void;
@@ -26,12 +27,12 @@ const isPrimeColorPickerTarget = (target: EventTarget | null): boolean => {
   return Boolean(target.closest('.p-colorpicker-panel, .p-colorpicker-overlay, .p-colorpicker'));
 };
 
-export const ColorInputField = ({ label, value = '', onChange, placeholder }: ColorInputFieldProps) => {
+export const ColorInputField = ({ id, label, value = '', onChange, placeholder }: ColorInputFieldProps) => {
   const displayValue = value ?? '';
 
   return (
     <div>
-      <Label className="text-xs">{label}</Label>
+      <Label htmlFor={id} className="text-xs">{label}</Label>
       <div className="mt-1 flex items-center gap-2">
         <div className="relative shrink-0">
           <ColorPicker
@@ -42,6 +43,7 @@ export const ColorInputField = ({ label, value = '', onChange, placeholder }: Co
           />
         </div>
         <Input
+          id={id}
           value={displayValue}
           onChange={e => onChange(e.target.value)}
           onBlur={e => {

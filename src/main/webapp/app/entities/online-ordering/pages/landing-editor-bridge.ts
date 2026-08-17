@@ -28,6 +28,24 @@ export type LandingEditorEnvelope = {
 
 export type EditorMode = 'edit' | 'preview';
 
+export type EditorNodeEditor = {
+  /** Dot path for the shared style object used by the storefront renderer. */
+  stylePath?: string;
+  /** Optional dot path for an existing visibility flag. */
+  visibilityPath?: string;
+  /** Optional dot path for image alt text. */
+  altPath?: string;
+  /** Optional dot path for editable text content. */
+  textPath?: string;
+  /** Optional dot path for an action URL. */
+  urlPath?: string;
+  /** Optional dot path for an action variant. */
+  variantPath?: string;
+  /** Optional dedicated width/height paths for media. */
+  widthPath?: string;
+  heightPath?: string;
+};
+
 export type EditorNode = {
   id: string;
   parentId?: string;
@@ -36,6 +54,7 @@ export type EditorNode = {
   fieldPath?: string;
   editable: boolean;
   locked?: boolean;
+  editor?: EditorNodeEditor;
   children?: EditorNode[];
 };
 

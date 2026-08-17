@@ -36,10 +36,13 @@ import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppeara
 import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-slides-editor';
 import { defaultFooterColumns, FooterColumn, FooterSectionEditor } from './footer-section-editor';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ColorInputField } from './color-input-field';
+import { PropertyEditorGroup } from './property-editor-group';
 import { ILandingPageSettings, IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 import PageChromeFields from './page-chrome-fields';
 import LandingEditorWorkspace from './landing-editor-workspace';
-import { normalizeLandingPage } from './landing-editor-bridge';
+import { EditorNode, normalizeLandingPage } from './landing-editor-bridge';
+import ElementPropertiesFields from './element-properties-fields';
 
 const sectionLabel = (type: SectionType) =>
   type
@@ -47,6 +50,21 @@ const sectionLabel = (type: SectionType) =>
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+
+const setValueAtPath = (source: unknown, path: string, value: unknown): unknown => {
+  const parts = path.split('.').filter(Boolean);
+  if (!parts.length) return source;
+
+  const [head, ...tail] = parts;
+  const container: Record<string, unknown> | unknown[] = Array.isArray(source)
+    ? [...source]
+    : { ...(source && typeof source === 'object' ? source as Record<string, unknown> : {}) };
+  const nextValue = tail.length ? setValueAtPath(Array.isArray(container) ? container[Number(head)] : container[head], tail.join('.'), value) : value;
+
+  if (Array.isArray(container)) container[Number(head)] = nextValue;
+  else container[head] = nextValue;
+  return container;
+};
 
 type EditorHistoryState = {
   present: IOnlineOrderingPage;
@@ -155,6 +173,10 @@ const OnlineOrderingPageEditor = () => {
     setPage(prev => ({ ...prev, [field]: value }));
   };
 
+  const updatePagePath = (path: string, value: unknown) => {
+    setPage(prev => setValueAtPath(prev, path, value) as IOnlineOrderingPage);
+  };
+
   const updateSection = (index: number, patch: Partial<IPageSection>) => {
     setPage(prev => {
       const sections = [...(prev.sections ?? [])];
@@ -254,17 +276,25 @@ const OnlineOrderingPageEditor = () => {
   const renderPageProperties = () => (
     <Card>
       <CardHeader className="p-3"><CardTitle className="text-sm">Page details</CardTitle></CardHeader>
-      <CardContent className="grid grid-cols-1 gap-3 p-3">
-        <div><Label>Name</Label><Input value={page.name ?? ''} onChange={event => updatePageField('name', event.target.value)} /></div>
-        <div><Label>Slug</Label><Input value={page.slug ?? ''} onChange={event => updatePageField('slug', event.target.value.toLowerCase())} placeholder="home" /></div>
+      <CardContent className="space-y-2 p-2 sm:p-3">
+        <PropertyEditorGroup title="Identity" description="Name and public URL" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div><Label>Name</Label><Input className="h-8 text-xs" value={page.name ?? ''} onChange={event => updatePageField('name', event.target.value)} /></div>
+            <div><Label>Slug</Label><Input className="h-8 text-xs" value={page.slug ?? ''} onChange={event => updatePageField('slug', event.target.value.toLowerCase())} placeholder="home" /></div>
+          </div>
+        </PropertyEditorGroup>
         <PageThemeOverrideFields themeOverride={page.themeOverride ?? {}} onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)} />
-        <div><Label>SEO title</Label><Input value={page.seo?.title ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)} placeholder="Landing page title" /></div>
-        <div><Label>SEO description</Label><Input value={page.seo?.description ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), description: event.target.value } as IPageSeo)} placeholder="Short description for search and sharing" /></div>
+        <PropertyEditorGroup title="Search preview" description="How this page appears in search and sharing" defaultOpen={false}>
+          <div className="space-y-2">
+            <div><Label>SEO title</Label><Input className="h-8 text-xs" value={page.seo?.title ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)} placeholder="Landing page title" /></div>
+            <div><Label>SEO description</Label><Input className="h-8 text-xs" value={page.seo?.description ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), description: event.target.value } as IPageSeo)} placeholder="Short description for search and sharing" /></div>
+          </div>
+        </PropertyEditorGroup>
       </CardContent>
     </Card>
   );
 
-  const renderChromeProperties = () => <PageChromeFields chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
+  const renderChromeProperties = (part: 'header' | 'footer') => <PageChromeFields part={part} chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
 
   const renderSectionProperties = (index: number) => {
     const section = page.sections?.[index];
@@ -303,6 +333,10 @@ const OnlineOrderingPageEditor = () => {
     </div>
   );
 
+  const renderElementProperties = (node: EditorNode) => (
+    <ElementPropertiesFields node={node} page={page} onUpdatePath={updatePagePath} />
+  );
+
   return (
     <>
       <LandingEditorWorkspace
@@ -326,6 +360,7 @@ const OnlineOrderingPageEditor = () => {
         renderChromeProperties={renderChromeProperties}
         renderSectionProperties={renderSectionProperties}
         renderAppearanceProperties={renderAppearanceProperties}
+        renderElementProperties={renderElementProperties}
       />
       <ItemSelectionModal
         isOpen={itemModalOpen}
@@ -364,64 +399,48 @@ const SectionConfigForm = ({
     const layout = (config.layout as string) ?? 'default';
     const promoSide = (config.promoSide as Record<string, unknown>) ?? {};
     return (
-      <div className="space-y-3">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : <Label>Layout</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Default carousel</SelectItem>
-              <SelectItem value="riode-split">Riode split (carousel + side promo)</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
-        <HeroCarouselSlidesEditor
-          slides={slides}
-          layout={layout}
-          fixedStructure={templateLocked}
-          onChange={next => onConfigChange('slides', next)}
-        />
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Template" description="The template layout stays fixed after import" defaultOpen>
+          {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : (
+            <>
+              <Label>Layout</Label>
+              <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default carousel</SelectItem>
+                  <SelectItem value="riode-split">Riode split (carousel + side promo)</SelectItem>
+                </SelectContent>
+              </SectionTypeSelect>
+            </>
+          )}
+        </PropertyEditorGroup>
+        <PropertyEditorGroup title="Slides" description="Edit the carousel images and copy" badge={`${slides.length}`} defaultOpen>
+          <HeroCarouselSlidesEditor
+            slides={slides}
+            layout={layout}
+            fixedStructure={templateLocked}
+            onChange={next => onConfigChange('slides', next)}
+          />
+        </PropertyEditorGroup>
         {layout === 'riode-split' && (
-          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
-            <Label className="text-xs font-medium">Side promo</Label>
-            <Label>Eyebrow</Label>
-            <Input value={(promoSide.eyebrow as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, eyebrow: e.target.value })} />
-            <Label>Title</Label>
-            <Input value={(promoSide.title as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, title: e.target.value })} />
-            <Label>Subtitle</Label>
-            <Input value={(promoSide.subtitle as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, subtitle: e.target.value })} />
-            <Label>Image</Label>
-            <SelectedImagePreview
-              image={(promoSide.image as IAttachment) ?? null}
-              onClear={() => onConfigChange('promoSide', { ...promoSide, image: undefined })}
-            />
-            <MediaLibrary
-              handleFilesSelectCallback={files => {
-                const image = transformAttachmentStructure(files, 'toIAttachment')[0];
-                onConfigChange('promoSide', { ...promoSide, image });
-              }}
-            />
-            <Label>CTA text</Label>
-            <Input
-              value={((promoSide.cta as Record<string, string> | undefined)?.text) ?? ''}
-              onChange={e =>
-                onConfigChange('promoSide', {
-                  ...promoSide,
-                  cta: { ...((promoSide.cta as Record<string, string>) ?? {}), text: e.target.value },
-                })
-              }
-            />
-            <Label>CTA URL</Label>
-            <Input
-              value={((promoSide.cta as Record<string, string> | undefined)?.url) ?? ''}
-              onChange={e =>
-                onConfigChange('promoSide', {
-                  ...promoSide,
-                  cta: { ...((promoSide.cta as Record<string, string>) ?? {}), url: e.target.value },
-                })
-              }
-            />
-          </div>
+          <PropertyEditorGroup title="Side promotion" description="Optional content beside the carousel" defaultOpen={false}>
+            <div className="space-y-2">
+              <div className="landing-editor-fields-grid grid gap-2">
+                <div><Label>Eyebrow</Label><Input value={(promoSide.eyebrow as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, eyebrow: e.target.value })} /></div>
+                <div><Label>Title</Label><Input value={(promoSide.title as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, title: e.target.value })} /></div>
+                <div><Label>Subtitle</Label><Input value={(promoSide.subtitle as string) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, subtitle: e.target.value })} /></div>
+                <div><Label>CTA text</Label><Input value={((promoSide.cta as Record<string, string> | undefined)?.text) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, cta: { ...((promoSide.cta as Record<string, string>) ?? {}), text: e.target.value } })} /></div>
+                <div className="landing-editor-wide-field"><Label>CTA URL</Label><Input value={((promoSide.cta as Record<string, string> | undefined)?.url) ?? ''} onChange={e => onConfigChange('promoSide', { ...promoSide, cta: { ...((promoSide.cta as Record<string, string>) ?? {}), url: e.target.value } })} /></div>
+              </div>
+              <div><Label>Image</Label><SelectedImagePreview image={(promoSide.image as IAttachment) ?? null} onClear={() => onConfigChange('promoSide', { ...promoSide, image: undefined })} /></div>
+              <MediaLibrary
+                handleFilesSelectCallback={files => {
+                  const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                  onConfigChange('promoSide', { ...promoSide, image });
+                }}
+              />
+            </div>
+          </PropertyEditorGroup>
         )}
       </div>
     );
@@ -430,38 +449,42 @@ const SectionConfigForm = ({
   if (section.type === SectionType.FEATURED_ITEMS) {
     const items = (config.items as IItem[]) ?? [];
     return (
-      <div className="space-y-2">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'LAYOUT_ONE')}</span></p> : <Label>Layout</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={(config.layout as string) ?? 'LAYOUT_ONE'} onValueChange={value => onConfigChange('layout', value)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
-              <SelectItem value="DISH_GRID">Dish grid</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
-        <Label>Title</Label>
-        <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <Label>Eyebrow (optional)</Label>
-        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
-        <div className="flex items-center gap-2">
-          <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
-          <Label>Show item images</Label>
-        </div>
-        <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Content" description="Section heading and display options" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div>
+              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'LAYOUT_ONE')}</span></p> : <Label>Layout</Label>}
+              {!templateLocked && (
+                <SectionTypeSelect value={(config.layout as string) ?? 'LAYOUT_ONE'} onValueChange={value => onConfigChange('layout', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
+                    <SelectItem value="DISH_GRID">Dish grid</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              )}
+            </div>
+            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
+            <div><Label>Eyebrow (optional)</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
+          </div>
+          <label className="mt-2 flex items-center gap-2 text-xs">
+            <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
+            <span>Show item images</span>
+          </label>
+        </PropertyEditorGroup>
+        <PropertyEditorGroup title="Featured items" description="Select the products shown in this slot" badge={`${items.length}`} defaultOpen>
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs">Featured items ({items.length})</Label>
-            <Button variant="outline" className="h-8 text-xs" onClick={onPickItems}>
-              <Plus className="h-3 w-3 mr-1" />
-              {items.length ? 'Add / edit items' : 'Select items'}
+            <span className="text-[11px] text-muted-foreground">{items.length ? 'Products selected' : 'No products selected'}</span>
+            <Button variant="outline" className="h-7 text-xs" onClick={onPickItems}>
+              <Plus className="mr-1 h-3 w-3" />
+              {items.length ? 'Add / edit' : 'Select items'}
             </Button>
           </div>
           {items.length > 0 && (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
+            <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
               {items.map(item => (
-                <div key={item.id} className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1">
-                  <span className="text-xs truncate">{item.name}</span>
+                <div key={item.id} className="flex items-center justify-between gap-2 rounded border bg-muted/20 px-2 py-1">
+                  <span className="truncate text-xs">{item.name}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -475,7 +498,7 @@ const SectionConfigForm = ({
               ))}
             </div>
           )}
-        </div>
+        </PropertyEditorGroup>
       </div>
     );
   }
@@ -485,35 +508,40 @@ const SectionConfigForm = ({
     const layout = (config.layout as string) ?? 'default';
     const groups = (config.groups as Array<Record<string, unknown>>) ?? [];
     return (
-      <div className="space-y-2">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : <Label>Layout</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Default strip</SelectItem>
-              <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
-              <SelectItem value="riode-grid">Riode category grid</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
-        <Label>Eyebrow (optional)</Label>
-        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
-        <Label>Title</Label>
-        <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <div className="flex items-center gap-2">
-          <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
-          <Label>Show category images</Label>
-        </div>
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Content" description="Heading, layout, and image visibility" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div>
+              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{layout}</span></p> : <Label>Layout</Label>}
+              {!templateLocked && (
+                <SectionTypeSelect value={layout} onValueChange={value => onConfigChange('layout', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default strip</SelectItem>
+                    <SelectItem value="LAYOUT_ONE">Layout one</SelectItem>
+                    <SelectItem value="riode-grid">Riode category grid</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              )}
+            </div>
+            <div><Label>Eyebrow (optional)</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
+            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
+          </div>
+          <label className="mt-2 flex items-center gap-2 text-xs">
+            <Checkbox checked={config.showImages !== false} onCheckedChange={checked => onConfigChange('showImages', checked === true)} />
+            <span>Show category images</span>
+          </label>
+        </PropertyEditorGroup>
         {layout === 'riode-grid' ? (
-          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
-            <Label className="text-xs">Category groups ({groups.length})</Label>
+          <PropertyEditorGroup title="Category groups" description="Organize the links shown in the grid" badge={`${groups.length}`} defaultOpen>
+            <div className="space-y-2">
             {groups.map((group, groupIndex) => {
               const links = (group.links as Array<Record<string, string>>) ?? [];
               return (
-                <div key={groupIndex} className="space-y-2 rounded border bg-background p-3">
+                <PropertyEditorGroup key={groupIndex} title={`Group ${groupIndex + 1}`} description="Category image and links" badge={`${links.length} links`} defaultOpen={groupIndex === 0} contentClassName="p-2">
+                  <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium">Group {groupIndex + 1}</span>
+                    <span className="text-[11px] text-muted-foreground">Group settings</span>
                     {!templateLocked && (
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('groups', groups.filter((_, index) => index !== groupIndex))}>
                         <Trash2 className="h-3 w-3" />
@@ -535,7 +563,7 @@ const SectionConfigForm = ({
                   />
                   <Label>Links</Label>
                   {links.map((link, linkIndex) => (
-                    <div key={linkIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                    <div key={linkIndex} className="landing-editor-fields-grid grid gap-2 rounded border p-2">
                       <div>
                         <Label>Label</Label>
                         <Input
@@ -567,7 +595,8 @@ const SectionConfigForm = ({
                       <Plus className="h-3 w-3 mr-1" /> Add link
                     </Button>
                   )}
-                </div>
+                  </div>
+                </PropertyEditorGroup>
               );
             })}
             {!templateLocked && (
@@ -579,10 +608,10 @@ const SectionConfigForm = ({
                 <Plus className="h-3 w-3 mr-1" /> Add group
               </Button>
             )}
-          </div>
+            </div>
+          </PropertyEditorGroup>
         ) : (
-          <>
-            <Label>Categories</Label>
+          <PropertyEditorGroup title="Categories" description="Choose which categories appear" defaultOpen>
             <CategorySelect
               isMulti
               options={restaurantCategories}
@@ -592,7 +621,7 @@ const SectionConfigForm = ({
               getOptionValue={(option: ITerm) => option.id}
               placeholder="Select categories"
             />
-          </>
+          </PropertyEditorGroup>
         )}
       </div>
     );
@@ -602,27 +631,29 @@ const SectionConfigForm = ({
     const variant = (config.variant as string) ?? 'default';
     const cards = (config.cards as Array<Record<string, unknown>>) ?? [];
     return (
-      <div className="space-y-2">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed display mode: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Display mode</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
-              <SelectItem value="cards">Location cards (configured below)</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
-        <Label>Eyebrow (optional)</Label>
-        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
-        <Label>Section title</Label>
-        <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <Label>Subtitle (optional)</Label>
-        <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Content" description="Display mode, heading, and supporting copy" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div>
+              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed display mode: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Display mode</Label>}
+              {!templateLocked && (
+                <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
+                    <SelectItem value="cards">Location cards (configured below)</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              )}
+            </div>
+            <div><Label>Eyebrow (optional)</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
+            <div><Label>Section title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
+            <div><Label>Subtitle (optional)</Label><Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
+          </div>
+        </PropertyEditorGroup>
         {variant === 'cards' ? (
-          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+          <PropertyEditorGroup title="Location cards" description="Configured branches and actions" badge={`${cards.length}`} defaultOpen>
+            <div className="space-y-2">
             <Label className="text-xs">Location cards ({cards.length})</Label>
             {cards.map((card, cardIndex) => {
               const image = (card.image as IAttachment) ?? null;
@@ -632,9 +663,10 @@ const SectionConfigForm = ({
                 { text: '', url: '', variant: 'outline' },
               ];
               return (
-                <div key={cardIndex} className="space-y-2 rounded border bg-background p-3">
+                <PropertyEditorGroup key={cardIndex} title={`Card ${cardIndex + 1}`} description="Location details and actions" defaultOpen={cardIndex === 0} contentClassName="p-2">
+                  <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium">Card {cardIndex + 1}</span>
+                    <span className="text-[11px] text-muted-foreground">Card settings</span>
                     {!templateLocked && (
                       <Button
                         type="button"
@@ -707,7 +739,7 @@ const SectionConfigForm = ({
                     </Button>
                   )}
                   {actions.map((action, actionIndex) => (
-                    <div key={actionIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-3">
+                    <div key={actionIndex} className="landing-editor-fields-grid grid gap-2 rounded border p-2">
                       <div>
                         <Label>Button {actionIndex + 1} text</Label>
                         <Input
@@ -755,7 +787,8 @@ const SectionConfigForm = ({
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+                </PropertyEditorGroup>
               );
             })}
             {!templateLocked && (
@@ -780,7 +813,8 @@ const SectionConfigForm = ({
                 <Plus className="h-3 w-3 mr-1" /> Add card
               </Button>
             )}
-          </div>
+            </div>
+          </PropertyEditorGroup>
         ) : (
           <p className="text-xs text-muted-foreground">Branches and zones are loaded automatically on the storefront.</p>
         )}
@@ -794,29 +828,34 @@ const SectionConfigForm = ({
     const variant = (config.variant as string) ?? 'hero';
     const banners = (config.banners as Array<Record<string, unknown>>) ?? [];
     return (
-      <div className="space-y-2">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed visual variant: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Variant</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hero">Full hero</SelectItem>
-              <SelectItem value="cta">CTA banner</SelectItem>
-              <SelectItem value="retail">Retail hero (electronics)</SelectItem>
-              <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
-              <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Template" description="The visual variant is fixed after import" defaultOpen>
+          {templateLocked ? <p className="text-xs text-muted-foreground">Fixed visual variant: <span className="font-medium text-foreground">{variant}</span></p> : (
+            <>
+              <Label>Variant</Label>
+              <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hero">Full hero</SelectItem>
+                  <SelectItem value="cta">CTA banner</SelectItem>
+                  <SelectItem value="retail">Retail hero (electronics)</SelectItem>
+                  <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
+                  <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
+                </SelectContent>
+              </SectionTypeSelect>
+            </>
+          )}
+        </PropertyEditorGroup>
         {variant === 'riode-duo' ? (
-          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
-            <Label className="text-xs">Promo banners ({banners.length})</Label>
+          <PropertyEditorGroup title="Promo banners" description="Content and artwork for each banner" badge={`${banners.length}`} defaultOpen>
+            <div className="space-y-2">
             {banners.map((banner, bannerIndex) => {
               const links = (banner.links as Array<Record<string, string>>) ?? [];
               return (
-                <div key={bannerIndex} className="space-y-2 rounded border bg-background p-3">
+                <PropertyEditorGroup key={bannerIndex} title={`Banner ${bannerIndex + 1}`} description="Promo copy, background, and links" defaultOpen={bannerIndex === 0} contentClassName="p-2">
+                  <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium">Banner {bannerIndex + 1}</span>
+                    <span className="text-[11px] text-muted-foreground">Banner settings</span>
                     {!templateLocked && (
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onConfigChange('banners', banners.filter((_, index) => index !== bannerIndex))}>
                         <Trash2 className="h-3 w-3" />
@@ -827,8 +866,12 @@ const SectionConfigForm = ({
                   <Input value={(banner.title as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, title: e.target.value }))} />
                   <Label>Subtitle</Label>
                   <Input value={(banner.subtitle as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, subtitle: e.target.value }))} />
-                  <Label>Background</Label>
-                  <Input value={(banner.background as string) ?? ''} onChange={e => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, background: e.target.value }))} />
+                  <ColorInputField
+                    label="Background"
+                    placeholder="#3cbea4"
+                    value={(banner.background as string) ?? ''}
+                    onChange={value => onConfigChange('banners', updateArrayItem(banners, bannerIndex, { ...banner, background: value }))}
+                  />
                   <Label>Image</Label>
                   <SelectedImagePreview
                     image={(banner.image as IAttachment) ?? null}
@@ -841,7 +884,7 @@ const SectionConfigForm = ({
                     }}
                   />
                   {links.map((link, linkIndex) => (
-                    <div key={linkIndex} className="grid grid-cols-1 gap-2 rounded border p-2 md:grid-cols-2">
+                    <div key={linkIndex} className="landing-editor-fields-grid grid gap-2 rounded border p-2">
                       <div>
                         <Label>Link text</Label>
                         <Input
@@ -873,7 +916,8 @@ const SectionConfigForm = ({
                       <Plus className="h-3 w-3 mr-1" /> Add link
                     </Button>
                   )}
-                </div>
+                  </div>
+                </PropertyEditorGroup>
               );
             })}
             {!templateLocked && (
@@ -885,9 +929,11 @@ const SectionConfigForm = ({
                 <Plus className="h-3 w-3 mr-1" /> Add banner
               </Button>
             )}
-          </div>
+            </div>
+          </PropertyEditorGroup>
         ) : (
-          <>
+          <PropertyEditorGroup title="Content & artwork" description="Hero copy, image, and calls to action" defaultOpen>
+            <div className="space-y-2">
             <Label>Background image</Label>
             <SelectedImagePreview
               image={(config.image as IAttachment) ?? null}
@@ -919,7 +965,8 @@ const SectionConfigForm = ({
             <Input value={secondaryCta.text ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, text: e.target.value })} />
             <Label>Secondary CTA URL</Label>
             <Input value={secondaryCta.url ?? ''} onChange={e => onConfigChange('secondaryCta', { ...secondaryCta, url: e.target.value })} />
-          </>
+            </div>
+          </PropertyEditorGroup>
         )}
       </div>
     );
@@ -928,9 +975,11 @@ const SectionConfigForm = ({
   if (section.type === SectionType.FEATURE_GRID) {
     const items = (config.items as Array<{ icon?: string; title?: string }>) ?? [];
     return (
-      <div className="space-y-2">
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Features" description="Icons and titles shown in the grid" badge={`${items.length}`} defaultOpen>
+          <div className="space-y-2">
         {items.map((item, itemIndex) => (
-          <div key={itemIndex} className="grid grid-cols-1 md:grid-cols-2 gap-2 border rounded p-2">
+          <div key={itemIndex} className="landing-editor-fields-grid grid gap-2 rounded border p-2">
             <div>
               <Label>Icon (emoji or text)</Label>
               <Input
@@ -964,6 +1013,8 @@ const SectionConfigForm = ({
             <Plus className="h-3 w-3 mr-1" /> Add feature
           </Button>
         )}
+          </div>
+        </PropertyEditorGroup>
       </div>
     );
   }
@@ -971,89 +1022,104 @@ const SectionConfigForm = ({
   if (section.type === SectionType.RICH_TEXT) {
     const cta = (config.cta as Record<string, string>) ?? {};
     return (
-      <div className="space-y-2">
-        {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'default')}</span></p> : <Label>Layout</Label>}
-        {!templateLocked && (
-          <SectionTypeSelect value={(config.layout as string) ?? 'default'} onValueChange={value => onConfigChange('layout', value)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Default</SelectItem>
-              <SelectItem value="split">Split image + text</SelectItem>
-              <SelectItem value="centered">Centered</SelectItem>
-            </SelectContent>
-          </SectionTypeSelect>
-        )}
-        <Label>Background</Label>
-        <SectionTypeSelect value={(config.background as string) ?? 'default'} onValueChange={value => onConfigChange('background', value)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="primary">Primary</SelectItem>
-          </SelectContent>
-        </SectionTypeSelect>
-        <Label>Image (split layout)</Label>
-        <SelectedImagePreview
-          image={(config.image as IAttachment) ?? null}
-          onClear={() => onConfigChange('image', undefined)}
-        />
-        <MediaLibrary
-          handleFilesSelectCallback={files => {
-            const image = transformAttachmentStructure(files, 'toIAttachment')[0];
-            onConfigChange('image', image);
-          }}
-        />
-        <Label>Eyebrow</Label>
-        <Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} />
-        <Label>Title</Label>
-        <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <Label>Body</Label>
-        <Input value={(config.body as string) ?? ''} onChange={e => onConfigChange('body', e.target.value)} />
-        <Label>CTA text</Label>
-        <Input value={cta.text ?? ''} onChange={e => onConfigChange('cta', { ...cta, text: e.target.value })} />
-        <Label>CTA URL</Label>
-        <Input value={cta.url ?? ''} onChange={e => onConfigChange('cta', { ...cta, url: e.target.value })} />
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Content" description="Layout, tone, and copy" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div>
+              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed layout: <span className="font-medium text-foreground">{String(config.layout ?? 'default')}</span></p> : <Label>Layout</Label>}
+              {!templateLocked && (
+                <SectionTypeSelect value={(config.layout as string) ?? 'default'} onValueChange={value => onConfigChange('layout', value)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="split">Split image + text</SelectItem>
+                    <SelectItem value="centered">Centered</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              )}
+            </div>
+            <div>
+              <Label>Background tone</Label>
+              <SectionTypeSelect value={(config.background as string) ?? 'default'} onValueChange={value => onConfigChange('background', value)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="primary">Primary</SelectItem>
+                </SelectContent>
+              </SectionTypeSelect>
+            </div>
+            <div><Label>Eyebrow</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
+            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
+            <div className="landing-editor-wide-field"><Label>Body</Label><Input value={(config.body as string) ?? ''} onChange={e => onConfigChange('body', e.target.value)} /></div>
+          </div>
+        </PropertyEditorGroup>
+        <PropertyEditorGroup title="Media & call to action" description="Optional image and destination" defaultOpen={false}>
+          <Label>Image (split layout)</Label>
+          <SelectedImagePreview
+            image={(config.image as IAttachment) ?? null}
+            onClear={() => onConfigChange('image', undefined)}
+          />
+          <MediaLibrary
+            handleFilesSelectCallback={files => {
+              const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+              onConfigChange('image', image);
+            }}
+          />
+          <div className="landing-editor-fields-grid mt-2 grid gap-2">
+            <div><Label>CTA text</Label><Input value={cta.text ?? ''} onChange={e => onConfigChange('cta', { ...cta, text: e.target.value })} /></div>
+            <div><Label>CTA URL</Label><Input value={cta.url ?? ''} onChange={e => onConfigChange('cta', { ...cta, url: e.target.value })} /></div>
+          </div>
+        </PropertyEditorGroup>
       </div>
     );
   }
 
   if (section.type === SectionType.BUSINESS_INFO) {
     return (
-      <div className="space-y-2">
-        <Label>Brand name (optional)</Label>
-        <Input value={(config.brandName as string) ?? ''} onChange={e => onConfigChange('brandName', e.target.value)} />
-        <Label>Brand accent (optional)</Label>
-        <Input value={(config.brandAccent as string) ?? ''} onChange={e => onConfigChange('brandAccent', e.target.value)} />
-        <Label>Title</Label>
-        <Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} />
-        <Label>Subtitle</Label>
-        <Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} />
-        <Label>Address (optional)</Label>
-        <Input value={(config.address as string) ?? ''} onChange={e => onConfigChange('address', e.target.value)} />
-        <Label>Phone (optional)</Label>
-        <Input value={(config.phone as string) ?? ''} onChange={e => onConfigChange('phone', e.target.value)} />
-        <Label>Secondary phone (optional)</Label>
-        <Input value={(config.secondaryPhone as string) ?? ''} onChange={e => onConfigChange('secondaryPhone', e.target.value)} />
-        <div className="flex items-center gap-2">
-          <Checkbox checked={config.showContact !== false} onCheckedChange={checked => onConfigChange('showContact', checked === true)} />
-          <Label>Show contact from UI settings</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox checked={config.showHours !== false} onCheckedChange={checked => onConfigChange('showHours', checked === true)} />
-          <Label>Show hours block</Label>
-        </div>
+      <div className="landing-editor-config-fields space-y-2">
+        <PropertyEditorGroup title="Branding & copy" description="Business identity and section text" defaultOpen>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div><Label>Brand name (optional)</Label><Input value={(config.brandName as string) ?? ''} onChange={e => onConfigChange('brandName', e.target.value)} /></div>
+            <div><Label>Brand accent (optional)</Label><Input value={(config.brandAccent as string) ?? ''} onChange={e => onConfigChange('brandAccent', e.target.value)} /></div>
+            <div><Label>Title</Label><Input value={(config.title as string) ?? ''} onChange={e => onConfigChange('title', e.target.value)} /></div>
+            <div><Label>Subtitle</Label><Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
+          </div>
+        </PropertyEditorGroup>
+        <PropertyEditorGroup title="Contact details" description="Optional overrides for business contact data" defaultOpen={false}>
+          <div className="landing-editor-fields-grid grid gap-2">
+            <div><Label>Address (optional)</Label><Input value={(config.address as string) ?? ''} onChange={e => onConfigChange('address', e.target.value)} /></div>
+            <div><Label>Phone (optional)</Label><Input value={(config.phone as string) ?? ''} onChange={e => onConfigChange('phone', e.target.value)} /></div>
+            <div><Label>Secondary phone (optional)</Label><Input value={(config.secondaryPhone as string) ?? ''} onChange={e => onConfigChange('secondaryPhone', e.target.value)} /></div>
+          </div>
+        </PropertyEditorGroup>
+        <PropertyEditorGroup title="Visibility" description="Choose which information blocks appear" defaultOpen={false}>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-xs">
+              <Checkbox checked={config.showContact !== false} onCheckedChange={checked => onConfigChange('showContact', checked === true)} />
+              <span>Show contact from UI settings</span>
+            </label>
+            <label className="flex items-center gap-2 text-xs">
+              <Checkbox checked={config.showHours !== false} onCheckedChange={checked => onConfigChange('showHours', checked === true)} />
+              <span>Show hours block</span>
+            </label>
+          </div>
+        </PropertyEditorGroup>
       </div>
     );
   }
 
   if (section.type === SectionType.SPACER) {
     return (
-      <div>
-        <Label>Height (px)</Label>
-        <Input
-          type="number"
-          value={String(config.height ?? 48)}
-          onChange={e => onConfigChange('height', Number(e.target.value) || 0)}
-        />
+      <div className="landing-editor-config-fields">
+        <PropertyEditorGroup title="Spacing" description="Control the empty space height" defaultOpen>
+          <Label>Height (px)</Label>
+          <Input
+            type="number"
+            className="h-8 text-xs"
+            value={String(config.height ?? 48)}
+            onChange={e => onConfigChange('height', Number(e.target.value) || 0)}
+          />
+        </PropertyEditorGroup>
       </div>
     );
   }
