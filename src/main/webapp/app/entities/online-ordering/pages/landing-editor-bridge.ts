@@ -39,6 +39,8 @@ export type EditorNodeEditor = {
   textPath?: string;
   /** Optional dot path for an action URL. */
   urlPath?: string;
+  /** Default action URL shown when the page has no override yet. */
+  urlFallback?: string;
   /** Optional dot path for an action variant. */
   variantPath?: string;
   /** Optional dedicated width/height paths for media. */

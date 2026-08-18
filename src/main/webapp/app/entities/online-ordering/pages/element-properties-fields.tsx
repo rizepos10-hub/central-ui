@@ -215,12 +215,13 @@ function ActionProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsP
   const textPath = node.editor?.textPath;
   const urlPath = node.editor?.urlPath;
   const variantPath = node.editor?.variantPath;
+  const urlValue = urlPath ? getPathValue(page, urlPath) : undefined;
 
   return (
     <>
       <PropertyEditorGroup title="Content & link" description="Button label, destination, and variant" defaultOpen>
         {textPath && <StyleTextField label="Button text" value={getPathValue(page, textPath)} onChange={value => onUpdatePath(textPath, value)} />}
-        {urlPath && <StyleTextField label="Link" value={getPathValue(page, urlPath)} placeholder="/shop or https://…" onChange={value => onUpdatePath(urlPath, value)} />}
+        {urlPath && <StyleTextField label="Link" value={urlValue ?? node.editor?.urlFallback} placeholder="/path or https://…" onChange={value => onUpdatePath(urlPath, value)} />}
         {variantPath && <StyleTextField label="Variant" value={getPathValue(page, variantPath)} placeholder="primary" onChange={value => onUpdatePath(variantPath, value)} />}
         <VisibilityField node={node} page={page} onUpdatePath={onUpdatePath} />
       </PropertyEditorGroup>

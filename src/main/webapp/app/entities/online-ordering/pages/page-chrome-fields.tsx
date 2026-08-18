@@ -15,6 +15,15 @@ import { PropertyEditorGroup } from './property-editor-group';
 type ChromePart = Record<string, unknown>;
 type ChromePartKey = 'header' | 'footer';
 type ChromeLink = { label: string; url: string };
+type ChromeNavigationDefault = { key: string; label: string; defaultUrl: string };
+
+const courtyardNavigationDefaults: ChromeNavigationDefault[] = [
+  { key: 'home', label: 'Home', defaultUrl: '/' },
+  { key: 'shop', label: 'Shop', defaultUrl: '/{branchId}/shop' },
+  { key: 'categories', label: 'Categories', defaultUrl: '#categories' },
+  { key: 'products', label: 'Products', defaultUrl: '#featured' },
+  { key: 'contact', label: 'Contact', defaultUrl: '#contact' },
+];
 
 const chromePart = (source: ChromePart | undefined): ChromePart => source ?? {};
 const nested = (source: ChromePart, key: string): ChromePart =>
@@ -96,6 +105,7 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
   const footerAppearance = nested(footer, 'appearance');
   const headerLabels = nested(header, 'labels');
   const footerLabels = nested(footer, 'labels');
+  const headerNavigationLinks = nested(header, 'navigationLinks');
   // Resolve legacy chrome markers to the dedicated renderer selected by the
   // page template. This keeps older `classic`/`restaurant` pages compatible.
   const rawHeaderVariant = stringValue(header, 'variant', '').trim().toLowerCase();
@@ -177,6 +187,10 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
     const current = key === 'header' ? header : footer;
     updatePart(key, { ...current, labels: { ...nested(current, 'labels'), ...values } });
   };
+  const updateNavigationLink = (key: string, value: string) => updatePart('header', {
+    ...header,
+    navigationLinks: { ...headerNavigationLinks, [key]: value },
+  });
   const updateFooterLinks = (links: ChromeLink[]) => updatePart('footer', { ...footer, quickLinks: links });
 
   return (
@@ -256,6 +270,17 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
               {supportsRetailHeaderControls && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
               </div>
             </PropertyEditorGroup>
+
+            {isCourtyardHeader && <PropertyEditorGroup title="Navigation links" description="Destinations opened by the burger menu. Leave the default to keep the system route; {branchId} is replaced automatically." defaultOpen={false}>
+              <div className="space-y-2">
+                {courtyardNavigationDefaults.map(link => (
+                  <div className="grid gap-2 rounded-md border bg-background p-2 sm:grid-cols-2" key={link.key}>
+                    <p className="self-end pb-1 text-xs font-medium">{stringValue(headerLabels, link.key, link.label)}</p>
+                    <TextField id={`header-link-${link.key}`} label="URL" value={stringValue(headerNavigationLinks, link.key, link.defaultUrl)} placeholder={link.defaultUrl} onChange={value => updateNavigationLink(link.key, value)} />
+                  </div>
+                ))}
+              </div>
+            </PropertyEditorGroup>}
 
             <PropertyEditorGroup title="Action & utility labels" description="Login, search, cart, phone, and retail utility copy" defaultOpen={false}>
               <div className="landing-editor-fields-grid grid gap-2">
