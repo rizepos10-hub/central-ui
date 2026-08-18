@@ -163,8 +163,10 @@ function MediaProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsPr
 
   return (
     <>
-      <PropertyEditorGroup title="Image" description="Source and accessibility text" defaultOpen>
-        {imageUrl ? (
+      <PropertyEditorGroup title="Image" description={node.editor?.sourceLocked ? 'Business logo from storefront settings' : 'Source and accessibility text'} defaultOpen>
+        {node.editor?.sourceLocked ? (
+          <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">This template uses the business logo from Online Ordering settings.</div>
+        ) : imageUrl ? (
           <div className="overflow-hidden rounded-md border bg-muted/30">
             <img src={imageUrl} alt={textValue(altPath ? getPathValue(page, altPath) : image?.name) || node.label} className="h-28 w-full object-contain" />
             <div className="flex items-center justify-between gap-2 border-t px-2 py-1.5">
@@ -175,7 +177,7 @@ function MediaProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsPr
         ) : (
           <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">No image selected.</div>
         )}
-        {node.fieldPath && (
+        {!node.editor?.sourceLocked && node.fieldPath && (
           <MediaLibrary
             layout="compact"
             defaultValues={image ? transformAttachmentStructure([image], 'toFileLibraryListItem') : []}

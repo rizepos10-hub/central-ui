@@ -44,6 +44,8 @@ export type EditorNodeEditor = {
   /** Optional dedicated width/height paths for media. */
   widthPath?: string;
   heightPath?: string;
+  /** The source is owned by the business/branch settings, not the page. */
+  sourceLocked?: boolean;
 };
 
 export type EditorNode = {

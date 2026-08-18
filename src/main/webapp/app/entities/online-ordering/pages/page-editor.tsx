@@ -43,6 +43,7 @@ import PageChromeFields from './page-chrome-fields';
 import LandingEditorWorkspace from './landing-editor-workspace';
 import { EditorNode, normalizeLandingPage } from './landing-editor-bridge';
 import ElementPropertiesFields from './element-properties-fields';
+import CourtyardSectionFields from './courtyard-section-fields';
 
 const sectionLabel = (type: SectionType) =>
   type
@@ -399,6 +400,10 @@ const SectionConfigForm = ({
   const config = section.config ?? {};
   const restaurantCategories = useAppSelector(state => state.restaurantCategory.entities);
   const updateArrayItem = <T,>(list: T[], index: number, value: T) => list.map((entry, entryIndex) => (entryIndex === index ? value : entry));
+
+  if ([SectionType.COURTYARD_HERO, SectionType.COURTYARD_WELCOME, SectionType.COURTYARD_SLIDER, SectionType.COURTYARD_ACCOLADES, SectionType.COURTYARD_NEWSLETTER].includes(section.type)) {
+    return <div className="landing-editor-config-fields space-y-2"><CourtyardSectionFields section={section} onConfigChange={onConfigChange} /></div>;
+  }
 
   if (section.type === SectionType.HERO_CAROUSEL) {
     const slides = (config.slides as Array<Record<string, unknown>>) ?? [];
@@ -1352,6 +1357,16 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
           paddingY: 'default',
         },
       };
+    case SectionType.COURTYARD_HERO:
+      return { image: {}, imageAlt: 'Courtyard hospitality image' };
+    case SectionType.COURTYARD_WELCOME:
+      return { title: 'welcome to courtyard hospitality', body: '' };
+    case SectionType.COURTYARD_SLIDER:
+      return { id: 'slider', eyebrow: '', autoplayMs: 6500, slides: [] };
+    case SectionType.COURTYARD_ACCOLADES:
+      return { title: 'our accolades', items: [] };
+    case SectionType.COURTYARD_NEWSLETTER:
+      return { title: 'Stay in touch', body: '', placeholder: 'Your e-mail address', buttonLabel: 'Subscribe', successMessage: 'Thank you for subscribing.' };
     default:
       return { appearance };
   }

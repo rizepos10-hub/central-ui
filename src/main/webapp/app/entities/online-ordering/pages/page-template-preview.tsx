@@ -172,6 +172,26 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
+  'courtyard-hospitality': {
+    title: 'Courtyard Hospitality',
+    subtitle: 'Full-screen spaces, menus, story, and hospitality chrome',
+    accent: '#819072',
+    header: '#892e39',
+    surface: '#ffffff',
+    render: () => (
+      <>
+        <div className="h-[31%] w-full" style={{ background: 'linear-gradient(135deg,#171717,#892e39)' }}>
+          <div className="mx-auto mt-[14%] h-2 w-10 rounded bg-white/90" />
+        </div>
+        <div className="h-[18%] w-full bg-white px-2 py-2">
+          <div className="mx-auto h-1 w-16 rounded bg-[#892e39]/60" />
+          <div className="mx-auto mt-1 h-1 w-24 rounded bg-slate-200" />
+        </div>
+        {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-[13%] w-full border-b-2 border-white" style={{ background: index % 2 === 0 ? '#7d8d70' : '#b99775' }} />)}
+        <div className="h-[12%] bg-[#e7d0b0]/40" />
+      </>
+    ),
+  },
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
@@ -197,7 +217,7 @@ function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
           className="mx-1 my-0.5 rounded-sm"
           style={{
             background: sectionPreviewBackground(section),
-            height: section.type === SectionType.HERO_BANNER || section.type === SectionType.HERO_CAROUSEL ? '28%' : '12%',
+            height: section.type === SectionType.HERO_BANNER || section.type === SectionType.HERO_CAROUSEL || section.type === SectionType.COURTYARD_HERO ? '28%' : '12%',
             minHeight: 6,
           }}
         />

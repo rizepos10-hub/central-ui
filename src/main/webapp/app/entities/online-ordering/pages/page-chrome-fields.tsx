@@ -27,7 +27,7 @@ const numberValue = (source: ChromePart, key: string, fallback: number) =>
   typeof source[key] === 'number' && Number.isFinite(source[key]) ? Number(source[key]) : fallback;
 const colorValue = (source: ChromePart, key: string, fallback: string) => {
   const value = stringValue(source, key, fallback);
-  return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  return value.toLowerCase() === 'transparent' || /^#[0-9a-f]{3,8}$/i.test(value) || /^(?:rgb|hsl)a?\(/i.test(value) ? value : fallback;
 };
 
 const defaultQuickLinks: ChromeLink[] = [
@@ -109,19 +109,23 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
           ? 'riode'
           : templateKey === 'home-default'
             ? 'minimal'
+            : templateKey === 'courtyard-hospitality'
+              ? 'courtyard'
             : undefined;
-  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode'].includes(rawHeaderVariant)
+  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard'].includes(rawHeaderVariant)
     ? rawHeaderVariant
     : 'minimal');
   const rawFooterVariant = stringValue(footer, 'variant', '').trim().toLowerCase();
-  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode'].includes(rawFooterVariant)
+  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard'].includes(rawFooterVariant)
     ? rawFooterVariant
     : 'minimal');
   const headerColorDefaults: Record<string, string> = headerVariant === 'order-first'
     ? { background: '#1a1a2e', foreground: '#fff8f0', accent: '#e94560', buttonBackground: '#e94560', buttonForeground: '#ffffff', borderColor: '#2c3551', announcementBackground: '#16213e', announcementForeground: '#fff8f0' }
     : headerVariant === 'thai-palace'
       ? { background: '#fff8ea', foreground: '#101010', accent: '#b78628', buttonBackground: '#b78628', buttonForeground: '#ffffff', borderColor: '#ead9b8', announcementBackground: '#ffffff', announcementForeground: '#101010' }
-      : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
+      : headerVariant === 'courtyard'
+        ? { background: 'transparent', foreground: '#ffffff', accent: '#e7d0b0', buttonBackground: '#892e39', buttonForeground: '#ffffff', borderColor: 'transparent', announcementBackground: '#892e39', announcementForeground: '#ffffff' }
+        : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
   const footerColorDefaults: Record<string, string> = footerVariant === 'order-first'
     ? { background: '#101426', foreground: '#fff8f0', titleColor: '#fff8f0', subtitleColor: '#cbd5e1', linkColor: '#ff6b81', borderColor: '#2c3551' }
       : footerVariant === 'thai-palace'
@@ -130,14 +134,18 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
           ? { background: '#0c1e35', foreground: '#f8fafc', titleColor: '#ffffff', subtitleColor: '#cbd5e1', linkColor: '#60a5fa', borderColor: '#1e3a5f' }
           : footerVariant === 'riode'
             ? { background: '#f8fafc', foreground: '#1e293b', titleColor: '#1e3a5f', subtitleColor: '#64748b', linkColor: '#05b895', borderColor: '#e2e8f0' }
-            : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
+            : footerVariant === 'courtyard'
+              ? { background: 'rgba(231,208,176,0.3)', foreground: '#171717', titleColor: '#892e39', subtitleColor: '#171717', linkColor: '#171717', borderColor: 'transparent' }
+              : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
   const isMinimalHeader = headerVariant === 'minimal';
   const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace';
   const isRetailHeader = headerVariant === 'retail';
   const isRiodeHeader = headerVariant === 'riode';
+  const isCourtyardHeader = headerVariant === 'courtyard';
+  const isCourtyardFooter = footerVariant === 'courtyard';
   const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader;
-  const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader;
-  const supportsMainNavigationControls = supportsRetailHeaderControls;
+  const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader || isCourtyardHeader;
+  const supportsMainNavigationControls = supportsRetailHeaderControls || isCourtyardHeader;
   const supportsRetailUtilityLabels = supportsRetailHeaderControls || isRestaurantHeader;
   const quickLinks = quickLinksValue(footer);
   const footerColumns = Array.isArray(footer.columns)
@@ -206,12 +214,13 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                 <TextField id="header-logo-height" label="Logo height (px)" value={String(numberValue(header, 'logoHeight', 48))} onChange={value => updatePart('header', { ...header, logoHeight: Number(value) || 48 })} />
                 <TextField id="header-logo-alt" label="Logo alt text" value={stringValue(header, 'logoAlt')} placeholder="Business logo" onChange={value => updatePart('header', { ...header, logoAlt: value })} />
               </div>
-              <LogoField id="header-logo-image" label="Header logo image" image={headerLogo} onChange={image => updatePart('header', { ...header, logoImage: image })} />
+              {isCourtyardHeader ? <p className="text-[11px] text-muted-foreground">Uses the business logo from Online Ordering settings.</p> : <LogoField id="header-logo-image" label="Header logo image" image={headerLogo} onChange={image => updatePart('header', { ...header, logoImage: image })} />}
             </PropertyEditorGroup>
 
             <PropertyEditorGroup title="Visible controls" description="Choose which storefront actions appear" defaultOpen={false}>
               <div className="landing-editor-fields-grid grid gap-2">
               <Toggle id="header-show-logo" label="Show logo" checked={booleanValue(header, 'showLogo', true)} onChange={value => updateBoolean('header', 'showLogo', value)} />
+              {isCourtyardHeader && <Toggle id="header-show-menu" label="Show menu button" checked={booleanValue(header, 'showMenu', true)} onChange={value => updateBoolean('header', 'showMenu', value)} />}
               <Toggle id="header-show-announcement" label="Show announcement" checked={booleanValue(header, 'showAnnouncement', false)} onChange={value => updateBoolean('header', 'showAnnouncement', value)} />
               {supportsRetailHeaderControls && <Toggle id="header-show-topbar" label="Show top bar" checked={booleanValue(header, 'showTopBar', true)} onChange={value => updateBoolean('header', 'showTopBar', value)} />}
               {supportsRetailHeaderControls && <Toggle id="header-show-search" label="Show search" checked={booleanValue(header, 'showSearch', true)} onChange={value => updateBoolean('header', 'showSearch', value)} />}
@@ -240,7 +249,7 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
             <PropertyEditorGroup title="Navigation labels" description="Localized text shown in the navbar" defaultOpen={false}>
               <div className="landing-editor-fields-grid grid gap-2">
               <TextField id="header-label-home" label="Home label" value={stringValue(headerLabels, 'home')} onChange={value => updateLabel('header', 'home', value)} />
-              {supportsRetailHeaderControls && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
+              {(supportsRetailHeaderControls || isCourtyardHeader) && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
               {supportsMainNavigationControls && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
               {supportsMainNavigationControls && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
               {supportsMainNavigationControls && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
@@ -296,7 +305,7 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                 <TextField id="footer-logo-height" label="Logo height (px)" value={String(numberValue(footer, 'logoHeight', 80))} onChange={value => updatePart('footer', { ...footer, logoHeight: Number(value) || 80 })} />
                 <TextField id="footer-logo-alt" label="Logo alt text" value={stringValue(footer, 'logoAlt')} placeholder="Business logo" onChange={value => updatePart('footer', { ...footer, logoAlt: value })} />
               </div>
-              <LogoField id="footer-logo-image" label="Footer logo image" image={footerLogo} onChange={image => updatePart('footer', { ...footer, logoImage: image })} />
+              {isCourtyardFooter ? <p className="text-[11px] text-muted-foreground">Uses the business logo from Online Ordering settings.</p> : <LogoField id="footer-logo-image" label="Footer logo image" image={footerLogo} onChange={image => updatePart('footer', { ...footer, logoImage: image })} />}
             </PropertyEditorGroup>
 
             <PropertyEditorGroup title="Visible content" description="Choose which footer blocks appear" defaultOpen={false}>
