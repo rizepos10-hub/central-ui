@@ -187,7 +187,13 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
           <div className="mx-auto h-1 w-16 rounded bg-[#892e39]/60" />
           <div className="mx-auto mt-1 h-1 w-24 rounded bg-slate-200" />
         </div>
-        {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-[13%] w-full border-b-2 border-white" style={{ background: index % 2 === 0 ? '#7d8d70' : '#b99775' }} />)}
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-[13%] w-full border-b-2 border-white"
+            style={{ background: index % 2 === 0 ? '#7d8d70' : '#b99775' }}
+          />
+        ))}
         <div className="h-[12%] bg-[#e7d0b0]/40" />
       </>
     ),
@@ -217,7 +223,12 @@ function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
           className="mx-1 my-0.5 rounded-sm"
           style={{
             background: sectionPreviewBackground(section),
-            height: section.type === SectionType.HERO_BANNER || section.type === SectionType.HERO_CAROUSEL || section.type === SectionType.COURTYARD_HERO ? '28%' : '12%',
+            height:
+              section.type === SectionType.HERO_BANNER ||
+              section.type === SectionType.HERO_CAROUSEL ||
+              section.type === SectionType.COURTYARD_HERO
+                ? '28%'
+                : '12%',
             minHeight: 6,
           }}
         />
@@ -262,6 +273,7 @@ type PageTemplatePreviewProps = {
   storeDomain?: string;
   className?: string;
   showLinks?: boolean;
+  showMeta?: boolean;
   livePreviewUrl?: string | null;
 };
 
@@ -271,6 +283,7 @@ export const PageTemplatePreview = ({
   storeDomain,
   className,
   showLinks = true,
+  showMeta = true,
   livePreviewUrl,
 }: PageTemplatePreviewProps) => {
   const spec = resolvePreview(page);
@@ -283,9 +296,7 @@ export const PageTemplatePreview = ({
   const headerBackground = typeof headerAppearance.background === 'string' ? headerAppearance.background : spec.header;
   const footerBackground = typeof footerAppearance.background === 'string' ? footerAppearance.background : '#0f172a';
   const accent = pageAccent(page, spec.accent);
-  const liveUrl =
-    livePreviewUrl ??
-    (isActive && page.status === PageStatus.PUBLISHED ? normalizeStorefrontUrl(storeDomain) : null);
+  const liveUrl = livePreviewUrl ?? (isActive && page.status === PageStatus.PUBLISHED ? normalizeStorefrontUrl(storeDomain) : null);
 
   return (
     <div className={cn('shrink-0', className)}>
@@ -297,37 +308,51 @@ export const PageTemplatePreview = ({
           <span className="ml-1 truncate text-[9px] text-muted-foreground">/{page.slug}</span>
         </div>
         <div className="relative flex h-[130px] flex-col overflow-hidden" style={{ background: spec.surface }}>
-          {showAnnouncement && <div className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white" style={{ background: headerAppearance.announcementBackground as string || headerBackground }}>{announcementText}</div>}
-          <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: headerBackground }}>
+          {showAnnouncement && (
+            <div
+              className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white"
+              style={{ background: (headerAppearance.announcementBackground as string) || headerBackground }}
+            >
+              {announcementText}
+            </div>
+          )}
+          <div
+            className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
+            style={{ background: headerBackground }}
+          >
             <span className="h-1.5 w-8 rounded bg-white/80" />
-            <span>{chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')}</span>
+            <span>
+              {chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')}
+            </span>
           </div>
           {spec.render()}
-          <div className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white" style={{ background: footerBackground }}>
+          <div
+            className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
+            style={{ background: footerBackground }}
+          >
             <span className="h-1.5 w-10 rounded bg-white/70" />
             <span>{footer.showCopyright !== false ? 'Copyright' : 'Footer'}</span>
           </div>
-          <div
-            className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5"
-            style={{ background: accent }}
-          />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5" style={{ background: accent }} />
         </div>
       </div>
-      <div className="mt-2 max-w-[220px]">
-        <p className="text-xs font-medium leading-tight">{spec.title}</p>
-        <p className="text-[10px] leading-snug text-muted-foreground">{spec.subtitle}</p>
-        {showLinks && liveUrl && (
-          <a
-            href={liveUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-          >
-            View live
-            <ExternalLink className="h-2.5 w-2.5" />
-          </a>
-        )}
-      </div>
+      {showMeta && (
+        <div className="mt-2 max-w-[220px]">
+          <p className="text-xs font-medium leading-tight">{spec.title}</p>
+          <p className="text-[10px] leading-snug text-muted-foreground">{spec.subtitle}</p>
+          {showLinks && liveUrl && (
+            <a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+            >
+              View live
+              <ExternalLink className="h-2.5 w-2.5" />
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 };
