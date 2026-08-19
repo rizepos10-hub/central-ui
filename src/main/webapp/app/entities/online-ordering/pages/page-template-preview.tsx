@@ -198,6 +198,81 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
+  'ember-basil': {
+    title: 'Ember & Basil',
+    subtitle: 'Thin-crust Italian pizza, warm red tones, and golden accents',
+    accent: '#febe10',
+    header: '#422525',
+    surface: '#faf5e5',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#422525,#cc2d2d)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-12 rounded" style={{ background: '#febe10' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-white/80" />
+        </div>
+        <div className="grid grid-cols-2 gap-0.5 px-1 py-1" style={{ background: '#faf5e5' }}>
+          <div className="h-8 rounded-sm bg-white shadow-sm" />
+          <div className="h-8 rounded-sm" style={{ background: '#422525' }} />
+        </div>
+        <div className="grid grid-cols-4 gap-0.5 px-1 pb-1" style={{ background: '#fffdf7' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-3 rounded-sm" style={{ background: i % 2 ? '#faf5e5' : '#febe10' }} />
+          ))}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#422525,#8c3a2b)' }} />
+      </>
+    ),
+  },
+  'nonna-table': {
+    title: 'Nonna’s Table',
+    subtitle: 'Italian pizza, pasta, and a warm family table',
+    accent: '#967d47',
+    header: '#2d7000',
+    surface: '#f5fff5',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#153900,#2d7000)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded bg-white/90" />
+          <div className="mx-auto mt-1 h-1 w-20 rounded" style={{ background: '#e3c98d' }} />
+        </div>
+        <div className="flex gap-0.5 px-1 py-1" style={{ background: '#f5fff5' }}>
+          <div className="h-8 flex-1 rounded-sm bg-white shadow-sm" />
+          <div className="h-8 flex-1 rounded-sm" style={{ background: '#967d47' }} />
+        </div>
+        <div className="grid grid-cols-4 gap-0.5 px-1 pb-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-3 rounded-sm bg-white shadow-sm" style={{ borderTop: `2px solid ${i % 2 ? '#967d47' : '#2d7000'}` }} />
+          ))}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#2d7000,#967d47)' }} />
+      </>
+    ),
+  },
+  'olive-hearth': {
+    title: 'Olive & Hearth',
+    subtitle: 'Rustic pizza, fresh ingredients, and an artisan story',
+    accent: '#e3aa6b',
+    header: '#2c3135',
+    surface: '#fff9f1',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#2c3135,#50585f)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-12 rounded" style={{ background: '#e3aa6b' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-[#fff9f1]/80" />
+        </div>
+        <div className="h-[16%] px-1 py-1" style={{ background: '#fff9f1' }}>
+          <div className="h-1 w-16 rounded" style={{ background: '#d74720' }} />
+          <div className="mt-1 h-1 w-24 rounded bg-slate-300" />
+        </div>
+        <div className="grid grid-cols-3 gap-0.5 px-1 pb-1" style={{ background: '#ffecd9' }}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-7 rounded-sm" style={{ background: i === 1 ? '#e3aa6b' : '#fff9f1' }} />
+          ))}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#2c3135,#d74720)' }} />
+      </>
+    ),
+  },
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
