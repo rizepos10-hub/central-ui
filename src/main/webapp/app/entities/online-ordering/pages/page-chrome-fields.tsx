@@ -25,6 +25,13 @@ const courtyardNavigationDefaults: ChromeNavigationDefault[] = [
   { key: 'contact', label: 'Contact', defaultUrl: '#contact' },
 ];
 
+const atelierNavigationDefaults: ChromeNavigationDefault[] = [
+  { key: 'home', label: 'Home', defaultUrl: '/' },
+  { key: 'shop', label: 'Shop', defaultUrl: '/{branchId}/shop' },
+  { key: 'journal', label: 'Journal', defaultUrl: '#lookbook' },
+  { key: 'theme', label: 'Theme', defaultUrl: '#categories' },
+];
+
 const chromePart = (source: ChromePart | undefined): ChromePart => source ?? {};
 const nested = (source: ChromePart, key: string): ChromePart =>
   source[key] && typeof source[key] === 'object' ? (source[key] as ChromePart) : {};
@@ -135,14 +142,16 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                           ? 'lime-char'
                           : templateKey === 'golden-wok'
                             ? 'golden-wok'
-                            : templateKey === 'sakura-tide'
-                              ? 'sakura-tide'
-                    : undefined;
-  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide'].includes(rawHeaderVariant)
+                             : templateKey === 'sakura-tide'
+                               ? 'sakura-tide'
+                               : templateKey === 'atelier-noir'
+                                 ? 'atelier-noir'
+                     : undefined;
+  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir'].includes(rawHeaderVariant)
     ? rawHeaderVariant
     : 'minimal');
   const rawFooterVariant = stringValue(footer, 'variant', '').trim().toLowerCase();
-  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide'].includes(rawFooterVariant)
+  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir'].includes(rawFooterVariant)
     ? rawFooterVariant
     : 'minimal');
   const headerColorDefaults: Record<string, string> = headerVariant === 'order-first'
@@ -163,9 +172,11 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                     ? { background: '#131c16', foreground: '#edf8d8', accent: '#95d01a', buttonBackground: '#95d01a', buttonForeground: '#131c16', borderColor: '#4c6b0a', announcementBackground: '#242d10', announcementForeground: '#edf8d8' }
                     : headerVariant === 'golden-wok'
                       ? { background: '#000000', foreground: '#f5f5f5', accent: '#e9ac07', buttonBackground: '#e9ac07', buttonForeground: '#000000', borderColor: '#4d3b00', announcementBackground: '#202022', announcementForeground: '#f5f5f5' }
-                      : headerVariant === 'sakura-tide'
-                        ? { background: '#222426', foreground: '#f8eedb', accent: '#f46a44', buttonBackground: '#f46a44', buttonForeground: '#ffffff', borderColor: '#55565a', announcementBackground: '#2a2e32', announcementForeground: '#f8eedb' }
-            : headerVariant === 'courtyard'
+                       : headerVariant === 'sakura-tide'
+                         ? { background: '#222426', foreground: '#f8eedb', accent: '#f46a44', buttonBackground: '#f46a44', buttonForeground: '#ffffff', borderColor: '#55565a', announcementBackground: '#2a2e32', announcementForeground: '#f8eedb' }
+                         : headerVariant === 'atelier-noir'
+                           ? { background: '#ffffff', foreground: '#111111', accent: '#d8b24a', buttonBackground: '#111111', buttonForeground: '#ffffff', borderColor: '#dedbd5', announcementBackground: '#000000', announcementForeground: '#ffffff' }
+             : headerVariant === 'courtyard'
         ? { background: 'transparent', foreground: '#ffffff', accent: '#e7d0b0', buttonBackground: '#892e39', buttonForeground: '#ffffff', borderColor: 'transparent', announcementBackground: '#892e39', announcementForeground: '#ffffff' }
         : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
   const footerColorDefaults: Record<string, string> = footerVariant === 'order-first'
@@ -190,19 +201,22 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                         ? { background: '#131c16', foreground: '#edf8d8', titleColor: '#95d01a', subtitleColor: '#cde3aa', linkColor: '#95d01a', borderColor: '#4c6b0a' }
                         : footerVariant === 'golden-wok'
                           ? { background: '#000000', foreground: '#f5f5f5', titleColor: '#e9ac07', subtitleColor: '#cfcfcf', linkColor: '#e9ac07', borderColor: '#4d3b00' }
-                          : footerVariant === 'sakura-tide'
-                            ? { background: '#222426', foreground: '#f8eedb', titleColor: '#f46a44', subtitleColor: '#bbc3d3', linkColor: '#f46a44', borderColor: '#55565a' }
-                  : footerVariant === 'courtyard'
+                           : footerVariant === 'sakura-tide'
+                             ? { background: '#222426', foreground: '#f8eedb', titleColor: '#f46a44', subtitleColor: '#bbc3d3', linkColor: '#f46a44', borderColor: '#55565a' }
+                             : footerVariant === 'atelier-noir'
+                               ? { background: '#000000', foreground: '#ffffff', titleColor: '#d8b24a', subtitleColor: '#c7c7c7', linkColor: '#d8b24a', borderColor: 'rgba(216,178,74,0.35)' }
+                   : footerVariant === 'courtyard'
               ? { background: 'rgba(231,208,176,0.3)', foreground: '#171717', titleColor: '#892e39', subtitleColor: '#171717', linkColor: '#171717', borderColor: 'transparent' }
               : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
   const isMinimalHeader = headerVariant === 'minimal';
   const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace' || headerVariant === 'ember-basil' || headerVariant === 'nonna-table' || headerVariant === 'olive-hearth' || headerVariant === 'crimson-stack' || headerVariant === 'saffron-ember' || headerVariant === 'lime-char' || headerVariant === 'golden-wok' || headerVariant === 'sakura-tide';
+  const isAtelierNoirHeader = headerVariant === 'atelier-noir';
   const isRetailHeader = headerVariant === 'retail';
   const isRiodeHeader = headerVariant === 'riode';
   const isCourtyardHeader = headerVariant === 'courtyard';
   const isCourtyardFooter = footerVariant === 'courtyard';
-  const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader;
-  const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader || isCourtyardHeader;
+  const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader || isAtelierNoirHeader;
+  const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader || isCourtyardHeader || isAtelierNoirHeader;
   const supportsMainNavigationControls = supportsRetailHeaderControls || isCourtyardHeader;
   const supportsRetailUtilityLabels = supportsRetailHeaderControls || isRestaurantHeader;
   const quickLinks = quickLinksValue(footer);
@@ -293,7 +307,7 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
               {supportsRestaurantHeaderControls && <Toggle id="header-show-currency" label="Show currency picker" checked={booleanValue(header, 'showCurrencyPicker', true)} onChange={value => updateBoolean('header', 'showCurrencyPicker', value)} />}
               <Toggle id="header-show-cart" label="Show cart" checked={booleanValue(header, 'showCart', true)} onChange={value => updateBoolean('header', 'showCart', value)} />
               <Toggle id="header-show-phone" label="Show phone" checked={booleanValue(header, 'showPhone', isRestaurantHeader || supportsRetailHeaderControls)} onChange={value => updateBoolean('header', 'showPhone', value)} />
-              {supportsRetailHeaderControls && <Toggle id="header-show-wishlist" label="Show wishlist" checked={booleanValue(header, 'showWishlist', true)} onChange={value => updateBoolean('header', 'showWishlist', value)} />}
+              {supportsRetailHeaderControls && !isAtelierNoirHeader && <Toggle id="header-show-wishlist" label="Show wishlist" checked={booleanValue(header, 'showWishlist', true)} onChange={value => updateBoolean('header', 'showWishlist', value)} />}
               {isRiodeHeader && <Toggle id="header-show-categories" label="Show category menu" checked={booleanValue(header, 'showCategoriesMenu', true)} onChange={value => updateBoolean('header', 'showCategoriesMenu', value)} />}
               </div>
             </PropertyEditorGroup>
@@ -312,16 +326,18 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
               <div className="landing-editor-fields-grid grid gap-2">
               <TextField id="header-label-home" label="Home label" value={stringValue(headerLabels, 'home')} onChange={value => updateLabel('header', 'home', value)} />
               {(supportsRetailHeaderControls || isCourtyardHeader) && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
-              {supportsMainNavigationControls && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
-              {supportsMainNavigationControls && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
-              {supportsMainNavigationControls && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
-              {supportsRetailHeaderControls && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
-              </div>
-            </PropertyEditorGroup>
+              {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
+              {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
+               {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
+               {supportsRetailHeaderControls && !isAtelierNoirHeader && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
+               {isAtelierNoirHeader && <TextField id="header-label-journal" label="Journal label" value={stringValue(headerLabels, 'journal')} onChange={value => updateLabel('header', 'journal', value)} />}
+               {isAtelierNoirHeader && <TextField id="header-label-theme" label="Theme label" value={stringValue(headerLabels, 'theme')} onChange={value => updateLabel('header', 'theme', value)} />}
+               </div>
+             </PropertyEditorGroup>
 
-            {isCourtyardHeader && <PropertyEditorGroup title="Navigation links" description="Destinations opened by the burger menu. Leave the default to keep the system route; {branchId} is replaced automatically." defaultOpen={false}>
-              <div className="space-y-2">
-                {courtyardNavigationDefaults.map(link => (
+             {(isCourtyardHeader || isAtelierNoirHeader) && <PropertyEditorGroup title="Navigation links" description="Destinations used by this template. Leave the default to keep the system route; {branchId} is replaced automatically." defaultOpen={false}>
+               <div className="space-y-2">
+                 {(isAtelierNoirHeader ? atelierNavigationDefaults : courtyardNavigationDefaults).map(link => (
                   <div className="grid gap-2 rounded-md border bg-background p-2 sm:grid-cols-2" key={link.key}>
                     <p className="self-end pb-1 text-xs font-medium">{stringValue(headerLabels, link.key, link.label)}</p>
                     <TextField id={`header-link-${link.key}`} label="URL" value={stringValue(headerNavigationLinks, link.key, link.defaultUrl)} placeholder={link.defaultUrl} onChange={value => updateNavigationLink(link.key, value)} />
@@ -335,7 +351,7 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                 <TextField id="header-label-login" label="Login label" value={stringValue(headerLabels, 'login')} onChange={value => updateLabel('header', 'login', value)} />
                 <TextField id="header-label-register" label="Register label" value={stringValue(headerLabels, 'register')} onChange={value => updateLabel('header', 'register', value)} />
                 {supportsRetailHeaderControls && <TextField id="header-label-search" label="Search placeholder" value={stringValue(headerLabels, 'search')} onChange={value => updateLabel('header', 'search', value)} />}
-                {supportsRetailHeaderControls && <TextField id="header-label-wishlist" label="Wishlist label" value={stringValue(headerLabels, 'wishlist')} onChange={value => updateLabel('header', 'wishlist', value)} />}
+                {supportsRetailHeaderControls && !isAtelierNoirHeader && <TextField id="header-label-wishlist" label="Wishlist label" value={stringValue(headerLabels, 'wishlist')} onChange={value => updateLabel('header', 'wishlist', value)} />}
                 {isRiodeHeader && <TextField id="header-label-shopping-cart" label="Shopping cart label" value={stringValue(headerLabels, 'shoppingCart')} onChange={value => updateLabel('header', 'shoppingCart', value)} />}
                 {supportsRetailUtilityLabels && <TextField id="header-label-call-us" label="Call us label" value={stringValue(headerLabels, 'callUs')} onChange={value => updateLabel('header', 'callUs', value)} />}
                 {isRetailHeader && <TextField id="header-label-special-offers" label="Special offers label" value={stringValue(headerLabels, 'specialOffers')} onChange={value => updateLabel('header', 'specialOffers', value)} />}

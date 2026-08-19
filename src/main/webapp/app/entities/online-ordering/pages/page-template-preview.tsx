@@ -388,6 +388,36 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
+  'atelier-noir': {
+    title: 'Atelier Noir',
+    subtitle: 'Monochrome fashion edit with gold accents and editorial storytelling',
+    accent: '#d8b24a',
+    header: '#000000',
+    surface: '#ffffff',
+    render: () => (
+      <>
+        <div className="flex h-[10%] items-center justify-center" style={{ background: '#000000' }}>
+          <div className="h-1 w-20 rounded bg-white/80" />
+        </div>
+        <div className="grid h-[32%] grid-cols-2" style={{ background: '#111111' }}>
+          <div style={{ background: 'linear-gradient(135deg,#a7a7a7,#323232)' }} />
+          <div className="flex flex-col justify-center gap-1 px-2">
+            <div className="h-1 w-10 rounded" style={{ background: '#d8b24a' }} />
+            <div className="h-2 w-20 rounded bg-white" />
+            <div className="h-1 w-16 rounded bg-white/60" />
+            <div className="mt-1 h-3 w-12 rounded-sm" style={{ background: '#d8b24a' }} />
+          </div>
+        </div>
+        <div className="flex h-[10%] items-center gap-1 px-1" style={{ background: '#ffffff' }}>
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-1 flex-1 rounded bg-black/70" />)}
+        </div>
+        <div className="grid h-[18%] grid-cols-4 gap-0.5 px-1 pb-1" style={{ background: '#f4f4f2' }}>
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-sm bg-white" style={{ borderTop: `2px solid ${i === 1 ? '#d8b24a' : '#dedbd5'}` }} />)}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#111111,#d8b24a)' }} />
+      </>
+    ),
+  },
 };
 
 // Import cards are rendered before a tenant page exists, so they cannot use the live
@@ -408,6 +438,7 @@ const TEMPLATE_SCREENSHOTS: Record<string, string> = {
   'lime-char': '/content/images/landing-templates/lime-char.webp',
   'golden-wok': '/content/images/landing-templates/golden-wok.webp',
   'sakura-tide': '/content/images/landing-templates/sakura-tide.webp',
+  'atelier-noir': '/content/images/landing-templates/atelier-noir.webp',
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {

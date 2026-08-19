@@ -328,6 +328,29 @@ const TEMPLATE_PALETTES: Record<string, TemplatePalette> = {
     cardBackground: '#ffffff',
     cardHoverBackground: '#f8eedb',
   },
+  'atelier-noir': {
+    primary: '#000000',
+    primaryForeground: '#ffffff',
+    secondary: '#111111',
+    secondaryForeground: '#ffffff',
+    accent: '#d8b24a',
+    accentForeground: '#111111',
+    background: '#ffffff',
+    foreground: '#151515',
+    card: '#ffffff',
+    cardForeground: '#151515',
+    popover: '#ffffff',
+    popoverForeground: '#151515',
+    muted: '#f4f4f2',
+    mutedForeground: '#666666',
+    border: '#dedbd5',
+    input: '#dedbd5',
+    ring: '#d8b24a',
+    destructive: '#b42318',
+    destructiveForeground: '#ffffff',
+    cardBackground: '#ffffff',
+    cardHoverBackground: '#f4f4f2',
+  },
 };
 
 const validColor = (value: unknown, fallback: string): string => {
@@ -406,6 +429,11 @@ export const getSectionAppearanceDefaults = (
       defaults.titleColor = palette.secondaryForeground;
       defaults.subtitleColor = palette.secondaryForeground;
       defaults.eyebrowColor = palette.accent;
+    } else if (variant === 'atelier-split') {
+      defaults.background = palette.primary;
+      defaults.titleColor = palette.primaryForeground;
+      defaults.subtitleColor = palette.primaryForeground;
+      defaults.eyebrowColor = palette.accent;
     } else {
       defaults.background = palette.primary;
       defaults.titleColor = palette.primaryForeground;
@@ -418,6 +446,20 @@ export const getSectionAppearanceDefaults = (
 };
 
 export const getHeroBoxModelDefaults = (variant: string): Record<string, number> => {
+  if (variant === 'atelier-split') {
+    return {
+      marginTop: 0,
+      marginRight: 0,
+      marginBottom: 0,
+      marginLeft: 0,
+      paddingTop: 0,
+      paddingRight: 0,
+      paddingBottom: 0,
+      paddingLeft: 0,
+      borderRadius: 0,
+    };
+  }
+
   if (variant === 'cta' || variant === 'retail-cta') {
     return {
       marginTop: 0,
