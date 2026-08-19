@@ -273,6 +273,121 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
+  'crimson-stack': {
+    title: 'Crimson Stack',
+    subtitle: 'Bold burgers, red-and-black energy, and fast ordering',
+    accent: '#d92b3a',
+    header: '#000000',
+    surface: '#ffffff',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#000000,#d92b3a)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded" style={{ background: '#d92b3a' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-white/85" />
+        </div>
+        <div className="grid grid-cols-4 gap-0.5 px-1 py-1" style={{ background: '#ffffff' }}>
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-7 rounded-sm" style={{ background: i % 2 ? '#171717' : '#d92b3a' }} />)}
+        </div>
+        <div className="grid grid-cols-3 gap-0.5 px-1 pb-1" style={{ background: '#d92b3a' }}>
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-5 rounded-sm" style={{ background: i === 1 ? '#000000' : '#ffffff' }} />)}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#000000,#d92b3a)' }} />
+      </>
+    ),
+  },
+  'saffron-ember': {
+    title: 'Saffron Ember',
+    subtitle: 'Warm Turkish grill hospitality with terracotta accents',
+    accent: '#de4917',
+    header: '#432f29',
+    surface: '#f5f2eb',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#432f29,#de4917)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded" style={{ background: '#de4917' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-[#f5f2eb]/90" />
+        </div>
+        <div className="h-[17%] px-1 py-1" style={{ background: '#f5f2eb' }}>
+          <div className="h-1 w-16 rounded" style={{ background: '#de4917' }} />
+          <div className="mt-1 h-1 w-24 rounded bg-[#432f29]/35" />
+        </div>
+        <div className="grid grid-cols-4 gap-0.5 px-1 pb-1" style={{ background: '#f5f2eb' }}>
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-7 rounded-sm" style={{ background: i % 2 ? '#432f29' : '#ffffff' }} />)}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#432f29,#de4917)' }} />
+      </>
+    ),
+  },
+  'lime-char': {
+    title: 'Lime & Char',
+    subtitle: 'Dark charcoal, electric lime, and location-led burger moments',
+    accent: '#95d01a',
+    header: '#131c16',
+    surface: '#edf8d8',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#131c16,#4c6b0a)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded" style={{ background: '#95d01a' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-[#edf8d8]/90" />
+        </div>
+        <div className="grid grid-cols-2 gap-0.5 px-1 py-1" style={{ background: '#edf8d8' }}>
+          <div className="h-8 rounded-sm bg-white shadow-sm" />
+          <div className="h-8 rounded-sm" style={{ background: '#95d01a' }} />
+        </div>
+        <div className="h-[16%] px-1 py-1" style={{ background: '#ffffff' }}>
+          <div className="h-1 w-16 rounded" style={{ background: '#95d01a' }} />
+          <div className="mt-1 h-1 w-24 rounded bg-[#131c16]/30" />
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#131c16,#95d01a)' }} />
+      </>
+    ),
+  },
+  'golden-wok': {
+    title: 'Golden Wok',
+    subtitle: 'Black, gold, and editorial Chinese restaurant storytelling',
+    accent: '#e9ac07',
+    header: '#000000',
+    surface: '#f5f5f5',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#000000,#545454)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded" style={{ background: '#e9ac07' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-white/85" />
+        </div>
+        <div className="h-[17%] px-1 py-1" style={{ background: '#f5f5f5' }}>
+          <div className="h-1 w-16 rounded" style={{ background: '#e9ac07' }} />
+          <div className="mt-1 h-1 w-24 rounded bg-[#202022]/35" />
+        </div>
+        <div className="grid grid-cols-4 gap-0.5 px-1 pb-1" style={{ background: '#eeeeee' }}>
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-7 rounded-sm" style={{ background: i === 1 ? '#e9ac07' : '#ffffff' }} />)}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#000000,#e9ac07)' }} />
+      </>
+    ),
+  },
+  'sakura-tide': {
+    title: 'Sakura Tide',
+    subtitle: 'Coral sushi energy, wave imagery, and calm cream surfaces',
+    accent: '#f46a44',
+    header: '#222426',
+    surface: '#f8eedb',
+    render: () => (
+      <>
+        <div className="h-[30%] w-full" style={{ background: 'linear-gradient(135deg,#222426,#f46a44)' }}>
+          <div className="mx-auto mt-[14%] h-1.5 w-14 rounded" style={{ background: '#f46a44' }} />
+          <div className="mx-auto mt-1 h-1 w-20 rounded bg-[#f8eedb]/90" />
+        </div>
+        <div className="grid grid-cols-2 gap-0.5 px-1 py-1" style={{ background: '#f8eedb' }}>
+          <div className="h-8 rounded-sm bg-white shadow-sm" />
+          <div className="h-8 rounded-sm" style={{ background: '#f46a44' }} />
+        </div>
+        <div className="grid grid-cols-3 gap-0.5 px-1 pb-1" style={{ background: '#ffffff' }}>
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-6 rounded-sm" style={{ background: i === 1 ? '#f8eedb' : '#ffffff', borderTop: `2px solid ${i === 1 ? '#f46a44' : '#222426'}` }} />)}
+        </div>
+        <div className="h-[18%]" style={{ background: 'linear-gradient(135deg,#222426,#f46a44)' }} />
+      </>
+    ),
+  },
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {

@@ -125,14 +125,24 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                 ? 'ember-basil'
                 : templateKey === 'nonna-table'
                   ? 'nonna-table'
-                  : templateKey === 'olive-hearth'
+                : templateKey === 'olive-hearth'
                     ? 'olive-hearth'
+                    : templateKey === 'crimson-stack'
+                      ? 'crimson-stack'
+                      : templateKey === 'saffron-ember'
+                        ? 'saffron-ember'
+                        : templateKey === 'lime-char'
+                          ? 'lime-char'
+                          : templateKey === 'golden-wok'
+                            ? 'golden-wok'
+                            : templateKey === 'sakura-tide'
+                              ? 'sakura-tide'
                     : undefined;
-  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth'].includes(rawHeaderVariant)
+  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide'].includes(rawHeaderVariant)
     ? rawHeaderVariant
     : 'minimal');
   const rawFooterVariant = stringValue(footer, 'variant', '').trim().toLowerCase();
-  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth'].includes(rawFooterVariant)
+  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide'].includes(rawFooterVariant)
     ? rawFooterVariant
     : 'minimal');
   const headerColorDefaults: Record<string, string> = headerVariant === 'order-first'
@@ -143,8 +153,18 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
         ? { background: '#422525', foreground: '#fffaf0', accent: '#febe10', buttonBackground: '#febe10', buttonForeground: '#422525', borderColor: '#8c5a3c', announcementBackground: '#faf5e5', announcementForeground: '#422525' }
         : headerVariant === 'nonna-table'
           ? { background: '#2d7000', foreground: '#ffffff', accent: '#967d47', buttonBackground: '#967d47', buttonForeground: '#ffffff', borderColor: '#5a8c3e', announcementBackground: '#f5fff5', announcementForeground: '#2d7000' }
-          : headerVariant === 'olive-hearth'
-            ? { background: '#2c3135', foreground: '#fff9f1', accent: '#e3aa6b', buttonBackground: '#e3aa6b', buttonForeground: '#2c3135', borderColor: '#6a5d50', announcementBackground: '#50585f', announcementForeground: '#fff9f1' }
+            : headerVariant === 'olive-hearth'
+              ? { background: '#2c3135', foreground: '#fff9f1', accent: '#e3aa6b', buttonBackground: '#e3aa6b', buttonForeground: '#2c3135', borderColor: '#6a5d50', announcementBackground: '#50585f', announcementForeground: '#fff9f1' }
+              : headerVariant === 'crimson-stack'
+                ? { background: '#000000', foreground: '#ffffff', accent: '#d92b3a', buttonBackground: '#d92b3a', buttonForeground: '#ffffff', borderColor: '#4b1d24', announcementBackground: '#171717', announcementForeground: '#ffffff' }
+                : headerVariant === 'saffron-ember'
+                  ? { background: '#432f29', foreground: '#ffffff', accent: '#de4917', buttonBackground: '#de4917', buttonForeground: '#ffffff', borderColor: '#6e5145', announcementBackground: '#f5f2eb', announcementForeground: '#432f29' }
+                  : headerVariant === 'lime-char'
+                    ? { background: '#131c16', foreground: '#edf8d8', accent: '#95d01a', buttonBackground: '#95d01a', buttonForeground: '#131c16', borderColor: '#4c6b0a', announcementBackground: '#242d10', announcementForeground: '#edf8d8' }
+                    : headerVariant === 'golden-wok'
+                      ? { background: '#000000', foreground: '#f5f5f5', accent: '#e9ac07', buttonBackground: '#e9ac07', buttonForeground: '#000000', borderColor: '#4d3b00', announcementBackground: '#202022', announcementForeground: '#f5f5f5' }
+                      : headerVariant === 'sakura-tide'
+                        ? { background: '#222426', foreground: '#f8eedb', accent: '#f46a44', buttonBackground: '#f46a44', buttonForeground: '#ffffff', borderColor: '#55565a', announcementBackground: '#2a2e32', announcementForeground: '#f8eedb' }
             : headerVariant === 'courtyard'
         ? { background: 'transparent', foreground: '#ffffff', accent: '#e7d0b0', buttonBackground: '#892e39', buttonForeground: '#ffffff', borderColor: 'transparent', announcementBackground: '#892e39', announcementForeground: '#ffffff' }
         : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
@@ -162,11 +182,21 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                 ? { background: '#2d7000', foreground: '#ffffff', titleColor: '#e3c98d', subtitleColor: '#f2f8e8', linkColor: '#e3c98d', borderColor: '#5a8c3e' }
                 : footerVariant === 'olive-hearth'
                   ? { background: '#2c3135', foreground: '#fff9f1', titleColor: '#e3aa6b', subtitleColor: '#f5dfc9', linkColor: '#e3aa6b', borderColor: '#6a5d50' }
+                  : footerVariant === 'crimson-stack'
+                    ? { background: '#000000', foreground: '#ffffff', titleColor: '#d92b3a', subtitleColor: '#f2c4c8', linkColor: '#d92b3a', borderColor: '#4b1d24' }
+                    : footerVariant === 'saffron-ember'
+                      ? { background: '#432f29', foreground: '#ffffff', titleColor: '#de4917', subtitleColor: '#f5f2eb', linkColor: '#de4917', borderColor: '#6e5145' }
+                      : footerVariant === 'lime-char'
+                        ? { background: '#131c16', foreground: '#edf8d8', titleColor: '#95d01a', subtitleColor: '#cde3aa', linkColor: '#95d01a', borderColor: '#4c6b0a' }
+                        : footerVariant === 'golden-wok'
+                          ? { background: '#000000', foreground: '#f5f5f5', titleColor: '#e9ac07', subtitleColor: '#cfcfcf', linkColor: '#e9ac07', borderColor: '#4d3b00' }
+                          : footerVariant === 'sakura-tide'
+                            ? { background: '#222426', foreground: '#f8eedb', titleColor: '#f46a44', subtitleColor: '#bbc3d3', linkColor: '#f46a44', borderColor: '#55565a' }
                   : footerVariant === 'courtyard'
               ? { background: 'rgba(231,208,176,0.3)', foreground: '#171717', titleColor: '#892e39', subtitleColor: '#171717', linkColor: '#171717', borderColor: 'transparent' }
               : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
   const isMinimalHeader = headerVariant === 'minimal';
-  const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace' || headerVariant === 'ember-basil' || headerVariant === 'nonna-table' || headerVariant === 'olive-hearth';
+  const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace' || headerVariant === 'ember-basil' || headerVariant === 'nonna-table' || headerVariant === 'olive-hearth' || headerVariant === 'crimson-stack' || headerVariant === 'saffron-ember' || headerVariant === 'lime-char' || headerVariant === 'golden-wok' || headerVariant === 'sakura-tide';
   const isRetailHeader = headerVariant === 'retail';
   const isRiodeHeader = headerVariant === 'riode';
   const isCourtyardHeader = headerVariant === 'courtyard';
