@@ -21,6 +21,26 @@ export type TemplatePalette = {
   ring: string;
   destructive: string;
   destructiveForeground: string;
+  chart1: string;
+  chart2: string;
+  chart3: string;
+  chart4: string;
+  chart5: string;
+  sidebarBackground: string;
+  sidebarForeground: string;
+  sidebarPrimary: string;
+  sidebarPrimaryForeground: string;
+  sidebarAccent: string;
+  sidebarAccentForeground: string;
+  sidebarBorder: string;
+  sidebarRing: string;
+  radius: string;
+  fontFamily: string;
+  headingFontFamily: string;
+  fontSize: string;
+  fontWeight: string;
+  lineHeight: string;
+  letterSpacing: string;
   cardBackground: string;
   cardHoverBackground: string;
 };
@@ -45,11 +65,31 @@ const DEFAULT_PALETTE: TemplatePalette = {
   ring: '#f2c94c',
   destructive: '#b42318',
   destructiveForeground: '#ffffff',
+  chart1: '#062f25',
+  chart2: '#f2c94c',
+  chart3: '#0b4638',
+  chart4: '#b42318',
+  chart5: '#666666',
+  sidebarBackground: '#ffffff',
+  sidebarForeground: '#101010',
+  sidebarPrimary: '#062f25',
+  sidebarPrimaryForeground: '#fff8ea',
+  sidebarAccent: '#f3ead8',
+  sidebarAccentForeground: '#101010',
+  sidebarBorder: '#e5d9c4',
+  sidebarRing: '#f2c94c',
+  radius: '0.5rem',
+  fontFamily: 'Inter, system-ui, sans-serif',
+  headingFontFamily: 'Inter, system-ui, sans-serif',
+  fontSize: '16px',
+  fontWeight: '400',
+  lineHeight: '1.5',
+  letterSpacing: '0.05em',
   cardBackground: '#ffffff',
   cardHoverBackground: '#0b4638',
 };
 
-const TEMPLATE_PALETTES: Record<string, TemplatePalette> = {
+const TEMPLATE_PALETTES: Record<string, Partial<TemplatePalette>> = {
   'home-default': DEFAULT_PALETTE,
   'thai-palace': DEFAULT_PALETTE,
   'order-first': {
@@ -353,34 +393,99 @@ const TEMPLATE_PALETTES: Record<string, TemplatePalette> = {
   },
 };
 
+const TEMPLATE_THEME_DETAILS: Record<string, Partial<TemplatePalette>> = {
+  'home-default': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.5rem' },
+  'thai-palace': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Playfair Display, Georgia, serif', radius: '0.5rem' },
+  'order-first': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.5rem' },
+  'home-retail': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.5rem', letterSpacing: '0.02em' },
+  'home-riode': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.5rem', letterSpacing: '0.02em' },
+  'courtyard-hospitality': { fontFamily: 'Seravek, "Helvetica Neue", Helvetica, Arial, sans-serif', headingFontFamily: 'Seravek, "Helvetica Neue", Helvetica, Arial, sans-serif', radius: '0rem', letterSpacing: '0.04em' },
+  'ember-basil': { fontFamily: 'Montserrat, Inter, system-ui, sans-serif', headingFontFamily: 'Montserrat, Inter, system-ui, sans-serif', radius: '0.75rem', letterSpacing: '0.03em' },
+  'nonna-table': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Playfair Display, Georgia, serif', radius: '0.75rem', letterSpacing: '0.03em' },
+  'olive-hearth': { fontFamily: 'Lora, Georgia, serif', headingFontFamily: 'Lora, Georgia, serif', radius: '0.25rem', letterSpacing: '0.02em' },
+  'crimson-stack': { fontFamily: 'Montserrat, Inter, system-ui, sans-serif', headingFontFamily: 'Montserrat, Inter, system-ui, sans-serif', radius: '0.25rem', letterSpacing: '0.02em' },
+  'saffron-ember': { fontFamily: 'Lora, Georgia, serif', headingFontFamily: 'Lora, Georgia, serif', radius: '0.5rem', letterSpacing: '0.02em' },
+  'lime-char': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.5rem', letterSpacing: '0.02em' },
+  'golden-wok': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.25rem', letterSpacing: '0.02em' },
+  'sakura-tide': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.75rem', letterSpacing: '0.03em' },
+  'atelier-noir': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0rem', letterSpacing: '0.04em' },
+};
+
 const validColor = (value: unknown, fallback: string): string => {
   if (typeof value !== 'string' || !value.trim()) return fallback;
   return value.trim();
 };
 
 export const getTemplatePalette = (templateKey?: string, themeOverride?: IPageThemeOverride): TemplatePalette => {
-  const base = TEMPLATE_PALETTES[templateKey ?? ''] ?? DEFAULT_PALETTE;
-  return {
+  const templatePalette = TEMPLATE_PALETTES[templateKey ?? ''] ?? {};
+  const base = {
+    ...DEFAULT_PALETTE,
+    ...templatePalette,
+    ...(TEMPLATE_THEME_DETAILS[templateKey ?? ''] ?? {}),
+  } as TemplatePalette;
+  const themedBase = {
     ...base,
-    primary: validColor(themeOverride?.primary, base.primary),
-    primaryForeground: validColor(themeOverride?.primaryForeground, base.primaryForeground),
-    secondary: validColor(themeOverride?.secondary, base.secondary),
-    secondaryForeground: validColor(themeOverride?.secondaryForeground, base.secondaryForeground),
-    accent: validColor(themeOverride?.accent, base.accent),
-    accentForeground: validColor(themeOverride?.accentForeground, base.accentForeground),
-    background: validColor(themeOverride?.background, base.background),
-    foreground: validColor(themeOverride?.foreground, base.foreground),
-    card: validColor(themeOverride?.card, base.card),
-    cardForeground: validColor(themeOverride?.cardForeground, base.cardForeground),
-    popover: validColor(themeOverride?.popover, base.popover),
-    popoverForeground: validColor(themeOverride?.popoverForeground, base.popoverForeground),
-    muted: validColor(themeOverride?.muted, base.muted),
-    mutedForeground: validColor(themeOverride?.mutedForeground, base.mutedForeground),
-    border: validColor(themeOverride?.border, base.border),
-    input: validColor(themeOverride?.input, base.input),
-    ring: validColor(themeOverride?.ring, base.ring),
-    destructive: validColor(themeOverride?.destructive, base.destructive),
-    destructiveForeground: validColor(themeOverride?.destructiveForeground, base.destructiveForeground),
+    chart1: templatePalette.chart1 || base.primary,
+    chart2: templatePalette.chart2 || base.accent,
+    chart3: templatePalette.chart3 || base.secondary,
+    chart4: templatePalette.chart4 || base.destructive,
+    chart5: templatePalette.chart5 || base.mutedForeground,
+    sidebarBackground: templatePalette.sidebarBackground || base.card,
+    sidebarForeground: templatePalette.sidebarForeground || base.cardForeground,
+    sidebarPrimary: templatePalette.sidebarPrimary || base.primary,
+    sidebarPrimaryForeground: templatePalette.sidebarPrimaryForeground || base.primaryForeground,
+    sidebarAccent: templatePalette.sidebarAccent || base.accent,
+    sidebarAccentForeground: templatePalette.sidebarAccentForeground || base.accentForeground,
+    sidebarBorder: templatePalette.sidebarBorder || base.border,
+    sidebarRing: templatePalette.sidebarRing || base.ring,
+  };
+  return {
+    ...themedBase,
+    primary: validColor(themeOverride?.primary, themedBase.primary),
+    primaryForeground: validColor(themeOverride?.primaryForeground, themedBase.primaryForeground),
+    secondary: validColor(themeOverride?.secondary, themedBase.secondary),
+    secondaryForeground: validColor(themeOverride?.secondaryForeground, themedBase.secondaryForeground),
+    accent: validColor(themeOverride?.accent, themedBase.accent),
+    accentForeground: validColor(themeOverride?.accentForeground, themedBase.accentForeground),
+    background: validColor(themeOverride?.background, themedBase.background),
+    foreground: validColor(themeOverride?.foreground, themedBase.foreground),
+    card: validColor(themeOverride?.card, themedBase.card),
+    cardForeground: validColor(themeOverride?.cardForeground, themedBase.cardForeground),
+    popover: validColor(themeOverride?.popover, themedBase.popover),
+    popoverForeground: validColor(themeOverride?.popoverForeground, themedBase.popoverForeground),
+    muted: validColor(themeOverride?.muted, themedBase.muted),
+    mutedForeground: validColor(themeOverride?.mutedForeground, themedBase.mutedForeground),
+    border: validColor(themeOverride?.border, themedBase.border),
+    input: validColor(themeOverride?.input, themedBase.input),
+    ring: validColor(themeOverride?.ring, themedBase.ring),
+    destructive: validColor(themeOverride?.destructive, themedBase.destructive),
+    destructiveForeground: validColor(themeOverride?.destructiveForeground, themedBase.destructiveForeground),
+    chart1: validColor(themeOverride?.chart1, themedBase.chart1),
+    chart2: validColor(themeOverride?.chart2, themedBase.chart2),
+    chart3: validColor(themeOverride?.chart3, themedBase.chart3),
+    chart4: validColor(themeOverride?.chart4, themedBase.chart4),
+    chart5: validColor(themeOverride?.chart5, themedBase.chart5),
+    sidebarBackground: validColor(themeOverride?.sidebarBackground, themedBase.sidebarBackground),
+    sidebarForeground: validColor(themeOverride?.sidebarForeground, themedBase.sidebarForeground),
+    sidebarPrimary: validColor(themeOverride?.sidebarPrimary, themedBase.sidebarPrimary),
+    sidebarPrimaryForeground: validColor(themeOverride?.sidebarPrimaryForeground, themedBase.sidebarPrimaryForeground),
+    sidebarAccent: validColor(themeOverride?.sidebarAccent, themedBase.sidebarAccent),
+    sidebarAccentForeground: validColor(themeOverride?.sidebarAccentForeground, themedBase.sidebarAccentForeground),
+    sidebarBorder: validColor(themeOverride?.sidebarBorder, themedBase.sidebarBorder),
+    sidebarRing: validColor(themeOverride?.sidebarRing, themedBase.sidebarRing),
+    radius: validColor(themeOverride?.radius, themedBase.radius),
+    fontFamily: validColor(themeOverride?.fontFamily, themedBase.fontFamily),
+    headingFontFamily: validColor(themeOverride?.headingFontFamily, themedBase.headingFontFamily),
+    fontSize: validColor(themeOverride?.fontSize, themedBase.fontSize),
+    fontWeight: validColor(themeOverride?.fontWeight, themedBase.fontWeight),
+    lineHeight: validColor(themeOverride?.lineHeight, themedBase.lineHeight),
+    letterSpacing: validColor(themeOverride?.letterSpacing, themedBase.letterSpacing),
+    // Legacy section appearance fields map to the same semantic tokens as the
+    // shadcn surface fields. Keeping these derived prevents newly opened
+    // section editors from falling back to stale, hard-coded template colors
+    // after a page theme is changed.
+    cardBackground: validColor(themeOverride?.card, themedBase.card),
+    cardHoverBackground: validColor(themeOverride?.muted, themedBase.cardHoverBackground),
   };
 };
 

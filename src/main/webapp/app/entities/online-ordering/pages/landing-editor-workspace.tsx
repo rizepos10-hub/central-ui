@@ -90,6 +90,8 @@ type LandingEditorWorkspaceProps = {
   onBack: () => void;
   onOpenLivePreview: () => void;
   onSetActiveAndPreview: () => void;
+  renderThemeProperties: () => ReactNode;
+  renderThemeCanvas: () => ReactNode;
   renderPageProperties: () => ReactNode;
   renderChromeProperties: (part: 'header' | 'footer') => ReactNode;
   renderSectionProperties: (index: number) => ReactNode;
@@ -143,6 +145,8 @@ export default function LandingEditorWorkspace({
   onBack,
   onOpenLivePreview,
   onSetActiveAndPreview,
+  renderThemeProperties,
+  renderThemeCanvas,
   renderPageProperties,
   renderChromeProperties,
   renderSectionProperties,
@@ -227,7 +231,7 @@ export default function LandingEditorWorkspace({
       } else {
         onSelectSection(null);
       }
-      if (node) sendToFrame('host-focus', { nodeId: node.id });
+      if (node?.kind !== 'theme') sendToFrame('host-focus', { nodeId: node.id });
     }, [onSelectSection, page.sections, sendToFrame],
   );
 
@@ -320,22 +324,25 @@ export default function LandingEditorWorkspace({
   };
 
   const toggleSection = (sectionId: string) => setExpandedSections(previous => ({ ...previous, [sectionId]: !previous[sectionId] }));
+  const themeNode: EditorNode = { id: 'theme', kind: 'theme', label: 'Theme', fieldPath: 'themeOverride', editable: true };
   const pageNode: EditorNode = { id: 'page', kind: 'page', label: page.name || 'Landing page', editable: true };
   const activeNode = selectedNode?.id === 'page' ? pageNode : selectedNode;
 
-  const properties = activeNode?.kind === 'section' && selectedSectionIndex != null
-    ? renderSectionProperties(selectedSectionIndex)
-    : activeNode?.kind === 'chrome'
-      ? renderChromeProperties(activeNode.fieldPath?.startsWith('chrome.footer') ? 'footer' : 'header')
-      : activeNode?.kind === 'page'
-        ? renderPageProperties()
-        : activeNode
-          ? renderElementProperties(activeNode)
-          : (
-            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-              Select an element to edit.
-            </div>
-          );
+  const properties = activeNode?.kind === 'theme'
+    ? renderThemeProperties()
+    : activeNode?.kind === 'section' && selectedSectionIndex != null
+      ? renderSectionProperties(selectedSectionIndex)
+      : activeNode?.kind === 'chrome'
+        ? renderChromeProperties(activeNode.fieldPath?.startsWith('chrome.footer') ? 'footer' : 'header')
+        : activeNode?.kind === 'page'
+          ? renderPageProperties()
+          : activeNode
+            ? renderElementProperties(activeNode)
+            : (
+              <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                Select an element to edit.
+              </div>
+            );
 
   return (
     <Popover
@@ -444,8 +451,8 @@ export default function LandingEditorWorkspace({
             ))}
           </div>
           <div className="hidden items-center gap-2 text-[11px] text-muted-foreground lg:flex">
-            <span className={cn('h-2 w-2 rounded-full', frameState === 'ready' ? 'bg-emerald-500' : frameState === 'error' ? 'bg-red-500' : 'bg-amber-500')} />
-            {frameState === 'ready' ? 'Live storefront preview' : frameState === 'error' ? 'Preview unavailable' : 'Connecting to storefront…'}
+            <span className={cn('h-2 w-2 rounded-full', activeNode?.kind === 'theme' || frameState === 'ready' ? 'bg-emerald-500' : frameState === 'error' ? 'bg-red-500' : 'bg-amber-500')} />
+            {activeNode?.kind === 'theme' ? 'Theme studio' : frameState === 'ready' ? 'Live storefront preview' : frameState === 'error' ? 'Preview unavailable' : 'Connecting to storefront…'}
           </div>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
@@ -466,6 +473,9 @@ export default function LandingEditorWorkspace({
           <aside className="flex h-full min-h-0 flex-col">
             <div className="border-b px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Structure</p><p className="mt-1 text-[11px] text-muted-foreground">Fixed template slots</p></div>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-2">
+              <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === themeNode.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(themeNode, 'structure')}>
+                <span className="h-2 w-2 rounded-full bg-violet-500" /><span className="min-w-0 flex-1 truncate">Theme</span><span className="ml-auto text-[10px] text-muted-foreground">Edit</span>
+              </button>
               <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === 'page' && 'bg-primary/10 text-primary')} onClick={() => selectNode(pageNode, 'structure')}>
                 <span className="h-2 w-2 rounded-full bg-primary" /><span className="min-w-0 flex-1 truncate">{page.name || 'Landing page'}</span>
               </button>
@@ -505,7 +515,11 @@ export default function LandingEditorWorkspace({
         <ResizableHandle id="structure-resize" aria-label="Resize structure panel" withHandle />
         <ResizablePanel id="canvas" defaultSize="68%" minSize="30%" className="min-w-0 overflow-hidden">
           <main className="flex h-full min-h-0 min-w-0 items-start justify-center overflow-hidden bg-slate-100 p-3 sm:p-5">
-            {frameState === 'error' ? (
+            {activeNode?.kind === 'theme' ? (
+              <div className="flex h-full min-h-0 w-full overflow-hidden rounded-xl border bg-background shadow-lg">
+                {renderThemeCanvas()}
+              </div>
+            ) : frameState === 'error' ? (
               <div className="flex max-w-md flex-col items-center gap-4 py-16 text-center">
                 <div className="rounded-xl border bg-background p-3 shadow-sm"><PageTemplatePreview page={page} isActive={false} storeDomain={uiSettings.domain} showLinks={false} /></div>
                 <div><p className="text-sm font-semibold">Preview needs attention</p><p className="mt-1 text-xs text-muted-foreground">{frameError || 'The storefront frame was blocked or timed out.'}</p></div>
@@ -533,13 +547,17 @@ export default function LandingEditorWorkspace({
       </ResizablePanelGroup>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100 p-3">
-          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white shadow-lg"><iframe key={`mobile-${frameKey}`} ref={element => { iframeRefs.current[1] = element; }} title="Landing page storefront preview" src={iframeSrc} className="block h-full min-h-0 w-full flex-1" /></div>
-          {frameState === 'error' && <div className="absolute inset-x-6 bottom-6 rounded-lg border bg-background p-3 text-center text-xs shadow-md" role="alert"><p>{frameError}</p><Button size="sm" className="mt-2" onClick={retryFrame}>Retry</Button></div>}
+          <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100 p-3">
+          {activeNode?.kind === 'theme' ? (
+            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-background shadow-lg">{renderThemeCanvas()}</div>
+          ) : (
+            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white shadow-lg"><iframe key={`mobile-${frameKey}`} ref={element => { iframeRefs.current[1] = element; }} title="Landing page storefront preview" src={iframeSrc} className="block h-full min-h-0 w-full flex-1" /></div>
+          )}
+          {frameState === 'error' && activeNode?.kind !== 'theme' && <div className="absolute inset-x-6 bottom-6 rounded-lg border bg-background p-3 text-center text-xs shadow-md" role="alert"><p>{frameError}</p><Button size="sm" className="mt-2" onClick={retryFrame}>Retry</Button></div>}
         </div>
         <div className="flex shrink-0 items-center gap-2 border-t bg-background p-2">
           <PopoverTrigger asChild>
-            <Button variant="outline" className="flex-1 text-xs" disabled={!activeNode || !quickPropertiesAnchor}>Edit</Button>
+            <Button variant="outline" className="flex-1 text-xs" disabled={!activeNode || (!quickPropertiesAnchor && activeNode.kind !== 'theme')}>Edit</Button>
           </PopoverTrigger>
           <Button className="flex-1 text-xs" disabled={updating || !page.id} onClick={saveAndFlush}>Save changes</Button>
         </div>

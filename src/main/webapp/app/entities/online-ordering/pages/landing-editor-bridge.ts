@@ -53,7 +53,7 @@ export type EditorNodeEditor = {
 export type EditorNode = {
   id: string;
   parentId?: string;
-  kind: 'page' | 'chrome' | 'section' | 'component' | 'media' | 'text' | 'action';
+  kind: 'theme' | 'page' | 'chrome' | 'section' | 'component' | 'media' | 'text' | 'action';
   label: string;
   fieldPath?: string;
   editable: boolean;

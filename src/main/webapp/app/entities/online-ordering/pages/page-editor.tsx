@@ -44,6 +44,7 @@ import LandingEditorWorkspace from './landing-editor-workspace';
 import { EditorNode, normalizeLandingPage } from './landing-editor-bridge';
 import ElementPropertiesFields from './element-properties-fields';
 import CourtyardSectionFields from './courtyard-section-fields';
+import ThemeEditorPreview from './theme-editor-preview';
 
 const sectionLabel = (type: SectionType) =>
   type
@@ -288,7 +289,6 @@ const OnlineOrderingPageEditor = () => {
             <div><Label>Slug</Label><Input className="h-8 text-xs" value={page.slug ?? ''} onChange={event => updatePageField('slug', event.target.value.toLowerCase())} placeholder="home" /></div>
           </div>
         </PropertyEditorGroup>
-        <PageThemeOverrideFields templateKey={page.templateKey} themeOverride={page.themeOverride ?? {}} onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)} />
         <PropertyEditorGroup title="Search preview" description="How this page appears in search and sharing" defaultOpen={false}>
           <div className="space-y-2">
             <div><Label>SEO title</Label><Input className="h-8 text-xs" value={page.seo?.title ?? ''} onChange={event => updatePageField('seo', { ...(page.seo ?? {}), title: event.target.value } as IPageSeo)} placeholder="Landing page title" /></div>
@@ -298,6 +298,16 @@ const OnlineOrderingPageEditor = () => {
       </CardContent>
     </Card>
   );
+
+  const renderThemeProperties = () => (
+    <PageThemeOverrideFields
+      templateKey={page.templateKey}
+      themeOverride={page.themeOverride ?? {}}
+      onChange={(value: IPageThemeOverride) => updatePageField('themeOverride', value)}
+    />
+  );
+
+  const renderThemeCanvas = () => <ThemeEditorPreview pageName={page.name} templateKey={page.templateKey} themeOverride={page.themeOverride} />;
 
   const renderChromeProperties = (part: 'header' | 'footer') => <PageChromeFields part={part} templateKey={page.templateKey} chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
 
@@ -360,9 +370,11 @@ const OnlineOrderingPageEditor = () => {
         onUndo={() => dispatchHistory({ type: 'undo' })}
         onRedo={() => dispatchHistory({ type: 'redo' })}
         onBack={() => navigate('/online-ordering/pages')}
-        onOpenLivePreview={() => openPreview(previewUrl)}
-        onSetActiveAndPreview={handleSetActiveAndPreview}
-        renderPageProperties={renderPageProperties}
+         onOpenLivePreview={() => openPreview(previewUrl)}
+         onSetActiveAndPreview={handleSetActiveAndPreview}
+         renderThemeProperties={renderThemeProperties}
+         renderThemeCanvas={renderThemeCanvas}
+         renderPageProperties={renderPageProperties}
         renderChromeProperties={renderChromeProperties}
         renderSectionProperties={renderSectionProperties}
         renderAppearanceProperties={renderAppearanceProperties}

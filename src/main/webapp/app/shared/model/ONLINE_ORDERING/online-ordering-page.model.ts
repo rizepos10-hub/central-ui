@@ -34,6 +34,26 @@ export interface IPageThemeOverride {
   ring?: string;
   destructive?: string;
   destructiveForeground?: string;
+  chart1?: string;
+  chart2?: string;
+  chart3?: string;
+  chart4?: string;
+  chart5?: string;
+  sidebarBackground?: string;
+  sidebarForeground?: string;
+  sidebarPrimary?: string;
+  sidebarPrimaryForeground?: string;
+  sidebarAccent?: string;
+  sidebarAccentForeground?: string;
+  sidebarBorder?: string;
+  sidebarRing?: string;
+  radius?: string;
+  fontFamily?: string;
+  headingFontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  lineHeight?: string;
+  letterSpacing?: string;
 }
 
 export interface IPageChrome {
