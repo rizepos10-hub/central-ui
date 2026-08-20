@@ -45,6 +45,7 @@ import { EditorNode, normalizeLandingPage } from './landing-editor-bridge';
 import ElementPropertiesFields from './element-properties-fields';
 import CourtyardSectionFields from './courtyard-section-fields';
 import ThemeEditorPreview from './theme-editor-preview';
+import ShopPageFields from './shop-page-fields';
 
 const sectionLabel = (type: SectionType) =>
   type
@@ -311,6 +312,12 @@ const OnlineOrderingPageEditor = () => {
 
   const renderChromeProperties = (part: 'header' | 'footer') => <PageChromeFields part={part} templateKey={page.templateKey} chrome={page.chrome ?? {}} onChange={value => updatePageField('chrome', value)} />;
 
+  const renderShopProperties = (node?: EditorNode) => {
+    const focus = node?.kind === 'shop' ? undefined : node?.fieldPath?.startsWith('shop.') ? node.fieldPath.slice('shop.'.length).split('.')[0] as 'masthead' | 'content' | 'sidebar' | 'toolbar' | 'grid' | 'card' : undefined;
+    const chrome = page.chrome ?? {};
+    return <ShopPageFields shop={chrome.shop ?? {}} templateKey={page.templateKey} themeOverride={page.themeOverride} focus={focus} onChange={shop => updatePageField('chrome', { ...chrome, shop })} />;
+  };
+
   const renderSectionProperties = (index: number) => {
     const section = page.sections?.[index];
     if (!section) return <p className="text-xs text-muted-foreground">This template slot is unavailable.</p>;
@@ -350,7 +357,7 @@ const OnlineOrderingPageEditor = () => {
   );
 
   const renderElementProperties = (node: EditorNode) => (
-    <ElementPropertiesFields node={node} page={page} onUpdatePath={updatePagePath} />
+    node.fieldPath?.startsWith('shop.') ? renderShopProperties(node) : <ElementPropertiesFields node={node} page={page} onUpdatePath={updatePagePath} />
   );
 
   return (
@@ -379,6 +386,7 @@ const OnlineOrderingPageEditor = () => {
         renderSectionProperties={renderSectionProperties}
         renderAppearanceProperties={renderAppearanceProperties}
         renderElementProperties={renderElementProperties}
+        renderShopProperties={renderShopProperties}
       />
       <ItemSelectionModal
         isOpen={itemModalOpen}

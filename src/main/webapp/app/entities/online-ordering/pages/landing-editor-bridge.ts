@@ -53,7 +53,7 @@ export type EditorNodeEditor = {
 export type EditorNode = {
   id: string;
   parentId?: string;
-  kind: 'theme' | 'page' | 'chrome' | 'section' | 'component' | 'media' | 'text' | 'action';
+  kind: 'theme' | 'page' | 'shop' | 'chrome' | 'section' | 'component' | 'media' | 'text' | 'action';
   label: string;
   fieldPath?: string;
   editable: boolean;
@@ -152,7 +152,7 @@ export function editorPreviewOrigin(url: string): string | null {
   }
 }
 
-export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: string): string {
+export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: string, view: 'landing' | 'shop' = 'landing'): string {
   const configured = runtimeConfig.ONLINE_ORDERING_EDITOR_URL?.trim();
   const isLocalDevelopment = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const base = (configured || (isLocalDevelopment ? LOCAL_STOREFRONT_URL : storefrontDomain) || LOCAL_STOREFRONT_URL).replace(/\/$/, '');
@@ -162,6 +162,7 @@ export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: s
   const url = new URL(path, window.location.origin);
   url.searchParams.set('editorSession', sessionId);
   url.searchParams.set('editorNonce', nonce);
+  url.searchParams.set('editorView', view);
   return url.toString();
 }
 

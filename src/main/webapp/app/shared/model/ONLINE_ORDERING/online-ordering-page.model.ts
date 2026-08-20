@@ -59,6 +59,67 @@ export interface IPageThemeOverride {
 export interface IPageChrome {
   header?: Record<string, unknown>;
   footer?: Record<string, unknown>;
+  /** Page-level shop presentation overrides. Kept beside chrome so it is persisted in the existing page map. */
+  shop?: IPageShopOverride;
+}
+
+export type ShopColorValue = string;
+
+export interface IPageShopOverride {
+  masthead?: {
+    background?: ShopColorValue;
+    backgroundImage?: string;
+    foreground?: ShopColorValue;
+    paddingY?: string;
+    textAlign?: 'left' | 'center' | 'right';
+    showCategories?: boolean;
+  };
+  content?: {
+    background?: ShopColorValue;
+    foreground?: ShopColorValue;
+    paddingY?: string;
+    maxWidth?: string;
+  };
+  sidebar?: {
+    visible?: boolean;
+    background?: ShopColorValue;
+    border?: ShopColorValue;
+    radius?: string;
+    width?: string;
+  };
+  toolbar?: {
+    background?: ShopColorValue;
+    border?: ShopColorValue;
+    radius?: string;
+    sticky?: boolean;
+  };
+  grid?: {
+    columns?: 1 | 2 | 3 | 4;
+    gap?: string;
+    background?: ShopColorValue;
+    border?: ShopColorValue;
+    radius?: string;
+    cardLayout?: 'grid' | 'menu';
+  };
+  card?: {
+    background?: ShopColorValue;
+    foreground?: ShopColorValue;
+    border?: ShopColorValue;
+    hoverBackground?: ShopColorValue;
+    hoverBorder?: ShopColorValue;
+    radius?: string;
+    imageBackground?: ShopColorValue;
+    imageAspect?: string;
+    imagePadding?: string;
+    titleColor?: ShopColorValue;
+    categoryColor?: ShopColorValue;
+    priceColor?: ShopColorValue;
+    actionBackground?: ShopColorValue;
+    actionForeground?: ShopColorValue;
+    actionBorder?: ShopColorValue;
+    actionRadius?: string;
+    hoverEffect?: 'none' | 'subtle' | 'lift';
+  };
 }
 
 export interface IPageSection {

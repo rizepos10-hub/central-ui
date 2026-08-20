@@ -1,9 +1,8 @@
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, ExternalLink, Eye, EyeOff, Monitor, Redo2, Save, Smartphone, Tablet, Undo2, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, Eye, EyeOff, Monitor, PanelsTopLeft, Redo2, Save, ShoppingBag, Smartphone, Tablet, Undo2, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from 'app/lib/utils';
 import { IOnlineOrderingPage, IPageSection } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -23,24 +22,16 @@ import {
 
 type FrameState = 'loading' | 'ready' | 'error';
 type Viewport = 'desktop' | 'tablet' | 'mobile';
+type EditorView = 'landing' | 'shop';
 type EditorLayout = {
   structure: number;
   canvas: number;
   properties: number;
 };
 
-type FrameAnchorRect = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  viewportWidth: number;
-  viewportHeight: number;
-};
-
-type QuickPropertiesAnchor = Pick<FrameAnchorRect, 'left' | 'top' | 'width' | 'height'>;
-
 const EDITOR_LAYOUT_STORAGE_KEY = 'landing-editor-workspace-layout-v1';
+const LANDING_FRAME_READY_TIMEOUT_MS = 12_000;
+const SHOP_FRAME_READY_TIMEOUT_MS = 45_000;
 const DEFAULT_EDITOR_LAYOUT: EditorLayout = {
   structure: 16,
   canvas: 68,
@@ -97,6 +88,7 @@ type LandingEditorWorkspaceProps = {
   renderSectionProperties: (index: number) => ReactNode;
   renderAppearanceProperties: (index: number) => ReactNode;
   renderElementProperties: (node: EditorNode) => ReactNode;
+  renderShopProperties: (node?: EditorNode) => ReactNode;
 };
 
 const sectionLabel = (type?: SectionType) =>
@@ -110,22 +102,6 @@ const viewportWidth: Record<Viewport, string> = {
   desktop: '100%',
   tablet: '768px',
   mobile: '390px',
-};
-
-const translateFrameAnchor = (frame: HTMLIFrameElement | null, anchorRect?: FrameAnchorRect): QuickPropertiesAnchor | null => {
-  if (!frame || !anchorRect) return null;
-  const values = [anchorRect.left, anchorRect.top, anchorRect.width, anchorRect.height, anchorRect.viewportWidth, anchorRect.viewportHeight];
-  if (values.some(value => !Number.isFinite(value)) || anchorRect.viewportWidth <= 0 || anchorRect.viewportHeight <= 0) return null;
-
-  const frameRect = frame.getBoundingClientRect();
-  const scaleX = frameRect.width / anchorRect.viewportWidth;
-  const scaleY = frameRect.height / anchorRect.viewportHeight;
-  return {
-    left: frameRect.left + anchorRect.left * scaleX,
-    top: frameRect.top + anchorRect.top * scaleY,
-    width: Math.max(anchorRect.width * scaleX, 1),
-    height: Math.max(anchorRect.height * scaleY, 1),
-  };
 };
 
 export default function LandingEditorWorkspace({
@@ -152,6 +128,7 @@ export default function LandingEditorWorkspace({
   renderSectionProperties,
   renderAppearanceProperties,
   renderElementProperties,
+  renderShopProperties,
 }: LandingEditorWorkspaceProps) {
   const iframeRefs = useRef<Array<HTMLIFrameElement | null>>([]);
   const hostRevision = useRef(0);
@@ -159,12 +136,11 @@ export default function LandingEditorWorkspace({
   const [selectedNode, setSelectedNode] = useState<EditorNode | null>(null);
   const [registry, setRegistry] = useState<EditorNode[]>([]);
   const [mode, setMode] = useState<EditorMode>('edit');
+  const [editorView, setEditorView] = useState<EditorView>('landing');
   const [viewport, setViewport] = useState<Viewport>('desktop');
   const [frameState, setFrameState] = useState<FrameState>('loading');
   const [frameError, setFrameError] = useState<string>();
   const [frameKey, setFrameKey] = useState(0);
-  const [quickPropertiesOpen, setQuickPropertiesOpen] = useState(false);
-  const [quickPropertiesAnchor, setQuickPropertiesAnchor] = useState<QuickPropertiesAnchor | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [editorLayout] = useState<EditorLayout>(() => readEditorLayout());
 
@@ -190,7 +166,7 @@ export default function LandingEditorWorkspace({
     }
   }, []);
 
-  const iframeSrc = useMemo(() => editorPreviewUrl(page, uiSettings.domain), [page.id, uiSettings.domain]);
+  const iframeSrc = useMemo(() => editorPreviewUrl(page, uiSettings.domain, editorView), [page.id, uiSettings.domain, editorView]);
   const frameOrigin = useMemo(() => editorPreviewOrigin(iframeSrc), [iframeSrc]);
   const allowedOrigins = useMemo(() => previewAllowedOrigins(iframeSrc), [iframeSrc]);
   const session = useMemo(() => {
@@ -214,12 +190,8 @@ export default function LandingEditorWorkspace({
   );
 
   const selectNode = useCallback(
-    (node: EditorNode | null, source: 'canvas' | 'structure' = 'structure') => {
+    (node: EditorNode | null) => {
       setSelectedNode(node);
-      if (source === 'structure') {
-        setQuickPropertiesAnchor(null);
-        setQuickPropertiesOpen(false);
-      }
       if (node?.kind === 'section') {
         const sectionId = node.id.slice('section.'.length);
         let index = (page.sections ?? []).findIndex(section => section.id === sectionId);
@@ -254,7 +226,7 @@ export default function LandingEditorWorkspace({
           break;
         }
         case 'frame-select': {
-          const payload = event.data.payload as { nodeId?: string; fieldPath?: string; kind?: EditorNode['kind']; label?: string; editor?: EditorNode['editor']; anchorRect?: FrameAnchorRect };
+          const payload = event.data.payload as { nodeId?: string; fieldPath?: string; kind?: EditorNode['kind']; label?: string; editor?: EditorNode['editor'] };
           const node = registry.find(entry => entry.id === payload?.nodeId) ?? (payload?.nodeId ? {
             id: payload.nodeId,
             kind: payload.kind ?? 'component',
@@ -263,12 +235,7 @@ export default function LandingEditorWorkspace({
             editor: payload.editor,
             editable: true,
           } : null);
-          const frame = iframeRefs.current.find(candidate => candidate?.contentWindow === event.source) ?? null;
-          const isMainSectionElement = Boolean(node?.fieldPath?.startsWith('sections.') && node.kind !== 'section');
-          const anchor = isMainSectionElement ? translateFrameAnchor(frame, payload.anchorRect) : null;
-          selectNode(node, 'canvas');
-          setQuickPropertiesAnchor(anchor);
-          setQuickPropertiesOpen(Boolean(anchor));
+          selectNode(node);
           break;
         }
         case 'frame-error':
@@ -288,12 +255,15 @@ export default function LandingEditorWorkspace({
 
   useEffect(() => {
     if (frameState === 'ready') return;
+    const timeoutMs = editorView === 'shop' ? SHOP_FRAME_READY_TIMEOUT_MS : LANDING_FRAME_READY_TIMEOUT_MS;
     const timer = window.setTimeout(() => {
       setFrameState('error');
-      setFrameError('The storefront preview did not answer. Check the preview URL and allowed origins.');
-    }, 12000);
+      setFrameError(editorView === 'shop'
+        ? 'The shop preview is taking longer than usual. Check the storefront connection and try again.'
+        : 'The storefront preview did not answer. Check the preview URL and allowed origins.');
+    }, timeoutMs);
     return () => window.clearTimeout(timer);
-  }, [frameKey, frameState]);
+  }, [editorView, frameKey, frameState]);
 
   useEffect(() => {
     if (frameState !== 'ready') return;
@@ -304,6 +274,17 @@ export default function LandingEditorWorkspace({
   const changeMode = (nextMode: EditorMode) => {
     setMode(nextMode);
     sendToFrame('host-set-mode', { mode: nextMode });
+  };
+
+  const changeEditorView = (nextView: EditorView) => {
+    if (nextView === editorView) return;
+    setEditorView(nextView);
+    setSelectedNode(null);
+    onSelectSection(null);
+    lastFrameRevision.current = -1;
+    setFrameState('loading');
+    setFrameError(undefined);
+    setFrameKey(key => key + 1);
   };
 
   const retryFrame = () => {
@@ -326,6 +307,7 @@ export default function LandingEditorWorkspace({
   const toggleSection = (sectionId: string) => setExpandedSections(previous => ({ ...previous, [sectionId]: !previous[sectionId] }));
   const themeNode: EditorNode = { id: 'theme', kind: 'theme', label: 'Theme', fieldPath: 'themeOverride', editable: true };
   const pageNode: EditorNode = { id: 'page', kind: 'page', label: page.name || 'Landing page', editable: true };
+  const shopNode: EditorNode = { id: 'shop', kind: 'shop', label: 'Shop page', fieldPath: 'chrome.shop', editable: true };
   const activeNode = selectedNode?.id === 'page' ? pageNode : selectedNode;
 
   const properties = activeNode?.kind === 'theme'
@@ -336,22 +318,17 @@ export default function LandingEditorWorkspace({
         ? renderChromeProperties(activeNode.fieldPath?.startsWith('chrome.footer') ? 'footer' : 'header')
         : activeNode?.kind === 'page'
           ? renderPageProperties()
-          : activeNode
-            ? renderElementProperties(activeNode)
-            : (
-              <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-                Select an element to edit.
-              </div>
-            );
+          : activeNode?.kind === 'shop' || activeNode?.fieldPath?.startsWith('shop.')
+            ? renderShopProperties(activeNode)
+            : activeNode
+              ? renderElementProperties(activeNode)
+              : (
+                <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                  Select an element to edit.
+                </div>
+              );
 
   return (
-    <Popover
-      open={quickPropertiesOpen}
-      onOpenChange={open => {
-        setQuickPropertiesOpen(open);
-        if (!open) setQuickPropertiesAnchor(null);
-      }}
-    >
       <div className="flex h-[calc(100dvh-3rem)] min-h-0 w-full flex-col overflow-hidden bg-muted/20 text-foreground">
       <style>{`
         .landing-editor-properties {
@@ -370,37 +347,10 @@ export default function LandingEditorWorkspace({
         .landing-editor-property-groups > .group {
           container-type: inline-size;
         }
-        @media (min-width: 40rem) {
-          .landing-editor-properties-popover .landing-editor-property-groups {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
         .landing-editor-properties .property-editor-group-description {
           display: none;
         }
         .landing-editor-properties .property-editor-group-content {
-          padding: 0.5rem;
-        }
-        .landing-editor-properties-popover .landing-editor-chrome-fields {
-          border: 0;
-          box-shadow: none;
-        }
-        .landing-editor-properties-popover .property-editor-group > summary {
-          gap: 0.375rem;
-          padding: 0.375rem 0.5rem;
-        }
-        .landing-editor-properties-popover .property-editor-group > summary > span:first-child {
-          height: 1.25rem;
-          width: 1.25rem;
-        }
-        .landing-editor-properties-popover .property-editor-group-content {
-          padding: 0.375rem;
-        }
-        .landing-editor-properties-popover .landing-editor-chrome-sections,
-        .landing-editor-properties-popover .landing-editor-property-groups {
-          gap: 0.375rem;
-        }
-        .landing-editor-properties-popover .landing-editor-chrome-sections > section {
           padding: 0.5rem;
         }
         .landing-editor-wide-field {
@@ -444,6 +394,10 @@ export default function LandingEditorWorkspace({
           </div>
           <div className="hidden items-center gap-1 border-l pl-3 text-xs text-muted-foreground sm:flex">
             <span className="mr-1">Canvas</span>
+            <div className="mr-2 flex items-center rounded-md border bg-muted/40 p-0.5">
+              <Button variant={editorView === 'landing' ? 'secondary' : 'ghost'} className="h-7 gap-1 px-2 text-[11px]" onClick={() => changeEditorView('landing')}><PanelsTopLeft className="h-3 w-3" />Landing</Button>
+              <Button variant={editorView === 'shop' ? 'secondary' : 'ghost'} className="h-7 gap-1 px-2 text-[11px]" onClick={() => changeEditorView('shop')}><ShoppingBag className="h-3 w-3" />Shop</Button>
+            </div>
             {(['desktop', 'tablet', 'mobile'] as Viewport[]).map(option => (
               <Button key={option} variant={viewport === option ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setViewport(option)} aria-label={`${option} viewport`}>
                 {option === 'desktop' ? <Monitor className="h-3.5 w-3.5" /> : option === 'tablet' ? <Tablet className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
@@ -473,25 +427,37 @@ export default function LandingEditorWorkspace({
           <aside className="flex h-full min-h-0 flex-col">
             <div className="border-b px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Structure</p><p className="mt-1 text-[11px] text-muted-foreground">Fixed template slots</p></div>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-2">
-              <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === themeNode.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(themeNode, 'structure')}>
+              <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === themeNode.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(themeNode)}>
                 <span className="h-2 w-2 rounded-full bg-violet-500" /><span className="min-w-0 flex-1 truncate">Theme</span><span className="ml-auto text-[10px] text-muted-foreground">Edit</span>
               </button>
-              <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === 'page' && 'bg-primary/10 text-primary')} onClick={() => selectNode(pageNode, 'structure')}>
+              <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === 'page' && 'bg-primary/10 text-primary')} onClick={() => selectNode(pageNode)}>
                 <span className="h-2 w-2 rounded-full bg-primary" /><span className="min-w-0 flex-1 truncate">{page.name || 'Landing page'}</span>
               </button>
               {(['header', 'footer'] as const).map(part => {
                 const node: EditorNode = { id: `chrome.${part}`, kind: 'chrome', label: part === 'header' ? 'Navbar' : 'Footer', fieldPath: `chrome.${part}`, editable: true };
-                return <button type="button" key={part} className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === node.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(node, 'structure')}><span className="h-2 w-2 rounded-full bg-slate-400" /><span>{node.label}</span><span className="ml-auto text-[10px] text-muted-foreground">Edit</span></button>;
+                return <button type="button" key={part} className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === node.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(node)}><span className="h-2 w-2 rounded-full bg-slate-400" /><span>{node.label}</span><span className="ml-auto text-[10px] text-muted-foreground">Edit</span></button>;
               })}
               <div className="my-2 border-t" />
-              {(page.sections ?? []).map((section, index) => {
+              {editorView === 'shop' ? (
+                <>
+                  <button type="button" className={cn('flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-muted', activeNode?.id === shopNode.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(shopNode)}>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="min-w-0 flex-1 truncate">Shop page</span><span className="ml-auto text-[10px] text-muted-foreground">Edit</span>
+                  </button>
+                  <div className="my-2 border-t" />
+                  <div className="space-y-0.5">
+                    {registry.filter(entry => entry.fieldPath?.startsWith('shop.') && entry.kind !== 'shop').map(element => <button type="button" key={element.id} className={cn('flex w-full items-center gap-2 rounded px-3 py-2 text-left text-[11px] hover:bg-muted', activeNode?.id === element.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(element)}>
+                      <span className={cn('h-1.5 w-1.5 rounded-full', element.id === 'shop.card' ? 'bg-amber-500' : 'bg-sky-500')} /><span className="min-w-0 flex-1 truncate">{element.label}</span><span className="text-[10px] text-muted-foreground">Edit</span>
+                    </button>)}
+                  </div>
+                </>
+              ) : (page.sections ?? []).map((section, index) => {
                 const sectionId = section.id || `slot-${index + 1}`;
                 const expanded = expandedSections[sectionId] ?? index === selectedSectionIndex;
                 const node: EditorNode = { id: `section.${sectionId}`, kind: 'section', label: sectionLabel(section.type), fieldPath: `sections.${index}.config`, editable: true, locked: true };
                 const sectionElements = registry.filter(entry => entry.kind !== 'page' && entry.kind !== 'chrome' && entry.kind !== 'section' && entry.fieldPath?.startsWith(`sections.${index}.`));
                 return <div key={sectionId} className={cn('rounded-md border', activeNode?.id === node.id && 'border-primary/50 bg-primary/[0.03]')}>
                   <div className="flex items-center gap-1">
-                    <button type="button" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left" onClick={() => { selectNode(node, 'structure'); toggleSection(sectionId); }}>
+                    <button type="button" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left" onClick={() => { selectNode(node); toggleSection(sectionId); }}>
                       {expanded ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
                       <span className="min-w-0 flex-1 truncate text-xs font-medium">{sectionLabel(section.type)}</span>
                       {section.visible === false ? <EyeOff className="h-3 w-3 text-muted-foreground" /> : <Eye className="h-3 w-3 text-emerald-600" />}
@@ -501,7 +467,7 @@ export default function LandingEditorWorkspace({
                   {expanded && <div className="border-t px-2 pb-2 pt-1">
                     <div className="px-5 py-1 text-[10px] text-muted-foreground">Slot {index + 1} · Layout locked</div>
                     {sectionElements.length > 0 && <div className="space-y-0.5">
-                      {sectionElements.map(element => <button type="button" key={element.id} className={cn('flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-[11px] hover:bg-muted', activeNode?.id === element.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(element, 'structure')}>
+                      {sectionElements.map(element => <button type="button" key={element.id} className={cn('flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-[11px] hover:bg-muted', activeNode?.id === element.id && 'bg-primary/10 text-primary')} onClick={() => selectNode(element)}>
                         <span className={cn('h-1.5 w-1.5 rounded-full', element.kind === 'media' ? 'bg-amber-500' : element.kind === 'action' ? 'bg-emerald-500' : 'bg-sky-500')} /><span className="min-w-0 flex-1 truncate">{element.label}</span>
                       </button>)}
                     </div>}
@@ -547,7 +513,7 @@ export default function LandingEditorWorkspace({
       </ResizablePanelGroup>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
-          <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100 p-3">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100 p-3">
           {activeNode?.kind === 'theme' ? (
             <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-background shadow-lg">{renderThemeCanvas()}</div>
           ) : (
@@ -555,42 +521,20 @@ export default function LandingEditorWorkspace({
           )}
           {frameState === 'error' && activeNode?.kind !== 'theme' && <div className="absolute inset-x-6 bottom-6 rounded-lg border bg-background p-3 text-center text-xs shadow-md" role="alert"><p>{frameError}</p><Button size="sm" className="mt-2" onClick={retryFrame}>Retry</Button></div>}
         </div>
+        {activeNode && (
+          <aside className="landing-editor-properties max-h-[42%] shrink-0 overflow-y-auto border-t bg-background">
+            <div className="border-b px-3 py-2"><p className="truncate text-xs font-semibold text-foreground">{activeNode.label || 'Properties'}</p></div>
+            <div className="landing-editor-properties-content min-w-0 p-2">
+              {properties}
+              {activeNode.kind === 'section' && selectedSectionIndex != null && <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>}
+            </div>
+          </aside>
+        )}
         <div className="flex shrink-0 items-center gap-2 border-t bg-background p-2">
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="flex-1 text-xs" disabled={!activeNode || (!quickPropertiesAnchor && activeNode.kind !== 'theme')}>Edit</Button>
-          </PopoverTrigger>
           <Button className="flex-1 text-xs" disabled={updating || !page.id} onClick={saveAndFlush}>Save changes</Button>
         </div>
       </div>
 
       </div>
-
-      {quickPropertiesAnchor && (
-        <PopoverAnchor
-          aria-hidden="true"
-          className="pointer-events-none fixed h-px w-px opacity-0"
-          style={{
-            left: quickPropertiesAnchor.left,
-            top: quickPropertiesAnchor.top,
-            width: quickPropertiesAnchor.width,
-            height: quickPropertiesAnchor.height,
-          }}
-        />
-      )}
-      <PopoverContent
-        side={quickPropertiesAnchor ? 'right' : 'top'}
-        align="start"
-        sideOffset={12}
-        className="landing-editor-properties-popover max-h-[min(70vh,34rem)] w-[min(92vw,26rem)] max-w-[calc(100vw-1rem)] overflow-y-auto p-2 duration-150 ease-out sm:p-2.5"
-      >
-        <div className="landing-editor-properties w-full min-w-0">
-          <div className="mb-2 truncate text-xs font-semibold text-foreground">{activeNode?.label || 'Quick edit'}</div>
-          {properties}
-          {activeNode?.kind === 'section' && selectedSectionIndex != null && (
-            <div className="mt-2 border-t pt-2">{renderAppearanceProperties(selectedSectionIndex)}</div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
   );
 }
