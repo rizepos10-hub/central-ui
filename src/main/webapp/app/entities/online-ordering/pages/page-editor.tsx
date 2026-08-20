@@ -1181,6 +1181,8 @@ const SectionConfigForm = ({
 
   if (section.type === SectionType.RICH_TEXT) {
     const cta = (config.cta as Record<string, string>) ?? {};
+    const imageSide = (config.imageSide as string) ?? (config.imagePosition as string) ?? 'left';
+    const contentAlign = (config.contentAlign as string) ?? 'left';
     return (
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Content" description="Layout, tone, and copy" defaultOpen>
@@ -1206,6 +1208,17 @@ const SectionConfigForm = ({
                   <SelectItem value="default">Default</SelectItem>
                   <SelectItem value="primary">Primary</SelectItem>
                 </SelectContent>
+                </SectionTypeSelect>
+              </div>
+            <div>
+              <Label>Content alignment</Label>
+              <SectionTypeSelect value={contentAlign === 'center' || contentAlign === 'right' ? contentAlign : 'left'} onValueChange={value => onConfigChange('contentAlign', value)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
               </SectionTypeSelect>
             </div>
             <div><Label>Eyebrow</Label><Input value={(config.eyebrow as string) ?? ''} onChange={e => onConfigChange('eyebrow', e.target.value)} /></div>
@@ -1226,6 +1239,16 @@ const SectionConfigForm = ({
             }}
           />
           <div className="landing-editor-fields-grid mt-2 grid gap-2">
+            <div>
+              <Label>Image side</Label>
+              <SectionTypeSelect value={imageSide === 'right' ? 'right' : 'left'} onValueChange={value => onConfigChange('imageSide', value)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </SectionTypeSelect>
+            </div>
             <div><Label>CTA text</Label><Input value={cta.text ?? ''} onChange={e => onConfigChange('cta', { ...cta, text: e.target.value })} /></div>
             <div><Label>CTA URL</Label><Input value={cta.url ?? ''} onChange={e => onConfigChange('cta', { ...cta, url: e.target.value })} /></div>
           </div>
@@ -1361,7 +1384,7 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
         ],
       };
     case SectionType.RICH_TEXT:
-      return { layout: 'split', background: 'primary', eyebrow: 'About', title: '', body: '', cta: { text: 'Visit us', url: '#contact' }, appearance };
+      return { layout: 'split', imageSide: 'left', contentAlign: 'left', background: 'primary', eyebrow: 'About', title: '', body: '', cta: { text: 'Visit us', url: '#contact' }, appearance };
     case SectionType.BUSINESS_INFO:
       return { brandName: '', brandAccent: '', title: '', subtitle: '', address: '', phone: '', secondaryPhone: '', showContact: true, showHours: true, appearance };
     case SectionType.SPACER:

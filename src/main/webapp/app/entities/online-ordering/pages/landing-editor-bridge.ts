@@ -48,6 +48,8 @@ export type EditorNodeEditor = {
   heightPath?: string;
   /** The source is owned by the business/branch settings, not the page. */
   sourceLocked?: boolean;
+  /** The displayed value is owned by storefront settings; only appearance/visibility may change. */
+  contentLocked?: boolean;
 };
 
 export type EditorNode = {

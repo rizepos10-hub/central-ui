@@ -196,14 +196,21 @@ function MediaProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsPr
 }
 
 function TextProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsProps) {
-  const textPath = node.editor?.textPath || node.fieldPath;
+  const contentLocked = node.editor?.contentLocked === true;
+  const textPath = contentLocked ? undefined : node.editor?.textPath || node.fieldPath;
   const value = textPath ? getPathValue(page, textPath) : undefined;
 
   return (
     <>
-      <PropertyEditorGroup title="Content" description="Text shown in the storefront" defaultOpen>
-        <Label className="text-xs">Content</Label>
-        <textarea className="mt-1.5 min-h-20 w-full rounded-md border bg-background px-2.5 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring" value={textValue(value)} onChange={event => textPath && onUpdatePath(textPath, event.target.value)} />
+      <PropertyEditorGroup title="Content" description={contentLocked ? 'Managed by Online Ordering settings' : 'Text shown in the storefront'} defaultOpen>
+        {contentLocked ? (
+          <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">This value is read from the business or branch settings.</p>
+        ) : (
+          <>
+            <Label className="text-xs">Content</Label>
+            <textarea className="mt-1.5 min-h-20 w-full rounded-md border bg-background px-2.5 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring" value={textValue(value)} onChange={event => textPath && onUpdatePath(textPath, event.target.value)} />
+          </>
+        )}
         <VisibilityField node={node} page={page} onUpdatePath={onUpdatePath} />
       </PropertyEditorGroup>
       <SharedStyleFields node={node} page={page} onUpdatePath={onUpdatePath} />
@@ -212,6 +219,7 @@ function TextProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsPro
 }
 
 function ActionProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsProps) {
+  const contentLocked = node.editor?.contentLocked === true;
   const textPath = node.editor?.textPath;
   const urlPath = node.editor?.urlPath;
   const variantPath = node.editor?.variantPath;
@@ -219,10 +227,16 @@ function ActionProperties({ node, page, onUpdatePath }: ElementPropertiesFieldsP
 
   return (
     <>
-      <PropertyEditorGroup title="Content & link" description="Button label, destination, and variant" defaultOpen>
-        {textPath && <StyleTextField label="Button text" value={getPathValue(page, textPath)} onChange={value => onUpdatePath(textPath, value)} />}
-        {urlPath && <StyleTextField label="Link" value={urlValue ?? node.editor?.urlFallback} placeholder="/path or https://…" onChange={value => onUpdatePath(urlPath, value)} />}
-        {variantPath && <StyleTextField label="Variant" value={getPathValue(page, variantPath)} placeholder="primary" onChange={value => onUpdatePath(variantPath, value)} />}
+      <PropertyEditorGroup title="Content & link" description={contentLocked ? 'Managed by Online Ordering settings' : 'Button label, destination, and variant'} defaultOpen>
+        {contentLocked ? (
+          <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">This value and destination are read from the business or branch settings.</p>
+        ) : (
+          <>
+            {textPath && <StyleTextField label="Button text" value={getPathValue(page, textPath)} onChange={value => onUpdatePath(textPath, value)} />}
+            {urlPath && <StyleTextField label="Link" value={urlValue ?? node.editor?.urlFallback} placeholder="/path or https://…" onChange={value => onUpdatePath(urlPath, value)} />}
+            {variantPath && <StyleTextField label="Variant" value={getPathValue(page, variantPath)} placeholder="primary" onChange={value => onUpdatePath(variantPath, value)} />}
+          </>
+        )}
         <VisibilityField node={node} page={page} onUpdatePath={onUpdatePath} />
       </PropertyEditorGroup>
       <SharedStyleFields node={node} page={page} onUpdatePath={onUpdatePath} />

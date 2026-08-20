@@ -474,13 +474,9 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                                   )}
                                   {blockType === 'FREE_TEXT' && <div className="landing-editor-wide-field"><TextareaField id={`footer-block-${columnIndex}-${blockIndex}-body`} label="Body" value={stringValue(block, 'body')} placeholder="Footer text" onChange={value => updateFooterBlock(columnIndex, blockIndex, { body: value })} /></div>}
                                   {blockType === 'CONTACT' && (
-                                    <>
-                                      <TextField id={`footer-block-${columnIndex}-${blockIndex}-address`} label="Address override" value={stringValue(block, 'address')} onChange={value => updateFooterBlock(columnIndex, blockIndex, { address: value })} />
-                                      <TextField id={`footer-block-${columnIndex}-${blockIndex}-phone`} label="Phone override" value={stringValue(block, 'phone')} onChange={value => updateFooterBlock(columnIndex, blockIndex, { phone: value })} />
-                                      <TextField id={`footer-block-${columnIndex}-${blockIndex}-email`} label="Email override" value={stringValue(block, 'email')} onChange={value => updateFooterBlock(columnIndex, blockIndex, { email: value })} />
-                                    </>
+                                    <p className="landing-editor-wide-field text-[11px] text-muted-foreground">Address, phone, and email are read from Online Ordering settings.</p>
                                   )}
-                                  {blockType === 'WORKING_HOURS' && <div className="landing-editor-wide-field"><TextareaField id={`footer-block-${columnIndex}-${blockIndex}-hours`} label="Hours override" value={stringValue(block, 'hoursText')} placeholder="Working hours" onChange={value => updateFooterBlock(columnIndex, blockIndex, { hoursText: value })} /></div>}
+                                  {blockType === 'WORKING_HOURS' && <p className="landing-editor-wide-field text-[11px] text-muted-foreground">Working hours are read from Online Ordering settings.</p>}
                                   {blockType === 'QUICK_LINKS' && (Array.isArray(footer.quickLinks) ? <p className="landing-editor-wide-field text-[11px] text-muted-foreground">Quick links are managed by the page-level Quick links group above.</p> : blockLinks.map((link, linkIndex) => (
                                     <div className="landing-editor-wide-field grid gap-2 sm:grid-cols-2" key={`footer-block-link-${columnIndex}-${blockIndex}-${linkIndex}`}>
                                       <TextField id={`footer-block-${columnIndex}-${blockIndex}-link-${linkIndex}-label`} label={`Link ${linkIndex + 1} label`} value={stringValue(link, 'label')} onChange={value => updateFooterBlock(columnIndex, blockIndex, { links: blockLinks.map((item, itemIndex) => itemIndex === linkIndex ? { ...item, label: value } : item) })} />
