@@ -19,7 +19,7 @@ const platformLinks = [
     title: 'Windows',
     description: 'Download installer',
     imageUrl: 'content/images/windows.png',
-    link: '/pos-resources/win/rize_pos_setup.exe',
+    link: '/pos-resources/win/lightpayment_setup.exe',
   },
 ];
 
