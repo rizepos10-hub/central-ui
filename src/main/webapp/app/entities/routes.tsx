@@ -70,6 +70,7 @@ const PayoutType = React.lazy(() => import('./payout-type'));
 const CashPayment = React.lazy(() => import('./cash-payment'));
 const PaymentMethodSetting = React.lazy(() => import('./settings/payment-method-setting/index'));
 const TookanSettings = React.lazy(() => import('./settings/tookan'));
+const SenitronSettings = React.lazy(() => import('./settings/senitron'));
 const KioskSlidesSettings = React.lazy(() => import('./settings/kiosk-slides'));
 const OnAccountSettings = React.lazy(() => import('./settings/on-account'));
 const Flyers = React.lazy(() => import('./flyers'));
@@ -166,6 +167,7 @@ export default () => {
         <Route path="cash-payment/*" element={<CashPayment />} />
         <Route path="payment-method-setting/*" element={<PaymentMethodSetting />} />
         <Route path="tookan-settings/*" element={<TookanSettings />} />
+        <Route path="senitron-settings/*" element={<SenitronSettings />} />
         <Route path="kiosk-slides-settings/*" element={<KioskSlidesSettings />} />
         <Route path="on-account-settings/*" element={<OnAccountSettings />} />
         <Route path="flyers/*" element={<Flyers />} />

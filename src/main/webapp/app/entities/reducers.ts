@@ -79,6 +79,7 @@ import product from 'app/entities/item/retail/product/product.reducer';
 import zones from "app/entities/settings/zones/zones.reducer"
 import paymentMethodSetting from "app/entities/settings/payment-method-setting/payment-method-setting.reducer";
 import tookanSetting from "app/entities/settings/tookan/tookan.reducer";
+import senitronSetting from "app/entities/settings/senitron/senitron.reducer";
 import kioskSlidesSetting from "app/entities/settings/kiosk-slides/kiosk-slides.reducer";
 import variant from "app/entities/variant/variant.reducer";
 import flyer from "app/entities/flyers/flyer.reducer";
@@ -212,6 +213,7 @@ const entitiesReducers = {
   zones,
   paymentMethodSetting,
   tookanSetting,
+  senitronSetting,
   kioskSlidesSetting,
   variant,
   flyer,

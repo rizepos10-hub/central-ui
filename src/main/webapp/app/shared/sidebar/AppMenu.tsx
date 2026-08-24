@@ -807,6 +807,12 @@ export const model: MenuItem[] = [
         to: '/on-account-settings',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Senitron',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/senitron-settings',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
       // {
       //   label: 'Tookan Delivery',
       //   role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
