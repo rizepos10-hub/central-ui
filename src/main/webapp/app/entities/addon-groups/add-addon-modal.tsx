@@ -3,13 +3,13 @@ import { getSortState, Translate } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { createEntity, reset } from '../addon/addon.reducer';
+import { createEntity, reset as resetAddon } from '../addon/addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from 'app/shared/components/select/select';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
-import { getEntity, updateAddons, updateEntity, reset, excludeAddonsFromItems } from './addon-groups.reducer';
+import { getEntity, updateAddons, updateEntity, excludeAddonsFromItems } from './addon-groups.reducer';
 import {
   Dialog,
   DialogContent,
@@ -120,7 +120,7 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
     }));
 
     return () => {
-      reset();
+      dispatch(resetAddon());
       setAddon({});
     };
   }, []);
