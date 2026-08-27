@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getSortState, Translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -68,6 +68,13 @@ export const AddonGroupUpdate = () => {
     createNew: boolean;
     entity: IAddonGroup | null;
   }>({ open: false, newAddonIds: [], createNew: false, entity: null });
+  // Baseline addon ids from last loaded/saved group. Do not derive from redux at save time —
+  // a reset() cleanup was wiping entity.addons so every addon looked "new" and got excluded.
+  const baselineAddonIdsRef = useRef<Set<string>>(new Set());
+
+  const rememberBaselineAddons = (group?: IAddonGroup | null) => {
+    baselineAddonIdsRef.current = new Set((group?.addons || []).map(a => a.id).filter((id): id is string => !!id));
+  };
 
   const handleAddonChange = selectedAddons => {
     setAddonGroup(prev => ({
@@ -120,19 +127,23 @@ export const AddonGroupUpdate = () => {
 
     if (isNew) {
       dispatch(reset());
+      rememberBaselineAddons(null);
     } else {
       dispatch(getEntity(id));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (addonGroupsEntity.id) {
-      setAddonGroup(addonGroupsEntity);
     }
     return () => {
       dispatch(reset());
     };
-  }, [addonGroupsEntity.id]);
+  }, []);
+
+  useEffect(() => {
+    // Only hydrate from a loaded entity — ignore empty state after reset() so local form + baseline stay intact.
+    if (!addonGroupsEntity?.id) {
+      return;
+    }
+    setAddonGroup(addonGroupsEntity);
+    rememberBaselineAddons(addonGroupsEntity);
+  }, [addonGroupsEntity]);
 
   const saveEntity = (e, createNew = false) => {
     e?.preventDefault();
@@ -145,6 +156,7 @@ export const AddonGroupUpdate = () => {
         if (createNew) {
           dispatch(reset());
           setAddonGroup({});
+          rememberBaselineAddons(null);
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
@@ -158,8 +170,10 @@ export const AddonGroupUpdate = () => {
       return;
     }
 
-    const previousIds = new Set((addonGroupsEntity?.addons || []).map(a => a.id).filter(Boolean));
-    const newAddonIds = (entity.addons || []).map(a => a.id).filter((addonId): addonId is string => !!addonId && !previousIds.has(addonId));
+    const previousIds = baselineAddonIdsRef.current;
+    const newAddonIds = (entity.addons || [])
+      .map(a => a.id)
+      .filter((addonId): addonId is string => !!addonId && !previousIds.has(addonId));
 
     if (newAddonIds.length > 0) {
       setExcludePrompt({ open: true, newAddonIds, createNew, entity });
@@ -170,7 +184,11 @@ export const AddonGroupUpdate = () => {
   };
 
   const persistEntity = (entity: IAddonGroup, createNew: boolean) => {
-    return dispatch(updateEntity(entity)).then(() => {
+    return dispatch(updateEntity(entity)).then(res => {
+      // @ts-expect-error -- unknown type
+      if (!res?.error) {
+        rememberBaselineAddons(entity);
+      }
       if (createNew) {
         navigate(`/addon-groups/new`);
       }
