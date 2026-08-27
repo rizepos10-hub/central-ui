@@ -149,11 +149,32 @@ export const purgeEntities = createAsyncThunk(
 
 export const updateAddons = createAsyncThunk(
   'addon-groups/update_addons',
-  async ({ id, addonGroupId, addons }: { id: string | number; addonGroupId: string; addons: any[] }, thunkAPI) => {
+  async (
+    {
+      id,
+      addonGroupId,
+      addons,
+      excludeFromExistingItems,
+    }: { id: string | number; addonGroupId: string; addons: any[]; excludeFromExistingItems?: boolean },
+    thunkAPI
+  ) => {
     const requestUrl = `${apiUrl}/${id}/addons`;
-    const result = await axios.put<IAddonGroup>(requestUrl, { addonGroupId, addons });
+    const result = await axios.put<IAddonGroup>(requestUrl, {
+      addonGroupId,
+      addons,
+      excludeFromExistingItems: !!excludeFromExistingItems,
+    });
     thunkAPI.dispatch(getEntities({}));
     return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const excludeAddonsFromItems = createAsyncThunk(
+  'addon-groups/exclude_addons_from_items',
+  async ({ id, addonIds }: { id: string; addonIds: string[] }) => {
+    const requestUrl = `${apiUrl}/${id}/exclude-addons-from-items`;
+    return axios.post<number>(requestUrl, { addonIds });
   },
   { serializeError: serializeAxiosError }
 );

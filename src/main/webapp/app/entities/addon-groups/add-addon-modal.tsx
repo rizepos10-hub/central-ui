@@ -9,27 +9,44 @@ import Select from 'app/shared/components/select/select';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
-import { getEntity, updateAddons, updateEntity } from './addon-groups.reducer';
+import { getEntity, updateAddons, updateEntity, reset, excludeAddonsFromItems } from './addon-groups.reducer';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
 import { ArrowLeftRight } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
   const dispatch = useAppDispatch();
   const [inputMode, setInputMode] = useState<'normal' | 'string'>('normal');
   const [stringAddons, setStringAddons] = useState<string>('');
   const [stringValidationError, setStringValidationError] = useState<string>('');
+  const [excludePrompt, setExcludePrompt] = useState<{
+    open: boolean;
+    mode: 'normal' | 'string';
+    addonIds: string[];
+    continueCreating: boolean;
+    pendingStringAddons?: any[];
+  }>({ open: false, mode: 'normal', addonIds: [], continueCreating: false });
 
   const discounts = useAppSelector(state => state.discount.entities);
   const profileGroups = useAppSelector(state => state.profileGroup.entities);
@@ -108,6 +125,55 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
     };
   }, []);
 
+  const askExcludeOrKeep = (addonIds: string[], continueCreating: boolean) => {
+    if (!addonGroup?.id || addonIds.length === 0) {
+      if (!continueCreating) toggle();
+      return;
+    }
+    setExcludePrompt({ open: true, mode: 'normal', addonIds, continueCreating });
+  };
+
+  const finishExcludePrompt = async (exclude: boolean) => {
+    const prompt = excludePrompt;
+    setExcludePrompt({ open: false, mode: 'normal', addonIds: [], continueCreating: false });
+
+    if (prompt.mode === 'string') {
+      if (!addonGroup?.id || !prompt.pendingStringAddons?.length) return;
+      try {
+        await dispatch(
+          updateAddons({
+            id: addonGroup.id,
+            addonGroupId: addonGroup.id,
+            addons: prompt.pendingStringAddons,
+            excludeFromExistingItems: exclude,
+          })
+        ).unwrap();
+        toast.success(
+          exclude ? 'Addons created and excluded from existing items' : 'Addons created and included on existing items'
+        );
+        setStringAddons('');
+        setStringValidationError('');
+        dispatch(getEntity(addonGroup.id));
+        if (!prompt.continueCreating) toggle();
+      } catch (error: any) {
+        toast.error(error?.message || 'Failed to create addons');
+      }
+      return;
+    }
+
+    if (exclude && addonGroup?.id && prompt.addonIds.length > 0) {
+      try {
+        const result = await dispatch(excludeAddonsFromItems({ id: addonGroup.id, addonIds: prompt.addonIds })).unwrap();
+        toast.success(`Excluded from ${result.data ?? 0} item(s) using this group`);
+      } catch (error: any) {
+        toast.error(error?.message || 'Failed to exclude addons from related items');
+      }
+    }
+    if (!prompt.continueCreating) {
+      toggle();
+    }
+  };
+
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
@@ -115,16 +181,22 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
       const entity = {
         ...addon,
       };
-      dispatch(createEntity(entity)).then((res) => {
+      dispatch(createEntity(entity)).then(res => {
         const payload = res.payload as any;
-          const newGroupEntity = {
-            ...addonGroup,
-            addons: [...(addonGroup?.addons || []), {
+        const newAddonId = payload?.data?.id;
+        const newGroupEntity = {
+          ...addonGroup,
+          addons: [
+            ...(addonGroup?.addons || []),
+            {
               ...entity,
-              id: payload?.data?.id,
-            }],
-          };
-          dispatch(updateEntity(newGroupEntity));
+              id: newAddonId,
+            },
+          ],
+        };
+        dispatch(updateEntity(newGroupEntity)).then(() => {
+          askExcludeOrKeep(newAddonId ? [newAddonId] : [], createNew);
+        });
       });
       setAddon({
         name: '',
@@ -134,20 +206,14 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
       if (!validateStringAddons(stringAddons)) {
         return;
       }
-      
       const parsedAddons = parseStringAddons(stringAddons);
-      
-      dispatch(updateAddons({
-        id: addonGroup?.id,
-        addonGroupId: addonGroup?.id,
-        addons: parsedAddons
-      }));
-      
-      setStringAddons('');
-      setStringValidationError('');
-    }
-    if (!createNew) {
-      toggle();
+      setExcludePrompt({
+        open: true,
+        mode: 'string',
+        addonIds: [],
+        continueCreating: createNew,
+        pendingStringAddons: parsedAddons,
+      });
     }
   };
 
@@ -312,6 +378,36 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <AlertDialog open={excludePrompt.open}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Exclude from existing items?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Items that already use this addon group will include the new addon by default (checked). Exclude it from those items so it
+              stays unchecked until enabled per item?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={e => {
+                e.preventDefault();
+                finishExcludePrompt(false);
+              }}
+            >
+              Keep included (checked)
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={e => {
+                e.preventDefault();
+                finishExcludePrompt(true);
+              }}
+            >
+              Exclude from existing items
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

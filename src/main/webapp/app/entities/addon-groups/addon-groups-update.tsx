@@ -4,7 +4,7 @@ import { getSortState, Translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
-import { getEntity, updateEntity, createEntity, reset } from './addon-groups.reducer';
+import { getEntity, updateEntity, createEntity, reset, excludeAddonsFromItems } from './addon-groups.reducer';
 import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -26,6 +26,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'react-toastify';
 
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -51,6 +62,12 @@ export const AddonGroupUpdate = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLoadingAddons, setIsLoadingAddons] = useState(false);
   const [addons, setAddons] = useState<IAddon[]>([]);
+  const [excludePrompt, setExcludePrompt] = useState<{
+    open: boolean;
+    newAddonIds: string[];
+    createNew: boolean;
+    entity: IAddonGroup | null;
+  }>({ open: false, newAddonIds: [], createNew: false, entity: null });
 
   const handleAddonChange = selectedAddons => {
     setAddonGroup(prev => ({
@@ -124,26 +141,55 @@ export const AddonGroupUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity)).then((res) => {
+      dispatch(createEntity(entity)).then(res => {
         if (createNew) {
           dispatch(reset());
-          setAddonGroup({})
+          setAddonGroup({});
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/addon-groups/${newId}/edit`)
+            navigate(`/addon-groups/${newId}/edit`);
           }
         }
-      })
-    } else {
-      dispatch(updateEntity(entity)).then(() => {
-        if (createNew) {
-          navigate(`/addon-groups/new`)
-        }
-      })
+      });
+      return;
+    }
+
+    const previousIds = new Set((addonGroupsEntity?.addons || []).map(a => a.id).filter(Boolean));
+    const newAddonIds = (entity.addons || []).map(a => a.id).filter((addonId): addonId is string => !!addonId && !previousIds.has(addonId));
+
+    if (newAddonIds.length > 0) {
+      setExcludePrompt({ open: true, newAddonIds, createNew, entity });
+      return;
+    }
+
+    persistEntity(entity, createNew);
+  };
+
+  const persistEntity = (entity: IAddonGroup, createNew: boolean) => {
+    return dispatch(updateEntity(entity)).then(() => {
+      if (createNew) {
+        navigate(`/addon-groups/new`);
+      }
+    });
+  };
+
+  const finishExcludePrompt = async (exclude: boolean) => {
+    const { entity, createNew, newAddonIds } = excludePrompt;
+    setExcludePrompt({ open: false, newAddonIds: [], createNew: false, entity: null });
+    if (!entity?.id) return;
+
+    await persistEntity(entity, createNew);
+    if (exclude && newAddonIds.length > 0) {
+      try {
+        const result = await dispatch(excludeAddonsFromItems({ id: entity.id, addonIds: newAddonIds })).unwrap();
+        toast.success(`Excluded new addon(s) from ${result.data ?? 0} item(s)`);
+      } catch (error: any) {
+        toast.error(error?.message || 'Failed to exclude new addons from related items');
+      }
     }
   };
 
@@ -283,6 +329,36 @@ export const AddonGroupUpdate = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={excludePrompt.open}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Exclude new addons from existing items?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You added {excludePrompt.newAddonIds.length} addon(s) to this group. Items that already use this group will include them by
+              default (checked). Exclude them from those items so they stay unchecked until enabled per item?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={e => {
+                e.preventDefault();
+                finishExcludePrompt(false);
+              }}
+            >
+              Keep included (checked)
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={e => {
+                e.preventDefault();
+                finishExcludePrompt(true);
+              }}
+            >
+              Exclude from existing items
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageWrapper>
   );
 };
