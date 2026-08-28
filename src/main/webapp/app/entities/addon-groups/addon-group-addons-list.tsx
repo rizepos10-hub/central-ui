@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Translate } from 'react-jhipster';
 import { GripVertical, Trash2 } from 'lucide-react';
 import Select from 'app/shared/components/select/select';
@@ -25,6 +25,7 @@ export const AddonGroupAddonsList = ({
   onAddonsChange,
   onSearchAddons,
 }: AddonGroupAddonsListProps) => {
+  const [pickerValue, setPickerValue] = useState<IAddon | null>(null);
   const selectedIds = useMemo(() => new Set((addons || []).map(a => a.id).filter(Boolean)), [addons]);
 
   const addableOptions = useMemo(
@@ -59,18 +60,29 @@ export const AddonGroupAddonsList = ({
           <Translate contentKey="common.addons">Addons</Translate>
         </Label>
         <Select
-          isMulti
-          value={[]}
-          onChange={selected => handleAddAddons(selected as IAddon[] | null)}
+          value={pickerValue}
+          onChange={(selected: IAddon | null) => {
+            if (selected) {
+              handleAddAddons(selected);
+            }
+            setPickerValue(null);
+          }}
           onInputChange={inputValue => onSearchAddons(inputValue || '')}
           options={addableOptions}
-          getOptionLabel={option => option.name}
-          getOptionValue={option => option.id}
+          getOptionLabel={option => String(option?.name ?? 'Unnamed addon')}
+          getOptionValue={option => String(option?.id ?? '')}
+          filterOption={(option, rawInput) => {
+            const input = String(rawInput ?? '').toLowerCase().trim();
+            if (!input) {
+              return true;
+            }
+            const label = String(option.data?.name ?? '').toLowerCase();
+            return label.includes(input);
+          }}
           placeholder="Search and add addons to this group..."
           isLoading={isLoadingAddons}
           isDisabled={disabled}
-          closeMenuOnSelect={false}
-          blurInputOnSelect={false}
+          isClearable
         />
         <p className="text-[11px] text-muted-foreground">
           Add addons above, then drag the handle or use arrows to set display order on POS and item screens.
