@@ -35,7 +35,7 @@ import { getEntities as getProfileGroups } from "app/entities/settings/profile-g
 import { ArrowLeftRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
+export const CreateAddonModal = ({ isOpen, toggle, addonGroup, onGroupUpdated }) => {
   const dispatch = useAppDispatch();
   const [inputMode, setInputMode] = useState<'normal' | 'string'>('normal');
   const [stringAddons, setStringAddons] = useState<string>('');
@@ -46,6 +46,7 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
     addonIds: string[];
     continueCreating: boolean;
     pendingStringAddons?: any[];
+    pendingNormalAddon?: IAddon;
   }>({ open: false, mode: 'normal', addonIds: [], continueCreating: false });
 
   const discounts = useAppSelector(state => state.discount.entities);
@@ -125,12 +126,21 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
     };
   }, []);
 
-  const askExcludeOrKeep = (addonIds: string[], continueCreating: boolean) => {
+  const refreshAddonGroup = async () => {
+    if (!addonGroup?.id) {
+      return;
+    }
+    const updated = await dispatch(getEntity(addonGroup.id)).unwrap();
+    onGroupUpdated?.(updated.data);
+  };
+
+  const askExcludeOrKeep = (addonIds: string[], continueCreating: boolean, pendingNormalAddon?: IAddon) => {
     if (!addonGroup?.id || addonIds.length === 0) {
+      refreshAddonGroup();
       if (!continueCreating) toggle();
       return;
     }
-    setExcludePrompt({ open: true, mode: 'normal', addonIds, continueCreating });
+    setExcludePrompt({ open: true, mode: 'normal', addonIds, continueCreating, pendingNormalAddon });
   };
 
   const finishExcludePrompt = async (exclude: boolean) => {
@@ -153,7 +163,7 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
         );
         setStringAddons('');
         setStringValidationError('');
-        dispatch(getEntity(addonGroup.id));
+        await refreshAddonGroup();
         if (!prompt.continueCreating) toggle();
       } catch (error: any) {
         toast.error(error?.message || 'Failed to create addons');
@@ -161,16 +171,33 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
       return;
     }
 
-    if (exclude && addonGroup?.id && prompt.addonIds.length > 0) {
-      try {
-        const result = await dispatch(excludeAddonsFromItems({ id: addonGroup.id, addonIds: prompt.addonIds })).unwrap();
-        toast.success(`Excluded from ${result.data ?? 0} item(s) using this group`);
-      } catch (error: any) {
-        toast.error(error?.message || 'Failed to exclude addons from related items');
-      }
+    if (!addonGroup?.id || !prompt.pendingNormalAddon?.id) {
+      return;
     }
-    if (!prompt.continueCreating) {
-      toggle();
+
+    try {
+      const newGroupEntity = {
+        ...addonGroup,
+        addons: [
+          ...(addonGroup?.addons || []),
+          prompt.pendingNormalAddon,
+        ],
+      };
+      await dispatch(updateEntity(newGroupEntity)).unwrap();
+      if (exclude) {
+        const result = await dispatch(
+          excludeAddonsFromItems({ id: addonGroup.id, addonIds: prompt.addonIds })
+        ).unwrap();
+        toast.success(`Addon added and excluded from ${result.data ?? 0} item(s) using this group`);
+      } else {
+        toast.success('Addon added and included on existing items');
+      }
+      await refreshAddonGroup();
+      if (!prompt.continueCreating) {
+        toggle();
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to add addon to group');
     }
   };
 
@@ -184,19 +211,18 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
       dispatch(createEntity(entity)).then(res => {
         const payload = res.payload as any;
         const newAddonId = payload?.data?.id;
-        const newGroupEntity = {
-          ...addonGroup,
-          addons: [
-            ...(addonGroup?.addons || []),
-            {
-              ...entity,
-              id: newAddonId,
-            },
-          ],
-        };
-        dispatch(updateEntity(newGroupEntity)).then(() => {
-          askExcludeOrKeep(newAddonId ? [newAddonId] : [], createNew);
-        });
+        if (!newAddonId) {
+          toast.error('Failed to create addon');
+          return;
+        }
+        askExcludeOrKeep(
+          [newAddonId],
+          createNew,
+          {
+            ...entity,
+            id: newAddonId,
+          }
+        );
       });
       setAddon({
         name: '',

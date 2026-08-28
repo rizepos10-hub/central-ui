@@ -240,6 +240,10 @@ export const AddonGroupUpdate = () => {
                     isOpen={showModal}
                     toggle={handleShowModal}
                     addonGroup={addonGroup}
+                    onGroupUpdated={updated => {
+                      setAddonGroup(updated);
+                      rememberBaselineAddons(updated);
+                    }}
                   />
 
                   <form>
