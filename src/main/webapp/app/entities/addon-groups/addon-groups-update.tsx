@@ -5,13 +5,13 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntity, updateEntity, createEntity, reset, excludeAddonsFromItems } from './addon-groups.reducer';
-import Select from 'app/shared/components/select/select';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { FilterMatchMode } from 'primereact/api';
 import axios from 'axios';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
+import { AddonGroupAddonsList } from 'app/entities/addon-groups/addon-group-addons-list';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
@@ -76,7 +76,7 @@ export const AddonGroupUpdate = () => {
     baselineAddonIdsRef.current = new Set((group?.addons || []).map(a => a.id).filter((id): id is string => !!id));
   };
 
-  const handleAddonChange = selectedAddons => {
+  const handleAddonsChange = (selectedAddons: IAddon[]) => {
     setAddonGroup(prev => ({
       ...prev,
       addons: selectedAddons,
@@ -262,25 +262,14 @@ export const AddonGroupUpdate = () => {
                           className="h-8 text-xs"
                         />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <Label className="text-xs">
-                          <Translate contentKey="common.addons">Addons</Translate>
-                        </Label>
-                        <Select
-                          isMulti={true}
-                          value={addonGroup?.addons || []}
-                          onChange={handleAddonChange}
-                          onInputChange={(inputValue) => {
-                            // Fetch with search term or empty to show all
-                            fetchAddons(inputValue || '');
-                          }}
-                          options={addons}
-                          getOptionLabel={option => option.name}
-                          getOptionValue={option => option.id}
-                          placeholder="Search and select addons..."
-                          isLoading={isLoadingAddons}
-                        />
-                      </div>
+                      <AddonGroupAddonsList
+                        addons={addonGroup?.addons || []}
+                        availableAddons={addons}
+                        isLoadingAddons={isLoadingAddons}
+                        disabled={updating}
+                        onAddonsChange={handleAddonsChange}
+                        onSearchAddons={fetchAddons}
+                      />
                     </div>
 
                     <div className="flex gap-2 mt-6">
