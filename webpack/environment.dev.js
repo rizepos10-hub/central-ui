@@ -1,18 +1,15 @@
 module.exports = {
-  // APP_VERSION is passed as an environment variable from the Gradle / Maven build tasks.
-  VERSION: process.env.hasOwnProperty('APP_VERSION') ? process.env.APP_VERSION : 'DEV',
+  VERSION: 'DEV',
   // The root URL for API calls, ending with a '/' - for example: `"https://www.jhipster.tech:8081/myservice/"`.
   // If this URL is left empty (""), then it will be relative to the current context.
   // If you use an API server, in `prod` mode, you will need to enable CORS
   // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
 
   SERVER_ADMIN_API_URL: 'https://api-admin-dev.rize-pos.com',
-  // Use the locally restarted Central by default. Set SERVER_API_URL when a
-  // developer explicitly wants to point the UI at another environment.
-  SERVER_API_URL: process.env.SERVER_API_URL || 'http://localhost:8080',
-  SERVER_DOMAIN: process.env.SERVER_DOMAIN || 'http://localhost:8080',
-  ONLINE_ORDERING_EDITOR_URL: process.env.ONLINE_ORDERING_EDITOR_URL || 'http://localhost:3000',
-  ONLINE_ORDERING_EDITOR_ORIGINS: process.env.ONLINE_ORDERING_EDITOR_ORIGINS || '',
+  SERVER_API_URL: 'https://api-dev.rize-pos.com',
+  SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
+  ONLINE_ORDERING_EDITOR_URL: 'https://online-ordering.rize-pos.com',
+  ONLINE_ORDERING_EDITOR_ORIGINS: 'https://online-ordering.rize-pos.com',
   BUSINESS_ID: 'business_1010',
   APP_ID: 'central-app',
   GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
