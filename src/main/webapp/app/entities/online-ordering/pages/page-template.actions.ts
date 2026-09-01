@@ -13,9 +13,9 @@ export const getTemplates = createAsyncThunk('ooPage/fetch_templates', async () 
 
 export const createFromTemplate = createAsyncThunk(
   'ooPage/create_from_template',
-  async ({ templateKey, publish }: { templateKey: string; publish: boolean }) => {
+  async ({ templateKey, name, slug, publish }: { templateKey: string; name?: string; slug?: string; publish: boolean }) => {
     return axios.post<IOnlineOrderingPage>(`${apiUrl}/from-template`, null, {
-      params: { templateKey, publish },
+      params: { templateKey, name, slug, publish },
     });
   },
   { serializeError: serializeAxiosError }

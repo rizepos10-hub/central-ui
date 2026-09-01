@@ -4,4 +4,5 @@ export interface IPageTemplateDescriptor {
   description: string;
   vertical: string;
   defaultSlug: string;
+  version?: number;
 }

@@ -70,7 +70,6 @@ export interface IUiSettings {
   languages?: ILanguages
   addonOptionsVisibility?: AddonOptionsVisibility
   variantsUiLayout?: VariantsUiLayout
-  usePageBuilder?: boolean
   defaultPageId?: string
   defaultPageSlug?: string
 }

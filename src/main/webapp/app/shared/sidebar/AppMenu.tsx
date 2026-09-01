@@ -732,12 +732,6 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Pick A Layout',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/online-ordering/pick-a-layout',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
         label: 'Storefront Settings',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/online-ordering/storefront-settings',
