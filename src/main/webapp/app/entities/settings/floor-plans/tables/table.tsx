@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { RefreshCw, Plus, Pencil, Trash2, QrCode, Copy, Printer, FileText } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { QRCodeSVG } from 'qrcode.react';
-import { LOCAL_STOREFRONT_URL, normalizeStorefrontUrl } from 'app/entities/online-ordering/pages/page-preview-utils';
+import { normalizeStorefrontUrl } from 'app/entities/online-ordering/pages/page-preview-utils';
 import { IStorefrontSettings } from 'app/shared/model/ONLINE_ORDERING/ui-settings-sections.model';
 import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from 'app/shared/util/report-export-utils';
 
@@ -51,7 +51,7 @@ export const FloorPlanTable = () => {
   const totalItems = useAppSelector(state => state.floorPlanTable.totalItems);
 
   const [nameFilter, setNameFilter] = useState('');
-  const [storefrontUrl, setStorefrontUrl] = useState<string>(LOCAL_STOREFRONT_URL);
+  const [storefrontUrl, setStorefrontUrl] = useState<string>('');
   const [selectedTable, setSelectedTable] = useState<IFloorPlanTable | null>(null);
   const qrExportRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +97,8 @@ export const FloorPlanTable = () => {
   };
 
   const getQrUrl = (table: IFloorPlanTable) => {
-    const baseUrl = storefrontUrl || LOCAL_STOREFRONT_URL;
+    const baseUrl = storefrontUrl;
+    if (!baseUrl) return '';
     const query = new URLSearchParams({
       tableMode: 'true',
       tables: table.name || table.id,

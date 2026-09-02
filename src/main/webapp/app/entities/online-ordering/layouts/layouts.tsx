@@ -248,9 +248,8 @@ const LayoutGabrielPizzaForm = ({
 
     return (
         <div className="p-4">
-            <Tabs defaultValue="colors" className="w-full">
+            <Tabs defaultValue="header" className="w-full">
                 <TabsList className="h-9">
-                    <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
                     <TabsTrigger value="header" className="text-xs">Header</TabsTrigger>
                     <TabsTrigger value="content" className="text-xs">Content</TabsTrigger>
                     <TabsTrigger value="footer" className="text-xs">Footer</TabsTrigger>

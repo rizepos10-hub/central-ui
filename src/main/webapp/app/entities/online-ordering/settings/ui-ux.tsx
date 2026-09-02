@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { ColorPicker } from 'primereact/colorpicker';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
@@ -31,24 +29,6 @@ const UiUxSettingsPage = () => {
   useEffect(() => {
     dispatch(getEntity());
   }, []);
-
-  const handleColorSettingChange = (field: string, value: string, isHex = false) => {
-    const next = JSON.parse(JSON.stringify(entity?.colorSetting)) || {};
-    let processedValue = value;
-
-    if (!isHex && typeof value === 'string') {
-      const hexRegex = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (hexRegex.test(value)) {
-        const hexValue = value.startsWith('#') ? value : `#${value}`;
-        processedValue = hexToHSL(hexValue);
-      }
-    } else if (isHex) {
-      processedValue = hexToHSL(value);
-    }
-
-    next[field] = processedValue;
-    dispatch(changeEntityField({ name: 'colorSetting', value: next }));
-  };
 
   const handleFontSettingChange = (field: keyof IFontSetting, value: string) => {
     const next = JSON.parse(JSON.stringify(entity?.fontSetting)) || {};
@@ -184,28 +164,8 @@ const UiUxSettingsPage = () => {
           <CardHeader className="p-3">
             <CardTitle className="text-sm">Colors</CardTitle>
           </CardHeader>
-          <CardContent className="p-4">
-            {entity.colorSetting && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.keys(entity.colorSetting).map(key => (
-                  <div key={key} className="border rounded-md p-3 space-y-2">
-                    <Label className="text-xs font-semibold">{key}</Label>
-                    <div className="flex gap-2 items-center">
-                      <Input
-                        value={(entity.colorSetting as any)?.[key] || ''}
-                        onChange={e => handleColorSettingChange(key, e.target.value)}
-                        className="h-8 text-xs font-mono"
-                      />
-                      <ColorPicker
-                        value={typeof (entity.colorSetting as any)?.[key] === 'string' ? hslToHex((entity.colorSetting as any)[key]) : '#000000'}
-                        onChange={e => handleColorSettingChange(key, typeof e.value === 'string' ? e.value : '#000000', true)}
-                        className="border rounded"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <CardContent className="p-4 text-xs text-muted-foreground">
+            Colors are configured per landing page in the landing page editor, so each page and template can use its own palette.
           </CardContent>
         </Card>
 

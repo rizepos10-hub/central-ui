@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, RefreshCw } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,6 @@ import {
   canOpenLivePreview,
   getLivePreviewUrl,
   isPageActiveLanding,
-  LOCAL_STOREFRONT_URL,
 } from './page-preview-utils';
 
 type PageEditorPreviewProps = {
@@ -19,8 +18,6 @@ type PageEditorPreviewProps = {
   uiSettings: IUiSettings;
   onSetActiveAndPreview?: () => void;
   settingActive?: boolean;
-  onFlushStorefrontCache?: () => void;
-  flushingStorefrontCache?: boolean;
 };
 
 const PreviewLink = ({ href, label }: { href: string; label: string }) => (
@@ -40,8 +37,6 @@ export const PageEditorPreview = ({
   uiSettings,
   onSetActiveAndPreview,
   settingActive,
-  onFlushStorefrontCache,
-  flushingStorefrontCache,
 }: PageEditorPreviewProps) => {
   const isActive = isPageActiveLanding(page, uiSettings);
   const isPublished = page.status === PageStatus.PUBLISHED;
@@ -71,7 +66,6 @@ export const PageEditorPreview = ({
           </p>
 
           <div className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3">
-            <PreviewLink href={LOCAL_STOREFRONT_URL} label="Open local storefront (localhost:3000)" />
             {liveUrl && <PreviewLink href={liveUrl} label={`Open production storefront (${uiSettings.domain})`} />}
           </div>
 
@@ -95,28 +89,6 @@ export const PageEditorPreview = ({
             </Button>
           )}
 
-          {onFlushStorefrontCache && (
-            <div className="rounded-md border bg-muted/30 p-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold">Storefront cache</p>
-                  <p className="text-xs text-muted-foreground">
-                    Clear cached landing page data on the online ordering website after publishing changes.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-8 shrink-0 text-xs"
-                  disabled={flushingStorefrontCache || !uiSettings.domain}
-                  onClick={onFlushStorefrontCache}
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Flush storefront cache
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

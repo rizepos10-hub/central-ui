@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { ArrowLeft, RefreshCw, Save } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, changeEntityField, flushStorefrontCache } from './settings.reducer';
+import { getEntity, updateEntity, changeEntityField } from './settings.reducer';
 import {
   addonOptionsVisibilityOptions,
   currencySymbolPositionOptions,
@@ -28,13 +28,10 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Editor } from 'primereact/editor';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { ColorPicker } from 'primereact/colorpicker';
-import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { ScriptSnippets } from './components/script-snippets';
-import { toast } from 'react-toastify';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -63,15 +60,6 @@ export const UiSettingsUpdate = () => {
   const saveEntity = (e) => {
     e.preventDefault();
     dispatch(updateEntity(UiSettingsEntity));
-  };
-
-  const handleFlushStorefrontCache = async () => {
-    try {
-      await dispatch(flushStorefrontCache()).unwrap();
-      toast.success('Storefront cache flushed successfully');
-    } catch {
-      toast.error('Failed to flush storefront cache. Check the domain and cache flush secret.');
-    }
   };
 
   const quillHeader = (
@@ -105,39 +93,10 @@ export const UiSettingsUpdate = () => {
     dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
 
-  const handleColorSettingChange = (field, value, isHex = false) => {
-    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
-    
-    // Auto-detect hex colors and convert them to HSL
-    let processedValue = value;
-    if (!isHex && typeof value === 'string') {
-      // Check if the value is a hex color (with or without #)
-      const hexRegex = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (hexRegex.test(value)) {
-        // Add # if it's missing
-        const hexValue = value.startsWith('#') ? value : `#${value}`;
-        processedValue = hexToHSL(hexValue);
-      }
-    } else if (isHex) {
-      processedValue = hexToHSL(value);
-    }
-    
-    newData[field] = processedValue;
-    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
-  };
-
   const handlefontSettingChange = (field, value) => {
     const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.fontSetting)) || {};
     newData[field] = value;
     dispatch(changeEntityField({ name: 'fontSetting', value: newData }));
-  };
-
-  const handleCustomThemeSelector = (theme) => {
-    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
-    Object.keys(theme).forEach(key => {
-      newData[key] = theme[key];
-    });
-    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
   };
 
   const updateHomeSeo = (index, fieldName, value) => {
@@ -221,27 +180,6 @@ export const UiSettingsUpdate = () => {
                     </Label>
                     <Input id="UiSettings-domain" value={UiSettingsEntity.domain || ''} disabled className="h-7 text-xs" />
                     <p className="text-xs text-muted-foreground">Set on the Online Ordering application in Admin.</p>
-                  </div>
-
-                  <div className="rounded-md border bg-muted/30 p-3">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-xs font-semibold">Storefront cache</p>
-                        <p className="text-xs text-muted-foreground">
-                          Clear cached UI settings and landing page data on the online ordering website for this business.
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-8 shrink-0 text-xs"
-                        disabled={updating || !UiSettingsEntity.domain}
-                        onClick={handleFlushStorefrontCache}
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Flush storefront cache
-                      </Button>
-                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -660,65 +598,14 @@ export const UiSettingsUpdate = () => {
                     </div>
                   </div>
 
-                  <div className="bg-muted rounded-lg p-4 border space-y-3">
-                    <h5 className="text-sm font-semibold text-primary flex items-center gap-2">
+                  <div className="rounded-lg border bg-muted/40 p-4">
+                    <h5 className="flex items-center gap-2 text-sm font-semibold text-primary">
                       <i className="fas fa-palette"></i>
-                      {translate('tempApp.UiSettings.colorSetting.title')}
+                      Landing page colors
                     </h5>
-
-                    <PremadeColorThemes handleCustomThemeSelector={handleCustomThemeSelector} />
-
-                    {UiSettingsEntity?.colorSetting && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Object.keys(UiSettingsEntity.colorSetting).map(key => (
-                          <div
-                            key={key}
-                            className="bg-card rounded-md p-3 border shadow-sm"
-                          >
-                            <div className="flex items-center gap-3 mb-3">
-                              <div
-                                className="w-6 h-6 rounded border-2"
-                                style={{
-                                  backgroundColor: UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                    ? `hsl(${UiSettingsEntity.colorSetting[key]})`
-                                    : '#000000'
-                                }}
-                              />
-                              <Label
-                                htmlFor={`UiSettings-colorSetting.${key}`}
-                                className="text-xs font-semibold flex-1"
-                              >
-                                {translate(`tempApp.UiSettings.colorSetting.${key}`)}
-                              </Label>
-                            </div>
-
-                            <div className="flex gap-2 items-center">
-                              <Input
-                                id={`UiSettings-colorSetting.${key}`}
-                                value={UiSettingsEntity.colorSetting[key] || ''}
-                                onChange={(e) => handleColorSettingChange(key, e.target.value)}
-                                className="h-7 text-xs flex-1 font-mono"
-                                placeholder="HSL value (e.g., 0 0% 100%) or hex color (e.g., #ffffff)"
-                              />
-
-                              <ColorPicker
-                                value={
-                                  UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                    ? hslToHex(UiSettingsEntity.colorSetting[key])
-                                    : '#000000'
-                                }
-                                onChange={(e) => handleColorSettingChange(key, e.value, true)}
-                                className="border rounded"
-                              />
-                            </div>
-
-                            <div className="mt-2 text-xs text-muted-foreground italic">
-                              HSL format: hue saturation% lightness% (hex colors auto-convert)
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Storefront colors are now configured in each landing page under Theme colors, so every page and template can have its own palette.
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-2">

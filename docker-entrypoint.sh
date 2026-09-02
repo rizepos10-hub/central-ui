@@ -17,7 +17,8 @@ window.__ENV__ = {
   SERVER_API_URL: "${API_URL}",
   SERVER_ADMIN_API_URL: "${ADMIN_API_URL}",
   SERVER_DOMAIN: "${SERVER_DOMAIN}",
-  GOOGLE_MAPS_API_KEY: "${MAPS_KEY}"
+  GOOGLE_MAPS_API_KEY: "${MAPS_KEY}",
+  APP_ID: "central-app"
 };
 EOF
 

@@ -8,12 +8,14 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { ColorInputField } from './color-input-field';
+import { PropertyEditorGroup } from './property-editor-group';
 
 type SlideRecord = Record<string, unknown>;
 
 type HeroCarouselSlidesEditorProps = {
   slides: SlideRecord[];
   layout: string;
+  fixedStructure?: boolean;
   onChange: (slides: SlideRecord[]) => void;
 };
 
@@ -41,7 +43,7 @@ function defaultSlide(image: IAttachment, layout: string): SlideRecord {
   };
 }
 
-export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarouselSlidesEditorProps) => {
+export const HeroCarouselSlidesEditor = ({ slides, layout, fixedStructure = false, onChange }: HeroCarouselSlidesEditorProps) => {
   const updateSlide = (index: number, patch: SlideRecord) => {
     const next = slides.map((slide, i) => (i === index ? { ...slide, ...patch } : slide));
     onChange(next);
@@ -71,10 +73,11 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
 
   return (
     <div className="space-y-3">
-      <div className="rounded-md border bg-muted/20 p-3 space-y-2">
-        <Label className="text-xs">Add slide image</Label>
-        <MediaLibrary handleFilesSelectCallback={addSlide} />
-      </div>
+      {!fixedStructure && (
+        <PropertyEditorGroup title="Add slide" description="Choose an image to create a new slide" defaultOpen={false}>
+          <MediaLibrary handleFilesSelectCallback={addSlide} />
+        </PropertyEditorGroup>
+      )}
 
       {slides.length === 0 ? (
         <p className="text-xs text-muted-foreground">No slides yet. Select or upload an image above.</p>
@@ -87,7 +90,15 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
             const buttonSetting = (slide.buttonSetting as Record<string, string>) ?? {};
 
             return (
-              <div key={`${imageUrl ?? 'slide'}-${index}`} className="flex gap-3 rounded-md border p-3">
+              <PropertyEditorGroup
+                key={`${imageUrl ?? 'slide'}-${index}`}
+                title={`Slide ${index + 1}`}
+                description={imageUrl ? 'Image selected · edit copy and action' : 'No image selected'}
+                badge={layout === 'riode-split' ? 'Promo' : 'Carousel'}
+                defaultOpen={index === 0}
+                contentClassName="p-2"
+              >
+                <div className="flex gap-2">
                 <div className="shrink-0">
                   {imageUrl ? (
                     <img src={imageUrl} alt={`Slide ${index + 1}`} className="h-24 w-32 rounded border object-cover" />
@@ -99,9 +110,8 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold">Slide {index + 1}</span>
-                    <div className="flex gap-1">
+                  <div className="flex items-center justify-end gap-2">
+                    {!fixedStructure && <div className="flex gap-1">
                       <Button
                         type="button"
                         variant="outline"
@@ -131,11 +141,11 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
-                    </div>
+                    </div>}
                   </div>
 
                   {layout === 'riode-split' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="landing-editor-fields-grid grid gap-2">
                       <div>
                         <Label className="text-xs">Eyebrow</Label>
                         <Input
@@ -182,7 +192,7 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                           onChange={e => updateSlideField(index, 'cta', { ...cta, text: e.target.value })}
                         />
                       </div>
-                      <div className="md:col-span-2">
+                      <div className="landing-editor-wide-field">
                         <Label className="text-xs">CTA URL</Label>
                         <Input
                           className="h-8 text-xs"
@@ -248,7 +258,8 @@ export const HeroCarouselSlidesEditor = ({ slides, layout, onChange }: HeroCarou
                     }}
                   />
                 </div>
-              </div>
+                </div>
+              </PropertyEditorGroup>
             );
           })}
         </div>
