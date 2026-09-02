@@ -2,8 +2,6 @@ import { IOnlineOrderingPage } from 'app/shared/model/ONLINE_ORDERING/online-ord
 import { PageStatus } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 
-export const LOCAL_STOREFRONT_URL = 'http://localhost:3000';
-
 export function normalizeStorefrontUrl(domain?: string): string | null {
   if (!domain?.trim()) {
     return null;
