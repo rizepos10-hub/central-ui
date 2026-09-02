@@ -11,7 +11,6 @@ import {
   canOpenLivePreview,
   getLivePreviewUrl,
   isPageActiveLanding,
-  LOCAL_STOREFRONT_URL,
 } from './page-preview-utils';
 
 type PageEditorPreviewProps = {
@@ -67,7 +66,6 @@ export const PageEditorPreview = ({
           </p>
 
           <div className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3">
-            <PreviewLink href={LOCAL_STOREFRONT_URL} label="Open local storefront (localhost:3000)" />
             {liveUrl && <PreviewLink href={liveUrl} label={`Open production storefront (${uiSettings.domain})`} />}
           </div>
 

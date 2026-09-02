@@ -31,7 +31,7 @@ import {
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getLandingPageSettings, updateEntity as updateLandingPageSettings } from '../settings/landing-page-settings.reducer';
 import { getEntity as getStorefrontSettings } from '../settings/storefront-settings.reducer';
-import { LOCAL_STOREFRONT_URL, canOpenLivePreview, getLivePreviewUrl } from './page-preview-utils';
+import { getLivePreviewUrl } from './page-preview-utils';
 import { PageThemeOverrideFields, SectionAppearanceFields, defaultSectionAppearance } from './section-appearance-fields';
 import { HeroCarouselSlidesEditor, SelectedImagePreview } from './hero-carousel-slides-editor';
 import { defaultFooterColumns, FooterColumn, FooterSectionEditor } from './footer-section-editor';
@@ -256,15 +256,16 @@ const OnlineOrderingPageEditor = () => {
     toast.success('Page published');
   };
 
-  const openPreview = (url: string) => {
+  const openPreview = (url?: string | null) => {
+    if (!url) {
+      toast.error('Configure a storefront domain in Online Ordering settings');
+      return;
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const livePreviewUrl = getLivePreviewUrl(uiSettings);
-  const previewUrl =
-    canOpenLivePreview(page, uiSettings) && livePreviewUrl
-      ? livePreviewUrl
-      : LOCAL_STOREFRONT_URL;
+  const previewUrl = livePreviewUrl;
 
   const handleSetActiveAndPreview = async () => {
     if (!page.id || !page.slug) {
@@ -278,7 +279,7 @@ const OnlineOrderingPageEditor = () => {
     };
     await dispatch(updateLandingPageSettings(next)).unwrap();
     toast.success('Landing page set as active');
-    openPreview(LOCAL_STOREFRONT_URL);
+    openPreview(livePreviewUrl);
   };
 
   const renderPageProperties = () => (

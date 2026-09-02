@@ -6,9 +6,6 @@ API_URL="${SERVER_API_URL:-}"
 ADMIN_API_URL="${SERVER_ADMIN_API_URL:-}"
 SERVER_DOMAIN="${SERVER_DOMAIN:-https://pos-central.rize-pos.com}"
 MAPS_KEY="${GOOGLE_MAPS_API_KEY:-}"
-APP_ID="central-app"
-ONLINE_ORDERING_EDITOR_URL="https://online-ordering.rize-pos.com"
-ONLINE_ORDERING_EDITOR_ORIGINS="https://online-ordering.rize-pos.com"
 CENTRAL_UPSTREAM="${CENTRAL_SERVICE_HOST:-central.rize-pos-dev.svc.cluster.local}"
 ADMIN_UPSTREAM="${ADMIN_SERVICE_HOST:-admin.rize-pos-dev.svc.cluster.local}"
 
@@ -21,9 +18,7 @@ window.__ENV__ = {
   SERVER_ADMIN_API_URL: "${ADMIN_API_URL}",
   SERVER_DOMAIN: "${SERVER_DOMAIN}",
   GOOGLE_MAPS_API_KEY: "${MAPS_KEY}",
-  APP_ID: "${APP_ID}",
-  ONLINE_ORDERING_EDITOR_URL: "${ONLINE_ORDERING_EDITOR_URL}",
-  ONLINE_ORDERING_EDITOR_ORIGINS: "${ONLINE_ORDERING_EDITOR_ORIGINS}"
+  APP_ID: "central-app"
 };
 EOF
 

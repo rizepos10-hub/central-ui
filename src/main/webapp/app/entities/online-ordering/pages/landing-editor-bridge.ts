@@ -1,7 +1,6 @@
 import { IOnlineOrderingPage, IPageSection } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { SectionType } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
-import { runtimeConfig } from 'app/config/runtime-config';
-import { LOCAL_STOREFRONT_URL } from './page-preview-utils';
+import { normalizeStorefrontUrl } from './page-preview-utils';
 
 export const LANDING_EDITOR_CHANNEL = 'cloudlinks.landing-editor' as const;
 export const LANDING_EDITOR_VERSION = 1 as const;
@@ -148,16 +147,16 @@ export function createLandingEditorMessage(
 
 export function editorPreviewOrigin(url: string): string | null {
   try {
-    return new URL(url, window.location.origin).origin;
+    const origin = new URL(url, window.location.origin).origin;
+    return origin === 'null' ? null : origin;
   } catch {
     return null;
   }
 }
 
 export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: string, view: 'landing' | 'shop' = 'landing'): string {
-  const configured = runtimeConfig.ONLINE_ORDERING_EDITOR_URL?.trim();
-  const isLocalDevelopment = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-  const base = (configured || (isLocalDevelopment ? LOCAL_STOREFRONT_URL : storefrontDomain) || LOCAL_STOREFRONT_URL).replace(/\/$/, '');
+  const base = normalizeStorefrontUrl(storefrontDomain);
+  if (!base) return 'about:blank';
   const path = base.includes('/preview/pages/') ? base.replace(/\/preview\/pages\/[^/]+$/, `/preview/pages/${page.id ?? 'new'}`) : `${base}/preview/pages/${page.id ?? 'new'}`;
   const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const nonce = `${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
@@ -169,10 +168,6 @@ export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: s
 }
 
 export function previewAllowedOrigins(frameUrl: string): string[] {
-  const configured = runtimeConfig.ONLINE_ORDERING_EDITOR_ORIGINS
-    .split(',')
-    .map(value => value.trim())
-    .filter(Boolean);
   const frameOrigin = editorPreviewOrigin(frameUrl);
-  return Array.from(new Set([...(frameOrigin ? [frameOrigin] : []), ...configured]));
+  return frameOrigin ? [frameOrigin] : [];
 }

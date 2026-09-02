@@ -8,8 +8,6 @@ module.exports = {
   SERVER_ADMIN_API_URL: 'https://api-admin-dev.rize-pos.com',
   SERVER_API_URL: 'https://api-dev.rize-pos.com',
   SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
-  ONLINE_ORDERING_EDITOR_URL: 'https://online-ordering.rize-pos.com',
-  ONLINE_ORDERING_EDITOR_ORIGINS: 'https://online-ordering.rize-pos.com',
   BUSINESS_ID: 'business_1010',
   APP_ID: 'central-app',
   GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
