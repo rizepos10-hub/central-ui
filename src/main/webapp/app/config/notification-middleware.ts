@@ -2,6 +2,7 @@
 import { translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
 import { isFulfilledAction, isRejectedAction } from 'app/shared/reducers/reducer.utils';
+import { isRequestCancellation } from 'app/config/request-utils';
 
 const addErrorAlert = (message, key?, data?, localizedMessage?) => {
   key = key ? key : message;
@@ -41,7 +42,7 @@ export default () => next => action => {
 
   if (isRejectedAction(action) && error && error.isAxiosError) {
     // Don't show error toasts for aborted requests
-    if (error.name === 'AbortError') {
+    if (isRequestCancellation(error)) {
       return next(action);
     }
     
@@ -119,14 +120,14 @@ export default () => next => action => {
       toast.warning('Wrong username or password');
     } else {
       // Don't show error toasts for aborted requests
-      if (error.name === 'AbortError') {
+      if (isRequestCancellation(error)) {
         return next(action);
       }
       toast.error(error.message || 'Unknown error!');
     }
   } else if (error && error.response?.status !== 401) {
     // Don't show error toasts for aborted requests
-    if (error.name === 'AbortError') {
+    if (isRequestCancellation(error)) {
       return next(action);
     }
     toast.error(error.message || 'Unknown error!');
