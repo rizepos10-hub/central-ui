@@ -154,8 +154,16 @@ export function editorPreviewOrigin(url: string): string | null {
   }
 }
 
+const LOCAL_STOREFRONT_PREVIEW_URL = 'http://localhost:3000';
+
+// DEVELOPMENT is injected by webpack: dev bundles use the local storefront, while
+// production bundles continue to use the tenant's configured storefront domain.
+export function getEditorPreviewBaseUrl(storefrontDomain?: string, isDevelopment = DEVELOPMENT): string | null {
+  return normalizeStorefrontUrl(isDevelopment ? LOCAL_STOREFRONT_PREVIEW_URL : storefrontDomain);
+}
+
 export function editorPreviewUrl(page: IOnlineOrderingPage, storefrontDomain?: string, view: 'landing' | 'shop' = 'landing'): string {
-  const base = normalizeStorefrontUrl(storefrontDomain);
+  const base = getEditorPreviewBaseUrl(storefrontDomain);
   if (!base) return 'about:blank';
   const path = base.includes('/preview/pages/') ? base.replace(/\/preview\/pages\/[^/]+$/, `/preview/pages/${page.id ?? 'new'}`) : `${base}/preview/pages/${page.id ?? 'new'}`;
   const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
