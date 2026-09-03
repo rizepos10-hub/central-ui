@@ -160,6 +160,22 @@ export const SectionAppearanceFields = ({
               onChange={value => set('background', value)}
             />
 
+            {sectionType === SectionType.FEATURE_GRID && (
+              <div>
+                <Label className="text-xs">Content width</Label>
+                <SectionTypeSelect
+                  value={String(valueFor('contentWidth', 'contained') || 'contained')}
+                  onValueChange={value => set('contentWidth', value)}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contained">Contained</SelectItem>
+                    <SelectItem value="full">Full width</SelectItem>
+                  </SelectContent>
+                </SectionTypeSelect>
+              </div>
+            )}
+
             {padding && (
               <div>
                 <Label className="text-xs">Section spacing</Label>
