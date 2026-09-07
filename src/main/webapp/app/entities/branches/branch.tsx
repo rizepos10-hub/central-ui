@@ -56,6 +56,9 @@ const defaultTookanBookingTaskSteps = (): ITookanBookingTaskSteps => ({
   deliveredToCustomerEnabled: true,
 });
 
+const MIN_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 15;
+const MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 120 * 60;
+
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
     return [{ label: 'Status', value: 'Not initialized — set coverage and rates below, then save the branch.' }];
@@ -311,6 +314,27 @@ export const Branches = () => {
     const selectedSections = selectedOptions.map((option: any) => option.value as EndOfDayReportSection);
     const newData = JSON.parse(JSON.stringify(businessDetailsState.branchDetails));
     newData[branchIndex].endOfDayReportSection = selectedSections;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleOpenTableIdleTimeoutEnabledChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].openTableIdleTimeoutEnabled = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleOpenTableIdleTimeoutSecondsChange = (branchIndex, value) => {
+    const rawValue = String(value).trim();
+    const parsedValue = rawValue === '' ? null : Number(rawValue);
+    if (parsedValue !== null && !Number.isFinite(parsedValue)) return;
+
+    const seconds = parsedValue === null
+      ? null
+      : parsedValue <= 0
+        ? 0
+        : Math.min(Math.max(Math.trunc(parsedValue), MIN_OPEN_TABLE_IDLE_TIMEOUT_SECONDS), MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS);
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].openTableIdleTimeoutSeconds = seconds;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -870,6 +894,33 @@ export const Branches = () => {
                       onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
                       options={endOfDayReportSectionOptions}
                       className="text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.openTableIdleTimeoutEnabled}
+                      onCheckedChange={(checked) => handleOpenTableIdleTimeoutEnabledChange(branchIndex, checked === true)}
+                      id={`open-table-idle-timeout-${branchIndex}`}
+                    />
+                    <Label htmlFor={`open-table-idle-timeout-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Open table idle timeout
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`open-table-idle-timeout-seconds-${branchIndex}`} className="font-bold text-xs">
+                      Open table idle timeout (seconds)
+                    </Label>
+                    <Input
+                      id={`open-table-idle-timeout-seconds-${branchIndex}`}
+                      type="number"
+                      min={0}
+                      max={MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS}
+                      step={1}
+                      value={branch.openTableIdleTimeoutSeconds ?? ''}
+                      onChange={(e) => handleOpenTableIdleTimeoutSecondsChange(branchIndex, e.target.value)}
+                      className="h-7 text-xs"
                     />
                   </div>
 

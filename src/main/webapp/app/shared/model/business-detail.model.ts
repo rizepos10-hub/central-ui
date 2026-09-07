@@ -38,6 +38,8 @@ export interface IBranchDetails {
   printZeroPriceAddons?: boolean;
   canOrder?: boolean | null;
   enableAskOnTablePermissions?: boolean;
+  openTableIdleTimeoutEnabled?: boolean;
+  openTableIdleTimeoutSeconds?: number | null;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
