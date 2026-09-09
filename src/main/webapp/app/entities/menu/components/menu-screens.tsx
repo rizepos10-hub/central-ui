@@ -35,6 +35,33 @@ interface MenuScreensProps {
     updating: any;
 }
 
+const getMenuItemId = (screen?: IMenuScreen): string | null => {
+    const item = screen?.component?.item;
+    const itemId = item?.id || screen?.component?.itemId;
+    return itemId || null;
+};
+
+const toMenuItem = (screen: IMenuScreen): IItem | null => {
+    const itemId = getMenuItemId(screen);
+    if (!itemId) {
+        return null;
+    }
+
+    const item = screen.component?.item;
+    return {
+        ...item,
+        id: itemId,
+        name: item?.name ?? screen.name,
+        desc: item?.desc ?? null,
+    };
+};
+
+const getMenuItems = (screens?: IMenuScreen[]): IItem[] =>
+    (screens ?? [])
+        .filter(screen => screen?.componentType === 'ITEM')
+        .map(toMenuItem)
+        .filter((item): item is IItem => item !== null);
+
 const MenuScreens: React.FC<MenuScreensProps> = ({
     menu,
     data,
@@ -263,7 +290,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 return {
                     ...subScreen,
                     subScreens: (subScreen.subScreens || []).filter(sub =>
-                        sub.component?.item?.id !== itemId
+                        getMenuItemId(sub) !== itemId
                     ),
                 };
             } else if (subScreen.subScreens) {
@@ -400,7 +427,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 if (i === mainScreenIndex) {
                     if (subScreenStack.length === 1) {
                         if (item.componentType === 'ITEM') {
-                            const itemID = item?.component?.item?.id;
+                            const itemID = getMenuItemId(item);
                             const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID);
                             setSelectedItems(newItemsToDisplay);
                         }
@@ -776,9 +803,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const updatedBreadcrumb = [...breadcrumb, subscreen.name];
         setBreadcrumb(updatedBreadcrumb);
 
-        const subScreenItems = subscreen.subScreens
-            .filter(item => item.componentType === 'ITEM')
-            .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
+        const subScreenItems = getMenuItems(subscreen.subScreens);
 
         setSelectedItems(subScreenItems || []);
     };
@@ -823,9 +848,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const currentScreenItems = useMemo(() => {
         // Get items from the current screen level (either main screen or current sub-screen)
         const currentScreen = subScreenStack[subScreenStack.length - 1];
-        return currentScreen?.subScreens
-            ?.filter(item => item.componentType === 'ITEM')
-            .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
+        return getMenuItems(currentScreen?.subScreens);
     }, [subScreenStack])
 
     useEffect(() => {
@@ -854,11 +877,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
     const mainScreenClickHandler = (globalIndex: number, mainScreen: IMenuScreen) => {
         setSelectedMainScreenIndex(globalIndex);
-        setSelectedItems(
-            mainScreen?.subScreens
-                ?.filter(subScreen => subScreen?.componentType === 'ITEM')
-                ?.map(subScreen => subScreen?.component?.item)
-        );
+        setSelectedItems(getMenuItems(mainScreen?.subScreens));
         setSubScreenStack([mainScreen]);
         setBreadcrumb(() => [mainScreen.name]);
         setMainScreen(mainScreen);
@@ -1124,7 +1143,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             updatedMenuScreens[selectedMainScreenIndex] = {
                 ...updatedMenuScreens[selectedMainScreenIndex],
                 subScreens: (updatedMenuScreens[selectedMainScreenIndex].subScreens || []).filter(
-                    subScreen => !itemIds.includes(subScreen.component?.item?.id)
+                    subScreen => !itemIds.includes(getMenuItemId(subScreen))
                 ),
             };
         } else {
@@ -1146,7 +1165,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     ? {
                         ...topSubScreen,
                         subScreens: (topSubScreen.subScreens || []).filter(
-                            s => !itemIds.includes(s.component?.item?.id)
+                            s => !itemIds.includes(getMenuItemId(s))
                         ),
                     }
                     : subScreen

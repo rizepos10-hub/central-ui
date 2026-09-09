@@ -47,7 +47,8 @@ export interface IMenuScreen {
   attachment?: IAttachment;
   fontProperties?: IFontProperties | null;
   component?: {
-    item?: IItem;
+    item?: IItem | null;
+    itemId?: string | null;
   }
 }
 
