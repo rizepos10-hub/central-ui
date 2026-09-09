@@ -37,6 +37,9 @@ export interface IBranchDetails {
   wholesale: boolean;
   printZeroPriceAddons?: boolean;
   canOrder?: boolean | null;
+  requireOnlineOrderConfirmation?: boolean;
+  onlineOrderPrepTimeOptionsMinutes?: number[];
+  useOrderPromisedTimeAsDefaultPrep?: boolean;
   enableAskOnTablePermissions?: boolean;
   openTableIdleTimeoutEnabled?: boolean;
   openTableIdleTimeoutSeconds?: number | null;

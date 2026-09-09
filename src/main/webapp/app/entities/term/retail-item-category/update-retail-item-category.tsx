@@ -19,6 +19,7 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { ITerm } from "app/shared/model/term.model";
 import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
 
 export const UpdateItemRestaurantCategory = () => {
   const dispatch = useAppDispatch();
@@ -127,6 +128,17 @@ export const UpdateItemRestaurantCategory = () => {
                   required
                   value={categoryEntity.name || ''}
                   onChange={e => dispatch(changeEntityField({ name: "name", value: e.target.value }))}
+                />
+              </div>
+
+              <div className="mb-3 d-flex flex-column">
+                <Translate contentKey="itemCategories.update.description">Description</Translate>
+                <InputTextarea
+                  name={"description"}
+                  id={"category-description"}
+                  rows={3}
+                  value={categoryEntity.description || ''}
+                  onChange={e => dispatch(changeEntityField({ name: "description", value: e.target.value }))}
                 />
               </div>
 

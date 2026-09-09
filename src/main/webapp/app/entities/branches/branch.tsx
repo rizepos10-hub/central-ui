@@ -425,6 +425,28 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleRequireOnlineOrderConfirmationChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].requireOnlineOrderConfirmation = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleUseOrderPromisedTimeAsDefaultPrepChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].useOrderPromisedTimeAsDefaultPrep = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleOnlineOrderPrepTimeOptionsMinutesChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    const minutes = String(value || '')
+      .split(/[,\s]+/)
+      .map(part => parseInt(part, 10))
+      .filter(n => Number.isFinite(n) && n > 0);
+    newData[branchIndex].onlineOrderPrepTimeOptionsMinutes = minutes.length ? minutes : [15, 30, 45];
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].enableAskOnTablePermissions = checked;
@@ -853,6 +875,17 @@ export const Branches = () => {
 
                   <div className="flex items-center gap-2">
                     <Checkbox
+                      checked={branch.requireOnlineOrderConfirmation !== false}
+                      onCheckedChange={(checked) => handleRequireOnlineOrderConfirmationChange(branchIndex, checked)}
+                      id={`require-online-order-confirmation-${branchIndex}`}
+                    />
+                    <Label htmlFor={`require-online-order-confirmation-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Require online order confirmation
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
                       checked={branch.canOrder !== false}
                       onCheckedChange={(checked) => handleCanOrderChange(branchIndex, checked)}
                       id={`can-order-${branchIndex}`}
@@ -860,6 +893,32 @@ export const Branches = () => {
                     <Label htmlFor={`can-order-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Allow online ordering
                     </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.useOrderPromisedTimeAsDefaultPrep !== false}
+                      onCheckedChange={(checked) => handleUseOrderPromisedTimeAsDefaultPrepChange(branchIndex, checked)}
+                      id={`use-order-promised-time-default-${branchIndex}`}
+                    />
+                    <Label htmlFor={`use-order-promised-time-default-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Use order promised time as default prep option
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`online-order-prep-minutes-${branchIndex}`} className="font-bold text-xs">
+                      Online order prep time options (minutes, comma-separated)
+                    </Label>
+                    <Input
+                      id={`online-order-prep-minutes-${branchIndex}`}
+                      type="text"
+                      className="h-7 text-xs"
+                      defaultValue={(branch.onlineOrderPrepTimeOptionsMinutes || [15, 30, 45]).join(', ')}
+                      key={`prep-minutes-${branch.branchId}-${(branch.onlineOrderPrepTimeOptionsMinutes || []).join('-')}`}
+                      onBlur={(e) => handleOnlineOrderPrepTimeOptionsMinutesChange(branchIndex, e.target.value)}
+                      placeholder="15, 30, 45"
+                    />
                   </div>
 
                   <div className="flex items-center gap-2">

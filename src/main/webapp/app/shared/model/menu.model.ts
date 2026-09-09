@@ -34,6 +34,7 @@ export interface IFontProperties {
 export interface IMenuScreen {
   id?: string;
   name?: string;
+  description?: string;
   backgroundColor?: string;
   managerOnlyAccess?: boolean;
   componentType?: "SUB_SCREENS" | "ITEM" | "POS";

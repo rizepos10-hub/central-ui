@@ -58,6 +58,8 @@ export interface IUiUxSettings {
   variantsUiLayout?: VariantsUiLayout;
   hideItemDescription?: boolean;
   hideModalDescription?: boolean;
+  hideCategoryDescription?: boolean;
+  showCategoryImages?: boolean;
   currencySymbolPosition?: 'LEFT' | 'RIGHT' | 'HIDDEN';
   digitsAfterDecimal?: number;
   addonOptionsVisibility?: AddonOptionsVisibility;
@@ -120,6 +122,8 @@ export const uiUxSettingsDefaultValue: Readonly<IUiUxSettings> = {
   digitsAfterDecimal: 2,
   hideItemDescription: false,
   hideModalDescription: false,
+  hideCategoryDescription: false,
+  showCategoryImages: false,
   addonOptionsVisibility: AddonOptionsVisibility.HIDDEN,
 };
 

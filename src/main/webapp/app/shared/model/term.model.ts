@@ -6,6 +6,7 @@ import { IVisibility } from './visibility.model';
 export interface ITerm {
   id?: string;
   name?: string;
+  description?: string;
   taxonomy?: ITaxonomy;
   parents?: ITerm[] | null;
   attachments?: IAttachment[] | null;

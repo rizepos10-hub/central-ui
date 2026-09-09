@@ -240,6 +240,22 @@ export const SharedItemUpdate = ({
           )}
         </div>
       )}
+      {!isPredefinedPizza && !isComboItem && (
+        <div className="space-y-2 md:col-span-2">
+          <Label className="text-xs font-semibold">
+            <Translate contentKey={'items.update.skipAddonsPopup'}>Skip add-ons popup</Translate>
+          </Label>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={item?.skipAddonsPopup !== false}
+              onCheckedChange={(checked) => onFieldChange('skipAddonsPopup', checked)}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground max-w-xl">
+            When enabled (default), POS/kiosk adds the item without opening the add-ons screen unless required add-ons exist. Disable to always open the popup.
+          </p>
+        </div>
+      )}
     </div>
   );
 

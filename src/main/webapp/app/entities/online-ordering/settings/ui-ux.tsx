@@ -135,6 +135,8 @@ const UiUxSettingsPage = () => {
           <CardContent className="p-4 space-y-4">
             <Toggle id="hide-item-description" label="Hide Item Description" checked={entity.hideItemDescription || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'hideItemDescription', value }))} />
             <Toggle id="hide-modal-description" label="Hide Modal Description" checked={entity.hideModalDescription || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'hideModalDescription', value }))} />
+            <Toggle id="hide-category-description" label="Hide Category Description" checked={entity.hideCategoryDescription || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'hideCategoryDescription', value }))} />
+            <Toggle id="show-category-images" label="Show Category Images" checked={entity.showCategoryImages || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'showCategoryImages', value }))} />
             <StringOptionButtons
               label="Currency Symbol Position"
               options={currencySymbolPositionOptions}

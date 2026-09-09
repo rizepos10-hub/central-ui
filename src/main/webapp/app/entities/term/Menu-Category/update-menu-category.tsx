@@ -15,6 +15,7 @@ import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
@@ -194,6 +195,21 @@ console.log(termEntity)
                     value={termEntity?.name || ''}
                     onChange={handleChange}
                     className="h-8 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="term-description" className="text-xs">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="term-description"
+                    name="description"
+                    data-cy="description"
+                    rows={3}
+                    value={termEntity?.description || ''}
+                    onChange={handleChange}
+                    className="text-xs"
                   />
                 </div>
 

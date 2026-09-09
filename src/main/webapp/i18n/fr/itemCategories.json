@@ -49,6 +49,7 @@
         }
       },
       "name": "Name",
+      "description": "Description",
       "profileGroups": "Profile Groups",
       "parents": "Parents",
       "image": "Item Image"

@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Loader2 } from 'lucide-react';
@@ -84,6 +85,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
     const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
     const [editScreenName, setEditScreenName] = useState('');
+    const [editScreenDescription, setEditScreenDescription] = useState('');
     const [editScreenIsPizza, setEditScreenIsPizza] = useState(false);
     const [mainScreenImage, setMainScreenImage] = useState<IAttachment>();
     const [editScreenColor, setEditScreenColor] = useState('');
@@ -99,6 +101,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
     const [subScreenStack, setSubScreenStack] = useState([]);
     const [newMainScreenName, setNewMainScreenName] = useState('');
+    const [newMainScreenDescription, setNewMainScreenDescription] = useState('');
     const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
     const [newMainScreenIsPizza, setNewMainScreenIsPizza] = useState(false);
     const [newMainScreenImage, setNewMainScreenImage] = useState<IAttachment>();
@@ -198,6 +201,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedScreenIndex(screenIndex);
         setSelectedScreenType(screenType);
         setEditScreenName(selectedScreen.name);
+        setEditScreenDescription(selectedScreen.description || '');
         setEditScreenColor(selectedScreen.backgroundColor);
         setEditScreenIsPizza(selectedScreen.isPizza);
         setMainScreenImage(selectedScreen.attachment);
@@ -914,6 +918,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const newMainScreen: IMenuScreen = {
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             name: newMainScreenName,
+            description: newMainScreenDescription || undefined,
             backgroundColor: selectedColorTheme,
             numberOfColumns: newMainScreenCols || 1,
             managerOnlyAccess: false,
@@ -944,6 +949,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setBreadcrumb([newMainScreenName]);
         setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: false });
         setNewMainScreenName('');
+        setNewMainScreenDescription('');
         setSelectedColorTheme('');
         setNewMainScreenCols(1);
         setNewMainScreenIsPizza(false);
@@ -1318,6 +1324,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         return {
                             ...mainScreen,
                             name: editScreenName,
+                            description: editScreenDescription || undefined,
                             backgroundColor: editScreenColor,
                             numberOfColumns: editScreenCols,
                             isPizza: editScreenIsPizza,
@@ -1343,6 +1350,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     const updatedSubScreen = {
                         ...existingSubScreen,
                         name: editScreenName,
+                        description: editScreenDescription || undefined,
                         backgroundColor: editScreenColor,
                         numberOfColumns: editScreenCols,
                         isPizza: editScreenIsPizza,
@@ -1512,6 +1520,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 onChange={e => setNewMainScreenName(e.target.value)}
                                 className="h-9 text-sm"
                                 placeholder="Enter screen name"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="mainScreenDescription" className="text-xs font-medium">
+                                Description
+                            </Label>
+                            <Textarea
+                                id="mainScreenDescription"
+                                value={newMainScreenDescription}
+                                onChange={e => setNewMainScreenDescription(e.target.value)}
+                                className="min-h-20 text-sm"
+                                placeholder="Shown under the category title on online ordering"
                             />
                         </div>
                         <div className="space-y-2">
@@ -1823,6 +1843,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 onChange={e => setEditScreenName(e.target.value)}
                                 className="h-9 text-sm"
                                 placeholder="Enter screen name"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="editScreenDescription" className="text-xs font-medium">
+                                Description
+                            </Label>
+                            <Textarea
+                                id="editScreenDescription"
+                                value={editScreenDescription}
+                                onChange={e => setEditScreenDescription(e.target.value)}
+                                className="min-h-20 text-sm"
+                                placeholder="Shown under the category title on online ordering"
                             />
                         </div>
                         <div className="flex items-center space-x-2">
