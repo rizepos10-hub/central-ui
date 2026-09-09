@@ -24,6 +24,7 @@ export interface IRegularItemVariant {
   addonGroups?: IAddonGroups[];
   price?: number;
   salePrice?: number;
+  skipAddonsPopup?: boolean;
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
   pricingPointBranchPrices?: IPricingPointBranchPrice[];

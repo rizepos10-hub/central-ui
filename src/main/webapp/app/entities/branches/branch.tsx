@@ -447,6 +447,18 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleAutoPrintReceiptOnOnlineAcceptChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].autoPrintReceiptOnOnlineAccept = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleAutoPrintKitchenOnOnlineAcceptChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].autoPrintKitchenOnOnlineAccept = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].enableAskOnTablePermissions = checked;
@@ -919,6 +931,28 @@ export const Branches = () => {
                       onBlur={(e) => handleOnlineOrderPrepTimeOptionsMinutesChange(branchIndex, e.target.value)}
                       placeholder="15, 30, 45"
                     />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.autoPrintReceiptOnOnlineAccept !== false}
+                      onCheckedChange={(checked) => handleAutoPrintReceiptOnOnlineAcceptChange(branchIndex, checked)}
+                      id={`auto-print-receipt-online-${branchIndex}`}
+                    />
+                    <Label htmlFor={`auto-print-receipt-online-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print receipt on online order accept
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.autoPrintKitchenOnOnlineAccept !== false}
+                      onCheckedChange={(checked) => handleAutoPrintKitchenOnOnlineAcceptChange(branchIndex, checked)}
+                      id={`auto-print-kitchen-online-${branchIndex}`}
+                    />
+                    <Label htmlFor={`auto-print-kitchen-online-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print kitchen ticket on online order accept
+                    </Label>
                   </div>
 
                   <div className="flex items-center gap-2">

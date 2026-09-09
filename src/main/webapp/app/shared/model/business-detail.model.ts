@@ -40,6 +40,8 @@ export interface IBranchDetails {
   requireOnlineOrderConfirmation?: boolean;
   onlineOrderPrepTimeOptionsMinutes?: number[];
   useOrderPromisedTimeAsDefaultPrep?: boolean;
+  autoPrintReceiptOnOnlineAccept?: boolean;
+  autoPrintKitchenOnOnlineAccept?: boolean;
   enableAskOnTablePermissions?: boolean;
   openTableIdleTimeoutEnabled?: boolean;
   openTableIdleTimeoutSeconds?: number | null;
