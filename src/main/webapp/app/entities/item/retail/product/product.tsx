@@ -49,6 +49,7 @@ import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
 import { createEntity } from './product.reducer';
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
 import { formatVariant } from "app/shared/util/variant-utils";
+import { getItemPriceLines, getItemTaxProfileNames } from "app/shared/util/item-list-utils";
 import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -400,17 +401,13 @@ export const Product = () => {
     ));
   };
 
-  const TaxBody = rowData => {
-    const taxes = rowData?.accountingGroups;
+  const PricesBody = rowData => (
+    <span className="text-xs">{getItemPriceLines(rowData).join(' | ') || 'No Prices'}</span>
+  );
 
-    if (!taxes || taxes.length === 0) {
-      return <span className="text-xs">No Taxes</span>;
-    }
-
-    return taxes.map((tax, index) => (
-      <span key={tax.id} className="text-xs">{tax.name} {index < taxes.length - 1 && ' | '}</span>
-    ));
-  };
+  const TaxProfileBody = rowData => (
+    <span className="text-xs">{getItemTaxProfileNames(rowData).join(' | ') || 'No Tax Profile'}</span>
+  );
 
   const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
@@ -927,14 +924,23 @@ export const Product = () => {
         width: "100px",
       },
       {
-        field: "accountingGroups.id",
-        header: "Taxes",
-        body: TaxBody,
-        sortable: true,
-        key: "accountingGroups",
+        field: "prices",
+        header: "Price(s)",
+        body: PricesBody,
+        key: "prices",
         seq: 8,
         visible: true,
-        width: "100px",
+        width: "150px",
+      },
+      {
+        field: "accountingGroups.id",
+        header: "Tax Profile",
+        body: TaxProfileBody,
+        sortable: true,
+        key: "accountingGroups",
+        seq: 9,
+        visible: true,
+        width: "120px",
       },
       {
         field: "tags.id",
@@ -942,7 +948,7 @@ export const Product = () => {
         body: TagsBody,
         sortable: true,
         key: "tags",
-        seq: 8,
+        seq: 10,
         visible: true,
         width: "100px",
       },
@@ -952,7 +958,7 @@ export const Product = () => {
         body: DiscountBody,
         sortable: true,
         key: "discounts",
-        seq: 9,
+        seq: 11,
         visible: true,
         width: "50px",
       },
@@ -971,7 +977,7 @@ export const Product = () => {
             />
           );
         },
-        seq: 10,
+        seq: 12,
         visible: true,
         width: "50px",
       },
@@ -990,7 +996,7 @@ export const Product = () => {
             />
           );
         },
-        seq: 11,
+        seq: 13,
         visible: true,
         width: "50px",
       },
@@ -1014,7 +1020,7 @@ export const Product = () => {
             )}
           </div>
         ),
-        seq: 12,
+        seq: 14,
         visible: true,
         width: "100px",
       },
@@ -1026,8 +1032,9 @@ export const Product = () => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     const storedFields = storedData[LOCAL_STORAGE_KEY];
     if (storedFields) {
+      const fields = [...new Set([...storedFields, "prices"])];
       return columnsConfig.filter(
-        (col) => storedFields.includes(col.field) || col.field === "actions"
+        (col) => fields.includes(col.field) || col.field === "actions"
       );
     }
     return columnsConfig;
