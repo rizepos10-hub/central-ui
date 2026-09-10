@@ -38,6 +38,28 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'react-toastify';
 
+const isAddonGroupAssignedToItemOrVariant = (rowData, addonGroupId: string) => {
+  if (rowData?.addonGroups?.some(addon => addon?.addonGroup?.id === addonGroupId)) {
+    return true;
+  }
+  return rowData?.variants?.some(variant =>
+    variant?.addonGroups?.some(addon => addon?.addonGroup?.id === addonGroupId)
+  ) ?? false;
+};
+
+const stripAddonGroupFromItemAndVariants = (rowData, addonGroupId: string) => ({
+  ...rowData,
+  addonGroups: (rowData.addonGroups ?? []).filter(addon => addon?.addonGroup?.id !== addonGroupId),
+  ...(rowData.variants
+    ? {
+        variants: rowData.variants.map(variant => ({
+          ...variant,
+          addonGroups: (variant.addonGroups ?? []).filter(addon => addon?.addonGroup?.id !== addonGroupId),
+        })),
+      }
+    : {}),
+});
+
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
 
@@ -426,10 +448,7 @@ const RegularItemsTable = ({
       value: true,
       id: regularItems.find(item => item.id === rowData.id)?.id
     });
-    const entity = {
-      ...rowData,
-      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
-    }
+    const entity = stripAddonGroupFromItemAndVariants(rowData, id);
 
     dispatch(updateRegularItem(entity))
       .finally(() => {
@@ -446,9 +465,7 @@ const RegularItemsTable = ({
       })
   }
 
-  const getFieldAssigned = (rowData) => {
-    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
-  }
+  const getFieldAssigned = (rowData) => isAddonGroupAssignedToItemOrVariant(rowData, id);
 
   return (
     <ItemsTable
@@ -518,10 +535,7 @@ const PizzaItemsTable = ({
       value: true,
       id: pizzaItems.find(item => item.id === rowData.id)?.id
     });
-    const entity = {
-      ...rowData,
-      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
-    }
+    const entity = stripAddonGroupFromItemAndVariants(rowData, id);
 
     dispatch(updatePizzaItem(entity))
       .finally(() => {
@@ -538,9 +552,7 @@ const PizzaItemsTable = ({
       })
   }
 
-  const getFieldAssigned = (rowData) => {
-    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
-  }
+  const getFieldAssigned = (rowData) => isAddonGroupAssignedToItemOrVariant(rowData, id);
 
   return (
     <ItemsTable
@@ -610,10 +622,7 @@ const ComboItemsTable = ({
       value: true,
       id: comboItems.find(item => item.id === rowData.id)?.id
     });
-    const entity = {
-      ...rowData,
-      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
-    }
+    const entity = stripAddonGroupFromItemAndVariants(rowData, id);
 
     dispatch(updateComboItem(entity))
       .finally(() => {
@@ -630,9 +639,7 @@ const ComboItemsTable = ({
       })
   }
 
-  const getFieldAssigned = (rowData) => {
-    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
-  }
+  const getFieldAssigned = (rowData) => isAddonGroupAssignedToItemOrVariant(rowData, id);
 
   return (
     <ItemsTable

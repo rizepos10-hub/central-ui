@@ -30,16 +30,6 @@
       </p>
     <![endif]-->
     <div id="root">
-<!--      <div class="app-loading">-->
-
-<!--        <div class="logo-container">-->
-<!--          <div class="custom-spinner">-->
-<!--            <img src="./content/images/rize-pos-icon-only.png" alt="Loading"/>-->
-<!--          </div>-->
-<!--          -->
-<!--        </div>-->
-
-<!--      </div>-->
       <div>
         <div class="logo-spinner"></div>
         <div class="logo-image">
@@ -51,66 +41,26 @@
       </div>
 
       <div class="app-loading">
-        <div id="jhipster-error" style="display: none">
-          <!-- This content is for troubleshooting purpose and will be removed when app renders -->
-          <h1>An error has occurred :-(</h1>
-          <h2>Usual error causes</h2>
-          <ol>
-            <li>
-              You started the application from an IDE and you didn't run <code style="color: red">npm start</code> or
-              <code style="color: red">npm run webapp:build</code>.
-            </li>
-            <li>
-              You had a network error while running <code style="color: red">npm install</code>. If you are behind a corporate proxy, it is
-              likely that this error was caused by your proxy. Have a look at the JHipster error logs, you will probably have the cause of
-              the error.
-            </li>
-            <li>
-              You installed a Node.js version that doesn't work with JHipster: please use an LTS (long-term support) version, as it's the
-              only version we support.
-            </li>
-          </ol>
-          <h2>Building the client side code again</h2>
-          <p>If you want to go fast, run <code style="color: red">./mvnw</code> to build and run everything.</p>
-          <p>If you want to have more control, so you can debug your issue more easily, you should follow the following steps:</p>
-          <ol>
-            <li>Install npm dependencies with the command <code style="color: red">npm install</code></li>
-            <li>
-              Build the client with the command <code style="color: red">npm run webapp:build</code> or
-              <code style="color: red">npm start</code>
-            </li>
-            <li>Start the server with <code style="color: red">./mvnw</code> or using your IDE</li>
-          </ol>
-
-          <h2>Getting more help</h2>
-
-          <h3>If you have a question on how to use JHipster</h3>
-          <p>
-            Go to Stack Overflow with the
-            <a href="http://stackoverflow.com/tags/jhipster" target="_blank" rel="noopener noreferrer">"jhipster"</a> tag.
+        <div id="app-load-slow" style="display: none">
+          <p style="margin: 0 0 0.75rem; color: #3f72af; font-size: 0.95rem; font-weight: 600">
+            Still loading — this can take a while on a slow connection.
           </p>
-
-          <h3>If you have a bug or a feature request</h3>
-          <p>
-            First read our
-            <a href="https://github.com/jhipster/generator-jhipster/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer"
-              >contributing guidelines</a
-            >.
-          </p>
-          <p>
-            Then, fill a ticket on our
-            <a href="https://github.com/jhipster/generator-jhipster/issues/new/choose" target="_blank" rel="noopener noreferrer"
-              >bug tracker</a
-            >, we'll be happy to resolve your issue!
-          </p>
-
-          <h3>If you want to chat with contributors and other users</h3>
-          <p>
-            Join our chat room on
-            <a href="https://gitter.im/jhipster/generator-jhipster" target="_blank" rel="noopener noreferrer">Gitter.im</a>. Please note
-            that this is a public chat room, and that we expect you to respect other people and write in a correct English language!
-          </p>
-          <!-- end of troubleshooting content -->
+          <button
+            type="button"
+            id="app-load-reload"
+            style="
+              cursor: pointer;
+              border: 1px solid #3f72af;
+              background: #fff;
+              color: #3f72af;
+              border-radius: 0.375rem;
+              padding: 0.4rem 0.9rem;
+              font-size: 0.85rem;
+              font-weight: 600;
+            "
+          >
+            Reload page
+          </button>
         </div>
       </div>
     </div>
@@ -118,16 +68,53 @@
       <h1>You must enable JavaScript to view this page.</h1>
     </noscript>
     <script type="text/javascript">
-      // show an error message if the app loading takes more than 4 sec
-      window.onload = function () {
-        setTimeout(showError, 4000);
-      };
-      function showError() {
-        var errorElm = document.getElementById('jhipster-error');
-        if (errorElm && errorElm.style) {
-          errorElm.style.display = 'block';
+      // Keep the splash visible on slow networks. Only after a long wait offer reload —
+      // never show the old JHipster developer troubleshooting page in production.
+      (function () {
+        var SLOW_LOAD_MS = 20000;
+        var slowTimer = null;
+
+        function rootStillBootstrapping() {
+          var root = document.getElementById('root');
+          return !!(root && root.querySelector('.logo-spinner, .loading-slogan, #app-load-slow'));
         }
-      }
+
+        function showSlowLoadHelp() {
+          if (!rootStillBootstrapping()) {
+            return;
+          }
+          var slowElm = document.getElementById('app-load-slow');
+          if (slowElm && slowElm.style) {
+            slowElm.style.display = 'block';
+          }
+        }
+
+        window.addEventListener('load', function () {
+          slowTimer = setTimeout(showSlowLoadHelp, SLOW_LOAD_MS);
+        });
+
+        var reloadBtn = document.getElementById('app-load-reload');
+        if (reloadBtn) {
+          reloadBtn.addEventListener('click', function () {
+            window.location.reload();
+          });
+        }
+
+        // If React mounts and replaces #root, cancel the timer.
+        var root = document.getElementById('root');
+        if (root && typeof MutationObserver !== 'undefined') {
+          var observer = new MutationObserver(function () {
+            if (!rootStillBootstrapping()) {
+              if (slowTimer) {
+                clearTimeout(slowTimer);
+                slowTimer = null;
+              }
+              observer.disconnect();
+            }
+          });
+          observer.observe(root, { childList: true, subtree: true });
+        }
+      })();
     </script>
     <!-- uncomment this for adding service worker
     <script>

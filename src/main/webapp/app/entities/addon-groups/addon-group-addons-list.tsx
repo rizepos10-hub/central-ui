@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Translate } from 'react-jhipster';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, X } from 'lucide-react';
 import Select from 'app/shared/components/select/select';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
@@ -26,12 +26,20 @@ export const AddonGroupAddonsList = ({
   onSearchAddons,
 }: AddonGroupAddonsListProps) => {
   const [pickerValue, setPickerValue] = useState<IAddon | null>(null);
+  const [inputValue, setInputValue] = useState('');
   const selectedIds = useMemo(() => new Set((addons || []).map(a => a.id).filter(Boolean)), [addons]);
+  const canClearPicker = Boolean(pickerValue || inputValue);
 
   const addableOptions = useMemo(
     () => availableAddons.filter(addon => addon.id && !selectedIds.has(addon.id)),
     [availableAddons, selectedIds]
   );
+
+  const clearPicker = () => {
+    setPickerValue(null);
+    setInputValue('');
+    onSearchAddons('');
+  };
 
   const handleAddAddons = (selected: IAddon | IAddon[] | null) => {
     if (!selected) {
@@ -59,31 +67,57 @@ export const AddonGroupAddonsList = ({
         <Label className="text-xs">
           <Translate contentKey="common.addons">Addons</Translate>
         </Label>
-        <Select
-          value={pickerValue}
-          onChange={(selected: IAddon | null) => {
-            if (selected) {
-              handleAddAddons(selected);
-            }
-            setPickerValue(null);
-          }}
-          onInputChange={inputValue => onSearchAddons(inputValue || '')}
-          options={addableOptions}
-          getOptionLabel={option => String(option?.name ?? 'Unnamed addon')}
-          getOptionValue={option => String(option?.id ?? '')}
-          filterOption={(option, rawInput) => {
-            const input = String(rawInput ?? '').toLowerCase().trim();
-            if (!input) {
-              return true;
-            }
-            const label = String(option.data?.name ?? '').toLowerCase();
-            return label.includes(input);
-          }}
-          placeholder="Search and add addons to this group..."
-          isLoading={isLoadingAddons}
-          isDisabled={disabled}
-          isClearable
-        />
+        <div className="flex items-center gap-1.5">
+          <div className="min-w-0 flex-1">
+            <Select
+              value={pickerValue}
+              inputValue={inputValue}
+              onChange={(selected: IAddon | null) => {
+                if (selected) {
+                  handleAddAddons(selected);
+                }
+                clearPicker();
+              }}
+              onInputChange={(nextInput, meta) => {
+                // Do not return fetchAddons()'s Promise — react-select uses the
+                // return value as the input text (shown as "[object Promise]").
+                if (meta.action === 'input-change') {
+                  setInputValue(nextInput);
+                  void onSearchAddons(nextInput || '');
+                }
+              }}
+              options={addableOptions}
+              getOptionLabel={option => String(option?.name ?? 'Unnamed addon')}
+              getOptionValue={option => String(option?.id ?? '')}
+              filterOption={(option, rawInput) => {
+                const input = String(rawInput ?? '').toLowerCase().trim();
+                if (!input) {
+                  return true;
+                }
+                const label = String(option.data?.name ?? '').toLowerCase();
+                return label.includes(input);
+              }}
+              placeholder="Search and add addons to this group..."
+              isLoading={isLoadingAddons}
+              isDisabled={disabled}
+              isClearable={false}
+            />
+          </div>
+          {canClearPicker ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+              onClick={clearPicker}
+              disabled={disabled}
+              aria-label="Clear addon selection"
+              title="Clear selection"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
+        </div>
         <p className="text-[11px] text-muted-foreground">
           Add addons above, then drag the handle or use arrows to set display order on POS and item screens.
         </p>
