@@ -36,6 +36,7 @@ interface DynamicEndOfDayReportUIProps {
   fromDate?: string;
   toDate?: string;
   source?: string;
+  dayOfWeek?: string | null;
   handleExcelExport: any;
 }
 
@@ -49,6 +50,7 @@ const DynamicEndOfDayReportUI = ({
   fromDate,
   toDate,
   source,
+  dayOfWeek,
   handleExcelExport,
 }: DynamicEndOfDayReportUIProps) => {
   const dispatch = useAppDispatch();
@@ -158,7 +160,7 @@ const DynamicEndOfDayReportUI = ({
           return;
         }
 
-        const result = await fetchFirstLastBillsSummary(branchId, source, fromDate, toDate);
+        const result = await fetchFirstLastBillsSummary(branchId, source, fromDate, toDate, dayOfWeek);
         setBillsSummary(result.data);
       } catch (error) {
         setBillsSummary(null);
@@ -167,7 +169,7 @@ const DynamicEndOfDayReportUI = ({
     };
 
     void loadBillsSummary();
-  }, [endOfDay?.id, branchId, fromDate, toDate, source]);
+  }, [endOfDay?.id, branchId, fromDate, toDate, source, dayOfWeek]);
 
   const firstBillDate = formatDateForDisplay(billsSummary?.firstBill?.createdDate);
   const lastBillDate = formatDateForDisplay(billsSummary?.lastBill?.createdDate);
@@ -211,7 +213,7 @@ const DynamicEndOfDayReportUI = ({
         }
       }
     `,
-    onBeforeGetContent: async () => {
+    onBeforeGetContent: () => {
       setBusyAction('print');
     },
     onAfterPrint: () => {
@@ -371,6 +373,7 @@ const DynamicEndOfDayReportUI = ({
               filters={[
                 { label: 'Branch', value: branchLabel },
                 { label: 'Source', value: source || 'All sources' },
+                { label: 'Day of Week', value: dayOfWeek || 'All days' },
                 { label: 'Date Range', value: intervalLabel },
               ]}
             />
@@ -431,7 +434,14 @@ const DynamicEndOfDayReportUI = ({
               )}
 
               {visibleSections.billsSummary && (
-                <BillsSummary branchId={branchId} fromDate={fromDate} toDate={toDate} eodId={endOfDay?.id} source={source} />
+                <BillsSummary
+                  branchId={branchId}
+                  fromDate={fromDate}
+                  toDate={toDate}
+                  eodId={endOfDay?.id}
+                  source={source}
+                  dayOfWeek={dayOfWeek}
+                />
               )}
 
               {visibleSections.relatedTills && endOfDay?.fromDate && endOfDay?.toDate && (

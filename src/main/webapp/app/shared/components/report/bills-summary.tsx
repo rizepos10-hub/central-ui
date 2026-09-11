@@ -18,7 +18,7 @@ import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils
 
 const ITEMS_PER_PAGE = 10;
 
-const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
+const BillsSummary = ({ eodId, fromDate, toDate, branchId, source, dayOfWeek }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [bills, setBills] = useState([])
@@ -28,23 +28,31 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [branchId, eodId, fromDate, toDate, source]);
+        setBills([]);
+        setTotalRecords(0);
+        setError(null);
+    }, [branchId, eodId, fromDate, toDate, source, dayOfWeek]);
 
     useEffect(() => {
+        let active = true;
+
         const loadBills = async () => {
             try {
                 setError(null);
                 if (eodId) {
                     const result = await fetchRecentBills(currentPage - 1, 10, eodId);
+                    if (!active) return;
                     setTotalRecords(Number(result.headers['x-total-count']))
                     setBills(result.data)
                     return;
                 }
 
-                const result = await fetchRecentByDate(currentPage - 1, 10, fromDate, toDate, branchId, source);
+                const result = await fetchRecentByDate(currentPage - 1, 10, fromDate, toDate, branchId, source, dayOfWeek);
+                if (!active) return;
                 setTotalRecords(Number(result.headers['x-total-count']))
                 setBills(result.data);
             } catch (error) {
+                if (!active) return;
                 setBills([]);
                 setTotalRecords(0);
                 setError(getReportApiErrorMessage(error, 'Unable to load bills summary.'));
@@ -52,7 +60,10 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
         };
 
         void loadBills();
-    }, [branchId, currentPage, eodId, fromDate, source, toDate])
+        return () => {
+            active = false;
+        };
+    }, [branchId, currentPage, eodId, fromDate, source, toDate, dayOfWeek])
 
     if (error) {
         return (

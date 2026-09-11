@@ -205,7 +205,15 @@ export const fetchFirstLastBills = async (eodId: string | null = null) => {
 
 // http://localhost:8080/api/report/summary?fromDate=2025-03-19T05%3A46%3A08.015Z&toDate=2025-03-21T05%3A45%3A38.424Z&branch=64d61d46d0931101a489e8ca&source=%3Cstring%3E%27
 
-export const fetchRecentByDate = async (page: number, size: number, fromDate: string | null = null, toDate: string | null = null, branch: string | null = null, source: string | null = null) => {
+export const fetchRecentByDate = async (
+  page: number,
+  size: number,
+  fromDate: string | null = null,
+  toDate: string | null = null,
+  branch: string | null = null,
+  source: string | null = null,
+  dayOfWeek: string | null = null
+) => {
   try {
     const params = new URLSearchParams({
       page: `${page}`,
@@ -228,6 +236,10 @@ export const fetchRecentByDate = async (page: number, size: number, fromDate: st
       params.set('source', source);
     }
 
+    if (dayOfWeek) {
+      params.set('dayOfWeek', dayOfWeek);
+    }
+
     const response = await axios.get(`/api/report/recent-bills?${params.toString()}`);
 
     return response;
@@ -241,7 +253,13 @@ export const fetchRecentByDate = async (page: number, size: number, fromDate: st
 
 // http://localhost:8080/api/report/bills-summary?branch=64d61d46d0931101a489e8ca&fromDate=2024-01-01T00%3A00%3A00.00Z&toDate=2024-11-10T00%3A00%3A00.00Z&page=0&size=60&source=null
 
-export const fetchFirstLastBillsSummary = async (branch: string | null = null, source: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
+export const fetchFirstLastBillsSummary = async (
+  branch: string | null = null,
+  source: string | null = null,
+  fromDate: string | null = null,
+  toDate: string | null = null,
+  dayOfWeek: string | null = null
+) => {
   try {
     const params = new URLSearchParams({
       page: '0',
@@ -262,6 +280,10 @@ export const fetchFirstLastBillsSummary = async (branch: string | null = null, s
 
     if (source) {
       params.set('source', source);
+    }
+
+    if (dayOfWeek) {
+      params.set('dayOfWeek', dayOfWeek);
     }
 
     const response = await axios.get(`/api/report/bills-summary?${params.toString()}`);

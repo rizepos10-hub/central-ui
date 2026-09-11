@@ -373,6 +373,7 @@ const SalesSummaryReport = () => {
             fromDate={convertedFromDate}
             toDate={convertedToDate}
             source={selectedSource}
+            dayOfWeek={selectedDay}
             handleExcelExport={fetchExcelData}
           />
         ) : null}
