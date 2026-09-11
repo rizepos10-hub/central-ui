@@ -27,6 +27,7 @@ import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, FileDown } from 'lucide-react';
 import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
+import { AddonSelectionActions, updateAddonGroupAddonSelection } from './addon-selection-actions';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -168,16 +169,16 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-  const handleSelectAllAddons = (checked, addonGroupIndex: number) => {
-    const updatedAddonGroups = [...addonGroups];
-    const currentAddonGroup = updatedAddonGroups[addonGroupIndex];
+  const handleSelectAllAddons = (includeAll: boolean, addonGroupIndex: number) => {
+    const currentAddonGroups = addonGroups ?? [];
+    const currentAddonGroup = currentAddonGroups[addonGroupIndex];
 
-    const updatedItem: IAddonGroups = {
-      ...currentAddonGroup,
-      excluded: checked ? [] : [...currentAddonGroup.addonGroup.addons],
-    };
+    if (!currentAddonGroup) {
+      return;
+    }
 
-    updatedAddonGroups[addonGroupIndex] = updatedItem;
+    const updatedAddonGroups = [...currentAddonGroups];
+    updatedAddonGroups[addonGroupIndex] = updateAddonGroupAddonSelection(currentAddonGroup, includeAll);
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
@@ -278,6 +279,10 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     onFieldChange('addonGroups', newAddonGroups);
     setOpenedAddonModal(false);
   }
+
+  const selectedAddonGroupIndex = selectedAddonGroup
+    ? addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id) ?? -1
+    : -1;
 
   return (
     <PageWrapper>
@@ -406,19 +411,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                   <div className='h-3 w-3 bg-black' />
                   <div>Default Price</div>
                 </div>
-                <div className='flex gap-2 items-center text-xs font-normal'>
-                  <Checkbox
-                    checked={(() => {
-                      const isChecked = selectedAddonGroup?.excluded?.length === 0;
-                      return isChecked;
-                    })()}
-                    onCheckedChange={checked => handleSelectAllAddons(
-                      checked,
-                      addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)
-                    )}
-                  />
-                  <div>Select All</div>
-                </div>
+                <AddonSelectionActions
+                  onSelectAll={() => handleSelectAllAddons(true, selectedAddonGroupIndex)}
+                  onClearAll={() => handleSelectAllAddons(false, selectedAddonGroupIndex)}
+                  disabled={!selectedAddonGroup?.addonGroup?.addons?.length}
+                />
               </span>
             </Label>
             <div className='border rounded'>
