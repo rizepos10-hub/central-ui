@@ -111,6 +111,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [newMainScreenFontColor, setNewMainScreenFontColor] = useState('#000000');
     const [newMainScreenFontSize, setNewMainScreenFontSize] = useState(14);
     const [editingSubScreenId, setEditingSubScreenId] = useState(null);
+    const [editingScreen, setEditingScreen] = useState<IMenuScreen | null>(null);
     const [newSubScreenFontFamily, setNewSubScreenFontFamily] = useState('Montserrat');
     const [newSubScreenBold, setNewSubScreenBold] = useState(false);
     const [newSubScreenItalic, setNewSubScreenItalic] = useState(false);
@@ -196,7 +197,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const openEditModal = (selectedScreen, screenIndex, screenType, ancestorChain: IMenuScreen[] = []) => {
-        setEditingSubScreenId(selectedScreen.id);
+        setEditingScreen(selectedScreen);
+        setEditingSubScreenId(selectedScreen?.id ?? null);
         setEditScreenCols(selectedScreen.numberOfColumns);
         setSelectedScreenIndex(screenIndex);
         setSelectedScreenType(screenType);
@@ -208,13 +210,15 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const useDefaultFont = selectedScreen?.fontProperties == null;
         setEditScreenUseDefaultFont(useDefaultFont);
         const effective = useDefaultFont ? getEffectiveFontProperties(selectedScreen, ancestorChain) : selectedScreen.fontProperties;
-        setEditScreenFontFamily(effective?.fontFamily ?? 'Montserrat');
+        setEditScreenFontFamily(normalizeFontFamily(effective?.fontFamily));
         setEditScreenBold(!!effective?.bold);
         setEditScreenItalic(!!effective?.italic);
         setEditScreenFontColor(effective?.color ?? '#000000');
         setEditScreenFontSize(typeof effective?.fontSize === 'number' ? effective.fontSize : 14);
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: true });
     };
+
+    const enableEditFontOverride = () => setEditScreenUseDefaultFont(false);
 
     const editSubScreens = (subScreens, targetSubScreen) => {
         let nameExists = false;
@@ -722,7 +726,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                 }}
                                                 className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible"
                                             >
-                                                <h4 className="text-sm font-semibold w-full text-center line-clamp-2 break-words h-full flex items-center justify-center" style={getFontStyle(getInheritedFontProperties(subScreenStack))}>{item?.name}</h4>
+                                                <h4 className="text-sm font-semibold w-full text-center line-clamp-2 break-words h-full flex items-center justify-center" style={getFontStyle(getEffectiveFontProperties(item, subScreenStack))}>{item?.name}</h4>
                                                 {item?.numberOfColumns && (
                                                     <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                 )}
@@ -1307,6 +1311,28 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         return null;
     }
 
+    const updateScreenInTree = (screens: IMenuScreen[], targetScreen: IMenuScreen, updatedScreen: IMenuScreen): IMenuScreen[] => {
+        let changed = false;
+        const updatedScreens = screens.map(screen => {
+            const isTarget = screen === targetScreen || (!!targetScreen?.id && screen.id === targetScreen.id);
+            if (isTarget) {
+                changed = true;
+                return updatedScreen;
+            }
+
+            if (screen.subScreens?.length) {
+                const updatedSubScreens = updateScreenInTree(screen.subScreens, targetScreen, updatedScreen);
+                if (updatedSubScreens !== screen.subScreens) {
+                    changed = true;
+                    return { ...screen, subScreens: updatedSubScreens };
+                }
+            }
+            return screen;
+        });
+
+        return changed ? updatedScreens : screens;
+    };
+
 
     const handleEditScreen = () => {
         if (!editScreenName.trim()) {
@@ -1343,9 +1369,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     }
                     return mainScreen;
                 });
-            } else if (selectedScreenType === 'sub' && selectedMainScreenIndex !== null && editingSubScreenId) {
-                // Find the existing subScreen by ID
-                const existingSubScreen = findScreenById(updatedData.menuScreens, editingSubScreenId);
+            } else if (selectedScreenType === 'sub' && selectedMainScreenIndex !== null) {
+                // Resolve by ID when available, with an object-reference fallback for legacy screens without an ID.
+                const existingSubScreen = (editingSubScreenId && findScreenById(updatedData.menuScreens, editingSubScreenId)) || editingScreen;
                 if (existingSubScreen) {
                     const updatedSubScreen = {
                         ...existingSubScreen,
@@ -1367,12 +1393,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         ),
                     };
 
-                    // Update using the existing updateSubScreenById
-                    updatedData.menuScreens = updateSubScreenById(updatedData.menuScreens, updatedSubScreen);
+                    updatedData.menuScreens = updateScreenInTree(updatedData.menuScreens, existingSubScreen, updatedSubScreen);
 
                     // Update the subScreenStack with the updated sub-screen
                     const updatedSubScreenStack = subScreenStack.map(subScreen =>
-                        subScreen.id === editingSubScreenId ? updatedSubScreen : subScreen
+                        subScreen === existingSubScreen || (!!existingSubScreen.id && subScreen.id === existingSubScreen.id)
+                            ? updatedSubScreen
+                            : subScreen
                     );
                     setSubScreenStack(updatedSubScreenStack);
                 }
@@ -1383,6 +1410,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: false });
         setEditingSubScreenId(null);
+        setEditingScreen(null);
         setEditScreenFontFamily('Montserrat');
         setEditScreenFontColor('#000000');
         setEditScreenFontSize(14);
@@ -1427,11 +1455,43 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     ];
     const fontFamilyOptions = [
         { value: 'Montserrat', label: 'Montserrat' },
-        { value: 'Open_Sans', label: 'Open_Sans' },
+        { value: 'Open Sans', label: 'Open Sans' },
         { value: 'Roboto', label: 'Roboto' },
         { value: 'Tinos', label: 'Tinos' },
+        { value: 'Poppins', label: 'Poppins' },
+        { value: 'Lato', label: 'Lato' },
+        { value: 'Oswald', label: 'Oswald' },
+        { value: 'Raleway', label: 'Raleway' },
+        { value: 'Arial', label: 'Arial' },
+        { value: 'Arial Narrow', label: 'Arial Narrow' },
+        { value: 'Book Antiqua', label: 'Book Antiqua' },
+        { value: 'Calibri', label: 'Calibri' },
+        { value: 'Candara', label: 'Candara' },
+        { value: 'Century Gothic', label: 'Century Gothic' },
+        { value: 'Comic Sans MS', label: 'Comic Sans MS' },
+        { value: 'Consolas', label: 'Consolas' },
+        { value: 'Courier New', label: 'Courier New' },
+        { value: 'Georgia', label: 'Georgia' },
+        { value: 'Impact', label: 'Impact' },
+        { value: 'Palatino Linotype', label: 'Palatino Linotype' },
+        { value: 'Segoe UI', label: 'Segoe UI' },
+        { value: 'Tahoma', label: 'Tahoma' },
+        { value: 'Times New Roman', label: 'Times New Roman' },
+        { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+        { value: 'Verdana', label: 'Verdana' },
     ];
-    const resolveFontFamilyOption = (value: string) => fontFamilyOptions.find(option => option.value === value) || null;
+    const normalizeFontFamily = (value?: string) => {
+        const normalized = value?.trim();
+        if (!normalized) return 'Montserrat';
+        return ({
+            Open_Sans: 'Open Sans',
+            Segoe_UI: 'Segoe UI',
+            Times_New_Roman: 'Times New Roman',
+            Trebuchet_MS: 'Trebuchet MS',
+        } as Record<string, string>)[normalized] || normalized;
+    };
+    const resolveFontFamilyOption = (value: string) =>
+        fontFamilyOptions.find(option => option.value === normalizeFontFamily(value)) || null;
     const defaultFontSize = 14;
     const defaultFontColor = '#000000';
     const defaultFontProperties: IFontProperties = {
@@ -1442,26 +1502,22 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         color: defaultFontColor,
     };
 
-    /** First non-null fontProperties from screen then ancestors (root → parent). Used for sub-screens/items. */
+    /** Resolve inherited and own values, also supporting legacy partial font records. */
     const getEffectiveFontProperties = (screen: IMenuScreen, ancestorChain: IMenuScreen[]): IFontProperties => {
-        if (screen?.fontProperties != null) return screen.fontProperties;
-        for (let i = ancestorChain.length - 1; i >= 0; i--) {
-            if (ancestorChain[i]?.fontProperties != null) return ancestorChain[i].fontProperties;
-        }
-        return defaultFontProperties;
-    };
-
-    /** First non-null fontProperties from ancestors only (not the screen itself). Use for the screen card label. */
-    const getInheritedFontProperties = (ancestorChain: IMenuScreen[]): IFontProperties => {
-        for (let i = ancestorChain.length - 1; i >= 0; i--) {
-            if (ancestorChain[i]?.fontProperties != null) return ancestorChain[i].fontProperties;
-        }
-        return defaultFontProperties;
+        const inheritedFontProperties = ancestorChain.reduce(
+            (fontProperties, ancestor) => ({ ...fontProperties, ...(ancestor?.fontProperties || {}) }),
+            defaultFontProperties
+        );
+        const effective = { ...inheritedFontProperties, ...(screen?.fontProperties || {}) };
+        return {
+            ...effective,
+            fontFamily: normalizeFontFamily(effective.fontFamily),
+        };
     };
 
     /** Inline style for a screen label from effective font properties. */
     const getFontStyle = (font: IFontProperties): React.CSSProperties => ({
-        fontFamily: font.fontFamily,
+        fontFamily: normalizeFontFamily(font.fontFamily),
         fontSize: font.fontSize,
         fontWeight: font.bold ? 'bold' : 'normal',
         fontStyle: font.italic ? 'italic' : 'normal',
@@ -1469,7 +1525,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     });
 
     const buildFontProperties = (options: { fontFamily: string; bold: boolean; italic: boolean; color?: string; fontSize?: number }, existing?: any) => ({
-        fontFamily: options.fontFamily,
+        fontFamily: normalizeFontFamily(options.fontFamily),
         fontSize: typeof options.fontSize === 'number' ? options.fontSize : (typeof existing?.fontSize === 'number' ? existing.fontSize : defaultFontSize),
         bold: options.bold,
         italic: options.italic,
@@ -1825,170 +1881,200 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             )}
 
             <Dialog open={isModalOpen.isEditModalOpen} onOpenChange={(open) => setIsModalOpen({ ...isModalOpen, isEditModalOpen: open })}>
-                <DialogContent className="max-w-lg">
-                    <DialogHeader>
+                <DialogContent className="w-[min(92vw,760px)] max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+                    <DialogHeader className="border-b px-5 py-4">
                         <DialogTitle className="text-base font-semibold">
                             <Translate contentKey={'menus.pos.update.modals.editScreen.title'}>Edit Screen</Translate>
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="editScreenName" className="text-xs font-medium">
-                                <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
-                            </Label>
-                            <Input
-                                type="text"
-                                id="editScreenName"
-                                value={editScreenName}
-                                onChange={e => setEditScreenName(e.target.value)}
-                                className="h-9 text-sm"
-                                placeholder="Enter screen name"
-                            />
+                    <div className="space-y-4 px-5 py-4">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="editScreenName" className="text-xs font-medium">
+                                    <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
+                                </Label>
+                                <Input
+                                    type="text"
+                                    id="editScreenName"
+                                    value={editScreenName}
+                                    onChange={e => setEditScreenName(e.target.value)}
+                                    className="h-9 text-sm"
+                                    placeholder="Enter screen name"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="editScreenDescription" className="text-xs font-medium">
+                                    Description
+                                </Label>
+                                <Textarea
+                                    id="editScreenDescription"
+                                    value={editScreenDescription}
+                                    onChange={e => setEditScreenDescription(e.target.value)}
+                                    className="min-h-16 text-sm"
+                                    placeholder="Shown under the category title on online ordering"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="editScreenDescription" className="text-xs font-medium">
-                                Description
-                            </Label>
-                            <Textarea
-                                id="editScreenDescription"
-                                value={editScreenDescription}
-                                onChange={e => setEditScreenDescription(e.target.value)}
-                                className="min-h-20 text-sm"
-                                placeholder="Shown under the category title on online ordering"
-                            />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="editScreenUseDefaultFont"
-                                checked={editScreenUseDefaultFont}
-                                onCheckedChange={checked => setEditScreenUseDefaultFont(!!checked)}
-                            />
-                            <Label htmlFor="editScreenUseDefaultFont" className="text-sm font-medium cursor-pointer">
-                                Use default font (inherit from parent)
-                            </Label>
+
+                        <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/20 px-3 py-2">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="editScreenUseDefaultFont"
+                                    checked={editScreenUseDefaultFont}
+                                    onCheckedChange={checked => setEditScreenUseDefaultFont(!!checked)}
+                                />
+                                <Label htmlFor="editScreenUseDefaultFont" className="text-sm font-medium cursor-pointer">
+                                    Inherit font from parent
+                                </Label>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                                {editScreenUseDefaultFont ? 'Inherited' : 'Custom'}
+                            </span>
                         </div>
                         {!editScreenUseDefaultFont && (
-                        <>
-                        <div className="space-y-2">
-                            <Label htmlFor="editScreenFontFamily" className="text-xs font-medium">Font Family</Label>
-                            <Select
-                                inputId="editScreenFontFamily"
-                                options={fontFamilyOptions}
-                                value={resolveFontFamilyOption(editScreenFontFamily)}
-                                onChange={(option: any) => setEditScreenFontFamily(option?.value || 'Montserrat')}
-                            />
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="editScreenBold"
-                                    checked={editScreenBold}
-                                    onCheckedChange={checked => setEditScreenBold(!!checked)}
-                                />
-                                <Label htmlFor="editScreenBold" className="text-sm font-medium cursor-pointer">
-                                    Bold
-                                </Label>
+                            <div className="rounded-lg border bg-muted/10 p-3 space-y-3">
+                                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Font override</div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="editScreenFontFamily" className="text-xs font-medium">Font Family</Label>
+                                        <Select
+                                            inputId="editScreenFontFamily"
+                                            options={fontFamilyOptions}
+                                            value={resolveFontFamilyOption(editScreenFontFamily)}
+                                            onChange={(option: any) => {
+                                                enableEditFontOverride();
+                                                setEditScreenFontFamily(option?.value || 'Montserrat');
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-medium">Font Size</Label>
+                                        <Input
+                                            type="number"
+                                            min={8}
+                                            max={72}
+                                            value={editScreenFontSize}
+                                            onChange={e => {
+                                                enableEditFontOverride();
+                                                setEditScreenFontSize(parseInt(e.target.value, 10) || 14);
+                                            }}
+                                            className="h-9 text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-[auto_auto_minmax(0,1fr)] sm:items-end">
+                                    <div className="flex items-center gap-4 h-9">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="editScreenBold"
+                                                checked={editScreenBold}
+                                                onCheckedChange={checked => {
+                                                    enableEditFontOverride();
+                                                    setEditScreenBold(!!checked);
+                                                }}
+                                            />
+                                            <Label htmlFor="editScreenBold" className="text-sm font-medium cursor-pointer">Bold</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="editScreenItalic"
+                                                checked={editScreenItalic}
+                                                onCheckedChange={checked => {
+                                                    enableEditFontOverride();
+                                                    setEditScreenItalic(!!checked);
+                                                }}
+                                            />
+                                            <Label htmlFor="editScreenItalic" className="text-sm font-medium cursor-pointer">Italic</Label>
+                                        </div>
+                                    </div>
+                                    <Label className="text-xs font-medium sm:pb-2">Font Color</Label>
+                                    <div className="flex items-center gap-2">
+                                        <ColorPicker
+                                            value={editScreenFontColor.replace('#', '')}
+                                            onChange={e => {
+                                                enableEditFontOverride();
+                                                setEditScreenFontColor(e.value ? `#${e.value}` : '#000000');
+                                            }}
+                                            format="hex"
+                                            appendTo="self"
+                                        />
+                                        <Input
+                                            value={editScreenFontColor}
+                                            onChange={e => {
+                                                enableEditFontOverride();
+                                                setEditScreenFontColor(e.target.value);
+                                            }}
+                                            placeholder="#000000"
+                                            className="h-9 text-sm flex-1"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="editScreenItalic"
-                                    checked={editScreenItalic}
-                                    onCheckedChange={checked => setEditScreenItalic(!!checked)}
-                                />
-                                <Label htmlFor="editScreenItalic" className="text-sm font-medium cursor-pointer">
-                                    Italic
-                                </Label>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs font-medium">Font Size</Label>
-                            <Input
-                                type="number"
-                                min={8}
-                                max={72}
-                                value={editScreenFontSize}
-                                onChange={e => setEditScreenFontSize(parseInt(e.target.value, 10) || 14)}
-                                className="h-9 text-sm"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs font-medium">Font Color</Label>
-                            <div className="flex items-center gap-2">
-                                <ColorPicker
-                                    value={editScreenFontColor.replace('#', '')}
-                                    onChange={e => setEditScreenFontColor(e.value ? `#${e.value}` : '#000000')}
-                                    format="hex"
-                                    appendTo="self"
-                                />
-                                <Input
-                                    value={editScreenFontColor}
-                                    onChange={e => setEditScreenFontColor(e.target.value)}
-                                    placeholder="#000000"
-                                    className="h-9 text-sm flex-1"
-                                />
-                            </div>
-                        </div>
-                        </>
                         )}
 
-                        <div className="space-y-2">
-                            <Label htmlFor="editCols" className="text-xs font-medium">Number of columns</Label>
-                            <Input
-                                type="number"
-                                id="editCols"
-                                min={1}
-                                max={12}
-                                value={editScreenCols || 1}
-                                onChange={e => setEditScreenCols(parseInt(e.target.value) ?? 1)}
-                                className="h-9 text-sm"
-                            />
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="isPizza"
-                                checked={editScreenIsPizza}
-                                onCheckedChange={(checked) => setEditScreenIsPizza(!!checked)}
-                            />
-                            <Label htmlFor="isPizza" className="text-sm font-medium cursor-pointer">
-                                <Translate contentKey={'menus.pos.update.modals.editScreen.isPizza'}>Is Pizza</Translate>
-                            </Label>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="editScreenImage" className="text-xs font-medium">
-                                <Translate contentKey={'menus.pos.update.modals.editScreen.image'}>Image</Translate>
-                            </Label>
-                            <div className="flex flex-wrap">
-                                <MediaLibrary
-                                    handleFilesSelectCallback={files =>
-                                        setMainScreenImage(
-                                            transformAttachmentStructure(files, 'toIAttachment')[0]
-                                        )
-                                    }
-                                    defaultValues={transformAttachmentStructure(mainScreenImage ? [mainScreenImage] : [], 'toFileLibraryListItem')}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="editCols" className="text-xs font-medium">Number of columns</Label>
+                                <Input
+                                    type="number"
+                                    id="editCols"
+                                    min={1}
+                                    max={12}
+                                    value={editScreenCols || 1}
+                                    onChange={e => setEditScreenCols(parseInt(e.target.value) ?? 1)}
+                                    className="h-9 text-sm"
                                 />
+                            </div>
+                            <div className="flex items-end pb-1">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="isPizza"
+                                        checked={editScreenIsPizza}
+                                        onCheckedChange={(checked) => setEditScreenIsPizza(!!checked)}
+                                    />
+                                    <Label htmlFor="isPizza" className="text-sm font-medium cursor-pointer">
+                                        <Translate contentKey={'menus.pos.update.modals.editScreen.isPizza'}>Is Pizza</Translate>
+                                    </Label>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="editScreenColor" className="text-xs font-medium">
-                                <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
-                            </Label>
-                            <div className="flex flex-wrap gap-2">
-                                {colorThemes.map((color, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        style={{ backgroundColor: color }}
-                                        className={`w-16 h-9 rounded-md border-2 transition-all hover:scale-105 ${editScreenColor === color ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
-                                        onClick={() => setEditScreenColor(color)}
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="space-y-2 min-w-0">
+                                <Label htmlFor="editScreenImage" className="text-xs font-medium">
+                                    <Translate contentKey={'menus.pos.update.modals.editScreen.image'}>Image</Translate>
+                                </Label>
+                                <div className="flex flex-wrap">
+                                    <MediaLibrary
+                                        handleFilesSelectCallback={files =>
+                                            setMainScreenImage(
+                                                transformAttachmentStructure(files, 'toIAttachment')[0]
+                                            )
+                                        }
+                                        defaultValues={transformAttachmentStructure(mainScreenImage ? [mainScreenImage] : [], 'toFileLibraryListItem')}
                                     />
-                                ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="editScreenColor" className="text-xs font-medium">
+                                    <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {colorThemes.map((color, index) => (
+                                        <button
+                                            key={index}
+                                            type="button"
+                                            style={{ backgroundColor: color }}
+                                            className={`w-12 h-7 rounded-md border-2 transition-all hover:scale-105 ${editScreenColor === color ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
+                                            onClick={() => setEditScreenColor(color)}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="border-t px-5 py-3">
                         <Button
                             variant="outline"
                             size="sm"
@@ -2158,7 +2244,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                             {!item?.empty && (
                                                                 <>
                                                                     <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible">
-                                                                        <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words" style={getFontStyle(getInheritedFontProperties([]))}>{item?.name}</h5>
+                                                                        <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words" style={getFontStyle(getEffectiveFontProperties(item, []))}>{item?.name}</h5>
                                                                         {item?.numberOfColumns && (
                                                                             <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                                         )}
@@ -2187,6 +2273,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     key={index}
                                                     className="cursor-pointer hover:text-primary transition-colors inline-flex items-center"
                                                     onClick={() => navigateToBreadcrumbItem(index)}
+                                                    style={getFontStyle(
+                                                        getEffectiveFontProperties(subScreenStack[index], subScreenStack.slice(0, index))
+                                                    )}
                                                 >
                                                     {breadcrumbTitle}
                                                     {index < breadcrumb.length - 1 && <span className="mx-1 text-muted-foreground">/</span>}
