@@ -351,6 +351,7 @@ const RegularItemsTable = ({
       unassignNewEntity={unassignNewEntity}
       isUpdating={isUpdating}
       getFieldAssigned={getFieldAssigned}
+      assignmentFilterField="productionCenter.id"
     />
   );
 }
@@ -438,6 +439,7 @@ const PizzaItemsTable = ({
       unassignNewEntity={unassignNewEntity}
       isUpdating={isUpdating}
       getFieldAssigned={getFieldAssigned}
+      assignmentFilterField="productionCenter.id"
     />
   );
 }
@@ -525,6 +527,7 @@ const ComboItemsTable = ({
       unassignNewEntity={unassignNewEntity}
       isUpdating={isUpdating}
       getFieldAssigned={getFieldAssigned}
+      assignmentFilterField="productionCenter.id"
     />
   );
 }
@@ -612,6 +615,7 @@ const ProductsTable = ({
       unassignNewEntity={unassignNewEntity}
       isUpdating={isUpdating}
       getFieldAssigned={getFieldAssigned}
+      assignmentFilterField="productionCenter.id"
     />
   );
 }
