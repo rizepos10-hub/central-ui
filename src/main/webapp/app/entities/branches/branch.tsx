@@ -465,6 +465,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleCashbackEnabledChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].cashbackEnabled = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleTokenExpiredFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].tokenExpired = checked;
@@ -882,6 +888,17 @@ export const Branches = () => {
                     />
                     <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Print Zero Price Addons
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.cashbackEnabled !== false}
+                      onCheckedChange={(checked) => handleCashbackEnabledChange(branchIndex, checked === true)}
+                      id={`cashback-enabled-${branchIndex}`}
+                    />
+                    <Label htmlFor={`cashback-enabled-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Enable Cash Back on POS
                     </Label>
                   </div>
 

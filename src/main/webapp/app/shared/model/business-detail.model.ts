@@ -43,6 +43,7 @@ export interface IBranchDetails {
   autoPrintReceiptOnOnlineAccept?: boolean;
   autoPrintKitchenOnOnlineAccept?: boolean;
   enableAskOnTablePermissions?: boolean;
+  cashbackEnabled?: boolean;
   openTableIdleTimeoutEnabled?: boolean;
   openTableIdleTimeoutSeconds?: number | null;
   deliveryConfiguration: IDeliveryConfiguration | null
