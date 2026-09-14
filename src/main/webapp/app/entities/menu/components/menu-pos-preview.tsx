@@ -132,7 +132,7 @@ const MenuPosPreview = ({ data }) => {
                     )}
                   >
                     <div className="flex flex-col items-center justify-center h-full">
-                      <h5 className="text-sm font-semibold text-center" style={getFontStyle(getEffectiveFontProperties(mainScreen))}>
+                      <h5 className="text-sm font-semibold text-center">
                         {mainScreen?.name}
                       </h5>
                       <div
@@ -159,7 +159,6 @@ const MenuPosPreview = ({ data }) => {
                   key={index}
                   onClick={() => subScreenLinkClickHandler(index)}
                   className="cursor-pointer hover:text-primary transition-colors inline-flex items-center"
-                  style={getFontStyle(getEffectiveFontProperties(subScreen, subScreensList.slice(0, index)))}
                 >
                   {subScreen?.name}
                   {index < subScreensList.length - 1 && (
@@ -206,7 +205,7 @@ const MenuPosPreview = ({ data }) => {
                       <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2">
                         <h4
                           className="text-sm font-semibold truncate w-full text-center"
-                          style={getFontStyle(getEffectiveFontProperties(subScreen, subScreensList))}
+                          style={subScreen?.componentType === 'ITEM' ? getFontStyle(getEffectiveFontProperties(subScreen, subScreensList)) : undefined}
                         >
                           {subScreen?.name}
                         </h4>

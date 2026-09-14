@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Trash2, Edit2, Grid2X2, Columns2 } from 'lucide-react';
 import { Translate } from 'react-jhipster';
+import { components as ReactSelectComponents, OptionProps, SingleValueProps } from 'react-select';
 import MenuPosPreview from './menu-pos-preview';
 import ItemSelectionModal from '../item-selection-modal';
 
@@ -25,6 +26,39 @@ import { Slider } from '@/components/ui/slider';
 import { Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import Select from 'app/shared/components/select/select';
+
+interface IFontFamilyOption {
+    value: string;
+    label: string;
+}
+
+const FontFamilyOption = (props: OptionProps<IFontFamilyOption, false>) => (
+    <ReactSelectComponents.Option {...props}>
+        <span style={{ display: 'block', fontFamily: props.data.value }}>{props.children}</span>
+    </ReactSelectComponents.Option>
+);
+
+const FontFamilySingleValue = (props: SingleValueProps<IFontFamilyOption, false>) => (
+    <ReactSelectComponents.SingleValue {...props}>
+        <span style={{ fontFamily: props.data.value }}>{props.children}</span>
+    </ReactSelectComponents.SingleValue>
+);
+
+const fontSelectComponents = {
+    Option: FontFamilyOption,
+    SingleValue: FontFamilySingleValue,
+};
+
+const FONT_SELECT_MENU_MAX_HEIGHT = 240;
+const fontSelectStyles = {
+    menuList: (base: any) => ({
+        ...base,
+        maxHeight: `${FONT_SELECT_MENU_MAX_HEIGHT}px`,
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+    }),
+};
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -726,7 +760,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                 }}
                                                 className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible"
                                             >
-                                                <h4 className="text-sm font-semibold w-full text-center line-clamp-2 break-words h-full flex items-center justify-center" style={getFontStyle(getEffectiveFontProperties(item, subScreenStack))}>{item?.name}</h4>
+                                                <h4
+                                                    className="text-sm font-semibold w-full text-center line-clamp-2 break-words h-full flex items-center justify-center"
+                                                    style={item?.componentType === 'ITEM' ? getFontStyle(getEffectiveFontProperties(item, subScreenStack)) : undefined}
+                                                >
+                                                    {item?.name}
+                                                </h4>
                                                 {item?.numberOfColumns && (
                                                     <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                 )}
@@ -1596,6 +1635,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 inputId="newMainScreenFontFamily"
                                 options={fontFamilyOptions}
                                 value={resolveFontFamilyOption(newMainScreenFontFamily)}
+                                components={fontSelectComponents}
+                                maxMenuHeight={FONT_SELECT_MENU_MAX_HEIGHT}
+                                menuPortalTarget={null}
+                                menuPosition="absolute"
+                                menuShouldScrollIntoView={false}
+                                captureMenuScroll={false}
+                                styles={fontSelectStyles}
                                 onChange={(option: any) => setNewMainScreenFontFamily(option?.value || 'Montserrat')}
                             />
                         </div>
@@ -1748,6 +1794,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 inputId="newSubScreenFontFamily"
                                 options={fontFamilyOptions}
                                 value={resolveFontFamilyOption(newSubScreenFontFamily)}
+                                components={fontSelectComponents}
+                                maxMenuHeight={FONT_SELECT_MENU_MAX_HEIGHT}
+                                menuPortalTarget={null}
+                                menuPosition="absolute"
+                                menuShouldScrollIntoView={false}
+                                captureMenuScroll={false}
+                                styles={fontSelectStyles}
                                 onChange={(option: any) => setNewSubScreenFontFamily(option?.value || 'Montserrat')}
                             />
                         </div>
@@ -1941,6 +1994,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                             inputId="editScreenFontFamily"
                                             options={fontFamilyOptions}
                                             value={resolveFontFamilyOption(editScreenFontFamily)}
+                                            components={fontSelectComponents}
+                                            maxMenuHeight={FONT_SELECT_MENU_MAX_HEIGHT}
+                                            menuPortalTarget={null}
+                                            menuPosition="absolute"
+                                            menuShouldScrollIntoView={false}
+                                            captureMenuScroll={false}
+                                            styles={fontSelectStyles}
                                             onChange={(option: any) => {
                                                 enableEditFontOverride();
                                                 setEditScreenFontFamily(option?.value || 'Montserrat');
@@ -2244,7 +2304,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                             {!item?.empty && (
                                                                 <>
                                                                     <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible">
-                                                                        <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words" style={getFontStyle(getEffectiveFontProperties(item, []))}>{item?.name}</h5>
+                                                                        <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words">{item?.name}</h5>
                                                                         {item?.numberOfColumns && (
                                                                             <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                                         )}
@@ -2273,9 +2333,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     key={index}
                                                     className="cursor-pointer hover:text-primary transition-colors inline-flex items-center"
                                                     onClick={() => navigateToBreadcrumbItem(index)}
-                                                    style={getFontStyle(
-                                                        getEffectiveFontProperties(subScreenStack[index], subScreenStack.slice(0, index))
-                                                    )}
                                                 >
                                                     {breadcrumbTitle}
                                                     {index < breadcrumb.length - 1 && <span className="mx-1 text-muted-foreground">/</span>}

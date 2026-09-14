@@ -2,6 +2,71 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* Menu fonts are bundled so previews and saved menu styles use the same families without a network dependency. */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../content/fonts/menu/montserrat.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../content/fonts/menu/open-sans.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../content/fonts/menu/roboto.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Tinos';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../content/fonts/menu/tinos.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../content/fonts/menu/poppins.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../content/fonts/menu/lato.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../content/fonts/menu/oswald.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Raleway';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../content/fonts/menu/raleway.ttf') format('truetype');
+}
+
 @layer base {
   :root {
     /* Soft canvas (not pure white) — easier on the eyes; cards stay near-white for contrast */
