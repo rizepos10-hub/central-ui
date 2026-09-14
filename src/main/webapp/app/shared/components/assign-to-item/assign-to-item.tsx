@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import _ from 'lodash';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
@@ -14,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Select from 'app/shared/components/select/select';
 import { Plus, Minus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getAssignmentSelection, updateItemFilterQuery } from './assign-to-item.utils';
 
 export const ItemsTable = ({
     items,
@@ -25,7 +25,8 @@ export const ItemsTable = ({
     isUpdating,
     getFieldAssigned,
     query,
-    setQuery
+    setQuery,
+    assignmentFilterField = "addonGroups.addonGroup.id"
 }: {
     items: IItem[];
     loading: boolean;
@@ -40,6 +41,7 @@ export const ItemsTable = ({
     getFieldAssigned: any;
     query: any;
     setQuery: any;
+    assignmentFilterField?: string;
 }) => {
     const { id } = useParams<'id'>();
     const dispatch = useAppDispatch();
@@ -58,33 +60,17 @@ export const ItemsTable = ({
     }, [query, dispatch]);
 
     const handleFilterChange = (field, value) => {
-        setQuery(prev => ({
-            ...prev,
-            filters: {
-                ...prev.filters,
-                [field]: {
-                    ...prev.filters[field],
-                    value: value?.value,
-                    matchMode: FilterMatchMode.EQUALS
-                }
-            }
-        }));
+        setQuery(prev => updateItemFilterQuery(prev, field, value?.value, FilterMatchMode.EQUALS));
     };
 
-    const handleNameFilterChange = _.debounce((value) => {
-        setQuery(prev => ({
-            ...prev,
-            first: 0,
-            page: 0,
-            filters: {
-                ...prev.filters,
-                name: {
-                    value: value,
-                    matchMode: FilterMatchMode.CONTAINS
-                }
-            }
-        }));
-    }, 300);
+    const handleNameFilterChange = useMemo(
+        () => _.debounce((value: string) => {
+            setQuery(prev => updateItemFilterQuery(prev, 'name', value, FilterMatchMode.CONTAINS));
+        }, 300),
+        [setQuery]
+    );
+
+    useEffect(() => () => handleNameFilterChange.cancel(), [handleNameFilterChange]);
 
     const assignmentOptions = [
         { label: 'All', value: null },
@@ -93,22 +79,13 @@ export const ItemsTable = ({
     ];
 
     const getAssignmentFilterValue = () => {
-        const filter = query.filters?.["addonGroups.addonGroup.id"];
-        if (filter?.value === id) {
-            if (filter.matchMode === FilterMatchMode.EQUALS) {
-                return assignmentOptions[1];
-            }
-            if (filter.matchMode === FilterMatchMode.NOT_EQUALS) {
-                return assignmentOptions[2];
-            }
-        }
-        return assignmentOptions[0];
+        const selection = getAssignmentSelection(query.filters, assignmentFilterField, id);
+        return assignmentOptions.find(option => option.value === selection) || assignmentOptions[0];
     }
 
     const onAssignmentFilterChange = (option) => {
         const selection = option?.value;
-        const field = "addonGroups.addonGroup.id";
-        let filterValue = null;
+        let filterValue: string | null = null;
         let matchMode = FilterMatchMode.EQUALS;
 
         if (selection === 'assigned') {
@@ -118,17 +95,7 @@ export const ItemsTable = ({
             matchMode = FilterMatchMode.NOT_EQUALS;
         }
 
-        setQuery(prev => ({
-            ...prev,
-            filters: {
-                ...prev.filters,
-                [field]: {
-                    ...prev.filters[field],
-                    value: filterValue,
-                    matchMode
-                }
-            }
-        }));
+        setQuery(prev => updateItemFilterQuery(prev, assignmentFilterField, filterValue, matchMode));
     };
 
     const onAssign = (rowData) => {
