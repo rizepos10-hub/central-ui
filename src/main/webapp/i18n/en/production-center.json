@@ -22,6 +22,9 @@
       "name": "Name",
       "orderMethod": "Order Method",
       "printingProfile": "Printing Profile",
+      "printingProfiles": "Printing Profiles",
+      "printingProfilesPlaceholder": "Select one profile per branch",
+      "duplicateBranchPrintingProfile": "Only one printing profile is allowed per branch",
       "virtual": "Is Virtual"
     },
     "production-center": {
@@ -46,6 +49,9 @@
       "name": "Name",
       "orderMethod": "Order Method",
       "printingProfile": "Printing Profile",
+      "printingProfiles": "Printing Profiles",
+      "printingProfilesPlaceholder": "Select one profile per branch",
+      "duplicateBranchPrintingProfile": "Only one printing profile is allowed per branch",
       "virtual": "Is Virtual"
     }
   }

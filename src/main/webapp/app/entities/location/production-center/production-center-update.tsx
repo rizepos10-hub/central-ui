@@ -39,17 +39,26 @@ export const ProductionCenterUpdate = () => {
   const updating = useAppSelector(state => state.productionCenter.updating);
   const updateSuccess = useAppSelector(state => state.productionCenter.updateSuccess);
 
-  const printingProfilesList = useAppSelector(state => state.printingProfiles.entities).map(branch => ({ value: branch.id, label: branch.name }));
+  type PrintingProfileOption = { value: string; label: string; id: string; branchId?: string | null };
 
-  const initialPrintingProfile = { label: productionCenterEntity?.printingProfile?.name, value: productionCenterEntity?.printingProfile?.id }
-
-  const initialOrderMethod = { label: productionCenterEntity?.orderMethod, value: productionCenterEntity?.orderMethod }
+  const printingProfileEntities = useAppSelector(state => state.printingProfiles.entities);
+  const printingProfilesList: PrintingProfileOption[] = printingProfileEntities.map(profile => {
+    const branchName = typeof profile.branch === 'object' ? profile.branch?.name : undefined;
+    const branchId = typeof profile.branch === 'object' ? profile.branch?.id : profile.branch;
+    return {
+      value: profile.id,
+      id: profile.id,
+      branchId: branchId || null,
+      label: branchName ? `${profile.name} (${branchName})` : profile.name,
+    };
+  });
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [selectedPrintingProfile, setSelectedPrintingProfile] = useState<{ value: string; label: string; id: string; } | undefined>();
+  const [selectedPrintingProfiles, setSelectedPrintingProfiles] = useState<PrintingProfileOption[]>([]);
+  const [profileSelectionError, setProfileSelectionError] = useState<string | null>(null);
 
   const [selectedOrderMethod, setSelectedOrderMethod] = useState<{ value: string; label: string; id: string; } | undefined>();
 
@@ -77,8 +86,8 @@ export const ProductionCenterUpdate = () => {
 
     }
     dispatch(getPrintingProfiles({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
+      page: 0,
+      size: 1000,
       sort: `${paginationState.sort},${paginationState.order}`,
     }))
   }, []);
@@ -91,12 +100,22 @@ export const ProductionCenterUpdate = () => {
       });
     }
 
-    if (productionCenterEntity.printingProfile) {
-      setSelectedPrintingProfile({
-        value: productionCenterEntity.printingProfile.id,
-        label: productionCenterEntity.printingProfile.name,
-        id: productionCenterEntity.printingProfile.id
-      })
+    if (productionCenterEntity.printingProfiles?.length) {
+      setSelectedPrintingProfiles(
+        productionCenterEntity.printingProfiles.map(profile => {
+          const branchName = typeof profile.branch === 'object' ? profile.branch?.name : undefined;
+          const branchId = typeof profile.branch === 'object' ? profile.branch?.id : profile.branch;
+          return {
+            value: profile.id,
+            id: profile.id,
+            branchId: branchId || null,
+            label: branchName ? `${profile.name} (${branchName})` : profile.name,
+          };
+        })
+      );
+      setProfileSelectionError(null);
+    } else {
+      setSelectedPrintingProfiles([]);
     }
     if (productionCenterEntity.orderMethod) {
       setSelectedOrderMethod({
@@ -111,8 +130,16 @@ export const ProductionCenterUpdate = () => {
     }
   }, [updateSuccess, productionCenterEntity]);
 
-  const handlePrinterChange = (selectedPrintingProfile) => {
-    setSelectedPrintingProfile(selectedPrintingProfile);
+  const handlePrinterChange = (selected: PrintingProfileOption[] | null) => {
+    const next = selected || [];
+    const branchIds = next.map(option => option.branchId).filter(Boolean);
+    const hasDuplicateBranch = branchIds.length !== new Set(branchIds).size;
+    if (hasDuplicateBranch) {
+      setProfileSelectionError(translate('tempApp.productionCenter.duplicateBranchPrintingProfile'));
+      return;
+    }
+    setProfileSelectionError(null);
+    setSelectedPrintingProfiles(next);
   }
 
   const handleOrderMethodChange = (selectedOrderMethod) => {
@@ -120,10 +147,18 @@ export const ProductionCenterUpdate = () => {
   }
 
   const saveEntity = () => {
+    const branchIds = selectedPrintingProfiles.map(option => option.branchId).filter(Boolean);
+    if (branchIds.length !== new Set(branchIds).size) {
+      setProfileSelectionError(translate('tempApp.productionCenter.duplicateBranchPrintingProfile'));
+      return;
+    }
+
     const entity = {
       ...productionCenterEntity,
       ...formData,
-      printingProfile: selectedPrintingProfile ? { id: selectedPrintingProfile.value ? selectedPrintingProfile.value : selectedPrintingProfile.id } : null,
+      printingProfiles: selectedPrintingProfiles.map(option => ({
+        id: option.value || option.id,
+      })),
       orderMethod: selectedOrderMethod?.value || null,
     };
 
@@ -191,13 +226,18 @@ export const ProductionCenterUpdate = () => {
 
                   <div className="space-y-2">
                     <Label className="text-sm">
-                      {translate('tempApp.productionCenter.printingProfile')}
+                      {translate('tempApp.productionCenter.printingProfiles')}
                     </Label>
                     <ReactSelect
-                      value={selectedPrintingProfile}
+                      isMulti
+                      value={selectedPrintingProfiles}
                       onChange={handlePrinterChange}
                       options={printingProfilesList}
+                      placeholder={translate('tempApp.productionCenter.printingProfilesPlaceholder')}
                     />
+                    {profileSelectionError && (
+                      <p className="text-xs text-red-500">{profileSelectionError}</p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
