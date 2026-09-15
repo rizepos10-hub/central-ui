@@ -216,12 +216,22 @@ function GeneralSettings() {
             </FieldWrapper>
 
             <FieldWrapper
-                title="Receive Online Order Popups"
-                description="Receive Online Order Popups"
+                title="Receive Online Order Confirmation Popups"
+                description="Show popups on this register to confirm or reject online orders that need manual action"
             >
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Notify When Online Order Is Auto-Processed"
+                description="Show a popup after an online order is automatically sent to processing and printed"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.notifyOnOnlineOrderAutoProcessed}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'notifyOnOnlineOrderAutoProcessed', value: checked }))}
                 />
             </FieldWrapper>
 
