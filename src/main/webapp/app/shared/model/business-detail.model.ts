@@ -27,6 +27,8 @@ export interface IBusinessDetail {
   address?: IAddress;
   businessDetails?: businessDayDetails[];
   branchDetails?: IBranchDetails[];
+  /** When false, Tookan is inactive for the whole business. Null/undefined means enabled. */
+  tookanBookingEnabled?: boolean | null;
 }
 
 export interface IBranchDetails {
@@ -94,6 +96,8 @@ export interface IDeliveryConfiguration {
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
   tookanBookingTaskSteps?: ITookanBookingTaskSteps | null;
+  /** When false, Tookan is inactive for this branch. Null/undefined means enabled. */
+  tookanBookingEnabled?: boolean | null;
 }
 
 export enum DeliveryPricingMode {
@@ -168,4 +172,5 @@ export const defaultValue: Readonly<IBusinessDetail> = {
   slogan: null,
   address: null,
   businessDetails: [],
+  tookanBookingEnabled: true,
 };

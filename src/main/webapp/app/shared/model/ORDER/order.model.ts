@@ -34,6 +34,9 @@ export interface IOrder extends IOrderAudit {
   additionalServiceCharges?: IOrderCharge[];
   deliverTo?: IAddress | null;
   orderDeliveryDetails?: IOrderDeliveryDetails;
+  deliveryBookingStatus?: 'PENDING' | 'BOOKED';
+  deliveryBookingError?: string | null;
+  deliveryBookingLastAttemptAt?: string | null;
   paymentStatus?: PaymentStatus
   processingStatus?: OrderStatus
   deliveryStatus?: DeliverStatus

@@ -545,6 +545,7 @@ export const Branches = () => {
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
     defaultBookingLeadMinutes: null,
     tookanBookingTaskSteps: defaultTookanBookingTaskSteps(),
+    tookanBookingEnabled: true,
   });
 
   const withDeliveryConfigurationDefaults = (deliveryConfiguration?: IDeliveryConfiguration | null) => {
@@ -576,6 +577,7 @@ export const Branches = () => {
         ...defaultTookanBookingTaskSteps(),
         ...(deliveryConfiguration.tookanBookingTaskSteps ?? {}),
       },
+      tookanBookingEnabled: deliveryConfiguration.tookanBookingEnabled !== false,
     };
   };
 
@@ -1755,6 +1757,27 @@ export const Branches = () => {
                               <p className="text-[10px] text-muted-foreground">
                                 Leave empty to keep this unset, or provide the default lead time in minutes for branch bookings.
                               </p>
+                            </dd>
+                          </div>
+                          <div className="rounded-md border bg-muted/20 px-3 py-2 md:col-span-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tookan delivery</dt>
+                            <dd className="mt-2 flex items-start gap-2">
+                              <Checkbox
+                                id={`tookanBookingEnabled-${branchIndex}`}
+                                checked={branch.deliveryConfiguration?.tookanBookingEnabled !== false}
+                                onCheckedChange={checked =>
+                                  handleDeliveryConfiguration(branchIndex, 'tookanBookingEnabled', checked === true)
+                                }
+                              />
+                              <div className="space-y-1">
+                                <Label htmlFor={`tookanBookingEnabled-${branchIndex}`} className="text-xs font-semibold">
+                                  Enable Tookan for this branch
+                                </Label>
+                                <p className="text-[10px] text-muted-foreground">
+                                  When off, Tookan is inactive for this branch only (booking, fees, and provider selection). Business-level
+                                  disable still overrides this.
+                                </p>
+                              </div>
                             </dd>
                           </div>
                         </dl>

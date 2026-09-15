@@ -81,6 +81,16 @@ export const syncBooking = createAsyncThunk(
     { serializeError: serializeAxiosError }
 );
 
+export const retryBooking = createAsyncThunk(
+    'order/retryBooking',
+    async (orderId: string, thunkAPI) => {
+        const result = await axios.post(`${apiUrl}/retry-booking/${orderId}`);
+        thunkAPI.dispatch(getOrder(orderId));
+        return result;
+    },
+    { serializeError: serializeAxiosError }
+);
+
 export const assignDriver = createAsyncThunk(
     'order/assignDriver',
     async (entity: IDeliveryBooking, thunkAPI) => {
@@ -152,13 +162,13 @@ export const DeliverySlice = createEntitySlice({
                 state.loading = false;
                 state.agents = action.payload.data ?? [];
             })
-            .addMatcher(isFulfilled(createBooking, updateBooking, cancelBooking, syncBooking, assignDriver), (state, action) => {
+            .addMatcher(isFulfilled(createBooking, updateBooking, cancelBooking, syncBooking, retryBooking, assignDriver), (state, action) => {
                 state.updating = false;
                 state.loading = false;
                 state.updateSuccess = true;
                 state.entity = action.payload.data;
             })
-            .addMatcher(isPending(createBooking, updateBooking, cancelBooking, syncBooking, assignDriver), state => {
+            .addMatcher(isPending(createBooking, updateBooking, cancelBooking, syncBooking, retryBooking, assignDriver), state => {
                 state.errorMessage = null;
                 state.updateSuccess = false;
                 state.updating = true;

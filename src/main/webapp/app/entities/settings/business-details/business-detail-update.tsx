@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -164,6 +165,26 @@ export const BusinessDetailUpdate = () => {
                     maxLength={100}
                     className="h-7 text-xs"
                   />
+                </div>
+                <div className="flex items-start gap-2 rounded-md border px-3 py-2">
+                  <Checkbox
+                    id="tookanBookingEnabled"
+                    checked={businessDetailsState?.tookanBookingEnabled !== false}
+                    onCheckedChange={checked =>
+                      setBusinessDetailsState({
+                        ...businessDetailsState,
+                        tookanBookingEnabled: checked === true,
+                      })
+                    }
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="tookanBookingEnabled" className="text-xs font-semibold">
+                      Enable Tookan delivery
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      When off, Tookan is inactive for every branch under this business (booking, fees, and provider selection).
+                    </p>
+                  </div>
                 </div>
                 <div className='flex flex-col gap-2'>
                   <div className='font-light text-sm'>

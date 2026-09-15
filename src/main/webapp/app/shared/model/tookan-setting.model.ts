@@ -43,6 +43,8 @@ export interface IDeliveryConfiguration {
   shipmentRange?: IDistance;
   minCharge?: number;
   freeOnAmount?: number | null;
+  /** When false, Tookan is inactive for this branch. Null/undefined means enabled. */
+  tookanBookingEnabled?: boolean | null;
 }
 
 export interface ISubtotalCondition {
