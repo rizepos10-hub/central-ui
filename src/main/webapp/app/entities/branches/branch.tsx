@@ -10,7 +10,7 @@ import {
   dayTypeEnum,
   DeliveryTaggingModeEnum,
 } from 'app/shared/model/business-detail.model';
-import type { IBusinessDetail, IBranchDetails, IDeliveryConfiguration, ITookanBookingTaskSteps } from 'app/shared/model/business-detail.model';
+import type { IBusinessDetail, IBranchDetails, IDeliveryConfiguration, IPaymentConfigurations, ITookanBookingTaskSteps } from 'app/shared/model/business-detail.model';
 import { RequestType, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
@@ -58,6 +58,14 @@ const defaultTookanBookingTaskSteps = (): ITookanBookingTaskSteps => ({
 
 const MIN_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 15;
 const MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 120 * 60;
+const FAKE_ONLINE_CARD_MODULE_CODE = 'FAKE_ONLINE_CARD';
+
+const normalizePaymentConfigurations = (paymentConfigurations?: IPaymentConfigurations[]) =>
+  paymentConfigurations?.map(config =>
+    config?.moduleCode === FAKE_ONLINE_CARD_MODULE_CODE
+      ? { ...config, gateway: null }
+      : config
+  );
 
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
@@ -676,6 +684,9 @@ export const Branches = () => {
       ...businessDetailEntity,
       branchDetails: businessDetailsState?.branchDetails?.map(branch => ({
         ...branch,
+        // Fake card is identified by moduleCode. Its legacy gateway field must
+        // stay null or older Central deployments reject the whole update.
+        paymentConfigurations: normalizePaymentConfigurations(branch.paymentConfigurations),
         deliveryConfiguration: withDeliveryConfigurationDefaults(branch.deliveryConfiguration),
       })),
     };
@@ -693,18 +704,21 @@ export const Branches = () => {
 
   const handleSavePayments = () => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    newData[editPaymentIndex].paymentConfigurations = editingBranchPayments;
+    newData[editPaymentIndex].paymentConfigurations = normalizePaymentConfigurations(editingBranchPayments || []);
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
     hideDialog();
   }
 
   const handlePaymentConfigChange = (branchIndex: number, paymentConfigs: any[]) => {
-    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    if (!newData[branchIndex].paymentConfigurations) {
-      newData[branchIndex].paymentConfigurations = [];
-    }
-    newData[branchIndex].paymentConfigurations = paymentConfigs;
-    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+    const normalizedPaymentConfigs = normalizePaymentConfigurations(paymentConfigs) || [];
+    setBusinessDetailsState(prev => ({
+      ...prev,
+      branchDetails: prev.branchDetails?.map((branch, index) =>
+        index === branchIndex
+          ? { ...branch, paymentConfigurations: normalizedPaymentConfigs }
+          : branch
+      ),
+    }));
   }
 
   const handleAddChargeRule = (branchIndex) => {
@@ -2014,7 +2028,7 @@ export const Branches = () => {
                         </div>
                       </label>
                       <p id={`cod-help-${branchIndex}`} className="text-[10px] text-muted-foreground px-1">
-                        Tip: COD is independent of Converge/Bambora — it only toggles whether cash-on-delivery is allowed for this branch.
+                        Tip: COD is independent of Converge, Bambora, and Fake card — it only toggles whether cash-on-delivery is allowed for this branch.
                       </p>
 
                       <label
@@ -2084,7 +2098,7 @@ export const Branches = () => {
                         <div className="min-w-0 space-y-1">
                           <CardTitle className="text-sm font-semibold">Card processing</CardTitle>
                           <CardDescription className="text-[11px] leading-relaxed">
-                            Configure Converge Lightbox or Bambora credentials and options for card-present and online card payments at this branch.
+                            Configure Converge Lightbox, Bambora, or Fake card payments for this branch. Fake card requires no gateway credentials.
                           </CardDescription>
                         </div>
                       </div>
@@ -2098,11 +2112,13 @@ export const Branches = () => {
                           <TabsTrigger value="bambora" className="text-xs h-7 px-3">
                             Bambora
                           </TabsTrigger>
+                          <TabsTrigger value="fake-card" className="text-xs h-7 px-3">
+                            Fake card
+                          </TabsTrigger>
                         </TabsList>
                         <TabsContent value="converge" className="mt-0 rounded-md border bg-muted/10 p-3">
                           <BranchPaymentConfig
-                            editingBranchPayments={editingBranchPayments}
-                            setEditingBranchPayments={setEditingBranchPayments}
+                            editingBranchPayments={branch.paymentConfigurations || []}
                             branchIndex={branchIndex}
                             moduleCode="CONVERGE_LIGHTBOX"
                             onPaymentConfigChange={handlePaymentConfigChange}
@@ -2110,10 +2126,17 @@ export const Branches = () => {
                         </TabsContent>
                         <TabsContent value="bambora" className="mt-0 rounded-md border bg-muted/10 p-3">
                           <BranchPaymentConfig
-                            editingBranchPayments={editingBranchPayments}
-                            setEditingBranchPayments={setEditingBranchPayments}
+                            editingBranchPayments={branch.paymentConfigurations || []}
                             branchIndex={branchIndex}
                             moduleCode="BAMBORA"
+                            onPaymentConfigChange={handlePaymentConfigChange}
+                          />
+                        </TabsContent>
+                        <TabsContent value="fake-card" className="mt-0 rounded-md border bg-muted/10 p-3">
+                          <BranchPaymentConfig
+                            editingBranchPayments={branch.paymentConfigurations || []}
+                            branchIndex={branchIndex}
+                            moduleCode="FAKE_ONLINE_CARD"
                             onPaymentConfigChange={handlePaymentConfigChange}
                           />
                         </TabsContent>

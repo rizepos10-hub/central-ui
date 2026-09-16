@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 type PaymentEnvironment = 'TEST' | 'PROD';
 
 const CONVERGE_MODULE_CODE = 'CONVERGE_LIGHTBOX';
+const FAKE_MODULE_CODE = 'FAKE_ONLINE_CARD';
 
 /** Demo lightbox matches commented examples in onlineordering layouts; API paths are standard Converge hosted-payments endpoints. */
 const CONVERGE_DEFAULT_URLS: Record<PaymentEnvironment, { apiUrl: string; lightboxUrl: string }> = {
@@ -85,6 +86,13 @@ function createDefaultPaymentConfig(moduleCode: string) {
     moduleCode,
   };
 
+  if (moduleCode === FAKE_MODULE_CODE) {
+    return {
+      ...baseConfig,
+      integrationKeys: {},
+    };
+  }
+
   if (moduleCode === 'BAMBORA') {
     return {
       ...baseConfig,
@@ -114,6 +122,18 @@ function createDefaultPaymentConfig(moduleCode: string) {
       lightboxUrl: '',
     },
   };
+}
+
+function normalizeFakePaymentConfigs(payments: any[]): any[] {
+  let changed = false;
+  const normalized = payments.map((config) => {
+    if (config?.moduleCode !== FAKE_MODULE_CODE || config.gateway === null) {
+      return config;
+    }
+    changed = true;
+    return { ...config, gateway: null };
+  });
+  return changed ? normalized : payments;
 }
 
 function ensureTestAndProdConfigs(
@@ -155,6 +175,13 @@ function ensureTestAndProdConfigs(
     prodCfg = applyConvergeIntegrationDefaults(prodCfg);
   }
 
+  // Fake card is identified by its module code. The gateway field is an
+  // optional legacy PaymentType enum and must remain unset for this module.
+  if (moduleCode === FAKE_MODULE_CODE) {
+    testCfg.gateway = null;
+    prodCfg.gateway = null;
+  }
+
   return [...rest, testCfg, prodCfg];
 }
 
@@ -169,42 +196,41 @@ const BranchPaymentConfig = ({
   onPaymentConfigChangeRef.current = onPaymentConfigChange;
 
   useLayoutEffect(() => {
-    if (!setEditingBranchPayments || branchIndex === undefined) return;
+    if (branchIndex === undefined) return;
 
-    setEditingBranchPayments((prev: any[]) => {
-      const current = prev || [];
-      const hasTest = current.some((c) => c.moduleCode === moduleCode && c.environment === 'TEST');
-      const hasProd = current.some((c) => c.moduleCode === moduleCode && c.environment === 'PROD');
+    const current = editingBranchPayments || [];
+    const hasTest = current.some((c) => c.moduleCode === moduleCode && c.environment === 'TEST');
+    const hasProd = current.some((c) => c.moduleCode === moduleCode && c.environment === 'PROD');
 
-      let merged = current;
-      if (!hasTest || !hasProd) {
-        merged = ensureTestAndProdConfigs(current, moduleCode);
+    let merged = current;
+    if (!hasTest || !hasProd) {
+      merged = ensureTestAndProdConfigs(current, moduleCode);
+    }
+
+    if (moduleCode === FAKE_MODULE_CODE) {
+      merged = normalizeFakePaymentConfigs(merged);
+    }
+
+    const structuralChange = merged !== current;
+
+    if (moduleCode === CONVERGE_MODULE_CODE) {
+      let urlChange = false;
+      const next = merged.map((c) => {
+        if (c.moduleCode !== CONVERGE_MODULE_CODE) return c;
+        const u = applyConvergeIntegrationDefaults(c);
+        if (u !== c) urlChange = true;
+        return u;
+      });
+      if (structuralChange || urlChange) {
+        onPaymentConfigChangeRef.current?.(branchIndex, next);
       }
+      return;
+    }
 
-      const structuralChange = merged !== current;
-
-      if (moduleCode === CONVERGE_MODULE_CODE) {
-        let urlChange = false;
-        const next = merged.map((c) => {
-          if (c.moduleCode !== CONVERGE_MODULE_CODE) return c;
-          const u = applyConvergeIntegrationDefaults(c);
-          if (u !== c) urlChange = true;
-          return u;
-        });
-        if (structuralChange || urlChange) {
-          onPaymentConfigChangeRef.current?.(branchIndex, next);
-          return next;
-        }
-        return current;
-      }
-
-      if (structuralChange) {
-        onPaymentConfigChangeRef.current?.(branchIndex, merged);
-        return merged;
-      }
-      return current;
-    });
-  }, [moduleCode, branchIndex, setEditingBranchPayments]);
+    if (structuralChange) {
+      onPaymentConfigChangeRef.current?.(branchIndex, merged);
+    }
+  }, [editingBranchPayments, moduleCode, branchIndex]);
 
   const testIndex = useMemo(
     () => (editingBranchPayments ?? []).findIndex((c) => c.moduleCode === moduleCode && c.environment === 'TEST'),
@@ -216,55 +242,58 @@ const BranchPaymentConfig = ({
   );
 
   const handleChange = (index: number, field: string, value: any) => {
-    if (!setEditingBranchPayments || index < 0) return;
-    setEditingBranchPayments((prevState: any[]) => {
-      const newState = cloneDeep(prevState || []);
-      const [parentKey, childKey] = field.split('.');
-      if (childKey) {
-        if (!newState[index][parentKey]) newState[index][parentKey] = {};
-        newState[index][parentKey][childKey] = value;
-      } else {
-        newState[index][field] = value;
-      }
+    if (index < 0 || !editingBranchPayments?.[index]) return;
 
-      const row = newState[index];
-      if (row?.moduleCode === moduleCode) {
-        const testIdx = newState.findIndex((c) => c.moduleCode === moduleCode && c.environment === 'TEST');
-        const prodIdx = newState.findIndex((c) => c.moduleCode === moduleCode && c.environment === 'PROD');
-        const turnOn = value === true;
+    const newState = cloneDeep(editingBranchPayments || []);
+    const [parentKey, childKey] = field.split('.');
+    if (childKey) {
+      if (!newState[index][parentKey]) newState[index][parentKey] = {};
+      newState[index][parentKey][childKey] = value;
+    } else {
+      newState[index][field] = value;
+    }
 
-        if (field === 'active' && turnOn) {
-          if (row.environment === 'TEST' && prodIdx >= 0) {
-            newState[prodIdx].active = false;
-          }
-          if (row.environment === 'PROD' && testIdx >= 0) {
-            newState[testIdx].active = false;
-          }
+    const row = newState[index];
+    if (row?.moduleCode === moduleCode) {
+      const testIdx = newState.findIndex((c) => c.moduleCode === moduleCode && c.environment === 'TEST');
+      const prodIdx = newState.findIndex((c) => c.moduleCode === moduleCode && c.environment === 'PROD');
+      const turnOn = value === true;
+
+      if (field === 'active' && turnOn) {
+        if (row.environment === 'TEST' && prodIdx >= 0) {
+          newState[prodIdx].active = false;
         }
-
-        if (field === 'defaultSelected' && turnOn) {
-          if (row.environment === 'TEST' && prodIdx >= 0) {
-            newState[prodIdx].defaultSelected = false;
-          }
-          if (row.environment === 'PROD' && testIdx >= 0) {
-            newState[testIdx].defaultSelected = false;
-          }
+        if (row.environment === 'PROD' && testIdx >= 0) {
+          newState[testIdx].active = false;
         }
       }
 
-      if (onPaymentConfigChange && branchIndex !== undefined) {
-        onPaymentConfigChange(branchIndex, newState);
+      if (field === 'defaultSelected' && turnOn) {
+        if (row.environment === 'TEST' && prodIdx >= 0) {
+          newState[prodIdx].defaultSelected = false;
+        }
+        if (row.environment === 'PROD' && testIdx >= 0) {
+          newState[testIdx].defaultSelected = false;
+        }
       }
+    }
 
-      return newState;
-    });
+    const nextState = moduleCode === FAKE_MODULE_CODE ? normalizeFakePaymentConfigs(newState) : newState;
+    setEditingBranchPayments?.(nextState);
+    if (onPaymentConfigChange && branchIndex !== undefined) {
+      onPaymentConfigChange(branchIndex, nextState);
+    }
   };
 
-  const displayName = moduleCode === 'BAMBORA' ? 'Bambora' : 'Converge';
+  const isFakeModule = moduleCode === FAKE_MODULE_CODE;
+  const displayName = isFakeModule ? 'Fake card' : moduleCode === 'BAMBORA' ? 'Bambora' : 'Converge';
 
   const renderIntegrationFields = (actualIndex: number) => {
     const config = editingBranchPayments?.[actualIndex];
     if (!config?.integrationKeys) return null;
+    if (isFakeModule) {
+      return <p className="text-xs leading-relaxed text-muted-foreground">No gateway credentials are required for fake card payments.</p>;
+    }
     return (
       <div className="grid gap-3 sm:grid-cols-2">
         {Object.keys(config.integrationKeys).map((key) => (
@@ -338,13 +367,17 @@ const BranchPaymentConfig = ({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">Gateway (optional)</Label>
-              <Input
-                value={config.gateway || ''}
-                onChange={(e) => handleChange(actualIndex, 'gateway', e.target.value)}
-                className="h-8 text-xs"
-                placeholder="Gateway label or id"
-              />
+              <Label className="text-xs font-medium text-muted-foreground">{isFakeModule ? 'Payment type' : 'Gateway (optional)'}</Label>
+              {isFakeModule ? (
+                <Input value="FAKE_CARD" disabled className="h-8 text-xs bg-muted/50" />
+              ) : (
+                <Input
+                  value={config.gateway || ''}
+                  onChange={(e) => handleChange(actualIndex, 'gateway', e.target.value)}
+                  className="h-8 text-xs"
+                  placeholder="Gateway label or id"
+                />
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Module</Label>
@@ -353,7 +386,7 @@ const BranchPaymentConfig = ({
           </div>
 
           <div>
-            <Label className="mb-2 block text-xs font-semibold">Integration credentials</Label>
+            <Label className="mb-2 block text-xs font-semibold">{isFakeModule ? 'Payment behavior' : 'Integration credentials'}</Label>
             {renderIntegrationFields(actualIndex)}
           </div>
         </CardContent>
@@ -364,21 +397,30 @@ const BranchPaymentConfig = ({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-xs text-muted-foreground leading-relaxed">
-        {displayName} uses separate credentials for <strong>testing</strong> (sandbox) and <strong>production</strong> (live). Fill in
-        the environment you use; only one should typically be <strong>Active</strong> at a time.
+        {isFakeModule ? (
+          <>
+            Fake card payments are controlled independently for this branch. Activate the environment you want available in Online Ordering; only one
+            should typically be <strong>Active</strong> at a time.
+          </>
+        ) : (
+          <>
+            {displayName} uses separate credentials for <strong>testing</strong> (sandbox) and <strong>production</strong> (live). Fill in the
+            environment you use; only one should typically be <strong>Active</strong> at a time.
+          </>
+        )}
       </p>
 
       {renderEnvironmentCard(
         testIndex,
         'Testing (sandbox)',
-        'Use test merchant IDs and sandbox URLs. Safe for training and QA.',
+        isFakeModule ? 'Use fake card numbers for training and QA.' : 'Use test merchant IDs and sandbox URLs. Safe for training and QA.',
         'bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200'
       )}
 
       {renderEnvironmentCard(
         prodIndex,
         'Production (live)',
-        'Live transactions. Double-check keys before activating.',
+        isFakeModule ? 'Enable this for branches that should accept simulated card payments in production.' : 'Live transactions. Double-check keys before activating.',
         'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200'
       )}
     </div>

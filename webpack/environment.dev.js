@@ -6,8 +6,7 @@ module.exports = {
   // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
 
   SERVER_ADMIN_API_URL: 'https://api-admin-dev.rize-pos.com',
-  // Use the webpack dev-server proxy so local development talks to Central on localhost:8080.
-  SERVER_API_URL: '',
+  SERVER_API_URL: 'http://localhost:8080',
   SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
   BUSINESS_ID: 'business_1010',
   APP_ID: 'central-app',

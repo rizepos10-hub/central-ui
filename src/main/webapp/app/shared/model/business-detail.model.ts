@@ -152,7 +152,7 @@ export interface IPaymentConfigurations {
   active: boolean;
   defaultSelected: boolean;
   environment: "TEST" | "PROD";
-  gateway?: string;
+  gateway?: string | null;
   moduleCode?: string;
   integrationKeys?: IIntegrationKey;
 }
