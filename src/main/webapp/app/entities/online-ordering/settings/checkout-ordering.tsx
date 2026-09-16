@@ -41,7 +41,6 @@ const CheckoutOrderingSettingsPage = () => {
             />
             <Toggle id="orderConfirmation" label="Order Confirmation" checked={entity.orderConfirmation || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'orderConfirmation', value }))} />
             <Toggle id="guestCheckout" label="Guest Checkout" checked={entity.guestCheckout || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'guestCheckout', value }))} />
-            <Toggle id="canOrder" label="Can Order" checked={entity.canOrder || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'canOrder', value }))} />
             <Toggle id="canOrderOutOfStock" label="Can Order Out Of Stock" checked={entity.canOrderOutOfStock || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'canOrderOutOfStock', value }))} />
             <Toggle id="showDeliveryTips" label="Show Delivery Tips" checked={entity.showDeliveryTips || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'showDeliveryTips', value }))} />
             <Toggle id="scheduleOrders" label="Schedule Orders" checked={entity.scheduleOrders || false} onCheckedChange={value => dispatch(changeEntityField({ name: 'scheduleOrders', value }))} />

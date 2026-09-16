@@ -395,6 +395,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleCanOrderChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].canOrder = checked === true;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].enableAskOnTablePermissions = checked;
@@ -818,6 +824,17 @@ export const Branches = () => {
                     />
                     <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Print Zero Price Addons
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.canOrder !== false}
+                      onCheckedChange={(checked) => handleCanOrderChange(branchIndex, checked)}
+                      id={`can-order-${branchIndex}`}
+                    />
+                    <Label htmlFor={`can-order-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Allow online ordering
                     </Label>
                   </div>
 
