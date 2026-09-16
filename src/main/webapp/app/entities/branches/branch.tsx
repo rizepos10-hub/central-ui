@@ -15,7 +15,7 @@ import { RequestType, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
 import { PlaceAutocompleteClassic } from 'app/shared/components/google/autocomplete-classic';
-import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink } from 'lucide-react';
+import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink, WalletCards, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
@@ -499,6 +499,18 @@ export const Branches = () => {
   const handleCODChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].activeCOD = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleWalletChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].activeWallet = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleLoyaltyChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].activeLoyalty = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -2004,6 +2016,62 @@ export const Branches = () => {
                       <p id={`cod-help-${branchIndex}`} className="text-[10px] text-muted-foreground px-1">
                         Tip: COD is independent of Converge/Bambora — it only toggles whether cash-on-delivery is allowed for this branch.
                       </p>
+
+                      <label
+                        htmlFor={`wallet-${branchIndex}`}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/5"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <WalletCards className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium leading-none">Wallet (store credit)</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Online ordering
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            When enabled, signed-in customers can pay from their wallet balance at online checkout. Disabling hides the option and rejects wallet payments for this branch.
+                          </p>
+                        </div>
+                        <div className="shrink-0 pt-0.5">
+                          <Checkbox
+                            checked={branch?.activeWallet !== false}
+                            onCheckedChange={(checked) => handleWalletChange(branchIndex, checked)}
+                            id={`wallet-${branchIndex}`}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                      </label>
+
+                      <label
+                        htmlFor={`loyalty-${branchIndex}`}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/5"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <Gift className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium leading-none">Loyalty points</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Online ordering
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            When enabled, signed-in customers can redeem loyalty points at online checkout. Requires a points-to-cash exchange rate in loyalty settings.
+                          </p>
+                        </div>
+                        <div className="shrink-0 pt-0.5">
+                          <Checkbox
+                            checked={branch?.activeLoyalty !== false}
+                            onCheckedChange={(checked) => handleLoyaltyChange(branchIndex, checked)}
+                            id={`loyalty-${branchIndex}`}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                      </label>
                     </CardContent>
                   </Card>
 

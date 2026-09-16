@@ -53,6 +53,8 @@ export interface IBranchDetails {
   paymentConfigurations?: IPaymentConfigurations[];
   endOfDayReportSection?: EndOfDayReportSection[];
   activeCOD?: boolean;
+  activeWallet?: boolean;
+  activeLoyalty?: boolean;
   hideRetailShop?: boolean;
   hideMapOnOnlineOrdering?: boolean;
   hideOpeningHoursOnOnlineOrdering?: boolean;
