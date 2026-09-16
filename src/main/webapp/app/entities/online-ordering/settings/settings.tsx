@@ -411,17 +411,6 @@ export const UiSettingsUpdate = () => {
 
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      id="UiSettings-canOrder"
-                      checked={UiSettingsEntity.canOrder || false}
-                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'canOrder', value: checked }))}
-                    />
-                    <Label htmlFor="UiSettings-canOrder" className="text-xs font-semibold">
-                      {translate('tempApp.UiSettings.canOrder')}
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Checkbox
                       id="UiSettings-canOrderOutOfStock"
                       checked={UiSettingsEntity.canOrderOutOfStock || false}
                       onCheckedChange={checked => dispatch(changeEntityField({ name: 'canOrderOutOfStock', value: checked }))}

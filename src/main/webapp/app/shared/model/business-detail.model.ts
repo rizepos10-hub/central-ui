@@ -36,6 +36,7 @@ export interface IBranchDetails {
   days: IBusinessDayDetail[];
   wholesale: boolean;
   printZeroPriceAddons?: boolean;
+  canOrder?: boolean | null;
   enableAskOnTablePermissions?: boolean;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
