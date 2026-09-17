@@ -1208,6 +1208,7 @@ export const Order = ({
                   return (
                   <TableRow
                     key={order.id}
+                    data-testid={order === orderList[0] ? 'order-row-latest' : `order-row-${order.id}`}
                     className="cursor-pointer border-b border-border/60 transition-colors hover:bg-muted/40"
                     onClick={() => handleRowClick(order.id, order.items, displaySequenceNumber)}
                   >
