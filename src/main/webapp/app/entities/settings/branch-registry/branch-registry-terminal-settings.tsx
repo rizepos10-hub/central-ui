@@ -53,6 +53,29 @@ const parseNumberOrNull = (value: string) => {
     return Number.isNaN(parsed) ? null : parsed;
 };
 
+const DEFAULT_RECEIPT_COPIES = 1;
+
+const isValidReceiptCopies = (value?: number | null): value is number =>
+    Number.isSafeInteger(value) && value > 0;
+
+const parsePositiveInteger = (value: string) => {
+    const trimmed = value.trim();
+    if (!/^\d+$/.test(trimmed)) {
+        return null;
+    }
+
+    const parsed = Number(trimmed);
+    return isValidReceiptCopies(parsed) ? parsed : null;
+};
+
+const parseOptionalPositiveInteger = (value: string) => {
+    if (value.trim() === '') {
+        return null;
+    }
+
+    return parsePositiveInteger(value) ?? undefined;
+};
+
 const getNearestFontScale = (fontScale?: number | null) => {
     const current = fontScale ?? 1.0;
     return fontScaleOptions.reduce((closest, option) => (
@@ -193,12 +216,22 @@ function GeneralSettings() {
             </FieldWrapper>
 
             <FieldWrapper
-                title="Receive Online Order Popups"
-                description="Receive Online Order Popups"
+                title="Receive Online Order Confirmation Popups"
+                description="Show popups on this register to confirm or reject online orders that need manual action"
             >
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Notify When Online Order Is Auto-Processed"
+                description="Show a popup after an online order is automatically sent to processing and printed"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.notifyOnOnlineOrderAutoProcessed}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'notifyOnOnlineOrderAutoProcessed', value: checked }))}
                 />
             </FieldWrapper>
 
@@ -1433,9 +1466,14 @@ const ElavonIntegrationType = () => {
 //     );
 // }
 
-function PrinterProperties() {
+export function PrinterProperties() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
+    const receiptPrinter = branchRegistry.terminalSettings?.printerSettings?.receipt?.[0];
+    const configuredReceiptCopies = branchRegistry.terminalSettings?.receiptCopies;
+    const receiptCopies = isValidReceiptCopies(configuredReceiptCopies)
+        ? configuredReceiptCopies
+        : DEFAULT_RECEIPT_COPIES;
 
     return (
         <div className="space-y-1">
@@ -1516,8 +1554,15 @@ function PrinterProperties() {
             >
                 <Input
                     type="number"
-                    value={branchRegistry.terminalSettings?.receiptCopies ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: parseFloat(e.target.value) ?? null }))}
+                    min={1}
+                    step={1}
+                    value={receiptCopies}
+                    onChange={(e) => {
+                        const value = parsePositiveInteger(e.target.value);
+                        if (value !== null) {
+                            dispatch(changeTerminalField({ name: 'receiptCopies', value }));
+                        }
+                    }}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -1547,7 +1592,7 @@ function PrinterProperties() {
                 description="Connection type to the printer (Network/USB)"
             >
                 <ShadcnSelect
-                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.type}
+                    value={receiptPrinter?.type}
                     onValueChange={(value) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value }))}
                 >
                     <SelectTrigger className="w-48">
@@ -1561,16 +1606,51 @@ function PrinterProperties() {
                 </ShadcnSelect>
             </FieldWrapper>
 
-            <FieldWrapper
-                title="Printer Name"
-                description="Printer name from the windows system"
-            >
-                <Input
-                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.name || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
-                    className="w-48"
-                />
-            </FieldWrapper>
+            {receiptPrinter?.type === PrinterConnectionTypeEnum.NETWORK ? (
+                <>
+                    <FieldWrapper
+                        title="Printer IP Address"
+                        description="IP address of the network printer"
+                    >
+                        <Input
+                            type="text"
+                            value={receiptPrinter.ip || ''}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.ip', value: e.target.value }))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+
+                    <FieldWrapper
+                        title="Printer Port"
+                        description="Port of the network printer"
+                    >
+                        <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={receiptPrinter.port ?? ''}
+                            onChange={(e) => {
+                                const value = parseOptionalPositiveInteger(e.target.value);
+                                if (value !== undefined) {
+                                    dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.port', value }));
+                                }
+                            }}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+                </>
+            ) : (
+                <FieldWrapper
+                    title="Printer Name"
+                    description="Printer name from the windows system"
+                >
+                    <Input
+                        value={receiptPrinter?.name || ''}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
+                        className="w-48"
+                    />
+                </FieldWrapper>
+            )}
 
             <FieldWrapper
                 title="Printer Size"

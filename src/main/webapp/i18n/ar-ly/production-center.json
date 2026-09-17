@@ -22,6 +22,9 @@
       "name": "Name",
       "orderMethod": "Order Method",
       "printingProfile": "Printing Profile",
+      "printingProfiles": "ملفات الطباعة",
+      "printingProfilesPlaceholder": "اختر ملف طباعة واحد لكل فرع",
+      "duplicateBranchPrintingProfile": "يُسمح بملف طباعة واحد فقط لكل فرع",
       "virtual": "Is Virtual"
     }
   }

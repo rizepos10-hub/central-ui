@@ -35,7 +35,7 @@ import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { changeEntityField as changeBillEntityField } from '../bill/bill.reducer';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
-import { assignDriver, cancelBooking, createBooking, getTookanAgents, getTookanTeams, syncBooking, updateBooking } from './delivery.reducer';
+import { assignDriver, cancelBooking, createBooking, getTookanAgents, getTookanTeams, retryBooking, syncBooking, updateBooking } from './delivery.reducer';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
@@ -346,6 +346,7 @@ export const OrderDetail = () => {
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [hasLoadedInitialOrder, setHasLoadedInitialOrder] = useState(false);
   const orderProviderCode = orderEntity.orderDeliveryDetails?.deliveryProviderCode as 'ICABBI' | 'TOOKAN' | undefined;
+  const isDeliveryBookingPending = orderEntity.deliveryBookingStatus === 'PENDING';
   const canEditOrder = !orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED;
   const canManageProcessingStatus = !orderEntity?.refund;
   const processingStatusOptions = Object.values(OrderStatus).map(status => ({
@@ -1204,25 +1205,46 @@ export const OrderDetail = () => {
                   <p className="mt-1 text-sm text-slate-500">
                     {orderEntity.orderDeliveryDetails ? 'Update, sync, or assign the delivery booking.' : 'Optional follow-up action for this order.'}
                   </p>
+                  {isDeliveryBookingPending && (
+                    <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                      <p className="font-semibold">Automatic booking needs attention</p>
+                      <p className="mt-1">{orderEntity.deliveryBookingError || 'The booking was not created.'}</p>
+                    </div>
+                  )}
                   <div className="mt-4">
                     <Input type="datetime-local" value={deliveryDateTime} onChange={e => setDeliveryDateTime(e.target.value)} className="rounded-2xl border-slate-200 px-4 py-3 text-sm text-slate-700" />
                   </div>
                   {!orderEntity.orderDeliveryDetails ? (
-                    <Button
-                      type="button"
-                      className="mt-4 h-auto w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                      disabled={!deliveryDateTime}
-                      onClick={() => {
-                        dispatch(
-                          createBooking({
-                            orderId: orderEntity.id || '',
-                            date: toServerDateTime(deliveryDateTime),
-                          })
-                        );
-                      }}
-                    >
-                      Create Booking
-                    </Button>
+                    isDeliveryBookingPending ? (
+                      <Button
+                        type="button"
+                        className="mt-4 h-auto w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        onClick={() => {
+                          dispatch(retryBooking(orderEntity.id || ''))
+                            .unwrap()
+                            .then(() => toast.success('Delivery booking created.'))
+                            .catch(error => toast.error(getApiErrorMessage(error, 'Delivery booking could not be created.')));
+                        }}
+                      >
+                        Retry Booking
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        className="mt-4 h-auto w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        disabled={!deliveryDateTime}
+                        onClick={() => {
+                          dispatch(
+                            createBooking({
+                              orderId: orderEntity.id || '',
+                              date: toServerDateTime(deliveryDateTime),
+                            })
+                          );
+                        }}
+                      >
+                        Create Booking
+                      </Button>
+                    )
                   ) : (
                     <>
                       <div className="mt-4 grid gap-2 sm:grid-cols-3">

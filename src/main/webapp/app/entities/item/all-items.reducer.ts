@@ -4,6 +4,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IItem, defaultValue } from 'app/shared/model/ITEM/item.model';
+import { isRequestCancellation } from 'app/config/request-utils';
 
 const initialState: EntityState<IItem> = {
   loading: false,
@@ -82,7 +83,7 @@ export const ItemsSlice = createEntitySlice({
       })
       .addMatcher(isRejected(getEntities, searchEntities), (state, action) => {
         // Only update state if this isn't an aborted request
-        if (action.error.name !== 'AbortError') {
+        if (!isRequestCancellation(action.error)) {
           state.loading = false;
           state.updating = false;
           state.updateSuccess = false;

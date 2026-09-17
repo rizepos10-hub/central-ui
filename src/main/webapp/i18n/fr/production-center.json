@@ -22,6 +22,9 @@
       "name": "Name",
       "orderMethod": "Order Method",
       "printingProfile": "Printing Profile",
+      "printingProfiles": "Profils d'impression",
+      "printingProfilesPlaceholder": "Sélectionnez un profil par succursale",
+      "duplicateBranchPrintingProfile": "Un seul profil d'impression est autorisé par succursale",
       "virtual": "Is Virtual"
     }
   }

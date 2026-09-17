@@ -108,10 +108,6 @@ const SkuEditor = forwardRef<SkuEditorHandle, SkuEditorProps>(({ value, onChange
             commitInput();
             return;
           }
-          if (e.key === 'Backspace' && inputValue.length === 0 && skus.length > 0) {
-            e.preventDefault();
-            onChange(skus.slice(0, -1));
-          }
         }}
       />
     </div>

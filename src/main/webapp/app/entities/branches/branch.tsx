@@ -10,12 +10,12 @@ import {
   dayTypeEnum,
   DeliveryTaggingModeEnum,
 } from 'app/shared/model/business-detail.model';
-import type { IBusinessDetail, IBranchDetails, IDeliveryConfiguration, ITookanBookingTaskSteps } from 'app/shared/model/business-detail.model';
+import type { IBusinessDetail, IBranchDetails, IDeliveryConfiguration, IPaymentConfigurations, ITookanBookingTaskSteps } from 'app/shared/model/business-detail.model';
 import { RequestType, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
 import { PlaceAutocompleteClassic } from 'app/shared/components/google/autocomplete-classic';
-import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink } from 'lucide-react';
+import { Save, AlertTriangle, Plus, Trash2, Banknote, CreditCard, MapPin, Truck, Receipt, ExternalLink, WalletCards, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
@@ -55,6 +55,17 @@ const defaultTookanBookingTaskSteps = (): ITookanBookingTaskSteps => ({
   pickedUpPackageEnabled: true,
   deliveredToCustomerEnabled: true,
 });
+
+const MIN_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 15;
+const MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS = 120 * 60;
+const FAKE_ONLINE_CARD_MODULE_CODE = 'FAKE_ONLINE_CARD';
+
+const normalizePaymentConfigurations = (paymentConfigurations?: IPaymentConfigurations[]) =>
+  paymentConfigurations?.map(config =>
+    config?.moduleCode === FAKE_ONLINE_CARD_MODULE_CODE
+      ? { ...config, gateway: null }
+      : config
+  );
 
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
@@ -314,6 +325,27 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleOpenTableIdleTimeoutEnabledChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].openTableIdleTimeoutEnabled = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleOpenTableIdleTimeoutSecondsChange = (branchIndex, value) => {
+    const rawValue = String(value).trim();
+    const parsedValue = rawValue === '' ? null : Number(rawValue);
+    if (parsedValue !== null && !Number.isFinite(parsedValue)) return;
+
+    const seconds = parsedValue === null
+      ? null
+      : parsedValue <= 0
+        ? 0
+        : Math.min(Math.max(Math.trunc(parsedValue), MIN_OPEN_TABLE_IDLE_TIMEOUT_SECONDS), MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS);
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].openTableIdleTimeoutSeconds = seconds;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
 
   const endOfDayReportSectionOptions = Object.keys(EndOfDayReportSection).map(section => ({
     value: EndOfDayReportSection[section as keyof typeof EndOfDayReportSection],
@@ -401,9 +433,55 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleRequireOnlineOrderConfirmationChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].requireOnlineOrderConfirmation = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleCanOrderChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].canOrder = checked === true;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleUseOrderPromisedTimeAsDefaultPrepChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].useOrderPromisedTimeAsDefaultPrep = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleOnlineOrderPrepTimeOptionsMinutesChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    const minutes = String(value || '')
+      .split(/[,\s]+/)
+      .map(part => parseInt(part, 10))
+      .filter(n => Number.isFinite(n) && n > 0);
+    newData[branchIndex].onlineOrderPrepTimeOptionsMinutes = minutes.length ? minutes : [15, 30, 45];
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleAutoPrintReceiptOnOnlineAcceptChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].autoPrintReceiptOnOnlineAccept = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleAutoPrintKitchenOnOnlineAcceptChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].autoPrintKitchenOnOnlineAccept = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleEnableAskOnTablePermissionsChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].enableAskOnTablePermissions = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleCashbackEnabledChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].cashbackEnabled = checked;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -435,6 +513,18 @@ export const Branches = () => {
   const handleCODChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].activeCOD = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleWalletChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].activeWallet = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleLoyaltyChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].activeLoyalty = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -481,6 +571,7 @@ export const Branches = () => {
     deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
     defaultBookingLeadMinutes: null,
     tookanBookingTaskSteps: defaultTookanBookingTaskSteps(),
+    tookanBookingEnabled: true,
   });
 
   const withDeliveryConfigurationDefaults = (deliveryConfiguration?: IDeliveryConfiguration | null) => {
@@ -512,6 +603,7 @@ export const Branches = () => {
         ...defaultTookanBookingTaskSteps(),
         ...(deliveryConfiguration.tookanBookingTaskSteps ?? {}),
       },
+      tookanBookingEnabled: deliveryConfiguration.tookanBookingEnabled !== false,
     };
   };
 
@@ -598,6 +690,9 @@ export const Branches = () => {
       ...businessDetailEntity,
       branchDetails: businessDetailsState?.branchDetails?.map(branch => ({
         ...branch,
+        // Fake card is identified by moduleCode. Its legacy gateway field must
+        // stay null or older Central deployments reject the whole update.
+        paymentConfigurations: normalizePaymentConfigurations(branch.paymentConfigurations),
         deliveryConfiguration: withDeliveryConfigurationDefaults(branch.deliveryConfiguration),
       })),
     };
@@ -615,18 +710,21 @@ export const Branches = () => {
 
   const handleSavePayments = () => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    newData[editPaymentIndex].paymentConfigurations = editingBranchPayments;
+    newData[editPaymentIndex].paymentConfigurations = normalizePaymentConfigurations(editingBranchPayments || []);
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
     hideDialog();
   }
 
   const handlePaymentConfigChange = (branchIndex: number, paymentConfigs: any[]) => {
-    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    if (!newData[branchIndex].paymentConfigurations) {
-      newData[branchIndex].paymentConfigurations = [];
-    }
-    newData[branchIndex].paymentConfigurations = paymentConfigs;
-    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+    const normalizedPaymentConfigs = normalizePaymentConfigurations(paymentConfigs) || [];
+    setBusinessDetailsState(prev => ({
+      ...prev,
+      branchDetails: prev.branchDetails?.map((branch, index) =>
+        index === branchIndex
+          ? { ...branch, paymentConfigurations: normalizedPaymentConfigs }
+          : branch
+      ),
+    }));
   }
 
   const handleAddChargeRule = (branchIndex) => {
@@ -829,12 +927,82 @@ export const Branches = () => {
 
                   <div className="flex items-center gap-2">
                     <Checkbox
+                      checked={branch.cashbackEnabled !== false}
+                      onCheckedChange={(checked) => handleCashbackEnabledChange(branchIndex, checked === true)}
+                      id={`cashback-enabled-${branchIndex}`}
+                    />
+                    <Label htmlFor={`cashback-enabled-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Enable Cash Back on POS
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.requireOnlineOrderConfirmation !== false}
+                      onCheckedChange={(checked) => handleRequireOnlineOrderConfirmationChange(branchIndex, checked)}
+                      id={`require-online-order-confirmation-${branchIndex}`}
+                    />
+                    <Label htmlFor={`require-online-order-confirmation-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Require online order confirmation
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
                       checked={branch.canOrder !== false}
                       onCheckedChange={(checked) => handleCanOrderChange(branchIndex, checked)}
                       id={`can-order-${branchIndex}`}
                     />
                     <Label htmlFor={`can-order-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Allow online ordering
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.useOrderPromisedTimeAsDefaultPrep !== false}
+                      onCheckedChange={(checked) => handleUseOrderPromisedTimeAsDefaultPrepChange(branchIndex, checked)}
+                      id={`use-order-promised-time-default-${branchIndex}`}
+                    />
+                    <Label htmlFor={`use-order-promised-time-default-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Use order promised time as default prep option
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`online-order-prep-minutes-${branchIndex}`} className="font-bold text-xs">
+                      Online order prep time options (minutes, comma-separated)
+                    </Label>
+                    <Input
+                      id={`online-order-prep-minutes-${branchIndex}`}
+                      type="text"
+                      className="h-7 text-xs"
+                      defaultValue={(branch.onlineOrderPrepTimeOptionsMinutes || [15, 30, 45]).join(', ')}
+                      key={`prep-minutes-${branch.branchId}-${(branch.onlineOrderPrepTimeOptionsMinutes || []).join('-')}`}
+                      onBlur={(e) => handleOnlineOrderPrepTimeOptionsMinutesChange(branchIndex, e.target.value)}
+                      placeholder="15, 30, 45"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.autoPrintReceiptOnOnlineAccept !== false}
+                      onCheckedChange={(checked) => handleAutoPrintReceiptOnOnlineAcceptChange(branchIndex, checked)}
+                      id={`auto-print-receipt-online-${branchIndex}`}
+                    />
+                    <Label htmlFor={`auto-print-receipt-online-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print receipt on online order accept
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.autoPrintKitchenOnOnlineAccept !== false}
+                      onCheckedChange={(checked) => handleAutoPrintKitchenOnOnlineAcceptChange(branchIndex, checked)}
+                      id={`auto-print-kitchen-online-${branchIndex}`}
+                    />
+                    <Label htmlFor={`auto-print-kitchen-online-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print kitchen ticket on online order accept
                     </Label>
                   </div>
 
@@ -870,6 +1038,33 @@ export const Branches = () => {
                       onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
                       options={endOfDayReportSectionOptions}
                       className="text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.openTableIdleTimeoutEnabled}
+                      onCheckedChange={(checked) => handleOpenTableIdleTimeoutEnabledChange(branchIndex, checked === true)}
+                      id={`open-table-idle-timeout-${branchIndex}`}
+                    />
+                    <Label htmlFor={`open-table-idle-timeout-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Open table idle timeout
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`open-table-idle-timeout-seconds-${branchIndex}`} className="font-bold text-xs">
+                      Open table idle timeout (seconds)
+                    </Label>
+                    <Input
+                      id={`open-table-idle-timeout-seconds-${branchIndex}`}
+                      type="number"
+                      min={0}
+                      max={MAX_OPEN_TABLE_IDLE_TIMEOUT_SECONDS}
+                      step={1}
+                      value={branch.openTableIdleTimeoutSeconds ?? ''}
+                      onChange={(e) => handleOpenTableIdleTimeoutSecondsChange(branchIndex, e.target.value)}
+                      className="h-7 text-xs"
                     />
                   </div>
 
@@ -1596,6 +1791,27 @@ export const Branches = () => {
                               </p>
                             </dd>
                           </div>
+                          <div className="rounded-md border bg-muted/20 px-3 py-2 md:col-span-2">
+                            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tookan delivery</dt>
+                            <dd className="mt-2 flex items-start gap-2">
+                              <Checkbox
+                                id={`tookanBookingEnabled-${branchIndex}`}
+                                checked={branch.deliveryConfiguration?.tookanBookingEnabled !== false}
+                                onCheckedChange={checked =>
+                                  handleDeliveryConfiguration(branchIndex, 'tookanBookingEnabled', checked === true)
+                                }
+                              />
+                              <div className="space-y-1">
+                                <Label htmlFor={`tookanBookingEnabled-${branchIndex}`} className="text-xs font-semibold">
+                                  Enable Tookan for this branch
+                                </Label>
+                                <p className="text-[10px] text-muted-foreground">
+                                  When off, Tookan is inactive for this branch only (booking, fees, and provider selection). Business-level
+                                  disable still overrides this.
+                                </p>
+                              </div>
+                            </dd>
+                          </div>
                         </dl>
                       </CardContent>
                     </Card>
@@ -1818,8 +2034,64 @@ export const Branches = () => {
                         </div>
                       </label>
                       <p id={`cod-help-${branchIndex}`} className="text-[10px] text-muted-foreground px-1">
-                        Tip: COD is independent of Converge/Bambora — it only toggles whether cash-on-delivery is allowed for this branch.
+                        Tip: COD is independent of Converge, Bambora, and Fake card — it only toggles whether cash-on-delivery is allowed for this branch.
                       </p>
+
+                      <label
+                        htmlFor={`wallet-${branchIndex}`}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/5"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <WalletCards className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium leading-none">Wallet (store credit)</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Online ordering
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            When enabled, signed-in customers can pay from their wallet balance at online checkout. Disabling hides the option and rejects wallet payments for this branch.
+                          </p>
+                        </div>
+                        <div className="shrink-0 pt-0.5">
+                          <Checkbox
+                            checked={branch?.activeWallet !== false}
+                            onCheckedChange={(checked) => handleWalletChange(branchIndex, checked)}
+                            id={`wallet-${branchIndex}`}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                      </label>
+
+                      <label
+                        htmlFor={`loyalty-${branchIndex}`}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/5"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <Gift className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium leading-none">Loyalty points</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Online ordering
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            When enabled, signed-in customers can redeem loyalty points at online checkout. Requires a points-to-cash exchange rate in loyalty settings.
+                          </p>
+                        </div>
+                        <div className="shrink-0 pt-0.5">
+                          <Checkbox
+                            checked={branch?.activeLoyalty !== false}
+                            onCheckedChange={(checked) => handleLoyaltyChange(branchIndex, checked)}
+                            id={`loyalty-${branchIndex}`}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                      </label>
                     </CardContent>
                   </Card>
 
@@ -1832,7 +2104,7 @@ export const Branches = () => {
                         <div className="min-w-0 space-y-1">
                           <CardTitle className="text-sm font-semibold">Card processing</CardTitle>
                           <CardDescription className="text-[11px] leading-relaxed">
-                            Configure Converge Lightbox or Bambora credentials and options for card-present and online card payments at this branch.
+                            Configure Converge Lightbox, Bambora, or Fake card payments for this branch. Fake card requires no gateway credentials.
                           </CardDescription>
                         </div>
                       </div>
@@ -1846,11 +2118,13 @@ export const Branches = () => {
                           <TabsTrigger value="bambora" className="text-xs h-7 px-3">
                             Bambora
                           </TabsTrigger>
+                          <TabsTrigger value="fake-card" className="text-xs h-7 px-3">
+                            Fake card
+                          </TabsTrigger>
                         </TabsList>
                         <TabsContent value="converge" className="mt-0 rounded-md border bg-muted/10 p-3">
                           <BranchPaymentConfig
-                            editingBranchPayments={editingBranchPayments}
-                            setEditingBranchPayments={setEditingBranchPayments}
+                            editingBranchPayments={branch.paymentConfigurations || []}
                             branchIndex={branchIndex}
                             moduleCode="CONVERGE_LIGHTBOX"
                             onPaymentConfigChange={handlePaymentConfigChange}
@@ -1858,10 +2132,17 @@ export const Branches = () => {
                         </TabsContent>
                         <TabsContent value="bambora" className="mt-0 rounded-md border bg-muted/10 p-3">
                           <BranchPaymentConfig
-                            editingBranchPayments={editingBranchPayments}
-                            setEditingBranchPayments={setEditingBranchPayments}
+                            editingBranchPayments={branch.paymentConfigurations || []}
                             branchIndex={branchIndex}
                             moduleCode="BAMBORA"
+                            onPaymentConfigChange={handlePaymentConfigChange}
+                          />
+                        </TabsContent>
+                        <TabsContent value="fake-card" className="mt-0 rounded-md border bg-muted/10 p-3">
+                          <BranchPaymentConfig
+                            editingBranchPayments={branch.paymentConfigurations || []}
+                            branchIndex={branchIndex}
+                            moduleCode="FAKE_ONLINE_CARD"
                             onPaymentConfigChange={handlePaymentConfigChange}
                           />
                         </TabsContent>

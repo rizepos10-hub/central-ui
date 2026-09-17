@@ -26,6 +26,7 @@ import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -199,6 +200,22 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                                     dispatch(changeEntityField({ name: 'name', value: e.target.value }))
                                 }
                                 className="h-8 text-xs"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="category-description" className="text-xs">
+                                <Translate contentKey="itemCategories.update.description">Description</Translate>
+                            </Label>
+                            <Textarea
+                                name="description"
+                                id="category-description"
+                                rows={3}
+                                value={categoryEntity.description || ''}
+                                onChange={(e) =>
+                                    dispatch(changeEntityField({ name: 'description', value: e.target.value }))
+                                }
+                                className="text-xs"
                             />
                         </div>
 

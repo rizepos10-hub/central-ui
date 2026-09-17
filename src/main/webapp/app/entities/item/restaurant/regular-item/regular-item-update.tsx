@@ -51,6 +51,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Trash2, GripVertical, Save, PlusCircle, ArrowLeft, Loader2, FileDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { AddonSelectionActions, updateAddonGroupAddonSelection } from 'app/shared/components/item/addon-selection-actions';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -662,6 +663,23 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
+  const handleVariantSelectAllAddons = (
+    includeAll: boolean,
+    addonGroupIndex: number,
+    variantIndex: number
+  ) => {
+    const variant = regularItem.variants?.[variantIndex];
+    const currentAddonGroup = variant?.addonGroups?.[addonGroupIndex];
+
+    if (!variant || !currentAddonGroup) {
+      return;
+    }
+
+    const updatedAddonGroups = [...(variant.addonGroups ?? [])];
+    updatedAddonGroups[addonGroupIndex] = updateAddonGroupAddonSelection(currentAddonGroup, includeAll);
+    handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
+  };
+
   const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
     setRegularItem(prev => {
       const updatedVariants = [...prev.variants];
@@ -906,6 +924,22 @@ export const RegularItemUpdate = () => {
                                           </div>
                                         </div>
 
+                                        <div className="flex items-center gap-2">
+                                          <Checkbox
+                                            id={`variant-skip-addons-${variantIndex}`}
+                                            checked={variant?.skipAddonsPopup !== false}
+                                            onCheckedChange={checked =>
+                                              handleVariantFieldChange(variantIndex, 'skipAddonsPopup', checked === true)
+                                            }
+                                          />
+                                          <Label htmlFor={`variant-skip-addons-${variantIndex}`} className="text-xs font-semibold cursor-pointer">
+                                            <Translate contentKey={'items.update.skipAddonsPopup'}>Skip add-ons popup</Translate>
+                                          </Label>
+                                          <span className="text-xs text-muted-foreground">
+                                            (overrides item setting when changed)
+                                          </span>
+                                        </div>
+
                                         <div className="space-y-2">
                                           <Label className="text-xs font-semibold">
                                             <Translate contentKey={'items.update.description'}>Description</Translate>
@@ -1129,6 +1163,19 @@ export const RegularItemUpdate = () => {
                                                       <div className='h-3 w-3 bg-black' />
                                                       <div>Default Price</div>
                                                     </div>
+                                                    <AddonSelectionActions
+                                                      onSelectAll={() => handleVariantSelectAllAddons(
+                                                        true,
+                                                        variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup?.addonGroup.id) ?? -1,
+                                                        variantIndex
+                                                      )}
+                                                      onClearAll={() => handleVariantSelectAllAddons(
+                                                        false,
+                                                        variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup?.addonGroup.id) ?? -1,
+                                                        variantIndex
+                                                      )}
+                                                      disabled={!selectedAddonGroup?.addonGroup?.addons?.length}
+                                                    />
                                                   </span>
                                                 </Label>
                                                 <div className='border rounded mt-2'>

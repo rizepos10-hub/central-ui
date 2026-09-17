@@ -95,7 +95,10 @@ export const ProductionCenter = () => {
     return productionCenterList?.filter(item => {
       const matchesName = !nameFilter || item.name?.toLowerCase().includes(nameFilter.toLowerCase());
       const matchesOrderMethod = !orderMethodFilter || item.orderMethod?.toLowerCase().includes(orderMethodFilter.toLowerCase());
-      const matchesPrintingProfile = !printingProfileFilter || item.printingProfile?.name?.toLowerCase().includes(printingProfileFilter.toLowerCase());
+      const matchesPrintingProfile = !printingProfileFilter || item.printingProfiles?.some(profile =>
+        profile.name?.toLowerCase().includes(printingProfileFilter.toLowerCase())
+        || (typeof profile.branch === 'object' && profile.branch?.name?.toLowerCase().includes(printingProfileFilter.toLowerCase()))
+      );
       return matchesName && matchesOrderMethod && matchesPrintingProfile;
     });
   }, [productionCenterList, nameFilter, orderMethodFilter, printingProfileFilter]);
@@ -149,7 +152,7 @@ export const ProductionCenter = () => {
                   />
                 </TableHead>
                 <TableHead className="text-xs">
-                  Printing Profile
+                  Printing Profiles
                   <Input
                     placeholder="Search by printing profile"
                     value={printingProfileFilter}
@@ -181,7 +184,14 @@ export const ProductionCenter = () => {
                         </Link>
                       </TableCell>
                       <TableCell className="text-xs">{productionCenter.orderMethod || '-'}</TableCell>
-                      <TableCell className="text-xs">{productionCenter.printingProfile?.name || '-'}</TableCell>
+                      <TableCell className="text-xs">
+                        {productionCenter.printingProfiles?.length
+                          ? productionCenter.printingProfiles.map(profile => {
+                              const branchName = typeof profile.branch === 'object' ? profile.branch?.name : undefined;
+                              return branchName ? `${profile.name} (${branchName})` : profile.name;
+                            }).join(', ')
+                          : '-'}
+                      </TableCell>
                       <TableCell className="text-xs">{productionCenter.virtual ? 'Yes' : 'No'}</TableCell>
                       <TableCell className="text-xs">
                         <div className="flex gap-2">

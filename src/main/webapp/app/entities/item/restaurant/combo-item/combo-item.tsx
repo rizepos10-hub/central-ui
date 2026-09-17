@@ -28,6 +28,7 @@ import { Progress } from '@/components/ui/progress';
 import { RefreshCw, Plus, Download, Settings, Trash2, Edit, Copy, RotateCcw, CheckCircle2, XCircle, AlertTriangle, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import Select from 'app/shared/components/select/select';
+import { getItemPriceLines, getItemTaxProfileNames } from 'app/shared/util/item-list-utils';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -313,20 +314,27 @@ export const ComboItem = () => {
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    const storedFields = storedData[LOCAL_STORAGE_KEY] || {
+    const defaultVisibleColumns = {
       name: true,
       categories: true,
       image: true,
       menus: true,
+      prices: true,
+      taxProfile: true,
       desc: true,
       productionCenter: true,
       addonGroups: true,
       tags: true,
       discounts: true
     };
+    const storedFields = storedData[LOCAL_STORAGE_KEY];
 
-    return storedFields;
+    return {
+      ...defaultVisibleColumns,
+      ...(storedFields || {}),
+    };
   });
+  const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length + 2;
 
   const onColumnToggle = (columnKey) => {
     setVisibleColumns((prevState) => {
@@ -354,7 +362,7 @@ export const ComboItem = () => {
   const columnOptions = Object.keys(visibleColumns)
     .map((field) => ({
       field,
-      header: toCamelCaseWithSpace(field),
+      header: ({ prices: 'Price(s)', taxProfile: 'Tax Profile' }[field] || toCamelCaseWithSpace(field)),
     }));
 
   const archivedActionOptions = [
@@ -639,6 +647,8 @@ export const ComboItem = () => {
               )}
               {visibleColumns.image && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.image')}</TableHead>}
               {visibleColumns.menus && <TableHead className="text-xs h-8 font-semibold p-2">{translate('items.view.fields.menus')}</TableHead>}
+              {visibleColumns.prices && <TableHead className="text-xs h-8 font-semibold p-2">Price(s)</TableHead>}
+              {visibleColumns.taxProfile && <TableHead className="text-xs h-8 font-semibold p-2">Tax Profile</TableHead>}
               {visibleColumns.desc && (
                 <TableHead className="text-xs h-8 font-semibold p-2 cursor-pointer" onClick={() => handleSort('desc')}>
                   {translate("items.view.fields.description")}
@@ -705,6 +715,8 @@ export const ComboItem = () => {
               )}
               {visibleColumns.image && <TableHead className="p-1"></TableHead>}
               {visibleColumns.menus && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.prices && <TableHead className="p-1"></TableHead>}
+              {visibleColumns.taxProfile && <TableHead className="p-1"></TableHead>}
               {visibleColumns.desc && <TableHead className="p-1"></TableHead>}
               {visibleColumns.productionCenter && <TableHead className="p-1"></TableHead>}
               {visibleColumns.addonGroups && (
@@ -734,13 +746,13 @@ export const ComboItem = () => {
           <TableBody>
             {loading || isLoadingAction ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center p-4">
+                <TableCell colSpan={visibleColumnCount} className="text-center p-4">
                   <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : comboItemsList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center p-4 text-xs text-muted-foreground">
+                <TableCell colSpan={visibleColumnCount} className="text-center p-4 text-xs text-muted-foreground">
                   No items found
                 </TableCell>
               </TableRow>
@@ -797,6 +809,16 @@ export const ComboItem = () => {
                           {idx < item.menus.length - 1 ? ' | ' : ''}
                         </span>
                       ))}
+                    </TableCell>
+                  )}
+                  {visibleColumns.prices && (
+                    <TableCell className="text-xs p-2">
+                      {getItemPriceLines(item).join(' | ') || 'No Prices'}
+                    </TableCell>
+                  )}
+                  {visibleColumns.taxProfile && (
+                    <TableCell className="text-xs p-2">
+                      {getItemTaxProfileNames(item).join(' | ') || 'No Tax Profile'}
                     </TableCell>
                   )}
                   {visibleColumns.desc && <TableCell className="text-xs p-2">{item.desc}</TableCell>}

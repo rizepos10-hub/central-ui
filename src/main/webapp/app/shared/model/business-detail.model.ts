@@ -27,6 +27,8 @@ export interface IBusinessDetail {
   address?: IAddress;
   businessDetails?: businessDayDetails[];
   branchDetails?: IBranchDetails[];
+  /** When false, Tookan is inactive for the whole business. Null/undefined means enabled. */
+  tookanBookingEnabled?: boolean | null;
 }
 
 export interface IBranchDetails {
@@ -37,12 +39,22 @@ export interface IBranchDetails {
   wholesale: boolean;
   printZeroPriceAddons?: boolean;
   canOrder?: boolean | null;
+  requireOnlineOrderConfirmation?: boolean;
+  onlineOrderPrepTimeOptionsMinutes?: number[];
+  useOrderPromisedTimeAsDefaultPrep?: boolean;
+  autoPrintReceiptOnOnlineAccept?: boolean;
+  autoPrintKitchenOnOnlineAccept?: boolean;
   enableAskOnTablePermissions?: boolean;
+  cashbackEnabled?: boolean;
+  openTableIdleTimeoutEnabled?: boolean;
+  openTableIdleTimeoutSeconds?: number | null;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
   endOfDayReportSection?: EndOfDayReportSection[];
   activeCOD?: boolean;
+  activeWallet?: boolean;
+  activeLoyalty?: boolean;
   hideRetailShop?: boolean;
   hideMapOnOnlineOrdering?: boolean;
   hideOpeningHoursOnOnlineOrdering?: boolean;
@@ -86,6 +98,8 @@ export interface IDeliveryConfiguration {
   deliveryTaggingMode: DeliveryTaggingModeEnum;
   defaultBookingLeadMinutes?: number | null;
   tookanBookingTaskSteps?: ITookanBookingTaskSteps | null;
+  /** When false, Tookan is inactive for this branch. Null/undefined means enabled. */
+  tookanBookingEnabled?: boolean | null;
 }
 
 export enum DeliveryPricingMode {
@@ -138,7 +152,7 @@ export interface IPaymentConfigurations {
   active: boolean;
   defaultSelected: boolean;
   environment: "TEST" | "PROD";
-  gateway?: string;
+  gateway?: string | null;
   moduleCode?: string;
   integrationKeys?: IIntegrationKey;
 }
@@ -160,4 +174,5 @@ export const defaultValue: Readonly<IBusinessDetail> = {
   slogan: null,
   address: null,
   businessDetails: [],
+  tookanBookingEnabled: true,
 };

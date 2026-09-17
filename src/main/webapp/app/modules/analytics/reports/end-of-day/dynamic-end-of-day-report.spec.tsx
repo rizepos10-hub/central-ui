@@ -1,9 +1,19 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { MouseEventHandler, ReactNode } from 'react';
 
 import { fetchFirstLastBillsSummary } from '../../api';
 import { downloadElementAsPdf } from 'app/shared/util/report-export-utils';
 import DynamicEndOfDayReportUI from './dynamic-end-of-day-report';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+}));
+
+jest.mock('app/shared/util/timezone-utils', () => ({
+  formatDateForDisplay: jest.fn(() => 'formatted-date'),
+}));
 
 const mockDispatch = jest.fn(() => Promise.resolve({ payload: { data: [{ branchDetails: [] }] } }));
 const mockState = {
@@ -24,6 +34,7 @@ const mockState = {
 jest.mock('app/config/store', () => ({
   useAppDispatch: () => mockDispatch,
   useAppSelector: selector => selector(mockState),
+  default: () => ({ getState: () => mockState }),
 }));
 
 jest.mock('../../api', () => ({
@@ -38,6 +49,15 @@ jest.mock('../../api', () => ({
 
 jest.mock('react-to-print', () => ({
   useReactToPrint: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenuContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, onClick }: { children: ReactNode; onClick?: MouseEventHandler<HTMLButtonElement> }) => (
+    <button onClick={onClick}>{children}</button>
+  ),
 }));
 
 jest.mock('app/shared/components/report/generic-sales-report', () => () => <div>generic-sales-report</div>);
@@ -96,6 +116,7 @@ describe('DynamicEndOfDayReportUI', () => {
         fromDate="2026-03-01T00:00:00.000Z"
         toDate="2026-03-31T23:59:59.000Z"
         source="POS"
+        dayOfWeek="MONDAY"
         handleExcelExport={handleExcelExport}
       />
     );
@@ -105,11 +126,21 @@ describe('DynamicEndOfDayReportUI', () => {
     });
 
     expect(screen.getByText('Maza Foods')).not.toBeNull();
-    expect(screen.getByText('Sales Summary Report')).not.toBeNull();
-    expect(screen.getByText('generic-sales-report')).not.toBeNull();
+    expect(screen.getAllByText('Sales Summary Report')).not.toHaveLength(0);
+    expect(screen.getAllByText('generic-sales-report')).not.toHaveLength(0);
     expect(printWrapperRef.current?.className).toContain('report-export-root');
+    expect(mockedFetchFirstLastBillsSummary).toHaveBeenCalledWith(
+      'branch-1',
+      'POS',
+      '2026-03-01T00:00:00.000Z',
+      '2026-03-31T23:59:59.000Z',
+      'MONDAY'
+    );
 
     fireEvent.click(screen.getByText('Export'));
+    await waitFor(() => {
+      expect(screen.getByText('Summary Report')).not.toBeNull();
+    });
     fireEvent.click(screen.getByText('Summary Report'));
 
     expect(handleExcelExport).toHaveBeenCalledTimes(1);

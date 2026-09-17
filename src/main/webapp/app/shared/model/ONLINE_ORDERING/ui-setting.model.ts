@@ -38,6 +38,8 @@ export interface IUiSettings {
   digitsAfterDecimal?: number,
   hideItemDescription?: boolean,
   hideModalDescription?: boolean,
+  hideCategoryDescription?: boolean,
+  showCategoryImages?: boolean,
   homePageSetting?: ILayoutSettings,
   domain?: string,
   itemPerRow?: number,

@@ -2,6 +2,48 @@ import React, { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from 'app/lib/utils';
+import { IFontProperties } from 'app/shared/model/menu.model';
+
+const defaultFontProperties: IFontProperties = {
+  fontFamily: 'Montserrat',
+  fontSize: 14,
+  bold: false,
+  italic: false,
+  color: '#000000',
+};
+
+const normalizeFontFamily = (value?: string) => {
+  const normalized = value?.trim();
+  if (!normalized) return defaultFontProperties.fontFamily;
+  return (
+    {
+      Open_Sans: 'Open Sans',
+      Segoe_UI: 'Segoe UI',
+      Times_New_Roman: 'Times New Roman',
+      Trebuchet_MS: 'Trebuchet MS',
+    } as Record<string, string>
+  )[normalized] || normalized;
+};
+
+const getEffectiveFontProperties = (screen: any, ancestorScreens: any[] = []): IFontProperties => {
+  const inheritedFontProperties = ancestorScreens.reduce(
+    (fontProperties, ancestor) => ({ ...fontProperties, ...(ancestor?.fontProperties || {}) }),
+    defaultFontProperties
+  );
+  const effective = { ...inheritedFontProperties, ...(screen?.fontProperties || {}) };
+  return {
+    ...effective,
+    fontFamily: normalizeFontFamily(effective.fontFamily),
+  };
+};
+
+const getFontStyle = (font: IFontProperties): React.CSSProperties => ({
+  fontFamily: normalizeFontFamily(font.fontFamily),
+  fontSize: font.fontSize,
+  fontWeight: font.bold ? 'bold' : 'normal',
+  fontStyle: font.italic ? 'italic' : 'normal',
+  color: font.color,
+});
 
 const MenuPosPreview = ({ data }) => {
   const [subScreensList, setSubScreensList] = useState([]);
@@ -90,7 +132,9 @@ const MenuPosPreview = ({ data }) => {
                     )}
                   >
                     <div className="flex flex-col items-center justify-center h-full">
-                      <h5 className="text-sm font-semibold text-center">{mainScreen?.name}</h5>
+                      <h5 className="text-sm font-semibold text-center">
+                        {mainScreen?.name}
+                      </h5>
                       <div
                         style={{ backgroundColor: mainScreen?.backgroundColor || '#94a3b8' }}
                         className="w-full h-1.5 mt-2 rounded"
@@ -159,7 +203,10 @@ const MenuPosPreview = ({ data }) => {
                       </div>
 
                       <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2">
-                        <h4 className="text-sm font-semibold truncate w-full text-center">
+                        <h4
+                          className="text-sm font-semibold truncate w-full text-center"
+                          style={subScreen?.componentType === 'ITEM' ? getFontStyle(getEffectiveFontProperties(subScreen, subScreensList)) : undefined}
+                        >
                           {subScreen?.name}
                         </h4>
                         {subScreen?.numberOfColumns && (
