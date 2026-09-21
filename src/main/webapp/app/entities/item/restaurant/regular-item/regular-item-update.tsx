@@ -514,7 +514,9 @@ export const RegularItemUpdate = () => {
     const variant = regularItem.variants[variantIndex];
     const reorderedAddonGroups = event.value?.map(group => {
       const existingGroup = variant.addonGroups?.find(g => g.addonGroup.id === group.id);
-      return existingGroup ? existingGroup : { addonGroup: group };
+      return existingGroup
+        ? existingGroup
+        : { addonGroup: group, hideOnPos: false, hideOnOnlineOrder: false };
     });
     handleVariantFieldChange(variantIndex, 'addonGroups', reorderedAddonGroups);
   };
@@ -534,7 +536,9 @@ export const RegularItemUpdate = () => {
       addAutomatically: false,
       addonPriceOverrides: [],
       excluded: [],
-      name: null
+      name: null,
+      hideOnPos: false,
+      hideOnOnlineOrder: false,
     }
 
     const updatedAddonGroups = [...variant.addonGroups, newGroup];
@@ -1110,6 +1114,22 @@ export const RegularItemUpdate = () => {
                                                         <Checkbox
                                                           checked={variant?.addonGroups[index]?.addAutomatically}
                                                           onCheckedChange={checked => handleVariantAddonGroupFieldChange(index, 'addAutomatically', checked, variantIndex)}
+                                                          className="mt-1"
+                                                        />
+                                                      </div>
+                                                      <div className='flex flex-col gap-1 items-center'>
+                                                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnPos')}</Label>
+                                                        <Checkbox
+                                                          checked={variant?.addonGroups[index]?.hideOnPos || false}
+                                                          onCheckedChange={checked => handleVariantAddonGroupFieldChange(index, 'hideOnPos', checked, variantIndex)}
+                                                          className="mt-1"
+                                                        />
+                                                      </div>
+                                                      <div className='flex flex-col gap-1 items-center'>
+                                                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnOnlineOrder')}</Label>
+                                                        <Checkbox
+                                                          checked={variant?.addonGroups[index]?.hideOnOnlineOrder || false}
+                                                          onCheckedChange={checked => handleVariantAddonGroupFieldChange(index, 'hideOnOnlineOrder', checked, variantIndex)}
                                                           className="mt-1"
                                                         />
                                                       </div>

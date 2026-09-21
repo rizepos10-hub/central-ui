@@ -5,6 +5,8 @@ export interface IAddonGroup {
   id?: string;
   name?: string;
   addons?: IAddon[];
+  hideOnPos?: boolean;
+  hideOnOnlineOrder?: boolean;
 }
 
 export interface IAddonGroups {
@@ -17,6 +19,8 @@ export interface IAddonGroups {
   required?: boolean;
   addAutomatically?: boolean;
   rootAddonGroup?: boolean;
+  hideOnPos?: boolean;
+  hideOnOnlineOrder?: boolean;
 }
 
 export const defaultValue: Readonly<IAddonGroup> = {};

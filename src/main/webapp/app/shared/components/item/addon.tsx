@@ -87,6 +87,8 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
       addonPriceOverrides: [],
       excluded: [],
       name: null,
+      hideOnPos: false,
+      hideOnOnlineOrder: false,
     };
 
     const updatedAddonGroups = Array.isArray(addonGroups) ? addonGroups : [];
@@ -96,7 +98,9 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   const handleAddonGroupReorder = (event) => {
     const reorderedAddonGroups = event.value?.map(group => {
       const existingGroup = addonGroups?.find(g => g.addonGroup.id === group.id);
-      return existingGroup ? existingGroup : { addonGroup: group };
+      return existingGroup
+        ? existingGroup
+        : { addonGroup: group, hideOnPos: false, hideOnOnlineOrder: false };
     });
     onFieldChange('addonGroups', reorderedAddonGroups);
   };
@@ -361,6 +365,22 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                           />
                         </div>
                       ) : null}
+                      <div className='flex flex-col gap-1 items-center'>
+                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnPos')}</Label>
+                        <Checkbox
+                          checked={addonGroups[index]?.hideOnPos || false}
+                          onCheckedChange={checked => handleAddonGroupFieldChange(index, 'hideOnPos', checked)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className='flex flex-col gap-1 items-center'>
+                        <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnOnlineOrder')}</Label>
+                        <Checkbox
+                          checked={addonGroups[index]?.hideOnOnlineOrder || false}
+                          onCheckedChange={checked => handleAddonGroupFieldChange(index, 'hideOnOnlineOrder', checked)}
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                     <Button
                       variant="destructive"
