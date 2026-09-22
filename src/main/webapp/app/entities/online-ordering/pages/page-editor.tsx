@@ -879,8 +879,9 @@ const SectionConfigForm = ({
                   <SelectItem value="hero">Full hero</SelectItem>
                   <SelectItem value="cta">CTA banner</SelectItem>
                   <SelectItem value="retail">Retail hero (electronics)</SelectItem>
-                  <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
-                  <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
+                   <SelectItem value="retail-cta">Retail CTA banner</SelectItem>
+                   <SelectItem value="riode-duo">Riode dual promo banners</SelectItem>
+                   <SelectItem value="fine-dining">Fine Dining editorial hero</SelectItem>
                 </SelectContent>
               </SectionTypeSelect>
             </>
@@ -1118,10 +1119,11 @@ const SectionConfigForm = ({
   }
 
   if (section.type === SectionType.FEATURE_GRID) {
-    const items = (config.items as Array<{ icon?: string; title?: string }>) ?? [];
+    const variant = String(config.variant ?? '');
+    const items = (config.items as Array<{ icon?: string; title?: string; description?: string; image?: IAttachment }>) ?? [];
     return (
       <div className="landing-editor-config-fields space-y-2">
-        <PropertyEditorGroup title="Features" description="Icons and titles shown in the grid" badge={`${items.length}`} defaultOpen>
+        <PropertyEditorGroup title={variant === 'fine-dining-gallery' ? 'Gallery images' : 'Features'} description={variant === 'fine-dining-gallery' ? 'Images and captions shown in the gallery' : 'Icons, titles, and descriptions shown in the grid'} badge={`${items.length}`} defaultOpen>
           <div className="space-y-2">
             {!items.length && <p className="rounded border border-dashed p-2 text-xs text-muted-foreground">No features yet. Add one to start building this grid.</p>}
             {items.map((item, itemIndex) => (
@@ -1140,8 +1142,22 @@ const SectionConfigForm = ({
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+                {variant === 'fine-dining-gallery' && (
+                  <>
+                    <SelectedImagePreview
+                      image={item.image ?? null}
+                      onClear={() => onConfigChange('items', updateArrayItem(items, itemIndex, { ...item, image: undefined }))}
+                    />
+                    <MediaLibrary
+                      handleFilesSelectCallback={files => {
+                        const image = transformAttachmentStructure(files, 'toIAttachment')[0];
+                        onConfigChange('items', updateArrayItem(items, itemIndex, { ...item, image }));
+                      }}
+                    />
+                  </>
+                )}
                 <div className="landing-editor-fields-grid grid gap-2">
-                  <div>
+                  {variant !== 'fine-dining-gallery' && <div>
                     <Label>Icon (emoji or text)</Label>
                     <Input
                       value={item.icon ?? '✦'}
@@ -1151,7 +1167,7 @@ const SectionConfigForm = ({
                         onConfigChange('items', next);
                       }}
                     />
-                  </div>
+                  </div>}
                   <div>
                     <Label>Title</Label>
                     <Input
@@ -1163,6 +1179,17 @@ const SectionConfigForm = ({
                       }}
                     />
                   </div>
+                  {variant !== 'fine-dining-gallery' && <div className="landing-editor-wide-field">
+                    <Label>Description</Label>
+                    <Input
+                      value={item.description ?? ''}
+                      onChange={e => {
+                        const next = [...items];
+                        next[itemIndex] = { ...next[itemIndex], description: e.target.value };
+                        onConfigChange('items', next);
+                      }}
+                    />
+                  </div>}
                 </div>
               </div>
             ))}
@@ -1170,7 +1197,7 @@ const SectionConfigForm = ({
               type="button"
               variant="outline"
               className="h-8 text-xs"
-              onClick={() => onConfigChange('items', [...items, { icon: '✦', title: `Feature ${items.length + 1}` }])}
+              onClick={() => onConfigChange('items', [...items, variant === 'fine-dining-gallery' ? { title: `Gallery image ${items.length + 1}` } : { icon: '✦', title: `Feature ${items.length + 1}` }])}
             >
               <Plus className="mr-1 h-3 w-3" /> Add feature
             </Button>
@@ -1184,6 +1211,9 @@ const SectionConfigForm = ({
     const cta = (config.cta as Record<string, string>) ?? {};
     const imageSide = (config.imageSide as string) ?? (config.imagePosition as string) ?? 'left';
     const contentAlign = (config.contentAlign as string) ?? 'left';
+    const fineDiningVariant = String(config.variant ?? '');
+    const fineDiningImages = (config.images as Array<Record<string, unknown>>) ?? [];
+    const isFineDiningEditorialImages = fineDiningVariant === 'fine-dining-about' || fineDiningVariant === 'fine-dining-catering';
     return (
       <div className="landing-editor-config-fields space-y-2">
         <PropertyEditorGroup title="Content" description="Layout, tone, and copy" defaultOpen>
@@ -1239,6 +1269,49 @@ const SectionConfigForm = ({
               onConfigChange('image', image);
             }}
           />
+          {isFineDiningEditorialImages && (
+            <div className="mt-4 space-y-3 rounded-md border border-dashed p-3">
+              <div>
+                <p className="text-xs font-medium">Editorial image collage</p>
+                <p className="text-[11px] text-muted-foreground">These images keep the Fine Dining layout intact while remaining replaceable from the media library.</p>
+              </div>
+              {fineDiningImages.map((image, imageIndex) => (
+                <div key={`fine-dining-image-${imageIndex}`} className="rounded border bg-background p-2">
+                  <Label>Image {imageIndex + 1}</Label>
+                  <SelectedImagePreview
+                    image={image as IAttachment}
+                    onClear={() => onConfigChange('images', updateArrayItem(fineDiningImages, imageIndex, {}))}
+                  />
+                  <MediaLibrary
+                    handleFilesSelectCallback={files => {
+                      const selected = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      onConfigChange('images', updateArrayItem(fineDiningImages, imageIndex, { ...image, ...selected }));
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          {fineDiningVariant === 'fine-dining-delivery' && (
+            <div className="mt-4 space-y-3 rounded-md border border-dashed p-3">
+              <div>
+                <p className="text-xs font-medium">Delivery artwork</p>
+                <p className="text-[11px] text-muted-foreground">Replace the ordering phone screenshot and partner mark without changing the ordering CTA.</p>
+              </div>
+              {(['deliveryImage', 'partnerLogo'] as const).map(key => (
+                <div key={key} className="rounded border bg-background p-2">
+                  <Label>{key === 'deliveryImage' ? 'Ordering screenshot' : 'Partner logo'}</Label>
+                  <SelectedImagePreview image={(config[key] as IAttachment) ?? null} onClear={() => onConfigChange(key, undefined)} />
+                  <MediaLibrary
+                    handleFilesSelectCallback={files => {
+                      const selected = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      onConfigChange(key, selected);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
           <div className="landing-editor-fields-grid mt-2 grid gap-2">
             <div>
               <Label>Image side</Label>

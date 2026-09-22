@@ -391,6 +391,29 @@ const TEMPLATE_PALETTES: Record<string, Partial<TemplatePalette>> = {
     cardBackground: '#ffffff',
     cardHoverBackground: '#f4f4f2',
   },
+  'fine-dining': {
+    primary: '#1d1d1d',
+    primaryForeground: '#f5f5f5',
+    secondary: '#2a2a2a',
+    secondaryForeground: '#f5f5f5',
+    accent: '#c5a572',
+    accentForeground: '#0a0a0a',
+    background: '#f5f5f5',
+    foreground: '#0a0a0a',
+    card: '#ffffff',
+    cardForeground: '#0a0a0a',
+    popover: '#ffffff',
+    popoverForeground: '#0a0a0a',
+    muted: '#e6d5b8',
+    mutedForeground: '#5c5145',
+    border: '#d8c79c',
+    input: '#d8c79c',
+    ring: '#c5a572',
+    destructive: '#b42318',
+    destructiveForeground: '#ffffff',
+    cardBackground: '#ffffff',
+    cardHoverBackground: '#e6d5b8',
+  },
 };
 
 const TEMPLATE_THEME_DETAILS: Record<string, Partial<TemplatePalette>> = {
@@ -409,6 +432,7 @@ const TEMPLATE_THEME_DETAILS: Record<string, Partial<TemplatePalette>> = {
   'golden-wok': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.25rem', letterSpacing: '0.02em' },
   'sakura-tide': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0.75rem', letterSpacing: '0.03em' },
   'atelier-noir': { fontFamily: 'Inter, system-ui, sans-serif', headingFontFamily: 'Inter, system-ui, sans-serif', radius: '0rem', letterSpacing: '0.04em' },
+  'fine-dining': { fontFamily: 'Poppins, Arial, sans-serif', headingFontFamily: 'Playfair Display, Georgia, serif', radius: '0.625rem', letterSpacing: '0.02em' },
 };
 
 const validColor = (value: unknown, fallback: string): string => {
