@@ -931,7 +931,7 @@ export const RegularItemUpdate = () => {
                                         <div className="flex items-center gap-2">
                                           <Checkbox
                                             id={`variant-skip-addons-${variantIndex}`}
-                                            checked={variant?.skipAddonsPopup !== false}
+                                            checked={variant?.skipAddonsPopup === true}
                                             onCheckedChange={checked =>
                                               handleVariantFieldChange(variantIndex, 'skipAddonsPopup', checked === true)
                                             }

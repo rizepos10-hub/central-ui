@@ -247,12 +247,12 @@ export const SharedItemUpdate = ({
           </Label>
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={item?.skipAddonsPopup !== false}
+              checked={item?.skipAddonsPopup === true}
               onCheckedChange={(checked) => onFieldChange('skipAddonsPopup', checked)}
             />
           </div>
           <p className="text-xs text-muted-foreground max-w-xl">
-            When enabled (default), POS/kiosk adds the item without opening the add-ons screen unless required add-ons exist. Disable to always open the popup.
+            When enabled, POS/kiosk adds the item without opening the add-ons screen unless required add-ons exist. Disable to always open the popup.
           </p>
         </div>
       )}
