@@ -97,6 +97,23 @@ const getMenuItems = (screens?: IMenuScreen[]): IItem[] =>
         .map(toMenuItem)
         .filter((item): item is IItem => item !== null);
 
+const normalizeDefaultMainScreens = (screens: IMenuScreen[]): IMenuScreen[] => {
+    let defaultFound = false;
+
+    return screens.map(screen => {
+        if (screen.isDefault !== true) {
+            return screen;
+        }
+
+        if (!defaultFound) {
+            defaultFound = true;
+            return screen;
+        }
+
+        return { ...screen, isDefault: false };
+    });
+};
+
 const MenuScreens: React.FC<MenuScreensProps> = ({
     menu,
     data,
@@ -121,6 +138,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [editScreenName, setEditScreenName] = useState('');
     const [editScreenDescription, setEditScreenDescription] = useState('');
     const [editScreenIsPizza, setEditScreenIsPizza] = useState(false);
+    const [editScreenIsDefault, setEditScreenIsDefault] = useState(false);
     const [mainScreenImage, setMainScreenImage] = useState<IAttachment>();
     const [editScreenColor, setEditScreenColor] = useState('');
     const [editScreenCols, setEditScreenCols] = useState<number | null>(1);
@@ -138,6 +156,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [newMainScreenDescription, setNewMainScreenDescription] = useState('');
     const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
     const [newMainScreenIsPizza, setNewMainScreenIsPizza] = useState(false);
+    const [newMainScreenIsDefault, setNewMainScreenIsDefault] = useState(false);
     const [newMainScreenImage, setNewMainScreenImage] = useState<IAttachment>();
     const [newMainScreenFontFamily, setNewMainScreenFontFamily] = useState('Montserrat');
     const [newMainScreenBold, setNewMainScreenBold] = useState(false);
@@ -157,6 +176,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [editScreenFontColor, setEditScreenFontColor] = useState('#000000');
     const [editScreenFontSize, setEditScreenFontSize] = useState(14);
     const [editScreenUseDefaultFont, setEditScreenUseDefaultFont] = useState(false);
+
+    const currentDefaultMainScreen = data?.menuScreens?.find(screen => screen.isDefault === true);
+    const currentDefaultMainScreenLabel = currentDefaultMainScreen
+        ? `Current default: ${currentDefaultMainScreen.name || 'Unnamed screen'}`
+        : 'No default screen selected';
 
     const [mainScreen, setMainScreen] = useState<IMenuScreen>({
         id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
@@ -228,6 +252,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenItalic(false);
         setNewMainScreenFontColor('#000000');
         setNewMainScreenFontSize(14);
+        setNewMainScreenIsDefault(false);
     };
 
     const openEditModal = (selectedScreen, screenIndex, screenType, ancestorChain: IMenuScreen[] = []) => {
@@ -240,6 +265,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setEditScreenDescription(selectedScreen.description || '');
         setEditScreenColor(selectedScreen.backgroundColor);
         setEditScreenIsPizza(selectedScreen.isPizza);
+        setEditScreenIsDefault(screenType === 'main' && selectedScreen.isDefault === true);
         setMainScreenImage(selectedScreen.attachment);
         const useDefaultFont = selectedScreen?.fontProperties == null;
         setEditScreenUseDefaultFont(useDefaultFont);
@@ -958,6 +984,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return;
         }
 
+        const shouldSetDefault = !empty && newMainScreenIsDefault;
+
         const newMainScreen: IMenuScreen = {
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             name: newMainScreenName,
@@ -970,6 +998,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             rowHeight: [],
             empty,
             isPizza: newMainScreenIsPizza,
+            isDefault: shouldSetDefault,
             attachment: newMainScreenImage,
             fontProperties: buildFontProperties({
                 fontFamily: newMainScreenFontFamily,
@@ -979,12 +1008,15 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 fontSize: newMainScreenFontSize,
             }),
         };
-        const newMenuScreens = [...data.menuScreens, newMainScreen];
+        const existingMainScreens = shouldSetDefault
+            ? updatedMenuScreens.map(screen => ({ ...screen, isDefault: false }))
+            : updatedMenuScreens;
+        const newMenuScreens = [...existingMainScreens, newMainScreen];
         const newGroupedMainScreens = groupMainScreens(newMenuScreens, data.numberOfColumns);
 
         setData({
             ...data,
-            menuScreens: [...data.menuScreens, newMainScreen],
+            menuScreens: newMenuScreens,
         });
 
         setSubScreenStack([newMainScreen?.subScreens]);
@@ -996,6 +1028,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedColorTheme('');
         setNewMainScreenCols(1);
         setNewMainScreenIsPizza(false);
+        setNewMainScreenIsDefault(false);
         setNewMainScreenImage(undefined);
         setNewMainScreenFontFamily('Montserrat');
         setNewMainScreenBold(false);
@@ -1151,7 +1184,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     useEffect(() => {
         if (data?.menuScreens && data.menuScreens.length > 0) {
             // Update each screen with the proper rowIndex based on its column position
-            const updatedMenuScreens = data.menuScreens.map((item, index) => ({
+            const normalizedMenuScreens = normalizeDefaultMainScreens(data.menuScreens);
+            const updatedMenuScreens = normalizedMenuScreens.map((item, index) => ({
                 ...item,
                 rowIndex: index % data.numberOfColumns,
             }));
@@ -1164,7 +1198,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
             // Only update data if any item has an outdated rowIndex
             const needUpdate = data.menuScreens.some(
-                (item, index) => item.rowIndex !== updatedMenuScreens[index].rowIndex
+                (item, index) =>
+                    item.rowIndex !== updatedMenuScreens[index].rowIndex ||
+                    item.isDefault !== updatedMenuScreens[index].isDefault
             );
             if (needUpdate) {
                 setData(prevData => ({
@@ -1393,6 +1429,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             backgroundColor: editScreenColor,
                             numberOfColumns: editScreenCols,
                             isPizza: editScreenIsPizza,
+                            isDefault: i === selectedScreenIndex ? editScreenIsDefault : editScreenIsDefault ? false : mainScreen.isDefault,
                             attachment: mainScreenImage,
                             fontProperties: editScreenUseDefaultFont ? null : buildFontProperties(
                                 {
@@ -1454,6 +1491,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setEditScreenFontColor('#000000');
         setEditScreenFontSize(14);
         setEditScreenUseDefaultFont(false);
+        setEditScreenIsDefault(false);
     };
 
     const handleMainRowHeightChange = (value: number | [number, number], rowIndex: number) => {
@@ -1721,6 +1759,22 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             <Label htmlFor="newMainScreenIsPizza" className="text-sm font-medium cursor-pointer">
                                 <Translate contentKey={'menus.pos.update.modals.mainScreen.isPizza'}>Is Pizza</Translate>
                             </Label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="newMainScreenIsDefault"
+                                    checked={newMainScreenIsDefault}
+                                    onCheckedChange={(checked) => setNewMainScreenIsDefault(!!checked)}
+                                />
+                                <Label htmlFor="newMainScreenIsDefault" className="text-sm font-medium cursor-pointer">
+                                    Default screen
+                                </Label>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                                {currentDefaultMainScreenLabel}
+                            </span>
                         </div>
 
                         <div className="space-y-2">
@@ -2099,6 +2153,24 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             </div>
                         </div>
 
+                        {selectedScreenType === 'main' && (
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="editScreenIsDefault"
+                                        checked={editScreenIsDefault}
+                                        onCheckedChange={(checked) => setEditScreenIsDefault(!!checked)}
+                                    />
+                                    <Label htmlFor="editScreenIsDefault" className="text-sm font-medium cursor-pointer">
+                                        Default screen
+                                    </Label>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                    {currentDefaultMainScreenLabel}
+                                </span>
+                            </div>
+                        )}
+
                         <div className="grid gap-4 lg:grid-cols-2">
                             <div className="space-y-2 min-w-0">
                                 <Label htmlFor="editScreenImage" className="text-xs font-medium">
@@ -2305,6 +2377,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                                 <>
                                                                     <div className="flex-1 flex flex-col items-center justify-center px-2 pb-2 min-h-0 overflow-visible">
                                                                         <h5 className="text-sm font-semibold w-full text-center line-clamp-2 break-words">{item?.name}</h5>
+                                                                        {item?.isDefault && (
+                                                                            <span className="text-[10px] font-medium text-primary mt-1">Current default</span>
+                                                                        )}
                                                                         {item?.numberOfColumns && (
                                                                             <span className="text-xs text-muted-foreground mt-1">{item.numberOfColumns} col{item.numberOfColumns > 1 ? 's' : ''}</span>
                                                                         )}

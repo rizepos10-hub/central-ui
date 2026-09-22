@@ -40,6 +40,7 @@ export interface IMenuScreen {
   componentType?: "SUB_SCREENS" | "ITEM" | "POS";
   allowMultiButtonSelect?: boolean;
   numberOfColumns?: number;
+  isDefault?: boolean;
   rowHeight?: number[];
   subScreens?: IMenuScreen[];
   rowIndex?: number;
