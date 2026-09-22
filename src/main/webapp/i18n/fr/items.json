@@ -115,6 +115,8 @@
         "search": "Search for Item"
       },
       "addonGroups": "Addon Groups",
+      "hideOnPos": "Masquer sur la caisse",
+      "hideOnOnlineOrder": "Masquer sur la commande en ligne",
       "required": "Required",
       "combo": {
         "title": "Combo",

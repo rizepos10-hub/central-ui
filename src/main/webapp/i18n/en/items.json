@@ -243,6 +243,8 @@
       "max": "Max",
       "addAutomatically": "Print",
       "rootAddonGroup": "Root Addon Group",
+      "hideOnPos": "Hide on POS",
+      "hideOnOnlineOrder": "Hide on Online Ordering",
       "relatedAddons": "Related Addons",
       "exclude": "Exclude",
       "include": "Include",

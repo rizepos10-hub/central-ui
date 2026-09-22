@@ -115,6 +115,8 @@
         "search": "Search for Item"
       },
       "addonGroups": "Addon Groups",
+      "hideOnPos": "إخفاء في نقطة البيع",
+      "hideOnOnlineOrder": "إخفاء في الطلب عبر الإنترنت",
       "required": "Required",
       "combo": {
         "title": "Combo",

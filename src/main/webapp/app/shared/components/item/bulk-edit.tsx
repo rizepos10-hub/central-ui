@@ -204,7 +204,9 @@ export const BulkEdit = ({
     const handleAddonGroupReorder = (event) => {
         const reorderedAddonGroups = event.value?.map(group => {
             const existingGroup = addonGroups?.find(g => g.addonGroup.id === group.id);
-            return existingGroup ? existingGroup : { addonGroup: group };
+            return existingGroup
+                ? existingGroup
+                : { addonGroup: group, hideOnPos: false, hideOnOnlineOrder: false };
         });
         setAddonGroups(reorderedAddonGroups)
     };
@@ -279,6 +281,8 @@ export const BulkEdit = ({
             addonPriceOverrides: [],
             excluded: [],
             name: null,
+            hideOnPos: false,
+            hideOnOnlineOrder: false,
         };
 
         // Ensure addonGroups is an array
@@ -624,6 +628,22 @@ export const BulkEdit = ({
                                                     <Checkbox
                                                         checked={addonGroups[index]?.addAutomatically}
                                                         onCheckedChange={(checked) => handleAddonGroupFieldChange(index, 'addAutomatically', checked)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnPos')}</Label>
+                                                    <Checkbox
+                                                        checked={addonGroups[index]?.hideOnPos || false}
+                                                        onCheckedChange={(checked) => handleAddonGroupFieldChange(index, 'hideOnPos', checked)}
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <Label className="text-xs font-medium whitespace-nowrap">{translate('items.update.hideOnOnlineOrder')}</Label>
+                                                    <Checkbox
+                                                        checked={addonGroups[index]?.hideOnOnlineOrder || false}
+                                                        onCheckedChange={(checked) => handleAddonGroupFieldChange(index, 'hideOnOnlineOrder', checked)}
                                                         className="mt-1"
                                                     />
                                                 </div>

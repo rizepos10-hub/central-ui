@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getSortState, Translate } from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
@@ -13,6 +13,7 @@ import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
 import { AddonGroupAddonsList } from 'app/entities/addon-groups/addon-group-addons-list';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import { Checkbox } from '@/components/ui/checkbox';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { filterEntities as getComboItems, updateEntity as updateComboItem } from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
@@ -171,6 +172,8 @@ export const AddonGroupUpdate = () => {
     e?.preventDefault();
     const entity = {
       ...addonGroup,
+      hideOnPos: addonGroup?.hideOnPos ?? false,
+      hideOnOnlineOrder: addonGroup?.hideOnOnlineOrder ?? false,
     };
 
     if (isNew) {
@@ -283,6 +286,32 @@ export const AddonGroupUpdate = () => {
                           onChange={handleChange}
                           className="h-8 text-xs"
                         />
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="hide-addon-group-on-pos"
+                            checked={addonGroup?.hideOnPos ?? false}
+                            onCheckedChange={checked =>
+                              setAddonGroup(prev => ({ ...prev, hideOnPos: Boolean(checked) }))
+                            }
+                          />
+                          <Label htmlFor="hide-addon-group-on-pos" className="text-xs whitespace-nowrap">
+                            {translate('items.update.hideOnPos')}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="hide-addon-group-on-online-order"
+                            checked={addonGroup?.hideOnOnlineOrder ?? false}
+                            onCheckedChange={checked =>
+                              setAddonGroup(prev => ({ ...prev, hideOnOnlineOrder: Boolean(checked) }))
+                            }
+                          />
+                          <Label htmlFor="hide-addon-group-on-online-order" className="text-xs whitespace-nowrap">
+                            {translate('items.update.hideOnOnlineOrder')}
+                          </Label>
+                        </div>
                       </div>
                       <AddonGroupAddonsList
                         addons={addonGroup?.addons || []}
