@@ -32,6 +32,15 @@ const atelierNavigationDefaults: ChromeNavigationDefault[] = [
   { key: 'theme', label: 'Theme', defaultUrl: '#categories' },
 ];
 
+const fineDiningNavigationDefaults: ChromeNavigationDefault[] = [
+  { key: 'home', label: 'Home', defaultUrl: '/' },
+  { key: 'menus', label: 'Menus', defaultUrl: '#categories' },
+  { key: 'order', label: 'Order Online', defaultUrl: '/shop' },
+  { key: 'about', label: 'About us', defaultUrl: '#about' },
+  { key: 'gallery', label: 'Gallery', defaultUrl: '#gallery' },
+  { key: 'contact', label: 'Contact us', defaultUrl: '#contact' },
+];
+
 const chromePart = (source: ChromePart | undefined): ChromePart => source ?? {};
 const nested = (source: ChromePart, key: string): ChromePart =>
   source[key] && typeof source[key] === 'object' ? (source[key] as ChromePart) : {};
@@ -144,14 +153,16 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                             ? 'golden-wok'
                              : templateKey === 'sakura-tide'
                                ? 'sakura-tide'
-                               : templateKey === 'atelier-noir'
-                                 ? 'atelier-noir'
-                     : undefined;
-  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir'].includes(rawHeaderVariant)
+                                : templateKey === 'atelier-noir'
+                                  ? 'atelier-noir'
+                                  : templateKey === 'fine-dining'
+                                    ? 'fine-dining'
+                      : undefined;
+  const headerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir', 'fine-dining'].includes(rawHeaderVariant)
     ? rawHeaderVariant
     : 'minimal');
   const rawFooterVariant = stringValue(footer, 'variant', '').trim().toLowerCase();
-  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir'].includes(rawFooterVariant)
+  const footerVariant = templateHeaderVariant ?? (['minimal', 'order-first', 'thai-palace', 'retail', 'riode', 'courtyard', 'ember-basil', 'nonna-table', 'olive-hearth', 'crimson-stack', 'saffron-ember', 'lime-char', 'golden-wok', 'sakura-tide', 'atelier-noir', 'fine-dining'].includes(rawFooterVariant)
     ? rawFooterVariant
     : 'minimal');
   const headerColorDefaults: Record<string, string> = headerVariant === 'order-first'
@@ -173,10 +184,12 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                     : headerVariant === 'golden-wok'
                       ? { background: '#000000', foreground: '#f5f5f5', accent: '#e9ac07', buttonBackground: '#e9ac07', buttonForeground: '#000000', borderColor: '#4d3b00', announcementBackground: '#202022', announcementForeground: '#f5f5f5' }
                        : headerVariant === 'sakura-tide'
-                         ? { background: '#222426', foreground: '#f8eedb', accent: '#f46a44', buttonBackground: '#f46a44', buttonForeground: '#ffffff', borderColor: '#55565a', announcementBackground: '#2a2e32', announcementForeground: '#f8eedb' }
-                         : headerVariant === 'atelier-noir'
-                           ? { background: '#ffffff', foreground: '#111111', accent: '#d8b24a', buttonBackground: '#111111', buttonForeground: '#ffffff', borderColor: '#dedbd5', announcementBackground: '#000000', announcementForeground: '#ffffff' }
-             : headerVariant === 'courtyard'
+                          ? { background: '#222426', foreground: '#f8eedb', accent: '#f46a44', buttonBackground: '#f46a44', buttonForeground: '#ffffff', borderColor: '#55565a', announcementBackground: '#2a2e32', announcementForeground: '#f8eedb' }
+                          : headerVariant === 'atelier-noir'
+                            ? { background: '#ffffff', foreground: '#111111', accent: '#d8b24a', buttonBackground: '#111111', buttonForeground: '#ffffff', borderColor: '#dedbd5', announcementBackground: '#000000', announcementForeground: '#ffffff' }
+                            : headerVariant === 'fine-dining'
+                              ? { background: '#1d1d1d', foreground: '#f5f5f5', accent: '#c5a572', buttonBackground: '#c5a572', buttonForeground: '#0a0a0a', borderColor: 'rgba(197,165,114,0.35)', announcementBackground: '#2a2a2a', announcementForeground: '#f5f5f5' }
+              : headerVariant === 'courtyard'
         ? { background: 'transparent', foreground: '#ffffff', accent: '#e7d0b0', buttonBackground: '#892e39', buttonForeground: '#ffffff', borderColor: 'transparent', announcementBackground: '#892e39', announcementForeground: '#ffffff' }
         : { background: '#ffffff', foreground: '#111827', accent: '#2563eb', buttonBackground: '#334155', buttonForeground: '#ffffff', borderColor: '#e5e7eb', announcementBackground: '#0f2744', announcementForeground: '#ffffff' };
   const footerColorDefaults: Record<string, string> = footerVariant === 'order-first'
@@ -202,22 +215,25 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
                         : footerVariant === 'golden-wok'
                           ? { background: '#000000', foreground: '#f5f5f5', titleColor: '#e9ac07', subtitleColor: '#cfcfcf', linkColor: '#e9ac07', borderColor: '#4d3b00' }
                            : footerVariant === 'sakura-tide'
-                             ? { background: '#222426', foreground: '#f8eedb', titleColor: '#f46a44', subtitleColor: '#bbc3d3', linkColor: '#f46a44', borderColor: '#55565a' }
-                             : footerVariant === 'atelier-noir'
-                               ? { background: '#000000', foreground: '#ffffff', titleColor: '#d8b24a', subtitleColor: '#c7c7c7', linkColor: '#d8b24a', borderColor: 'rgba(216,178,74,0.35)' }
-                   : footerVariant === 'courtyard'
+                              ? { background: '#222426', foreground: '#f8eedb', titleColor: '#f46a44', subtitleColor: '#bbc3d3', linkColor: '#f46a44', borderColor: '#55565a' }
+                              : footerVariant === 'atelier-noir'
+                                ? { background: '#000000', foreground: '#ffffff', titleColor: '#d8b24a', subtitleColor: '#c7c7c7', linkColor: '#d8b24a', borderColor: 'rgba(216,178,74,0.35)' }
+                                : footerVariant === 'fine-dining'
+                                  ? { background: '#1d1d1d', foreground: '#f5f5f5', titleColor: '#c5a572', subtitleColor: '#d6cbb6', linkColor: '#c5a572', borderColor: 'rgba(197,165,114,0.35)' }
+                    : footerVariant === 'courtyard'
               ? { background: 'rgba(231,208,176,0.3)', foreground: '#171717', titleColor: '#892e39', subtitleColor: '#171717', linkColor: '#171717', borderColor: 'transparent' }
               : { background: '#ffffff', foreground: '#111827', titleColor: '#111827', subtitleColor: '#6b7280', linkColor: '#2563eb', borderColor: '#e5e7eb' };
   const isMinimalHeader = headerVariant === 'minimal';
-  const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace' || headerVariant === 'ember-basil' || headerVariant === 'nonna-table' || headerVariant === 'olive-hearth' || headerVariant === 'crimson-stack' || headerVariant === 'saffron-ember' || headerVariant === 'lime-char' || headerVariant === 'golden-wok' || headerVariant === 'sakura-tide';
+  const isRestaurantHeader = headerVariant === 'order-first' || headerVariant === 'thai-palace' || headerVariant === 'ember-basil' || headerVariant === 'nonna-table' || headerVariant === 'olive-hearth' || headerVariant === 'crimson-stack' || headerVariant === 'saffron-ember' || headerVariant === 'lime-char' || headerVariant === 'golden-wok' || headerVariant === 'sakura-tide' || headerVariant === 'fine-dining';
   const isAtelierNoirHeader = headerVariant === 'atelier-noir';
+  const isFineDiningHeader = headerVariant === 'fine-dining';
   const isRetailHeader = headerVariant === 'retail';
   const isRiodeHeader = headerVariant === 'riode';
   const isCourtyardHeader = headerVariant === 'courtyard';
   const isCourtyardFooter = footerVariant === 'courtyard';
   const supportsRetailHeaderControls = isRetailHeader || isRiodeHeader || isAtelierNoirHeader;
   const supportsRestaurantHeaderControls = isMinimalHeader || isRestaurantHeader || isCourtyardHeader || isAtelierNoirHeader;
-  const supportsMainNavigationControls = supportsRetailHeaderControls || isCourtyardHeader;
+  const supportsMainNavigationControls = supportsRetailHeaderControls || isCourtyardHeader || isFineDiningHeader;
   const supportsRetailUtilityLabels = supportsRetailHeaderControls || isRestaurantHeader;
   const quickLinks = quickLinksValue(footer);
   const footerColumns = Array.isArray(footer.columns)
@@ -326,18 +342,23 @@ export default function PageChromeFields({ chrome, onChange, part, templateKey }
               <div className="landing-editor-fields-grid grid gap-2">
               <TextField id="header-label-home" label="Home label" value={stringValue(headerLabels, 'home')} onChange={value => updateLabel('header', 'home', value)} />
               {(supportsRetailHeaderControls || isCourtyardHeader) && <TextField id="header-label-shop" label="Shop label" value={stringValue(headerLabels, 'shop')} onChange={value => updateLabel('header', 'shop', value)} />}
-              {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
-              {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
-               {supportsMainNavigationControls && !isAtelierNoirHeader && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
+              {supportsMainNavigationControls && !isAtelierNoirHeader && !isFineDiningHeader && <TextField id="header-label-categories" label="Categories label" value={stringValue(headerLabels, 'categories')} onChange={value => updateLabel('header', 'categories', value)} />}
+              {supportsMainNavigationControls && !isAtelierNoirHeader && !isFineDiningHeader && <TextField id="header-label-products" label="Products/deals label" value={stringValue(headerLabels, 'products', stringValue(headerLabels, 'deals'))} onChange={value => updateLabels('header', { products: value, deals: value })} />}
+               {supportsMainNavigationControls && !isAtelierNoirHeader && !isFineDiningHeader && <TextField id="header-label-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
                {supportsRetailHeaderControls && !isAtelierNoirHeader && <TextField id="header-label-buy" label="Buy now label" value={stringValue(headerLabels, 'buyNow')} onChange={value => updateLabel('header', 'buyNow', value)} />}
                {isAtelierNoirHeader && <TextField id="header-label-journal" label="Journal label" value={stringValue(headerLabels, 'journal')} onChange={value => updateLabel('header', 'journal', value)} />}
                {isAtelierNoirHeader && <TextField id="header-label-theme" label="Theme label" value={stringValue(headerLabels, 'theme')} onChange={value => updateLabel('header', 'theme', value)} />}
+               {isFineDiningHeader && <TextField id="header-label-menus" label="Menus label" value={stringValue(headerLabels, 'menus')} onChange={value => updateLabel('header', 'menus', value)} />}
+               {isFineDiningHeader && <TextField id="header-label-order" label="Order online label" value={stringValue(headerLabels, 'order')} onChange={value => updateLabel('header', 'order', value)} />}
+               {isFineDiningHeader && <TextField id="header-label-about" label="About label" value={stringValue(headerLabels, 'about')} onChange={value => updateLabel('header', 'about', value)} />}
+               {isFineDiningHeader && <TextField id="header-label-gallery" label="Gallery label" value={stringValue(headerLabels, 'gallery')} onChange={value => updateLabel('header', 'gallery', value)} />}
+               {isFineDiningHeader && <TextField id="header-label-fine-dining-contact" label="Contact label" value={stringValue(headerLabels, 'contact')} onChange={value => updateLabel('header', 'contact', value)} />}
                </div>
              </PropertyEditorGroup>
 
-             {(isCourtyardHeader || isAtelierNoirHeader) && <PropertyEditorGroup title="Navigation links" description="Destinations used by this template. Leave the default to keep the system route; {branchId} is replaced automatically." defaultOpen={false}>
-               <div className="space-y-2">
-                 {(isAtelierNoirHeader ? atelierNavigationDefaults : courtyardNavigationDefaults).map(link => (
+              {(isCourtyardHeader || isAtelierNoirHeader || isFineDiningHeader) && <PropertyEditorGroup title="Navigation links" description="Destinations used by this template. Leave the default to keep the system route; {branchId} is replaced automatically." defaultOpen={false}>
+                <div className="space-y-2">
+                  {(isAtelierNoirHeader ? atelierNavigationDefaults : isFineDiningHeader ? fineDiningNavigationDefaults : courtyardNavigationDefaults).map(link => (
                   <div className="grid gap-2 rounded-md border bg-background p-2 sm:grid-cols-2" key={link.key}>
                     <p className="self-end pb-1 text-xs font-medium">{stringValue(headerLabels, link.key, link.label)}</p>
                     <TextField id={`header-link-${link.key}`} label="URL" value={stringValue(headerNavigationLinks, link.key, link.defaultUrl)} placeholder={link.defaultUrl} onChange={value => updateNavigationLink(link.key, value)} />

@@ -418,6 +418,60 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
+  'fine-dining': {
+    title: 'Fine Dining',
+    subtitle: 'Lebanese hospitality with menu stories, delivery, catering, and gallery moments',
+    accent: '#c5a572',
+    header: '#1d1d1d',
+    surface: '#f5f5f5',
+    render: () => (
+      <>
+        <div className="flex h-[9%] items-center justify-between px-2" style={{ background: '#1d1d1d' }}>
+          <div className="h-1.5 w-10 rounded bg-white/85" />
+          <div className="flex gap-1">
+            {Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-1 w-3 rounded" style={{ background: index === 2 ? '#c5a572' : '#f5f5f5' }} />)}
+          </div>
+        </div>
+        <div className="relative flex h-[27%] flex-col justify-center overflow-hidden px-3" style={{ background: 'linear-gradient(115deg,#1d1d1d 12%,#403a31 48%,#a58a5f 100%)' }}>
+          <div className="absolute right-0 top-0 h-full w-2/5 opacity-45" style={{ background: 'linear-gradient(135deg,transparent 0 28%,#f5eee4 29% 31%,transparent 32% 48%,#26221c 49% 72%,transparent 73%)' }} />
+          <div className="relative mb-1 h-1 w-12 rounded" style={{ background: '#c5a572' }} />
+          <div className="relative h-2.5 w-24 rounded bg-white/90" />
+          <div className="relative mt-1 h-1 w-16 rounded bg-white/55" />
+          <div className="relative mt-2 h-2.5 w-11 rounded-sm" style={{ background: '#c5a572' }} />
+        </div>
+        <div className="flex h-[13%] items-center gap-2 px-2" style={{ background: '#f5f5f5' }}>
+          <div className="h-8 w-8 rounded-sm" style={{ background: 'linear-gradient(135deg,#d1b58c,#52412e)' }} />
+          <div className="flex-1">
+            <div className="h-1 w-16 rounded" style={{ background: '#a78653' }} />
+            <div className="mt-1 h-1 w-24 rounded bg-[#5c5145]/35" />
+          </div>
+          <div className="h-8 w-6 rounded-sm" style={{ background: 'linear-gradient(160deg,#ede5d8,#7e6245)' }} />
+        </div>
+        <div className="grid h-[19%] grid-cols-3 gap-0.5 px-1" style={{ background: '#1d1d1d' }}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="flex flex-col justify-end gap-0.5 border border-[#c5a572]/70 p-1" style={{ background: index % 2 ? '#242424' : '#1d1d1d' }}>
+              <div className="h-1 w-8 rounded bg-[#c5a572]" />
+              <div className="h-0.5 w-10 rounded bg-white/45" />
+            </div>
+          ))}
+        </div>
+        <div className="grid h-[12%] grid-cols-2 gap-1 px-1 py-0.5" style={{ background: '#8f8f8f' }}>
+          <div className="rounded-sm" style={{ background: 'linear-gradient(135deg,#e9e0d3,#7d6041)' }} />
+          <div className="flex flex-col justify-center gap-1 px-1">
+            <div className="h-1 w-14 rounded bg-white/85" />
+            <div className="h-0.5 w-16 rounded bg-white/55" />
+          </div>
+        </div>
+        <div className="flex h-[8%] items-center justify-center gap-2" style={{ background: '#8f8f8f' }}>
+          <div className="h-1 w-16 rounded bg-white/80" />
+          <div className="h-1 w-8 rounded" style={{ background: '#1d1d1d' }} />
+        </div>
+        <div className="grid h-[12%] grid-cols-3 gap-1 px-1 py-0.5" style={{ background: '#f5f5f5' }}>
+          {Array.from({ length: 3 }).map((_, index) => <div key={index} className="rounded-sm" style={{ background: index === 1 ? '#e6d5b8' : '#ffffff', borderTop: `2px solid ${index === 1 ? '#c5a572' : '#d8c79c'}` }} />)}
+        </div>
+      </>
+    ),
+  },
 };
 
 // Import cards are rendered before a tenant page exists, so they cannot use the live
