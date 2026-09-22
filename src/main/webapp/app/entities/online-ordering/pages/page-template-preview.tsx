@@ -138,7 +138,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'home-riode': {
-    title: 'Riode eCommerce',
+    title: 'Retail — Split Commerce',
     subtitle: 'Split carousel, category grid, dual promos',
     accent: '#05b895',
     header: '#1e3a5f',
@@ -173,7 +173,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'courtyard-hospitality': {
-    title: 'Courtyard Hospitality',
+    title: 'Hospitality — Immersive',
     subtitle: 'Full-screen spaces, menus, story, and hospitality chrome',
     accent: '#819072',
     header: '#892e39',
@@ -199,7 +199,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'ember-basil': {
-    title: 'Ember & Basil',
+    title: 'Restaurant — Artisan Pizza',
     subtitle: 'Thin-crust Italian pizza, warm red tones, and golden accents',
     accent: '#febe10',
     header: '#422525',
@@ -224,7 +224,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'nonna-table': {
-    title: 'Nonna’s Table',
+    title: 'Restaurant — Family Table',
     subtitle: 'Italian pizza, pasta, and a warm family table',
     accent: '#967d47',
     header: '#2d7000',
@@ -249,7 +249,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'olive-hearth': {
-    title: 'Olive & Hearth',
+    title: 'Restaurant — Rustic',
     subtitle: 'Rustic pizza, fresh ingredients, and an artisan story',
     accent: '#e3aa6b',
     header: '#2c3135',
@@ -274,7 +274,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'crimson-stack': {
-    title: 'Crimson Stack',
+    title: 'Restaurant — Bold Burger',
     subtitle: 'Bold burgers, red-and-black energy, and fast ordering',
     accent: '#d92b3a',
     header: '#000000',
@@ -296,7 +296,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'saffron-ember': {
-    title: 'Saffron Ember',
+    title: 'Restaurant — Grill',
     subtitle: 'Warm Turkish grill hospitality with terracotta accents',
     accent: '#de4917',
     header: '#432f29',
@@ -319,7 +319,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'lime-char': {
-    title: 'Lime & Char',
+    title: 'Restaurant — Fresh Burger',
     subtitle: 'Dark charcoal, electric lime, and location-led burger moments',
     accent: '#95d01a',
     header: '#131c16',
@@ -343,7 +343,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'golden-wok': {
-    title: 'Golden Wok',
+    title: 'Restaurant — Asian Editorial',
     subtitle: 'Black, gold, and editorial Chinese restaurant storytelling',
     accent: '#e9ac07',
     header: '#000000',
@@ -366,7 +366,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'sakura-tide': {
-    title: 'Sakura Tide',
+    title: 'Restaurant — Sushi',
     subtitle: 'Coral sushi energy, wave imagery, and calm cream surfaces',
     accent: '#f46a44',
     header: '#222426',
@@ -389,7 +389,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
     ),
   },
   'atelier-noir': {
-    title: 'Atelier Noir',
+    title: 'Store — Editorial',
     subtitle: 'Monochrome fashion edit with gold accents and editorial storytelling',
     accent: '#d8b24a',
     header: '#000000',
@@ -420,7 +420,7 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
   },
   'fine-dining': {
     title: 'Fine Dining',
-    subtitle: 'Lebanese hospitality with menu stories, delivery, catering, and gallery moments',
+    subtitle: 'Hospitality with menu stories, delivery, catering, and gallery moments',
     accent: '#c5a572',
     header: '#1d1d1d',
     surface: '#f5f5f5',
@@ -472,28 +472,6 @@ const PREVIEW_BY_TEMPLATE: Record<string, PreviewSpec> = {
       </>
     ),
   },
-};
-
-// Import cards are rendered before a tenant page exists, so they cannot use the live
-// storefront renderer. These local snapshots keep every registered template visual,
-// deterministic, and independent of tenant/auth state.
-const TEMPLATE_SCREENSHOTS: Record<string, string> = {
-  'home-default': '/content/images/landing-templates/home-default.webp',
-  'order-first': '/content/images/landing-templates/order-first.webp',
-  'home-riode': '/content/images/landing-templates/home-riode.webp',
-  'home-retail': '/content/images/landing-templates/home-retail.webp',
-  'thai-palace': '/content/images/landing-templates/thai-palace.webp',
-  'courtyard-hospitality': '/content/images/landing-templates/courtyard-hospitality.webp',
-  'ember-basil': '/content/images/landing-templates/ember-basil.webp',
-  'nonna-table': '/content/images/landing-templates/nonna-table.webp',
-  'olive-hearth': '/content/images/landing-templates/olive-hearth.webp',
-  'crimson-stack': '/content/images/landing-templates/crimson-stack.webp',
-  'saffron-ember': '/content/images/landing-templates/saffron-ember.webp',
-  'lime-char': '/content/images/landing-templates/lime-char.webp',
-  'golden-wok': '/content/images/landing-templates/golden-wok.webp',
-  'sakura-tide': '/content/images/landing-templates/sakura-tide.webp',
-  'atelier-noir': '/content/images/landing-templates/atelier-noir.webp',
-  'fine-dining': '/content/images/landing-templates/fine-dining.webp',
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
@@ -593,7 +571,6 @@ export const PageTemplatePreview = ({
   const footerBackground = typeof footerAppearance.background === 'string' ? footerAppearance.background : '#0f172a';
   const accent = pageAccent(page, spec.accent);
   const liveUrl = livePreviewUrl ?? (isActive && page.status === PageStatus.PUBLISHED ? normalizeStorefrontUrl(storeDomain) : null);
-  const screenshot = TEMPLATE_SCREENSHOTS[page.templateKey ?? ''];
 
   return (
     <div className={cn('shrink-0', className)}>
@@ -605,60 +582,32 @@ export const PageTemplatePreview = ({
           <span className="ml-1 truncate text-[9px] text-muted-foreground">/{page.slug}</span>
         </div>
         <div className="relative flex h-[150px] flex-col overflow-hidden" style={{ background: spec.surface }}>
-          {screenshot ? (
-            <>
-              <img
-                src={screenshot}
-                alt={`${spec.title} template screenshot`}
-                className="absolute inset-0 h-full w-full object-cover object-top"
-                loading="lazy"
-                decoding="async"
-              />
-              <div
-                className="absolute inset-x-0 top-0 z-10 flex h-5 items-center justify-between px-2 text-[7px] font-medium text-white shadow-sm"
-                style={{ background: headerBackground }}
-                aria-hidden="true"
-              >
-                <span className="inline-flex items-center gap-1 truncate">
-                  <span className="inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-white/90 text-[5px] font-bold text-slate-900">
-                    ✓
-                  </span>
-                  Your brand
-                </span>
-                <span className="shrink-0 opacity-80">Home · Shop</span>
-              </div>
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-0.5" style={{ background: accent }} />
-            </>
-          ) : (
-            <>
-              {showAnnouncement && (
-                <div
-                  className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white"
-                  style={{ background: (headerAppearance.announcementBackground as string) || headerBackground }}
-                >
-                  {announcementText}
-                </div>
-              )}
-              <div
-                className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
-                style={{ background: headerBackground }}
-              >
-                <span className="h-1.5 w-8 rounded bg-white/80" />
-                <span>
-                  {chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')}
-                </span>
-              </div>
-              {spec.render()}
-              <div
-                className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
-                style={{ background: footerBackground }}
-              >
-                <span className="h-1.5 w-10 rounded bg-white/70" />
-                <span>{footer.showCopyright !== false ? 'Copyright' : 'Footer'}</span>
-              </div>
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5" style={{ background: accent }} />
-            </>
+          {showAnnouncement && (
+            <div
+              className="h-3 shrink-0 truncate px-2 text-center text-[7px] font-medium text-white"
+              style={{ background: (headerAppearance.announcementBackground as string) || headerBackground }}
+            >
+              {announcementText}
+            </div>
           )}
+          <div
+            className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
+            style={{ background: headerBackground }}
+          >
+            <span className="h-1.5 w-8 rounded bg-white/80" />
+            <span>
+              {chromeLabel(header, 'home', 'Home')} · {chromeLabel(header, 'shop', 'Shop')}
+            </span>
+          </div>
+          {spec.render()}
+          <div
+            className="flex h-5 shrink-0 items-center justify-between px-2 text-[7px] text-white"
+            style={{ background: footerBackground }}
+          >
+            <span className="h-1.5 w-10 rounded bg-white/70" />
+            <span>{footer.showCopyright !== false ? 'Copyright' : 'Footer'}</span>
+          </div>
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5" style={{ background: accent }} />
         </div>
       </div>
       {showMeta && (
