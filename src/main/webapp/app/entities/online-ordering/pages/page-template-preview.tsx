@@ -493,6 +493,7 @@ const TEMPLATE_SCREENSHOTS: Record<string, string> = {
   'golden-wok': '/content/images/landing-templates/golden-wok.webp',
   'sakura-tide': '/content/images/landing-templates/sakura-tide.webp',
   'atelier-noir': '/content/images/landing-templates/atelier-noir.webp',
+  'fine-dining': '/content/images/landing-templates/fine-dining.webp',
 };
 
 function GenericSectionPreview({ page }: { page: IOnlineOrderingPage }) {
