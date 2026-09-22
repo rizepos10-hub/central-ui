@@ -45,7 +45,7 @@ export interface IItem {
   productionCenter?: IProductionCenter | null;
   menus?: IMenu[];
   askForPrice?: boolean;
-  /** When true (default), POS/kiosk may skip add-ons popup if no required addons. */
+  /** When true, POS/kiosk may skip add-ons popup if no required addons. */
   skipAddonsPopup?: boolean;
   seo?: ISeo;
   ebtEligibleByBranch?: IEBTEligibleByBranch[];
