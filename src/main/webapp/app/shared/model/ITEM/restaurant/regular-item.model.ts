@@ -24,6 +24,7 @@ export interface IRegularItemVariant {
   addonGroups?: IAddonGroups[];
   price?: number;
   salePrice?: number;
+  preparationTime?: number | null;
   skipAddonsPopup?: boolean;
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
@@ -46,6 +47,7 @@ export const defaultValue: Readonly<IRegularItem> = {
     discounts: [],
     name: '',
     order: 0,
+    preparationTime: null,
     addonGroups: [],
     addonPriceOverrides: [],
     addons: [],

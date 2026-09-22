@@ -658,6 +658,7 @@ export const ProductUpdate = () => {
           sku: '',
           price: defaultPrice,
           salePrice: null,
+          preparationTime: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
           specialPrices: { ...defaultSpecialPrices },
@@ -707,6 +708,7 @@ export const ProductUpdate = () => {
           sku: '',
           price: defaultPrice,
           salePrice: null,
+          preparationTime: null,
           branchVariantDetails: {},
           attributeValues: {},
           specialPrices: { ...defaultSpecialPrices },
@@ -1188,6 +1190,27 @@ export const ProductUpdate = () => {
                 <ImMagicWand size={12} />
               </Button>
             </div>
+          </div>
+
+          <div className="flex-1 space-y-1 min-w-0">
+            <label className="text-xs font-semibold">Preparation time (minutes)</label>
+            <Input
+              type="number"
+              name="preparation-time"
+              id="preparation-time"
+              min={0}
+              step={1}
+              placeholder="Minutes"
+              value={product.variants[variantIndex]?.preparationTime ?? ''}
+              onChange={e =>
+                handleVariantFieldChange(
+                  variantIndex,
+                  'preparationTime',
+                  e.target.value === '' ? null : parseInt(e.target.value, 10)
+                )
+              }
+              className="h-8 text-xs"
+            />
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">

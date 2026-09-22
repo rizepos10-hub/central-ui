@@ -326,6 +326,7 @@ export const VariableItemUpdate = () => {
           sku: '',
           price: null,
           salePrice: null,
+          preparationTime: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
           specialPrices: { ...defaultSpecialPrices }
@@ -371,6 +372,7 @@ export const VariableItemUpdate = () => {
           sku: '',
           price: null,
           salePrice: null,
+          preparationTime: null,
           branchVariantDetails: {},
           attributeValues: {},
           specialPrices: { ...defaultSpecialPrices }
@@ -749,6 +751,21 @@ export const VariableItemUpdate = () => {
                                           maxFractionDigits={2}
                                           value={variant?.salePrice}
                                           onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>Preparation time (minutes)</label>
+                                        <InputNumber
+                                          name="preparation-time"
+                                          id="preparation-time"
+                                          min={0}
+                                          maxFractionDigits={0}
+                                          placeholder="Minutes"
+                                          value={variant?.preparationTime ?? null}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'preparationTime', e.value)}
                                         />
                                       </div>
                                     </Col>

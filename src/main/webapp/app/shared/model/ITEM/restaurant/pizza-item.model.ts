@@ -54,6 +54,7 @@ export interface IPizzaItemVariant {
   discounts?: IDiscount[];
   price?: number | null;
   salePrice?: number | null;
+  preparationTime?: number | null;
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
   predefinedPizza?: IPredefinedPizza;
