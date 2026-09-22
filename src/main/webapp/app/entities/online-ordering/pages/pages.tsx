@@ -38,6 +38,28 @@ type PageFilter = 'all' | 'legacy' | PageStatus;
 
 const pageName = (page: IOnlineOrderingPage) => page.name?.trim() || 'Untitled landing page';
 
+const templateLabel = (templateKey?: string) => {
+  const labels: Record<string, string> = {
+    'home-default': 'Restaurant — Showcase',
+    'order-first': 'Restaurant — Order First',
+    'home-riode': 'Retail — Split Commerce',
+    'home-retail': 'Retail — Electronics',
+    'thai-palace': 'Restaurant — Classic',
+    'courtyard-hospitality': 'Hospitality — Immersive',
+    'ember-basil': 'Restaurant — Artisan Pizza',
+    'nonna-table': 'Restaurant — Family Table',
+    'olive-hearth': 'Restaurant — Rustic',
+    'crimson-stack': 'Restaurant — Bold Burger',
+    'saffron-ember': 'Restaurant — Grill',
+    'lime-char': 'Restaurant — Fresh Burger',
+    'golden-wok': 'Restaurant — Asian Editorial',
+    'sakura-tide': 'Restaurant — Sushi',
+    'atelier-noir': 'Store — Editorial',
+    'fine-dining': 'Fine Dining',
+  };
+  return (templateKey && labels[templateKey]) || 'Storefront template';
+};
+
 const statusLabel = (status?: PageStatus) => {
   switch (status) {
     case PageStatus.PUBLISHED:
@@ -383,7 +405,7 @@ const OnlineOrderingPages = () => {
                         </Badge>
                         {page.templateKey && (
                           <Badge variant="secondary" className="max-w-full truncate text-[10px] font-medium">
-                            {page.templateKey}
+                            {templateLabel(page.templateKey)}
                           </Badge>
                         )}
                         {page.templateVersion && <span className="text-[10px] text-muted-foreground">v{page.templateVersion}</span>}

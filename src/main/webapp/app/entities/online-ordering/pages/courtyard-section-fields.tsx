@@ -61,7 +61,7 @@ export default function CourtyardSectionFields({ section, onConfigChange }: { se
       <PropertyEditorGroup title="Courtyard hero" description="Full-screen opening image" defaultOpen>
         <div className="landing-editor-fields-grid grid gap-2">
           <ImageField id="courtyard-hero-image" label="Hero image" value={config.image} onChange={value => onConfigChange('image', value)} />
-          <TextField id="courtyard-hero-alt" label="Image alt text" value={stringValue(config.imageAlt, 'Courtyard hospitality courtyard in Beirut')} onChange={value => onConfigChange('imageAlt', value)} />
+          <TextField id="courtyard-hero-alt" label="Image alt text" value={stringValue(config.imageAlt, 'Hospitality venue in your city')} onChange={value => onConfigChange('imageAlt', value)} />
         </div>
       </PropertyEditorGroup>
     );
@@ -71,7 +71,7 @@ export default function CourtyardSectionFields({ section, onConfigChange }: { se
     return (
       <PropertyEditorGroup title="Courtyard welcome" description="Introduction copy" defaultOpen>
         <div className="landing-editor-fields-grid grid gap-2">
-          <TextField id="courtyard-welcome-title" label="Title" value={stringValue(config.title, 'welcome to courtyard hospitality')} onChange={value => onConfigChange('title', value)} />
+          <TextField id="courtyard-welcome-title" label="Title" value={stringValue(config.title, 'welcome to your hospitality venue')} onChange={value => onConfigChange('title', value)} />
           <div className="landing-editor-wide-field"><TextareaField id="courtyard-welcome-body" label="Body" value={stringValue(config.body)} onChange={value => onConfigChange('body', value)} /></div>
         </div>
       </PropertyEditorGroup>
