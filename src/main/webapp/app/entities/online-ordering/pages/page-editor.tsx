@@ -1337,7 +1337,7 @@ const SectionConfigForm = ({
         <PropertyEditorGroup title="Branding & copy" description="Business identity and section text" defaultOpen>
           <div className="landing-editor-fields-grid grid gap-2">
             <div><Label>Brand name (optional)</Label><Input value={(config.brandName as string) ?? ''} placeholder="Uses the business name" onChange={e => onConfigChange('brandName', e.target.value)} /></div>
-            <div><Label>Brand accent (optional)</Label><Input value={(config.brandAccent as string) ?? 'Palace'} onChange={e => onConfigChange('brandAccent', e.target.value)} /></div>
+            <div><Label>Brand accent (optional)</Label><Input value={(config.brandAccent as string) ?? ''} onChange={e => onConfigChange('brandAccent', e.target.value)} /></div>
             <div><Label>Title</Label><Input value={(config.title as string) ?? ''} placeholder="Uses the business name" onChange={e => onConfigChange('title', e.target.value)} /></div>
             <div><Label>Subtitle</Label><Input value={(config.subtitle as string) ?? ''} placeholder="Uses the business description" onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
           </div>
@@ -1451,7 +1451,7 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
       return {
         appearance,
         items: [
-          { icon: '🍜', title: 'Authentic Thai' },
+          { icon: '🍜', title: 'Signature flavors' },
           { icon: '🥡', title: 'Takeout ready' },
           { icon: '🚚', title: 'Delivery' },
           { icon: '⭐', title: 'Top rated' },
@@ -1475,9 +1475,9 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
         },
       };
     case SectionType.COURTYARD_HERO:
-      return { image: {}, imageAlt: 'Courtyard hospitality image' };
+      return { image: {}, imageAlt: 'Hospitality venue image' };
     case SectionType.COURTYARD_WELCOME:
-      return { title: 'welcome to courtyard hospitality', body: '' };
+      return { title: 'welcome to your hospitality venue', body: '' };
     case SectionType.COURTYARD_SLIDER:
       return { id: 'slider', eyebrow: '', autoplayMs: 6500, slides: [] };
     case SectionType.COURTYARD_ACCOLADES:
