@@ -46,6 +46,7 @@ export interface GiftCardItemVariant {
   sku?: string;
   price?: number;
   salePrice?: number;
+  preparationTime?: number | null;
   branchVariantDetails?: IBranchVariantDetails;
   archived?: boolean;
   stockQuantities?: IStockQuantity[];

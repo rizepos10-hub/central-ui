@@ -52,6 +52,7 @@ export const GiftCardItemUpdate = () => {
     itemVariantType: ItemVariantType.VIRTUAL_GIFTCARD,
     variants: [{
       branchVariantDetails: {},
+      preparationTime: null,
     }]
   });
 
@@ -198,7 +199,7 @@ export const GiftCardItemUpdate = () => {
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 pt-2 space-y-4">
-                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                               <Label className="text-xs font-semibold">
                                 <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -223,6 +224,25 @@ export const GiftCardItemUpdate = () => {
                                 readOnly
                                 className="h-8 text-xs mt-1 font-mono"
                                 value={generatedCode || 'Will be generated automatically after save'}
+                              />
+                            </div>
+
+                            <div>
+                              <Label className="text-xs font-semibold">Preparation time (minutes)</Label>
+                              <Input
+                                type="number"
+                                name="preparation-time"
+                                min={0}
+                                step={1}
+                                className="h-8 text-xs mt-1"
+                                placeholder="Minutes"
+                                value={giftCardItem?.variants?.[0]?.preparationTime ?? ''}
+                                onChange={e =>
+                                  handleGiftCardItemVariantChange(
+                                    'preparationTime',
+                                    e.target.value === '' ? null : parseInt(e.target.value, 10)
+                                  )
+                                }
                               />
                             </div>
                           </div>

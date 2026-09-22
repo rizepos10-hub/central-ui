@@ -68,6 +68,7 @@ export interface IVariableItemVariant {
   skus?: string[];
   price?: number;
   salePrice?: number;
+  preparationTime?: number | null;
   branchVariantDetails?: IBranchVariantDetails;
   archived?: boolean;
   attributeValues?: any;

@@ -163,6 +163,7 @@ export const RegularItemUpdate = () => {
           sku: '',
           price: null,
           salePrice: null,
+          preparationTime: null,
           branchVariantDetails: {},
           pricingPointBranchPrices: [],
           id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
@@ -879,7 +880,7 @@ export const RegularItemUpdate = () => {
                                       </TabsList>
 
                                       <TabsContent value="general" className="space-y-4">
-                                        <div className="grid grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                           <div className="space-y-2">
                                             <Label className="text-xs font-semibold">
                                               <Translate contentKey={'items.update.name'}>Name</Translate>
@@ -923,6 +924,26 @@ export const RegularItemUpdate = () => {
                                               step={0.01}
                                               value={variant?.salePrice ?? ''}
                                               onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) ?? null)}
+                                              className="h-8 text-xs"
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label className="text-xs font-semibold">Preparation time (minutes)</Label>
+                                            <Input
+                                              type="number"
+                                              name="preparation-time"
+                                              min={0}
+                                              step={1}
+                                              placeholder="Minutes"
+                                              value={variant?.preparationTime ?? ''}
+                                              onChange={e =>
+                                                handleVariantFieldChange(
+                                                  variantIndex,
+                                                  'preparationTime',
+                                                  e.target.value === '' ? null : parseInt(e.target.value, 10)
+                                                )
+                                              }
                                               className="h-8 text-xs"
                                             />
                                           </div>

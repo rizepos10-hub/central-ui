@@ -565,6 +565,7 @@ export const PizzaItemUpdate = () => {
           multiplePizzaDetails: [],
           branchVariantDetails: {},
           pricingPointBranchPrices: [],
+          preparationTime: null,
         }]
       })
     }
@@ -930,6 +931,25 @@ export const PizzaItemUpdate = () => {
                                     }}
                                   />
                                 </div>
+                              </div>
+
+                              <div className="flex flex-col gap-2 max-w-sm">
+                                <label className="text-xs font-semibold">Preparation time (minutes)</label>
+                                <Input
+                                  type="number"
+                                  name="preparation-time"
+                                  min={0}
+                                  step={1}
+                                  placeholder="Minutes"
+                                  value={pizzaItem?.variants?.[0]?.preparationTime ?? ''}
+                                  onChange={e =>
+                                    handlePizzaVariantChange(
+                                      'preparationTime',
+                                      e.target.value === '' ? null : parseInt(e.target.value, 10)
+                                    )
+                                  }
+                                  className="h-8 text-xs"
+                                />
                               </div>
 
                               <VariantBranchPrice

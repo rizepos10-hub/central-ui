@@ -27,6 +27,7 @@ interface IComboItemVariant {
   discounts?: IDiscount[];
   price?: number;
   salePrice?: number;
+  preparationTime?: number | null;
   branchVariantDetails?: IBranchVariantDetails;
   comboPackages?: IComboPackage[];
   mixAndMatchRule?: IMixAndMatchRule;
@@ -42,6 +43,7 @@ export const defaultValue: Readonly<IComboItem> = {
     pricingPointBranchPrices: [],
     attachments: [],
     branchVariantDetails: {},
+    preparationTime: null,
     description: '',
     discounts: [],
     name: '',

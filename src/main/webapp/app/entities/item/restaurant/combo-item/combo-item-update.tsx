@@ -498,7 +498,7 @@ export const ComboItemUpdate = () => {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label className="text-xs font-semibold">
                             <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -530,6 +530,25 @@ export const ComboItemUpdate = () => {
                             step={0.01}
                             value={comboItem?.variants?.[0]?.salePrice ?? ''}
                             onChange={(e) => handleComboVariantChange('salePrice', parseFloat(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">Preparation time (minutes)</Label>
+                          <Input
+                            type="number"
+                            name="preparation-time"
+                            min={0}
+                            step={1}
+                            placeholder="Minutes"
+                            value={comboItem?.variants?.[0]?.preparationTime ?? ''}
+                            onChange={e =>
+                              handleComboVariantChange(
+                                'preparationTime',
+                                e.target.value === '' ? null : parseInt(e.target.value, 10)
+                              )
+                            }
                             className="h-8 text-xs"
                           />
                         </div>

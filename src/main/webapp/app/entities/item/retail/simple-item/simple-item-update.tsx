@@ -88,6 +88,7 @@ export const SimpleItemUpdate = () => {
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
     variants: [{
       branchVariantDetails: {},
+      preparationTime: null,
     }]
   });
 
@@ -436,7 +437,7 @@ export const SimpleItemUpdate = () => {
                             <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
 
                             <Row className="">
-                              <Col md="6">
+                              <Col md="4">
                                 <div className={"d-flex flex-column gap-2"}>
                                   <label className={"font-semibold"}>
                                     <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -455,7 +456,7 @@ export const SimpleItemUpdate = () => {
                                 </div>
                               </Col>
 
-                              <Col md="6">
+                              <Col md="4">
                                 <div className={"d-flex flex-column gap-2"}>
                                   <label className={"font-semibold"}>
                                     <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
@@ -468,6 +469,21 @@ export const SimpleItemUpdate = () => {
                                     placeholder={translate('items.update.placeholders.itemSalePrice')}
                                     value={simpleItem?.variants?.[0]?.salePrice}
                                     onChange={(e) => handleSimpleItemVariantChange('salePrice', e.value)}
+                                  />
+                                </div>
+                              </Col>
+
+                              <Col md="4">
+                                <div className={"d-flex flex-column gap-2"}>
+                                  <label className={"font-semibold"}>Preparation time (minutes)</label>
+                                  <InputNumber
+                                    name="preparation-time"
+                                    id="preparation-time"
+                                    min={0}
+                                    maxFractionDigits={0}
+                                    placeholder="Minutes"
+                                    value={simpleItem?.variants?.[0]?.preparationTime ?? null}
+                                    onChange={(e) => handleSimpleItemVariantChange('preparationTime', e.value)}
                                   />
                                 </div>
                               </Col>
