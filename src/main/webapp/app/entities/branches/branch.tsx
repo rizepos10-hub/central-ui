@@ -5,6 +5,7 @@ import { getEntities, updateEntity, createEntity } from '../settings/business-de
 import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
   DeliveryPricingMode,
+  KitchenOutputMode,
   KitchenPrintGrouping,
   Metric,
   UnitCostCalculationMode,
@@ -935,6 +936,23 @@ export const Branches = () => {
                     <Label htmlFor={`cashback-enabled-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Enable Cash Back on POS
                     </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label className="font-bold text-xs">Kitchen output</Label>
+                    <ShadSelect
+                      value={branch.kitchenOutputMode || KitchenOutputMode.PRINT}
+                      onValueChange={(value) => handleBranchSettingChange(branchIndex, 'kitchenOutputMode', value)}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-48">
+                        <SelectValue placeholder="Kitchen output" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={KitchenOutputMode.PRINT} className="text-xs">Print</SelectItem>
+                        <SelectItem value={KitchenOutputMode.KDS} className="text-xs">KDS</SelectItem>
+                        <SelectItem value={KitchenOutputMode.BOTH} className="text-xs">Print and KDS</SelectItem>
+                      </SelectContent>
+                    </ShadSelect>
                   </div>
 
                   <div className="flex flex-col gap-1">
