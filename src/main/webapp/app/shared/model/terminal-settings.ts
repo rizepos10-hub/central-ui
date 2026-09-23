@@ -49,6 +49,19 @@ export interface ITerminalSettings {
     enableCustomKeyboard: boolean;
     fontScale: number;
     customerScreenFontSize: string | null;
+    categoriesScreenFont?: ICategoriesScreenFont | null;
+    showMinimize?: boolean | null;
+    displayCategoriesHorizontally?: boolean | null;
+    itemButtonBackgroundStyle?: 'partial' | 'full' | null;
+    categoryButtonBackgroundStyle?: 'partial' | 'full' | null;
+}
+
+export interface ICategoriesScreenFont {
+    fontFamily: string | null;
+    fontSize: number | null;
+    bold: boolean | null;
+    italic: boolean | null;
+    color: string | null;
 }
 
 export enum openDrawerTypeEnum {
@@ -150,6 +163,7 @@ export enum CreditCardIntegrationTypeEnum {
 
 interface PrinterSettings {
     receipt: Receipt[];
+    a4?: Receipt[];
 }
 
 interface Receipt {
@@ -250,4 +264,6 @@ interface SerialScaleSettings {
     serialPortName: string | null;
     getWeightMessage: string | null;
     expectedPayloadLength: string | null;
+    baudRate: number | null;
+    dataBits: number | null;
 }

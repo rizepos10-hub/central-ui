@@ -46,6 +46,13 @@ export interface IBranchDetails {
   autoPrintKitchenOnOnlineAccept?: boolean;
   enableAskOnTablePermissions?: boolean;
   cashbackEnabled?: boolean;
+  kitchenPrintGrouping?: KitchenPrintGrouping;
+  printKitchenItemReconciliation?: boolean;
+  forceSendingByCourse?: boolean;
+  sendToKitchenOnPayButtonClick?: boolean;
+  skipShiftReportOnClockOut?: boolean;
+  forcePrintEosReport?: boolean;
+  clockInWithPinOnly?: boolean;
   openTableIdleTimeoutEnabled?: boolean;
   openTableIdleTimeoutSeconds?: number | null;
   deliveryConfiguration: IDeliveryConfiguration | null
@@ -71,6 +78,13 @@ export interface ISeoPages {
   home: ISeo;
   retail: ISeo;
   restaurant: ISeo;
+}
+
+export enum KitchenPrintGrouping {
+  NONE = 'NONE',
+  SEAT = 'SEAT',
+  COURSE = 'COURSE',
+  TIMESTAMP = 'TIMESTAMP',
 }
 
 export enum UnitCostCalculationMode {

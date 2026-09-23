@@ -5,6 +5,7 @@ import { getEntities, updateEntity, createEntity } from '../settings/business-de
 import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
 import {
   DeliveryPricingMode,
+  KitchenPrintGrouping,
   Metric,
   UnitCostCalculationMode,
   dayTypeEnum,
@@ -430,6 +431,12 @@ export const Branches = () => {
   const handleCanOrderChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].canOrder = checked === true;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleBranchSettingChange = (branchIndex, field, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex][field] = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -927,6 +934,91 @@ export const Branches = () => {
                     />
                     <Label htmlFor={`cashback-enabled-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Enable Cash Back on POS
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label className="font-bold text-xs">Kitchen ticket grouping</Label>
+                    <ShadSelect
+                      value={branch.kitchenPrintGrouping || KitchenPrintGrouping.TIMESTAMP}
+                      onValueChange={(value) => handleBranchSettingChange(branchIndex, 'kitchenPrintGrouping', value)}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-48">
+                        <SelectValue placeholder="Grouping" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(KitchenPrintGrouping).map(grouping => (
+                          <SelectItem key={grouping} value={grouping} className="text-xs">
+                            {grouping === KitchenPrintGrouping.NONE ? 'None' : grouping === KitchenPrintGrouping.SEAT ? 'Seat' : grouping === KitchenPrintGrouping.COURSE ? 'Course' : 'Timestamp'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </ShadSelect>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.printKitchenItemReconciliation}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'printKitchenItemReconciliation', checked === true)}
+                      id={`print-kitchen-reconciliation-${branchIndex}`}
+                    />
+                    <Label htmlFor={`print-kitchen-reconciliation-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Print kitchen item reconciliation
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.forceSendingByCourse}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'forceSendingByCourse', checked === true)}
+                      id={`force-sending-by-course-${branchIndex}`}
+                    />
+                    <Label htmlFor={`force-sending-by-course-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Force sending by course
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.sendToKitchenOnPayButtonClick}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'sendToKitchenOnPayButtonClick', checked === true)}
+                      id={`send-kitchen-on-pay-${branchIndex}`}
+                    />
+                    <Label htmlFor={`send-kitchen-on-pay-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Send to kitchen on pay button click
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.skipShiftReportOnClockOut}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'skipShiftReportOnClockOut', checked === true)}
+                      id={`skip-shift-report-${branchIndex}`}
+                    />
+                    <Label htmlFor={`skip-shift-report-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Skip shift report on clock out
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={branch.forcePrintEosReport !== false}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'forcePrintEosReport', checked === true)}
+                      id={`force-print-eos-${branchIndex}`}
+                    />
+                    <Label htmlFor={`force-print-eos-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Force print EOS report
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.clockInWithPinOnly}
+                      onCheckedChange={(checked) => handleBranchSettingChange(branchIndex, 'clockInWithPinOnly', checked === true)}
+                      id={`clock-in-pin-only-${branchIndex}`}
+                    />
+                    <Label htmlFor={`clock-in-pin-only-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Clock-in with PIN only
                     </Label>
                   </div>
 

@@ -34,6 +34,35 @@ const customerScreenFontSizeOptions = [
     { label: 'Large', value: 'large' },
 ];
 
+const categoryFontFamilies = [
+    'Montserrat',
+    'Open Sans',
+    'Roboto',
+    'Tinos',
+    'Poppins',
+    'Lato',
+    'Oswald',
+    'Raleway',
+];
+const categoryFontColors = [
+    '#000000',
+    '#FFFFFF',
+    '#007bff',
+    '#dc3545',
+    '#28a745',
+    '#fd7e14',
+    '#6610f2',
+    '#e83e8c',
+    '#17a2b8',
+    '#6c757d',
+];
+const categoryFontMinSize = 10;
+const categoryFontMaxSize = 36;
+const buttonBackgroundStyleOptions = [
+    { label: 'Partial', value: 'partial' },
+    { label: 'Full Background', value: 'full' },
+];
+
 const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
     businessType === BusinessTypeEnum.RETAIL
         ? Object.values(OrderMethod).filter(method => method !== OrderMethod.DineIn)
@@ -360,6 +389,66 @@ function PersonalizationSettings() {
                 </ShadcnSelect>
             </FieldWrapper>
 
+            <CategoryFontPanel />
+
+            <FieldWrapper
+                title="Show minimize"
+                description="Show the minimize button so the register can go to the taskbar"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showMinimize !== false}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showMinimize', value: checked === true }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Display Categories Horizontally"
+                description="Show category screens in a strip at the bottom of the register"
+            >
+                <Checkbox
+                    checked={!!branchRegistry?.terminalSettings?.displayCategoriesHorizontally}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'displayCategoriesHorizontally', value: checked === true }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Item Background"
+                description="Partial keeps the item color on the bottom strip. Full Background fills the whole item button."
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.itemButtonBackgroundStyle || 'partial'}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'itemButtonBackgroundStyle', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Partial" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {buttonBackgroundStyleOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Category Background"
+                description="Partial keeps the category color on the bottom strip. Full Background fills the whole category button."
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.categoryButtonBackgroundStyle || 'partial'}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'categoryButtonBackgroundStyle', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Partial" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {buttonBackgroundStyleOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
             <FieldWrapper
                 title="Enable Custom On-Screen Keyboard"
                 description="Show custom keyboard when text fields are focused (Windows only)"
@@ -380,6 +469,118 @@ function PersonalizationSettings() {
                     className="w-48"
                 />
             </FieldWrapper>
+        </div>
+    );
+}
+
+function CategoryFontPanel() {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+    const stored = branchRegistry?.terminalSettings?.categoriesScreenFont;
+    const font = {
+        fontFamily: stored?.fontFamily || 'Montserrat',
+        fontSize: stored?.fontSize ?? 14,
+        bold: stored?.bold === true,
+        italic: stored?.italic === true,
+        color: stored?.color ?? null,
+    };
+    const size = Math.min(categoryFontMaxSize, Math.max(categoryFontMinSize, Math.round(Number(font.fontSize) || 14)));
+
+    const updateFont = (patch: Partial<typeof font>) => {
+        dispatch(changeTerminalField({
+            name: 'categoriesScreenFont',
+            value: { ...font, fontSize: size, ...patch },
+        }));
+    };
+
+    return (
+        <div className="mb-1 p-3 border rounded space-y-3">
+            <div>
+                <Label className="text-xs font-medium">Category Font</Label>
+                <p className="text-xs text-muted-foreground">Font used by Register main screens (categories).</p>
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-xs">Font family</Label>
+                <ShadcnSelect value={font.fontFamily} onValueChange={(value) => updateFont({ fontFamily: value })}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select font family" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {categoryFontFamilies.map(family => (
+                            <SelectItem key={family} value={family}>{family}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-xs">Font size</Label>
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateFont({ fontSize: Math.max(categoryFontMinSize, size - 1) })}
+                    >
+                        -
+                    </Button>
+                    <div className="flex-1 h-8 border rounded flex items-center justify-center text-sm font-semibold">{size}</div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateFont({ fontSize: Math.min(categoryFontMaxSize, size + 1) })}
+                    >
+                        +
+                    </Button>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={font.bold} onCheckedChange={(checked) => updateFont({ bold: checked === true })} />
+                    Bold
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={font.italic} onCheckedChange={(checked) => updateFont({ italic: checked === true })} />
+                    Italic
+                </label>
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-xs">Color</Label>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        title="Theme"
+                        className={`h-8 w-8 rounded-full border text-[10px] font-bold ${font.color == null ? 'ring-2 ring-primary' : ''}`}
+                        onClick={() => updateFont({ color: null })}
+                    >
+                        A
+                    </button>
+                    {categoryFontColors.map(hex => (
+                        <button
+                            key={hex}
+                            type="button"
+                            title={hex}
+                            className={`h-8 w-8 rounded-full border ${font.color?.toUpperCase() === hex.toUpperCase() ? 'ring-2 ring-primary' : ''}`}
+                            style={{ backgroundColor: hex }}
+                            onClick={() => updateFont({ color: hex })}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            <div className="border rounded p-4 text-center" style={{
+                fontFamily: font.fontFamily,
+                fontSize: size,
+                fontWeight: font.bold ? 700 : 400,
+                fontStyle: font.italic ? 'italic' : 'normal',
+                color: font.color || undefined,
+            }}>
+                Main
+            </div>
         </div>
     );
 }
@@ -549,6 +750,44 @@ function Devices() {
                                     onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.serialPortName', value: e.target.value }))}
                                     className="w-48"
                                 />
+                            </FieldWrapper>
+
+                            <FieldWrapper
+                                title="Baud rate"
+                                description="Serial baud rate for the scale"
+                            >
+                                <ShadcnSelect
+                                    value={String(branchRegistry?.terminalSettings?.serialScaleSettings?.baudRate ?? 9600)}
+                                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'serialScaleSettings.baudRate', value: Number(value) }))}
+                                >
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Select baud rate" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200].map(rate => (
+                                            <SelectItem key={rate} value={String(rate)}>{rate}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </ShadcnSelect>
+                            </FieldWrapper>
+
+                            <FieldWrapper
+                                title="Data bits"
+                                description="Number of data bits (usually 7 or 8)"
+                            >
+                                <ShadcnSelect
+                                    value={String(branchRegistry?.terminalSettings?.serialScaleSettings?.dataBits ?? 8)}
+                                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'serialScaleSettings.dataBits', value: Number(value) }))}
+                                >
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Select data bits" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[7, 8].map(bits => (
+                                            <SelectItem key={bits} value={String(bits)}>{bits}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </ShadcnSelect>
                             </FieldWrapper>
 
                             <FieldWrapper
@@ -1466,7 +1705,34 @@ const ElavonIntegrationType = () => {
 //     );
 // }
 
+const defaultReportPrinter = {
+    type: PrinterConnectionTypeEnum.USB,
+    name: null,
+    ip: null,
+    port: null,
+    size: PrinterSizeEnum.mm80,
+    reverse: false,
+    printByPdf: false,
+};
+
 export function PrinterProperties() {
+    return (
+        <Tabs defaultValue="receipt" className="w-full">
+            <TabsList>
+                <TabsTrigger value="receipt">Receipt printer</TabsTrigger>
+                <TabsTrigger value="report">Report printer</TabsTrigger>
+            </TabsList>
+            <TabsContent value="receipt">
+                <ReceiptPrinterSettings />
+            </TabsContent>
+            <TabsContent value="report">
+                <ReportPrinterSettings />
+            </TabsContent>
+        </Tabs>
+    );
+}
+
+function ReceiptPrinterSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
     const receiptPrinter = branchRegistry.terminalSettings?.printerSettings?.receipt?.[0];
@@ -1670,6 +1936,101 @@ export function PrinterProperties() {
                     </SelectContent>
                 </ShadcnSelect>
             </FieldWrapper>
+        </div>
+    );
+}
+
+function ReportPrinterSettings() {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+    const reportPrinter = {
+        ...defaultReportPrinter,
+        ...branchRegistry.terminalSettings?.printerSettings?.a4?.[0],
+    };
+
+    const updateReportPrinter = (field: string, value: unknown) => {
+        dispatch(changeTerminalField({
+            name: 'printerSettings.a4',
+            value: [{ ...reportPrinter, [field]: value }],
+        }));
+    };
+
+    return (
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Print as PDF"
+                description="Export the A4 report as a PDF, then print that PDF. Off sends the report directly to the printer."
+            >
+                <Checkbox
+                    checked={reportPrinter.printByPdf}
+                    onCheckedChange={(checked) => updateReportPrinter('printByPdf', checked)}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer Type"
+                description="Connection type to the printer (Network/USB)"
+            >
+                <ShadcnSelect
+                    value={reportPrinter.type}
+                    onValueChange={(value) => updateReportPrinter('type', value)}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select printer type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(PrinterConnectionTypeEnum).map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer Name"
+                description="Printer driver name from the Windows system"
+            >
+                <Input
+                    value={reportPrinter.name || ''}
+                    onChange={(e) => updateReportPrinter('name', normalizeString(e.target.value))}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            {reportPrinter.type === PrinterConnectionTypeEnum.NETWORK && (
+                <>
+                    <FieldWrapper
+                        title="Printer IP Address"
+                        description="IP address of the network printer"
+                    >
+                        <Input
+                            type="text"
+                            value={reportPrinter.ip || ''}
+                            onChange={(e) => updateReportPrinter('ip', normalizeString(e.target.value))}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+
+                    <FieldWrapper
+                        title="Printer Port"
+                        description="Port of the network printer"
+                    >
+                        <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={reportPrinter.port ?? ''}
+                            onChange={(e) => {
+                                const value = parseOptionalPositiveInteger(e.target.value);
+                                if (value !== undefined) {
+                                    updateReportPrinter('port', value);
+                                }
+                            }}
+                            className="w-48"
+                        />
+                    </FieldWrapper>
+                </>
+            )}
         </div>
     );
 }
