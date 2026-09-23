@@ -47,6 +47,7 @@ export interface IBranchDetails {
   enableAskOnTablePermissions?: boolean;
   cashbackEnabled?: boolean;
   kitchenPrintGrouping?: KitchenPrintGrouping;
+  kitchenOutputMode?: KitchenOutputMode;
   printKitchenItemReconciliation?: boolean;
   forceSendingByCourse?: boolean;
   sendToKitchenOnPayButtonClick?: boolean;
@@ -78,6 +79,12 @@ export interface ISeoPages {
   home: ISeo;
   retail: ISeo;
   restaurant: ISeo;
+}
+
+export enum KitchenOutputMode {
+  PRINT = 'PRINT',
+  KDS = 'KDS',
+  BOTH = 'BOTH',
 }
 
 export enum KitchenPrintGrouping {
