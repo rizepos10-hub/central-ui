@@ -1,4 +1,5 @@
 import { IBranch } from "app/shared/model/branch.model";
+import { PrinterCommandMode, PrinterFont } from "app/shared/model/PRINTER/printer-models";
 
 export interface IPrinter {
   id?: string;
@@ -14,6 +15,23 @@ export interface IPrinter {
   ipAddress?: string;
   connectionType?: "NETWORK" | "USB"
   reverse: boolean | null;
+  modelId?: string | null;
+  font?: PrinterFont | null;
+  charsPerLine?: number | null;
+  commandMode?: PrinterCommandMode | null;
+  kitchenComponents?: KitchenPrintComponent[];
+}
+
+export interface KitchenPrintComponent {
+  type: 'KITCHEN_VARIABLE' | 'SPACE' | 'HORIZONTAL_LINE';
+  font: number;
+  fontWidth: number;
+  alignment: 'left' | 'center' | 'right';
+  bold: boolean;
+  underline: boolean;
+  printInRed: boolean;
+  variableType?: string;
+  lines?: number;
 }
 
 export const defaultValue: Readonly<IPrinter> = {

@@ -10,11 +10,16 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'app/shared/components/select/select';
 import { IBranch } from "app/shared/model/branch.model";
 import { IPrinter } from "app/shared/model/PRINTER/printer.model";
+import { findPrinterModel, methodsFor, PRINTER_BRANDS, PRINTER_MODELS, PrinterCommandMode } from "app/shared/model/PRINTER/printer-models";
+import { defaultKitchenLayout, fitKitchenLayoutToPrinter, KitchenLayoutEditor } from './kitchen-layout-editor';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const NO_MODEL = '__none__';
 
 
 export const PrinterUpdate = () => {
@@ -22,9 +27,6 @@ export const PrinterUpdate = () => {
 
   const navigate = useNavigate();
   const CONNECTION_TYPES: IPrinter["connectionType"][] = ["NETWORK", "USB"];
-  const SIZES: IPrinter["size"][] = ["mm72", "mm80", "mm58"];
-
-
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
@@ -33,13 +35,58 @@ export const PrinterUpdate = () => {
   const updating = useAppSelector(state => state.printer.updating);
   const branchList = useAppSelector(state => state.branch.entities)
 
-  const handleClose = () => {
-    navigate(-1);
+  const selectedModel = findPrinterModel(printerEntity?.modelId);
+  const selectedBrand = selectedModel?.brand || printerEntity?.brand || '';
+  const brandModels = PRINTER_MODELS.filter(model => model.brand === selectedBrand);
+  const methods = methodsFor(selectedModel);
+  const commandMode: PrinterCommandMode = methods.includes(printerEntity?.commandMode as PrinterCommandMode)
+    ? (printerEntity.commandMode as PrinterCommandMode)
+    : methods[0];
+  const paperSize = selectedModel?.size || printerEntity?.size || 'mm72';
+  const paperColumns = commandMode === 'WINDOWS_DRIVER' ? null : selectedModel?.fontAColumns;
+
+  const handleBrandChange = (value: string) => {
+    dispatch(changeEntityField({ name: 'brand', value }));
+    if (selectedModel && selectedModel.brand !== value) {
+      dispatch(changeEntityField({ name: 'modelId', value: null }));
+      dispatch(changeEntityField({ name: 'model', value: '' }));
+      dispatch(changeEntityField({ name: 'charsPerLine', value: null }));
+    }
+  };
+
+  const handleModelChange = (value: string) => {
+    const model = findPrinterModel(value);
+    dispatch(changeEntityField({ name: 'modelId', value: model?.id ?? null }));
+    if (!model) return;
+    const nextMethods = methodsFor(model);
+    dispatch(changeEntityField({ name: 'brand', value: model.brand }));
+    dispatch(changeEntityField({ name: 'model', value: model.name }));
+    dispatch(changeEntityField({ name: 'size', value: model.size }));
+    dispatch(changeEntityField({ name: 'commandMode', value: (nextMethods.includes(commandMode) ? commandMode : nextMethods[0]) }));
+    dispatch(changeEntityField({ name: 'colorPrinter', value: model.twoColor && model.impact && nextMethods[0] !== 'WINDOWS_DRIVER' }));
+  };
+
+  const handleMethodChange = (value: PrinterCommandMode) => {
+    dispatch(changeEntityField({ name: 'commandMode', value }));
+    if (value === 'WINDOWS_DRIVER') dispatch(changeEntityField({ name: 'colorPrinter', value: false }));
+  };
+
+  const copyMasterTemplate = () => {
+    const supportsRed = commandMode !== 'WINDOWS_DRIVER' && !!selectedModel?.twoColor;
+    axios.get('api/settings/kitchen-print-template').then(response => {
+      const stored = response.data?.components;
+      const source = Array.isArray(stored) && stored.length > 0 ? stored : defaultKitchenLayout();
+      dispatch(changeEntityField({
+        name: 'kitchenComponents',
+        value: fitKitchenLayoutToPrinter(source, paperColumns, supportsRed),
+      }));
+    });
   };
 
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
+      dispatch(changeEntityField({ name: 'kitchenComponents', value: defaultKitchenLayout() }));
     } else {
       dispatch(getEntity(id));
 
@@ -102,25 +149,61 @@ export const PrinterUpdate = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="printer-brand" className="text-sm">{translate('tempApp.printer.brand')}</Label>
-            <Input
-              id="printer-brand"
-              value={printerEntity.brand || ""}
-              onChange={e => dispatch(changeEntityField({ name: 'brand', value: e.target.value }))}
-              required
-              className="h-7 text-xs"
-            />
+            <Label htmlFor="printer-brand-select" className="text-sm">{translate('tempApp.printer.brand')}</Label>
+            <ShadcnSelect value={selectedBrand || undefined} onValueChange={handleBrandChange}>
+              <SelectTrigger id="printer-brand-select" className="h-7 text-xs min-w-[200px]">
+                <SelectValue placeholder={translate('tempApp.printer.brand')} />
+              </SelectTrigger>
+              <SelectContent className="max-h-80">
+                {PRINTER_BRANDS.map(brand => (
+                  <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                ))}
+              </SelectContent>
+            </ShadcnSelect>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="printer-model" className="text-sm">{translate('tempApp.printer.model')}</Label>
-            <Input
-              id="printer-model"
-              value={printerEntity.model || ""}
-              onChange={e => dispatch(changeEntityField({ name: 'model', value: e.target.value }))}
-              required
-              className="h-7 text-xs"
-            />
+            <Label htmlFor="printer-modelId" className="text-sm">{translate('tempApp.printer.printerModel')}</Label>
+            <ShadcnSelect value={printerEntity?.modelId || NO_MODEL} onValueChange={handleModelChange} disabled={brandModels.length === 0}>
+              <SelectTrigger id="printer-modelId" className="h-7 text-xs min-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-80">
+                <SelectItem value={NO_MODEL}>{translate('tempApp.printer.printerModelNone')}</SelectItem>
+                {brandModels.map(model => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name} ({model.fontAColumns}/{model.fontBColumns}{model.twoColor ? ', red' : ''})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </ShadcnSelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="printer-commandMode" className="text-sm">{translate('tempApp.printer.commandMode')}</Label>
+            <ShadcnSelect value={commandMode} onValueChange={(value) => handleMethodChange(value as PrinterCommandMode)}>
+              <SelectTrigger id="printer-commandMode" className="h-7 text-xs min-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {methods.map(mode => (
+                  <SelectItem key={mode} value={mode}>
+                    {mode === 'STAR_LINE'
+                      ? translate('tempApp.printer.commandModeStarLine')
+                      : mode === 'WINDOWS_DRIVER'
+                        ? translate('tempApp.printer.commandModeWindows')
+                        : translate('tempApp.printer.commandModeEscPos')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </ShadcnSelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm">Paper</Label>
+            <p className="text-xs text-muted-foreground">
+              {paperSize}{paperColumns ? `. Characters per line is ${paperColumns}` : '. Windows driver uses the printer paper settings'}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -172,7 +255,7 @@ export const PrinterUpdate = () => {
             </>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="printer-serviceName" className="text-sm">{translate('tempApp.printer.serviceName')}</Label>
+              <Label htmlFor="printer-serviceName" className="text-sm">Printer Windows Driver</Label>
               <Input
                 id="printer-serviceName"
                 value={printerEntity.serviceName || ""}
@@ -208,33 +291,19 @@ export const PrinterUpdate = () => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="printer-size" className="text-sm">{translate('tempApp.printer.size')}</Label>
-            <ShadcnSelect
-              value={printerEntity?.size || "mm72"}
-              onValueChange={(value) => dispatch(changeEntityField({ name: 'size', value: value as IPrinter["size"] }))}
-            >
-              <SelectTrigger className="h-7 text-xs min-w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SIZES.map((size) => (
-                  <SelectItem key={size} value={size}>{size}</SelectItem>
-                ))}
-              </SelectContent>
-            </ShadcnSelect>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="printer-colorPrinter"
-              checked={printerEntity?.colorPrinter === true}
-              onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'colorPrinter', value: checked === true }))}
-            />
-            <Label htmlFor="printer-colorPrinter" className="text-sm cursor-pointer">
-              {translate('tempApp.printer.colorPrinter')}
-            </Label>
-          </div>
+          {commandMode !== 'WINDOWS_DRIVER' && (!selectedModel || selectedModel.twoColor) && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="printer-colorPrinter"
+                checked={printerEntity?.colorPrinter === true}
+                onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'colorPrinter', value: checked === true }))}
+              />
+              <Label htmlFor="printer-colorPrinter" className="text-sm cursor-pointer">
+                {translate('tempApp.printer.colorPrinter')}
+              </Label>
+              <span className="text-xs text-muted-foreground">{translate('tempApp.printer.colorPrinterHint')}</span>
+            </div>
+          )}
 
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -246,6 +315,17 @@ export const PrinterUpdate = () => {
               {translate('tempApp.printer.reverse')}
             </Label>
           </div>
+
+          <div className="flex justify-end">
+            <Button type="button" variant="outline" className="h-8 text-xs" onClick={copyMasterTemplate}>
+              Copy master kitchen template
+            </Button>
+          </div>
+          <KitchenLayoutEditor
+            components={printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout()}
+            supportsRed={commandMode !== 'WINDOWS_DRIVER' && !!selectedModel?.twoColor}
+            onChange={value => dispatch(changeEntityField({ name: 'kitchenComponents', value }))}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button variant="outline" onClick={() => navigate(-1)} className="h-8 text-xs">

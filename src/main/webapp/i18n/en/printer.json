@@ -28,9 +28,21 @@
       "port": "Port",
       "serviceName": "Service Name",
       "colorPrinter": "Color Printer",
+      "colorPrinterHint": "Print course titles, modifiers and notes in red (two-color paper or red/black ribbon)",
       "reverse": "Reverse",
       "size": "Size",
-      "ipAddress": "Ip Address"
+      "ipAddress": "Ip Address",
+      "printerModel": "Printer Model",
+      "printerModelNone": "Not set (paper size defaults)",
+      "font": "Font",
+      "fontA": "Font A (larger)",
+      "fontB": "Font B (smaller, more characters)",
+      "charsPerLine": "Characters Per Line",
+      "charsPerLineHint": "Leave empty to use the model value ({{ columns }})",
+      "commandMode": "Star Command Mode",
+      "commandModeEscPos": "ESC/POS",
+      "commandModeStarLine": "Star",
+      "commandModeWindows": "Windows driver"
     }
   }
 }

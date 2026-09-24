@@ -123,6 +123,9 @@ export const Printer = () => {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh List
             </Button>
+            <Button variant="outline" asChild className="h-8 text-xs">
+              <Link to="/printer/master-template">Master Kitchen Template</Link>
+            </Button>
             <Button
               onClick={handleCreate}
               disabled={loading}
