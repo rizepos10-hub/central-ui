@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getSortState, Translate } from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities as getAddons } from 'app/entities/addon/addon.reducer';
