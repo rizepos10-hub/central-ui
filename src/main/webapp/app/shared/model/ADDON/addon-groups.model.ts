@@ -7,6 +7,7 @@ export interface IAddonGroup {
   addons?: IAddon[];
   hideOnPos?: boolean;
   hideOnOnlineOrder?: boolean;
+  addonOptionsVisibility?: 'SHOW' | 'HIDDEN' | null;
 }
 
 export interface IAddonGroups {
