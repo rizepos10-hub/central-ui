@@ -1,5 +1,14 @@
 {
   "tempApp": {
+    "addonGroup": {
+      "addonOptionsVisibility": {
+        "label": "محددات خيارات الإضافات",
+        "description": "حدد ما إذا كان بإمكان العملاء اختيار NO أو EASY أو EXTRA أو ADD لإضافات هذه المجموعة.",
+        "inherit": "استخدام إعداد الطلب عبر الإنترنت العام",
+        "show": "إظهار المحددات",
+        "hide": "إخفاء المحددات"
+      }
+    },
     "addon-groups": {
       "home": {
         "title": "Addon Groups",

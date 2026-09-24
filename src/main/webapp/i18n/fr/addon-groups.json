@@ -1,5 +1,14 @@
 {
   "tempApp": {
+    "addonGroup": {
+      "addonOptionsVisibility": {
+        "label": "Sélecteurs des options d'add-on",
+        "description": "Choisissez si les clients peuvent sélectionner NO, EASY, EXTRA ou ADD pour les add-ons de ce groupe.",
+        "inherit": "Utiliser le réglage général de commande en ligne",
+        "show": "Afficher les sélecteurs",
+        "hide": "Masquer les sélecteurs"
+      }
+    },
     "addon-groups": {
       "home": {
         "title": "Addon Groups",

@@ -14,6 +14,8 @@ import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
 import { AddonGroupAddonsList } from 'app/entities/addon-groups/addon-group-addons-list';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AddonOptionsVisibility } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { filterEntities as getComboItems, updateEntity as updateComboItem } from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
@@ -38,6 +40,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'react-toastify';
+
+const INHERIT_ADDON_OPTIONS_VISIBILITY = 'INHERIT';
 
 const isAddonGroupAssignedToItemOrVariant = (rowData, addonGroupId: string) => {
   if (rowData?.addonGroups?.some(addon => addon?.addonGroup?.id === addonGroupId)) {
@@ -312,6 +316,39 @@ export const AddonGroupUpdate = () => {
                             {translate('items.update.hideOnOnlineOrder')}
                           </Label>
                         </div>
+                      </div>
+                      <div className="flex max-w-md flex-col gap-2">
+                        <Label htmlFor="addon-options-visibility" className="text-xs">
+                          {translate('tempApp.addonGroup.addonOptionsVisibility.label')}
+                        </Label>
+                        <Select
+                          value={addonGroup?.addonOptionsVisibility ?? INHERIT_ADDON_OPTIONS_VISIBILITY}
+                          onValueChange={value =>
+                            setAddonGroup(prev => ({
+                              ...prev,
+                              addonOptionsVisibility:
+                                value === INHERIT_ADDON_OPTIONS_VISIBILITY ? null : (value as AddonOptionsVisibility),
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="addon-options-visibility" className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={INHERIT_ADDON_OPTIONS_VISIBILITY} className="text-xs">
+                              {translate('tempApp.addonGroup.addonOptionsVisibility.inherit')}
+                            </SelectItem>
+                            <SelectItem value={AddonOptionsVisibility.SHOW} className="text-xs">
+                              {translate('tempApp.addonGroup.addonOptionsVisibility.show')}
+                            </SelectItem>
+                            <SelectItem value={AddonOptionsVisibility.HIDDEN} className="text-xs">
+                              {translate('tempApp.addonGroup.addonOptionsVisibility.hide')}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          {translate('tempApp.addonGroup.addonOptionsVisibility.description')}
+                        </p>
                       </div>
                       <AddonGroupAddonsList
                         addons={addonGroup?.addons || []}
