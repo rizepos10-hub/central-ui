@@ -5,6 +5,7 @@ export interface IAddonGroup {
   id?: string;
   name?: string;
   addons?: IAddon[];
+  addonOptionsVisibility?: 'SHOW' | 'HIDDEN' | null;
 }
 
 export interface IAddonGroups {
