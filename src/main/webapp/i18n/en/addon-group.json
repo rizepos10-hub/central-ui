@@ -16,7 +16,14 @@
       "searchName": "Search Name",
       "addons": "Addon Groups",
       "editAddonGroup": "Edit Addon Group",
-      "createAndAddAddon": "Create And Add Addon"
+      "createAndAddAddon": "Create And Add Addon",
+      "addonOptionsVisibility": {
+        "label": "Add-on option selectors",
+        "description": "Choose whether customers can select NO, EASY, EXTRA, or ADD for add-ons in this group.",
+        "inherit": "Use Online Ordering setting",
+        "show": "Show selectors",
+        "hide": "Hide selectors"
+      }
     },
     "addon-group": {
       "created": "Addon Group {{ param }} is created successfully",
