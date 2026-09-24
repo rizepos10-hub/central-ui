@@ -112,11 +112,14 @@ export const Currency = () => {
   }, []);
 
   useEffect(() => {
-    const existingBranches = currencySettingsEntity?.branchDisplayCurrencies?.map(bc => bc.branch.id) || [];
+    const existingBranchDisplayCurrencies = (currencySettingsEntity?.branchDisplayCurrencies || []).filter(
+      branchCurrency => Boolean(branchCurrency?.branch?.id)
+    );
+    const existingBranches = existingBranchDisplayCurrencies.map(branchCurrency => branchCurrency.branch.id);
     const missingBranches = branchList?.filter(branch => !existingBranches.includes(branch.id)) || [];
 
     const defaultBranchDisplayCurrencies = [
-      ...currencySettingsEntity?.branchDisplayCurrencies || [],
+      ...existingBranchDisplayCurrencies,
       ...missingBranches.map(branch => ({ branch, currency: null }))
     ];
 
