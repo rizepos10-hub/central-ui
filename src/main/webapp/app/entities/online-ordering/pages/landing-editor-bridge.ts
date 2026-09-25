@@ -28,6 +28,10 @@ export type LandingEditorEnvelope = {
 export type EditorMode = 'edit' | 'preview';
 
 export type EditorNodeEditor = {
+  /** Opens a focused editor for a compound storefront element. */
+  customEditor?: 'branch-directory-card'
+  /** Branch identifier for branch-directory card editing. */
+  branchId?: string
   /** Dot path for the shared style object used by the storefront renderer. */
   stylePath?: string;
   /** Optional dot path for an existing visibility flag. */
