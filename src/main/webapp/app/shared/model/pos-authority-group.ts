@@ -20,7 +20,8 @@ export enum POSAuthorityEnum {
     CLOSE_DAY = 'CLOSE_DAY',
     UNTAG_ORDER = 'UNTAG_ORDER',
     KDS_OPERATE = 'KDS_OPERATE',
-    WAITER_READY_NOTIFY = 'WAITER_READY_NOTIFY'
+    WAITER_READY_NOTIFY = 'WAITER_READY_NOTIFY',
+    FORCE_REMOVE_ORDER = 'FORCE_REMOVE_ORDER'
 }
 
 export const defaultValue: Readonly<IPosAuthorityGroup> = {}

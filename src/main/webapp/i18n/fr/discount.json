@@ -21,6 +21,8 @@
       "id": "ID",
       "value": "Value",
       "type": "Type",
+      "default": "Default",
+      "custom": "Custom",
       "addon": "Addon"
     }
   }

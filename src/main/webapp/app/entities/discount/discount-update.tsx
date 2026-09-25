@@ -12,6 +12,7 @@ import { DiscountType } from "app/shared/model/ENUMS/discount-type.model";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const DiscountUpdate = () => {
@@ -24,6 +25,8 @@ export const DiscountUpdate = () => {
   const loading = useAppSelector(state => state.discount.loading);
   const updating = useAppSelector(state => state.discount.updating);
   const discountTypeValuesOptions = Object.keys(DiscountType).map(opt => ({ label: opt, value: opt }));
+  const isPercentage = discountEntity?.type === DiscountType.PERCENTAGE;
+  const isCustomValue = isPercentage && discountEntity?.value === 0;
 
   useEffect(() => {
     if (!isNew) {
@@ -74,11 +77,18 @@ export const DiscountUpdate = () => {
               <Input
                 id="discount-value"
                 type="number"
+                min={isPercentage ? 0 : undefined}
+                max={isPercentage ? 100 : undefined}
+                step="any"
                 value={discountEntity.value ?? ''}
                 onChange={e => dispatch(changeEntityField({ name: 'value', value: parseFloat(e.target.value) }))}
                 required
                 className="h-8 text-xs"
               />
+              <p className="text-xs text-muted-foreground">{translate('tempApp.valueHint')}</p>
+              {isCustomValue && (
+                <p className="text-xs text-muted-foreground">{translate('tempApp.customValueHint')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -91,6 +101,15 @@ export const DiscountUpdate = () => {
                 value={discountEntity?.type ? { label: discountEntity?.type, value: discountEntity?.type } : null}
                 onChange={(selectedType: { label: string, value: string }) => dispatch(changeEntityField({ name: 'type', value: selectedType?.value }))}
               />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="discount-default"
+                checked={discountEntity?.isDefault === true}
+                onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'isDefault', value: checked === true }))}
+              />
+              <Label htmlFor="discount-default" className="text-xs">{translate('tempApp.default')}</Label>
             </div>
 
             <div className="flex gap-2">
