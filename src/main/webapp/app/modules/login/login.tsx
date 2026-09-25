@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login, loginFromToken } from 'app/shared/reducers/authentication';
@@ -19,16 +20,17 @@ export const Login = () => {
 
   const tenant = useAppSelector(state => state.tenant.tenant);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const { handleSubmit, register } = useForm<{ email: string; password: string }>({
+    defaultValues: { email: '', password: '' },
+  });
 
 
   const params = new URLSearchParams(window.location.search);
   const access_token = params.get('access_token');
   const refresh_token = params.get('refresh_token');
 
-  const handleLogin = () => {
+  const handleLogin = ({ email, password }: { email: string; password: string }) => {
     if (email && password) {
       dispatch(login(email, password, tenant, rememberMe));
     }
@@ -71,7 +73,7 @@ export const Login = () => {
               <h1 className="text-2xl font-semibold tracking-tight">Log in</h1>
               <p className="text-sm text-muted-foreground">Please enter your details</p>
             </div>
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -81,8 +83,7 @@ export const Login = () => {
                     type="text"
                     className="pl-9"
                     placeholder="Email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    {...register('email', { required: true })}
                   />
                 </div>
               </div>
@@ -95,8 +96,7 @@ export const Login = () => {
                     type="password"
                     className="pl-9"
                     placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    {...register('password', { required: true })}
                   />
                 </div>
               </div>
@@ -118,10 +118,10 @@ export const Login = () => {
                   Reset password
                 </Link>
               </div>
-              <Button onClick={handleLogin} className="w-full">
+              <Button type="submit" className="w-full">
                 Log In
               </Button>
-            </div>
+            </form>
           </div>
         </div>
       </div>

@@ -45,6 +45,12 @@ export default () => next => action => {
     if (isRequestCancellation(error)) {
       return next(action);
     }
+
+    // The initial session lookup can return 401 when the visitor is not signed in.
+    // Let the authentication flow show the login screen without an error toast.
+    if (action.type === 'authentication/get_account/rejected' && error.response?.status === 401) {
+      return next(action);
+    }
     
     const isLoginPage = location.pathname.endsWith('login');
     const isLogoutPage = location.pathname.endsWith('logout');

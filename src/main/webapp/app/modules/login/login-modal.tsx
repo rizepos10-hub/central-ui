@@ -30,10 +30,6 @@ const LoginModal = (props: ILoginModalProps) => {
 
   const { loginError, handleClose } = props;
 
-  const handleLoginSubmit = () => {
-    handleSubmit(login)();
-  };
-
   return (
     <Dialog open={props.showModal} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -42,7 +38,7 @@ const LoginModal = (props: ILoginModalProps) => {
             <Translate contentKey="login.title">Sign in</Translate>
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit(login)}>
           {loginError && (
             <Alert variant="destructive" data-cy="loginError">
               <AlertCircle className="h-4 w-4" />
@@ -120,11 +116,11 @@ const LoginModal = (props: ILoginModalProps) => {
             <Button type="button" variant="secondary" onClick={handleClose} tabIndex={1}>
               <Translate contentKey="entity.action.cancel">Cancel</Translate>
             </Button>
-            <Button onClick={handleLoginSubmit} data-cy="submit">
+            <Button type="submit" data-cy="submit">
               <Translate contentKey="login.form.button">Sign in</Translate>
             </Button>
           </DialogFooter>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
