@@ -23,14 +23,13 @@ export const getElapsedSeconds = (start: Date, end: Date): number => {
 
 export const formatWorkingDuration = (totalSeconds: number): string => {
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
-    return '0s';
+    return '0m';
   }
 
-  const wholeSeconds = Math.floor(totalSeconds);
-  const days = Math.floor(wholeSeconds / SECONDS_PER_DAY);
-  const hours = Math.floor((wholeSeconds % SECONDS_PER_DAY) / SECONDS_PER_HOUR);
-  const minutes = Math.floor((wholeSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
-  const seconds = wholeSeconds % SECONDS_PER_MINUTE;
+  const wholeMinutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  const days = Math.floor(wholeMinutes / (SECONDS_PER_DAY / SECONDS_PER_MINUTE));
+  const hours = Math.floor((wholeMinutes % (SECONDS_PER_DAY / SECONDS_PER_MINUTE)) / 60);
+  const minutes = wholeMinutes % 60;
 
   const parts: string[] = [];
 
@@ -40,13 +39,8 @@ export const formatWorkingDuration = (totalSeconds: number): string => {
   if (hours > 0) {
     parts.push(`${hours}h`);
   }
-  if (minutes > 0) {
+  if (minutes > 0 || parts.length === 0) {
     parts.push(`${minutes}m`);
-  }
-
-  const showSeconds = wholeSeconds < SECONDS_PER_MINUTE || seconds > 0;
-  if (showSeconds) {
-    parts.push(`${seconds}s`);
   }
 
   return parts.join(' ');
@@ -56,8 +50,8 @@ export const formatClockDuration = (clockIn: string | Date | undefined | null, c
   const start = parseDate(clockIn);
   const end = parseDate(clockOut);
 
-  if (!start || !end) {
-    return '0s';
+    if (!start || !end) {
+    return '0m';
   }
 
   return formatWorkingDuration(getElapsedSeconds(start, end));
@@ -65,10 +59,28 @@ export const formatClockDuration = (clockIn: string | Date | undefined | null, c
 
 export const formatWorkingDurationTitle = (totalSeconds: number): string => {
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
-    return '0 seconds';
+    return '0 minutes';
   }
 
-  const wholeSeconds = Math.floor(totalSeconds);
-  const label = wholeSeconds === 1 ? 'second' : 'seconds';
-  return `${wholeSeconds.toLocaleString()} ${label}`;
+  const wholeMinutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  if (wholeMinutes <= 0) {
+    return '0 minutes';
+  }
+
+  const days = Math.floor(wholeMinutes / (SECONDS_PER_DAY / SECONDS_PER_MINUTE));
+  const hours = Math.floor((wholeMinutes % (SECONDS_PER_DAY / SECONDS_PER_MINUTE)) / 60);
+  const minutes = wholeMinutes % 60;
+  const parts: string[] = [];
+
+  if (days > 0) {
+    parts.push(`${days.toLocaleString()} ${days === 1 ? 'day' : 'days'}`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours.toLocaleString()} ${hours === 1 ? 'hour' : 'hours'}`);
+  }
+  if (minutes > 0 || parts.length === 0) {
+    parts.push(`${minutes.toLocaleString()} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  }
+
+  return parts.join(' ');
 };

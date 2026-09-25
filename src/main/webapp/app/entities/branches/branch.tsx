@@ -25,6 +25,8 @@ import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
+import { KitchenOutputMode } from 'app/shared/model/ENUMS/kitchen-output-mode.model';
+import { PosHomePage } from 'app/shared/model/ENUMS/pos-home-page.model';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Button } from '@/components/ui/button';
@@ -68,6 +70,18 @@ const normalizePaymentConfigurations = (paymentConfigurations?: IPaymentConfigur
       ? { ...config, gateway: null }
       : config
   );
+
+const kitchenOutputModeOptions: { value: KitchenOutputMode; label: string }[] = [
+  { value: KitchenOutputMode.PRINT, label: 'Printers only' },
+  { value: KitchenOutputMode.KDS, label: 'KDS only' },
+  { value: KitchenOutputMode.BOTH, label: 'Both printers and KDS' },
+];
+
+const posHomePageOptions: { value: PosHomePage; label: string }[] = [
+  { value: PosHomePage.NONE, label: 'None' },
+  { value: PosHomePage.REGISTER, label: 'Register' },
+  { value: PosHomePage.FLOOR_PLAN, label: 'Floor Plan' },
+];
 
 function deliveryPricingSummaryLines(dc: IDeliveryConfiguration | null | undefined) {
   if (!dc) {
@@ -450,6 +464,18 @@ export const Branches = () => {
   const handleBranchSettingChange = (branchIndex, field, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex][field] = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleKitchenOutputModeChange = (branchIndex, value: KitchenOutputMode) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].kitchenOutputMode = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handlePosHomePageChange = (branchIndex, value: PosHomePage) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].posHomePage = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -1191,6 +1217,54 @@ export const Branches = () => {
                     <Label htmlFor={`auto-print-kitchen-online-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Print kitchen ticket on online order accept
                     </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`kitchen-output-mode-${branchIndex}`} className="font-bold text-xs">
+                      Kitchen output
+                    </Label>
+                    <ShadSelect
+                      value={branch.kitchenOutputMode ?? KitchenOutputMode.PRINT}
+                      onValueChange={(value) => handleKitchenOutputModeChange(branchIndex, value as KitchenOutputMode)}
+                    >
+                      <SelectTrigger id={`kitchen-output-mode-${branchIndex}`} className="h-7 text-xs">
+                        <SelectValue placeholder="Select kitchen output" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {kitchenOutputModeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value} className="text-xs">
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </ShadSelect>
+                    <p className="text-[11px] text-muted-foreground">
+                      Send to kitchen uses printers, KDS, or both for this branch.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`pos-home-page-${branchIndex}`} className="font-bold text-xs">
+                      POS Home Page
+                    </Label>
+                    <ShadSelect
+                      value={branch.posHomePage ?? PosHomePage.REGISTER}
+                      onValueChange={(value) => handlePosHomePageChange(branchIndex, value as PosHomePage)}
+                    >
+                      <SelectTrigger id={`pos-home-page-${branchIndex}`} className="h-7 text-xs">
+                        <SelectValue placeholder="Select POS home page" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {posHomePageOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value} className="text-xs">
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </ShadSelect>
+                    <p className="text-[11px] text-muted-foreground">
+                      Screen the POS shows after finalizing a sale or leaving a table.
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-2">

@@ -237,6 +237,12 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         type: [BusinessTypeEnum.RESTAURANT],
       },
+      {
+        label: 'Course Definitions',
+        to: '/course-definition',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        type: [BusinessTypeEnum.RESTAURANT],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT],
   },
@@ -890,14 +896,8 @@ export const model: MenuItem[] = [
       {
         label: 'Restaurant',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/course-definition',
+        to: '/floor-plan',
         items: [
-          {
-            label: 'Course Definitions',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-            to: '/course-definition',
-            type: [BusinessTypeEnum.RESTAURANT],
-          },
           {
             label: 'Floor plans',
             role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
@@ -951,15 +951,15 @@ export const model: MenuItem[] = [
         to: '/printer',
         items: [
           {
-            label: 'Printers',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-            to: '/printer',
-            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-          },
-          {
             label: 'Master Kitchen Template',
             role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
             to: '/printer/master-template',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Printers',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/printer',
             type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {

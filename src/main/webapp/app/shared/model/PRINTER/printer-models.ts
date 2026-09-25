@@ -1,6 +1,19 @@
 // Keep in sync with cloud_pos lib/models/printing/printer_model.dart (ids are derived the same way)
 
-export type PrinterFont = 'A' | 'B' | 'COURIER_10' | 'COURIER_12' | 'COURIER_17';
+export type PrinterFont =
+  | 'A'
+  | 'B'
+  | 'COURIER_10'
+  | 'COURIER_12'
+  | 'COURIER_17'
+  | 'COURIER_NEW'
+  | 'ARIAL'
+  | 'TIMES_NEW_ROMAN'
+  | 'CALIBRI'
+  | 'CONSOLAS'
+  | 'SEGOE_UI'
+  | 'TAHOMA'
+  | 'VERDANA';
 export type PrinterCommandMode = 'ESC_POS' | 'STAR_LINE' | 'WINDOWS_DRIVER';
 type Size = 'mm58' | 'mm72' | 'mm80';
 
@@ -297,13 +310,30 @@ export interface IPrinterFontOption {
   columns: number;
 }
 
+export const WINDOWS_TYPEFACES: IPrinterFontOption[] = [
+  { id: 'ARIAL', label: 'Arial', columns: 0 },
+  { id: 'TIMES_NEW_ROMAN', label: 'Times New Roman', columns: 0 },
+  { id: 'CALIBRI', label: 'Calibri', columns: 0 },
+  { id: 'CONSOLAS', label: 'Consolas', columns: 0 },
+  { id: 'SEGOE_UI', label: 'Segoe UI', columns: 0 },
+  { id: 'TAHOMA', label: 'Tahoma', columns: 0 },
+  { id: 'VERDANA', label: 'Verdana', columns: 0 },
+  { id: 'COURIER_NEW', label: 'Courier New', columns: 0 },
+];
+
+export const WINDOWS_FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
+
+export const DEFAULT_WINDOWS_FONT_SIZE = 10;
+
+export const windowsTypeface = (font?: PrinterFont | null): PrinterFont => {
+  if (font === 'COURIER_10' || font === 'COURIER_12' || font === 'COURIER_17' || font === 'COURIER_NEW') return 'COURIER_NEW';
+  if (font === 'A' || font === 'B' || !font) return 'ARIAL';
+  return font;
+};
+
 export const fontsFor = (model: IPrinterModel | undefined, mode: PrinterCommandMode, size: IPrinterModel['size']): IPrinterFontOption[] => {
   if (mode === 'WINDOWS_DRIVER') {
-    return [
-      { id: 'COURIER_10', label: `Courier New 10 CPI (${cpiColumns(size, 10)} columns)`, columns: cpiColumns(size, 10) },
-      { id: 'COURIER_12', label: `Courier New 12 CPI (${cpiColumns(size, 12)} columns)`, columns: cpiColumns(size, 12) },
-      { id: 'COURIER_17', label: `Courier New 17 CPI (${cpiColumns(size, 17)} columns)`, columns: cpiColumns(size, 17) },
-    ];
+    return WINDOWS_TYPEFACES.map(font => ({ ...font, columns: cpiColumns(size, font.id === 'ARIAL' ? 10 : 12) }));
   }
   const fontA = model?.fontAColumns ?? paperColumns(size, false);
   const fontB = model?.fontBColumns ?? paperColumns(size, true);

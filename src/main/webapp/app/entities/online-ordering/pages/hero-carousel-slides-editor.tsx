@@ -21,7 +21,7 @@ type HeroCarouselSlidesEditorProps = {
 
 function slideImageUrl(slide: SlideRecord): string | undefined {
   const image = slide.image as IAttachment | undefined;
-  return image?.url ?? undefined;
+  return image?.url || image?.path || undefined;
 }
 
 function defaultSlide(image: IAttachment, layout: string): SlideRecord {
@@ -275,11 +275,12 @@ type SelectedImagePreviewProps = {
 };
 
 export const SelectedImagePreview = ({ image, onClear, label = 'Selected image' }: SelectedImagePreviewProps) => {
-  if (!image?.url) return null;
+  const src = image?.url || image?.path;
+  if (!src) return null;
 
   return (
     <div className="flex items-start gap-3 rounded-md border p-2">
-      <img src={image.url} alt={image.name ?? label} className="h-20 w-28 rounded border object-cover" />
+      <img src={src} alt={image.name ?? label} className="h-20 w-28 rounded border object-cover" />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium truncate">{image.name ?? label}</p>
         <Button type="button" variant="outline" size="sm" className="mt-2 h-7 text-xs" onClick={onClear}>

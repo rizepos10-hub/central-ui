@@ -10,8 +10,8 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'app/shared/components/select/select';
 import { IBranch } from "app/shared/model/branch.model";
 import { IPrinter } from "app/shared/model/PRINTER/printer.model";
-import { findPrinterModel, methodsFor, PRINTER_BRANDS, PRINTER_MODELS, PrinterCommandMode } from "app/shared/model/PRINTER/printer-models";
-import { defaultKitchenLayout, fitKitchenLayoutToPrinter, KitchenLayoutEditor } from './kitchen-layout-editor';
+import { findPrinterModel, fontsFor, methodsFor, PRINTER_BRANDS, PRINTER_MODELS, PrinterCommandMode } from "app/shared/model/PRINTER/printer-models";
+import { applyKitchenFontDefaults, defaultKitchenLayout, fitKitchenLayoutToPrinter, KitchenLayoutEditor } from './kitchen-layout-editor';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,28 +57,37 @@ export const PrinterUpdate = () => {
   const handleModelChange = (value: string) => {
     const model = findPrinterModel(value);
     dispatch(changeEntityField({ name: 'modelId', value: model?.id ?? null }));
-    if (!model) return;
+    if (!model) {
+      const kitchen = printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout(commandMode);
+      dispatch(changeEntityField({ name: 'kitchenComponents', value: applyKitchenFontDefaults(kitchen, commandMode) }));
+      return;
+    }
     const nextMethods = methodsFor(model);
     dispatch(changeEntityField({ name: 'brand', value: model.brand }));
     dispatch(changeEntityField({ name: 'model', value: model.name }));
     dispatch(changeEntityField({ name: 'size', value: model.size }));
-    dispatch(changeEntityField({ name: 'commandMode', value: (nextMethods.includes(commandMode) ? commandMode : nextMethods[0]) }));
-    dispatch(changeEntityField({ name: 'colorPrinter', value: model.twoColor && model.impact && nextMethods[0] !== 'WINDOWS_DRIVER' }));
+    const nextMode = nextMethods.includes(commandMode) ? commandMode : nextMethods[0];
+    dispatch(changeEntityField({ name: 'commandMode', value: nextMode }));
+    dispatch(changeEntityField({ name: 'colorPrinter', value: model.twoColor && model.impact && nextMode !== 'WINDOWS_DRIVER' }));
+    const kitchen = printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout(nextMode);
+    dispatch(changeEntityField({ name: 'kitchenComponents', value: applyKitchenFontDefaults(kitchen, nextMode) }));
   };
 
   const handleMethodChange = (value: PrinterCommandMode) => {
     dispatch(changeEntityField({ name: 'commandMode', value }));
     if (value === 'WINDOWS_DRIVER') dispatch(changeEntityField({ name: 'colorPrinter', value: false }));
+    const kitchen = printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout(value);
+    dispatch(changeEntityField({ name: 'kitchenComponents', value: applyKitchenFontDefaults(kitchen, value) }));
   };
 
   const copyMasterTemplate = () => {
     const supportsRed = commandMode !== 'WINDOWS_DRIVER' && !!selectedModel?.twoColor;
     axios.get('api/settings/kitchen-print-template').then(response => {
       const stored = response.data?.components;
-      const source = Array.isArray(stored) && stored.length > 0 ? stored : defaultKitchenLayout();
+      const source = Array.isArray(stored) && stored.length > 0 ? stored : defaultKitchenLayout(commandMode);
       dispatch(changeEntityField({
         name: 'kitchenComponents',
-        value: fitKitchenLayoutToPrinter(source, paperColumns, supportsRed),
+        value: fitKitchenLayoutToPrinter(source, paperColumns, supportsRed, commandMode),
       }));
     });
   };
@@ -291,20 +300,6 @@ export const PrinterUpdate = () => {
             />
           </div>
 
-          {commandMode !== 'WINDOWS_DRIVER' && (!selectedModel || selectedModel.twoColor) && (
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="printer-colorPrinter"
-                checked={printerEntity?.colorPrinter === true}
-                onCheckedChange={(checked) => dispatch(changeEntityField({ name: 'colorPrinter', value: checked === true }))}
-              />
-              <Label htmlFor="printer-colorPrinter" className="text-sm cursor-pointer">
-                {translate('tempApp.printer.colorPrinter')}
-              </Label>
-              <span className="text-xs text-muted-foreground">{translate('tempApp.printer.colorPrinterHint')}</span>
-            </div>
-          )}
-
           <div className="flex items-center space-x-2">
             <Checkbox
               id="printer-reverse"
@@ -322,8 +317,12 @@ export const PrinterUpdate = () => {
             </Button>
           </div>
           <KitchenLayoutEditor
-            components={printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout()}
-            supportsRed={commandMode !== 'WINDOWS_DRIVER' && !!selectedModel?.twoColor}
+            key={commandMode}
+            components={printerEntity.kitchenComponents?.length ? printerEntity.kitchenComponents : defaultKitchenLayout(commandMode)}
+            supportsRed={commandMode !== 'WINDOWS_DRIVER'}
+            commandMode={commandMode}
+            model={selectedModel}
+            paperSize={paperSize}
             onChange={value => dispatch(changeEntityField({ name: 'kitchenComponents', value }))}
           />
 

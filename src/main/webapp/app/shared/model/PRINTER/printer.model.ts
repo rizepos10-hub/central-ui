@@ -24,10 +24,13 @@ export interface IPrinter {
 
 export interface KitchenPrintComponent {
   type: 'KITCHEN_VARIABLE' | 'SPACE' | 'HORIZONTAL_LINE';
+  printerFont?: PrinterFont;
   font: number;
   fontWidth: number;
+  fontSize?: number;
   alignment: 'left' | 'center' | 'right';
   bold: boolean;
+  italic?: boolean;
   underline: boolean;
   printInRed: boolean;
   variableType?: string;

@@ -6,5 +6,6 @@ export interface IUserClock {
   deposit?: number | null;
   report?: string | null;
   username?: string;
+  createdBy?: string;
 }
 export const defaultValue: Readonly<IUserClock> = {};

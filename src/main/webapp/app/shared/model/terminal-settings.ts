@@ -26,6 +26,7 @@ export interface ITerminalSettings {
     notifyOnOnlineOrderAutoProcessed: boolean;
     enableWalkInType: boolean;
     sendToKitchenOnPayButtonClick: boolean;
+    forceSendingByCourse: boolean;
     pathToCustomerApp: string | null;
     customerAppIsOnSameDevice: boolean;
     openDrawerType: openDrawerTypeEnum | null;

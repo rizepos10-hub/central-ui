@@ -2,7 +2,11 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { IAttachment } from 'app/shared/model/attachment.model';
 import { PropertyEditorGroup } from './property-editor-group';
+import { SelectedImagePreview } from './hero-carousel-slides-editor';
 import { SectionType } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import { IPageSection } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 
@@ -12,7 +16,8 @@ const recordValue = (value: unknown): ConfigRecord => value && typeof value === 
 const stringValue = (value: unknown, fallback = '') => typeof value === 'string' ? value : fallback;
 const imageUrl = (value: unknown) => {
   if (typeof value === 'string') return value;
-  return stringValue(recordValue(value).url);
+  const record = recordValue(value);
+  return stringValue(record.url) || stringValue(record.path);
 };
 
 const TextField = ({ id, label, value, placeholder, onChange }: { id: string; label: string; value: string; placeholder?: string; onChange: (value: string) => void }) => (
@@ -30,12 +35,21 @@ const TextareaField = ({ id, label, value, placeholder, onChange }: { id: string
 );
 
 const ImageField = ({ id, label, value, onChange }: { id: string; label: string; value: unknown; onChange: (value: ConfigRecord) => void }) => {
+  const current = recordValue(value);
   const url = imageUrl(value);
   return (
-    <div className="space-y-1 sm:col-span-2">
+    <div className="space-y-2 sm:col-span-2">
       <Label htmlFor={id} className="text-xs">{label}</Label>
-      <Input id={id} className="h-8 text-xs" value={url} placeholder="https://..." onChange={event => onChange({ ...recordValue(value), url: event.target.value })} />
-      <p className="text-[10px] text-muted-foreground">Use a public image URL or a file-library URL. The storefront uses the selected source as-is.</p>
+      <SelectedImagePreview image={current as IAttachment} onClear={() => onChange({})} />
+      <MediaLibrary
+        layout="compact"
+        handleFilesSelectCallback={files => {
+          const image = transformAttachmentStructure(files, 'toIAttachment')[0] as IAttachment | undefined;
+          if (image) onChange({ ...current, ...image, url: image.url || image.path, path: image.path || image.url });
+        }}
+      />
+      <Input id={id} className="h-8 text-xs" value={url} placeholder="https://..." onChange={event => onChange({ ...current, url: event.target.value, path: event.target.value })} />
+      <p className="text-[10px] text-muted-foreground">Upload from the media library or paste a public image URL. Desktop file paths will not display on the storefront.</p>
     </div>
   );
 };

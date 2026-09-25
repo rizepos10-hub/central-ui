@@ -3,6 +3,8 @@ import { IAddress } from 'app/shared/model/address.model';
 import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
 import { EndingType } from './ENUMS/ending-type.model';
 import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
+import { KitchenOutputMode } from './ENUMS/kitchen-output-mode.model';
+import { PosHomePage } from './ENUMS/pos-home-page.model';
 import { ISeo } from './ITEM/retail/product.model';
 export interface IBusinessDayDetail {
   day: DayOfWeek;
@@ -39,6 +41,7 @@ export interface IBranchDetails {
   wholesale: boolean;
   printZeroPriceAddons?: boolean;
   canOrder?: boolean | null;
+  posHomePage?: PosHomePage;
   requireOnlineOrderConfirmation?: boolean;
   onlineOrderPrepTimeOptionsMinutes?: number[];
   useOrderPromisedTimeAsDefaultPrep?: boolean;
