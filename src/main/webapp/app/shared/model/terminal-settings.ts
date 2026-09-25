@@ -17,14 +17,8 @@ export interface ITerminalSettings {
     enableSplitBill: boolean;
     printerSettings: PrinterSettings;
     printReceiptByDefault: boolean;
-    receiptShowOrderNumber: boolean;
-    receiptHeader: string | null;
-    receiptFooter: string | null;
     alwaysShowScrollbar: boolean;
     scrollbarThickness: number | null;
-    hstNumber: string | null;
-    pstNumber: string | null;
-    gstNumber: string | null;
     enableCustomerApp: boolean;
     customerAppIp: string | null;
     customerAppPort: number | null;

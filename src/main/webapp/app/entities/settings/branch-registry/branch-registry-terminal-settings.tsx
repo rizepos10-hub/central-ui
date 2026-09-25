@@ -68,11 +68,6 @@ const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
         ? Object.values(OrderMethod).filter(method => method !== OrderMethod.DineIn)
         : Object.values(OrderMethod);
 
-const normalizeString = (value: string) => {
-    const trimmed = value.trim();
-    return trimmed === '' ? null : trimmed;
-};
-
 const parseNumberOrNull = (value: string) => {
     if (value.trim() === '') {
         return null;
@@ -261,39 +256,6 @@ function GeneralSettings() {
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.notifyOnOnlineOrderAutoProcessed}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'notifyOnOnlineOrderAutoProcessed', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="HST Number"
-                description="Enter HST number"
-            >
-                <Input
-                    value={branchRegistry?.terminalSettings?.hstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'hstNumber', value: normalizeString(e.target.value) }))}
-                    className="w-48"
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="GST Number"
-                description="Enter GST number"
-            >
-                <Input
-                    value={branchRegistry?.terminalSettings?.gstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'gstNumber', value: normalizeString(e.target.value) }))}
-                    className="w-48"
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="PST Number"
-                description="Enter PST number"
-            >
-                <Input
-                    value={branchRegistry?.terminalSettings?.pstNumber ?? ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'pstNumber', value: normalizeString(e.target.value) }))}
-                    className="w-48"
                 />
             </FieldWrapper>
         </div>
@@ -1750,38 +1712,6 @@ function ReceiptPrinterSettings() {
                 <Checkbox
                     checked={branchRegistry.terminalSettings?.printReceiptByDefault}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="Show order number on receipt"
-                description="Show order number just above the receipt number"
-            >
-                <Checkbox
-                    checked={branchRegistry.terminalSettings?.receiptShowOrderNumber}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'receiptShowOrderNumber', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="Receipt Header"
-                description="Add a header to the receipt"
-            >
-                <Input
-                    value={branchRegistry.terminalSettings?.receiptHeader || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptHeader', value: e.target.value }))}
-                    className="w-48"
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="Receipt Footer"
-                description="Add a Footer to the receipt"
-            >
-                <Input
-                    value={branchRegistry.terminalSettings?.receiptFooter || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'receiptFooter', value: e.target.value }))}
-                    className="w-48"
                 />
             </FieldWrapper>
 
