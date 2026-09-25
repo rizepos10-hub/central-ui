@@ -1922,7 +1922,7 @@ function ReportPrinterSettings() {
             >
                 <Input
                     value={reportPrinter.name || ''}
-                    onChange={(e) => updateReportPrinter('name', normalizeString(e.target.value))}
+                    onChange={(e) => updateReportPrinter('name', e.target.value)}
                     className="w-48"
                 />
             </FieldWrapper>
@@ -1936,7 +1936,7 @@ function ReportPrinterSettings() {
                         <Input
                             type="text"
                             value={reportPrinter.ip || ''}
-                            onChange={(e) => updateReportPrinter('ip', normalizeString(e.target.value))}
+                            onChange={(e) => updateReportPrinter('ip', e.target.value)}
                             className="w-48"
                         />
                     </FieldWrapper>
