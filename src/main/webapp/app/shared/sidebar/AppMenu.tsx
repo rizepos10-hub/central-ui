@@ -957,6 +957,12 @@ export const model: MenuItem[] = [
             type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
+            label: 'Master Kitchen Template',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/printer/master-template',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
             label: 'Printing Profiles',
             role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
             to: '/printing-profiles',

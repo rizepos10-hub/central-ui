@@ -5,6 +5,7 @@ export interface IDiscount {
   id?: string;
   value?: number;
   type?: DiscountType;
+  isDefault?: boolean;
 }
 
 export const defaultValue: Readonly<IDiscount> = {};

@@ -965,6 +965,22 @@ export const RegularItemUpdate = () => {
                                           </span>
                                         </div>
 
+                                        <div className="flex items-center gap-2">
+                                          <Checkbox
+                                            id={`variant-skip-addons-${variantIndex}`}
+                                            checked={variant?.skipAddonsPopup !== false}
+                                            onCheckedChange={checked =>
+                                              handleVariantFieldChange(variantIndex, 'skipAddonsPopup', checked === true)
+                                            }
+                                          />
+                                          <Label htmlFor={`variant-skip-addons-${variantIndex}`} className="text-xs font-semibold cursor-pointer">
+                                            <Translate contentKey={'items.update.skipAddonsPopup'}>Skip add-ons popup</Translate>
+                                          </Label>
+                                          <span className="text-xs text-muted-foreground">
+                                            (overrides item setting when changed)
+                                          </span>
+                                        </div>
+
                                         <div className="space-y-2">
                                           <Label className="text-xs font-semibold">
                                             <Translate contentKey={'items.update.description'}>Description</Translate>

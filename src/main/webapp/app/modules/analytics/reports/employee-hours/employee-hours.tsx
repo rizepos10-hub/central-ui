@@ -49,6 +49,7 @@ const EmployeeHoursReport = () => {
     const reportContentRef = useRef<HTMLDivElement>(null);
     const branches = useAppSelector(state => state.branch.entities);
     const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
+    const closedUserClocks = userClocks.filter(clock => Boolean(clock.instantClockedOut));
     const loadingClocks = useAppSelector(state => state.userClock.loading);
     const userClockErrorMessage = useAppSelector(state => state.userClock.errorMessage);
 
@@ -100,7 +101,7 @@ const EmployeeHoursReport = () => {
         getElapsedSeconds(new Date(clock.instantClockedIn), new Date(clock.instantClockedOut));
 
     const calculateTotalHours = (username: string) => {
-        const totalSeconds = userClocks
+        const totalSeconds = closedUserClocks
             .filter(clock => clock.username === username)
             .reduce((sum, clock) => sum + getClockElapsedSeconds(clock), 0);
 
@@ -112,7 +113,7 @@ const EmployeeHoursReport = () => {
         setBusyAction('excel');
         setError(null);
         const clocksByUser = {};
-        userClocks.forEach(clock => {
+        closedUserClocks.forEach(clock => {
             if (!clocksByUser[clock.username]) {
                 clocksByUser[clock.username] = [];
             }
@@ -168,7 +169,7 @@ const EmployeeHoursReport = () => {
     };
 
     // Group user clocks by username
-    const groupedUserClocks = userClocks.reduce((acc, clock) => {
+    const groupedUserClocks = closedUserClocks.reduce((acc, clock) => {
         if (!acc[clock.username]) {
             acc[clock.username] = [];
         }
@@ -182,7 +183,7 @@ const EmployeeHoursReport = () => {
             : null;
     const fileName = createReportFileName('Employee Hours Report', [branchLabel, dateRangeLabel]);
     const reportError = error || (userClockErrorMessage ? getReportApiErrorMessage(userClockErrorMessage, 'Unable to load employee hours report.') : null);
-    const hasExportData = !reportError && userClocks.length > 0;
+    const hasExportData = !reportError && closedUserClocks.length > 0;
 
     const handlePdfExport = async () => {
         if (!reportContentRef.current || !hasExportData) {
@@ -308,7 +309,7 @@ const EmployeeHoursReport = () => {
                 </div>
             )}
 
-            {!reportError && !loadingClocks && hasLoadedReport && userClocks.length === 0 && (
+            {!reportError && !loadingClocks && hasLoadedReport && closedUserClocks.length === 0 && (
                 <div
                     className="rounded-lg border px-4 py-10 text-center text-xs text-muted-foreground"
                     data-testid="employee-hours-empty"
@@ -317,7 +318,7 @@ const EmployeeHoursReport = () => {
                 </div>
             )}
 
-            {!reportError && !loadingClocks && hasLoadedReport && userClocks.length > 0 && (
+            {!reportError && !loadingClocks && hasLoadedReport && closedUserClocks.length > 0 && (
                 <div className="mt-2">
                     <div className="flex justify-end mb-2">
                         <ReportActionBar
@@ -377,7 +378,7 @@ const EmployeeHoursReport = () => {
                                             <TableCell
                                                 className="text-xs text-right"
                                                 title={formatWorkingDurationTitle(
-                                                    userClocks
+                                                    closedUserClocks
                                                         .filter(userClock => userClock.username === username)
                                                         .reduce((sum, userClock) => sum + getClockElapsedSeconds(userClock), 0)
                                                 )}

@@ -14,6 +14,10 @@
     "editDiscount": "Edit Discount",
     "createNewDiscount": "Create New Discount",
     "value": "Value",
-    "type": "Type"
+    "type": "Type",
+    "default": "Default",
+    "custom": "Custom",
+    "valueHint": "Set 0 for a custom percentage entered on the POS. Percentage values must be between 0 and 100. Only one custom value discount is allowed.",
+    "customValueHint": "POS users will be asked to enter the percentage (0-100) when applying this discount."
   }
 }

@@ -143,6 +143,7 @@ export const Discount = () => {
             <TableRow>
               <TableHead>{translate('tempApp.value')}</TableHead>
               <TableHead>{translate('tempApp.type')}</TableHead>
+              <TableHead>{translate('tempApp.default')}</TableHead>
               <TableHead className="w-[50px]">{translate('common.edit')}</TableHead>
               <TableHead className="w-[50px]">{translate('common.delete')}</TableHead>
             </TableRow>
@@ -155,10 +156,11 @@ export const Discount = () => {
                     to={`/discount/${discount.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
                     className="hover:underline"
                   >
-                    {discount.value}
+                    {discount.value === 0 && discount.type === 'PERCENTAGE' ? translate('tempApp.custom') : discount.value}
                   </Link>
                 </TableCell>
                 <TableCell className="text-xs">{discount.type === 'PERCENTAGE' ? '%' : discount.type}</TableCell>
+                <TableCell className="text-xs">{discount.isDefault ? translate('tempApp.default') : ''}</TableCell>
                 <TableCell>
                   <Link to={`/discount/${discount.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
