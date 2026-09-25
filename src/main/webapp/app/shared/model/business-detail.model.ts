@@ -44,6 +44,12 @@ export interface IBranchDetails {
   useOrderPromisedTimeAsDefaultPrep?: boolean;
   autoPrintReceiptOnOnlineAccept?: boolean;
   autoPrintKitchenOnOnlineAccept?: boolean;
+  receiptShowOrderNumber?: boolean;
+  receiptHeader?: string | null;
+  receiptFooter?: string | null;
+  hstNumber?: string | null;
+  gstNumber?: string | null;
+  pstNumber?: string | null;
   enableAskOnTablePermissions?: boolean;
   cashbackEnabled?: boolean;
   openTableIdleTimeoutEnabled?: boolean;

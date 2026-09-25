@@ -427,6 +427,18 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleReceiptShowOrderNumberChange = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].receiptShowOrderNumber = checked === true;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleReceiptTextChange = (branchIndex, field, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex][field] = value === '' ? null : value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleCanOrderChange = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].canOrder = checked === true;
@@ -917,6 +929,77 @@ export const Branches = () => {
                     <Label htmlFor={`print-zero-price-addons-${branchIndex}`} className="font-bold text-xs cursor-pointer">
                       Print Zero Price Addons
                     </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!branch.receiptShowOrderNumber}
+                      onCheckedChange={(checked) => handleReceiptShowOrderNumberChange(branchIndex, checked)}
+                      id={`receipt-show-order-number-${branchIndex}`}
+                    />
+                    <Label htmlFor={`receipt-show-order-number-${branchIndex}`} className="font-bold text-xs cursor-pointer">
+                      Show Order Number on Receipt
+                    </Label>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`receipt-header-${branchIndex}`} className="font-bold text-xs">Receipt Header</Label>
+                    <Input
+                      id={`receipt-header-${branchIndex}`}
+                      type="text"
+                      value={branch.receiptHeader || ''}
+                      onChange={(e) => handleReceiptTextChange(branchIndex, 'receiptHeader', e.target.value)}
+                      onBlur={(e) => handleReceiptTextChange(branchIndex, 'receiptHeader', e.target.value.trim())}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`receipt-footer-${branchIndex}`} className="font-bold text-xs">Receipt Footer</Label>
+                    <Input
+                      id={`receipt-footer-${branchIndex}`}
+                      type="text"
+                      value={branch.receiptFooter || ''}
+                      onChange={(e) => handleReceiptTextChange(branchIndex, 'receiptFooter', e.target.value)}
+                      onBlur={(e) => handleReceiptTextChange(branchIndex, 'receiptFooter', e.target.value.trim())}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`hst-number-${branchIndex}`} className="font-bold text-xs">HST Number</Label>
+                    <Input
+                      id={`hst-number-${branchIndex}`}
+                      type="text"
+                      value={branch.hstNumber || ''}
+                      onChange={(e) => handleReceiptTextChange(branchIndex, 'hstNumber', e.target.value)}
+                      onBlur={(e) => handleReceiptTextChange(branchIndex, 'hstNumber', e.target.value.trim())}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`gst-number-${branchIndex}`} className="font-bold text-xs">GST Number</Label>
+                    <Input
+                      id={`gst-number-${branchIndex}`}
+                      type="text"
+                      value={branch.gstNumber || ''}
+                      onChange={(e) => handleReceiptTextChange(branchIndex, 'gstNumber', e.target.value)}
+                      onBlur={(e) => handleReceiptTextChange(branchIndex, 'gstNumber', e.target.value.trim())}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={`pst-number-${branchIndex}`} className="font-bold text-xs">PST Number</Label>
+                    <Input
+                      id={`pst-number-${branchIndex}`}
+                      type="text"
+                      value={branch.pstNumber || ''}
+                      onChange={(e) => handleReceiptTextChange(branchIndex, 'pstNumber', e.target.value)}
+                      onBlur={(e) => handleReceiptTextChange(branchIndex, 'pstNumber', e.target.value.trim())}
+                      className="h-7 text-xs"
+                    />
                   </div>
 
                   <div className="flex items-center gap-2">
