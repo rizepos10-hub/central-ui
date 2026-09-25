@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select as SectionTypeSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,9 +18,11 @@ import ItemSelectionModal from 'app/entities/menu/item-selection-modal';
 import CategorySelect from 'app/shared/components/select/select';
 import { searchEntities as searchItems } from 'app/entities/item/all-items.reducer';
 import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { ITerm } from 'app/shared/model/term.model';
 import { IAttachment } from 'app/shared/model/attachment.model';
+import { IBranch } from 'app/shared/model/branch.model';
 import { IOnlineOrderingPage, IPageSection, IPageSeo, IPageThemeOverride, defaultPageValue } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.model';
 import { SectionType, PageStatus } from 'app/shared/model/ONLINE_ORDERING/online-ordering-page.enums';
 import {
@@ -141,6 +144,8 @@ const OnlineOrderingPageEditor = () => {
   const [selectedSectionIndex, setSelectedSectionIndex] = useState<number | null>(null);
   const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
   const itemsLoading = useAppSelector(state => state.allItems.loading);
+  const branches = useAppSelector(state => state.branch.entities);
+  const branchesLoading = useAppSelector(state => state.branch.loading);
 
   useEffect(() => {
     if (isNew) {
@@ -148,6 +153,7 @@ const OnlineOrderingPageEditor = () => {
       return;
     }
     dispatch(getRestaurantCategories({}));
+    dispatch(getBranches({ page: 0, size: 1000, sort: 'name,asc' }));
     dispatch(getLandingPageSettings());
     dispatch(getStorefrontSettings());
     if (!isNew && id) {
@@ -329,6 +335,8 @@ const OnlineOrderingPageEditor = () => {
             section={section}
             debouncedLoadItemOptions={debouncedLoadItemOptions}
             itemsLoading={itemsLoading}
+            branches={branches}
+            branchesLoading={branchesLoading}
             templateLocked
             onConfigChange={(key, value) => updateSectionConfig(index, key, value)}
             onFeaturedItemsChange={items => updateSectionFeaturedItems(index, items)}
@@ -357,8 +365,56 @@ const OnlineOrderingPageEditor = () => {
     </div>
   );
 
+  const renderBranchDirectoryCardProperties = (node: EditorNode) => {
+    const sectionIndex = Number(node.fieldPath?.split('.')[1]);
+    const branchId = node.editor?.branchId;
+    const section = Number.isInteger(sectionIndex) ? page.sections?.[sectionIndex] : undefined;
+    if (!branchId || !section || section.type !== SectionType.BRANCH_DIRECTORY) {
+      return <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">This branch card is no longer available in the current page.</p>;
+    }
+
+    const config = section.config ?? {};
+    const configuredOverrides = config.branchOverrides && typeof config.branchOverrides === 'object' && !Array.isArray(config.branchOverrides)
+      ? config.branchOverrides as Record<string, Record<string, unknown>>
+      : {};
+    const overrides = configuredOverrides[branchId] ?? {};
+    const branch = branches.find(candidate => candidate.id === branchId);
+    const branchName = branch?.name || node.label.replace(/^Branch:\s*/, '') || branchId;
+
+    const updateOverride = (field: string, value: unknown) => {
+      const nextBranchOverride = { ...overrides };
+      if (value === undefined) delete nextBranchOverride[field];
+      else nextBranchOverride[field] = value;
+      const nextOverrides = { ...configuredOverrides };
+      if (Object.keys(nextBranchOverride).length > 0) nextOverrides[branchId] = nextBranchOverride;
+      else delete nextOverrides[branchId];
+      updateSectionConfig(sectionIndex, 'branchOverrides', nextOverrides);
+    };
+
+    const resetOverrides = () => {
+      const nextOverrides = { ...configuredOverrides };
+      delete nextOverrides[branchId];
+      updateSectionConfig(sectionIndex, 'branchOverrides', nextOverrides);
+    };
+
+    return (
+      <BranchDirectoryCardOverridesEditor
+        branchId={branchId}
+        branchName={branchName}
+        isIncluded
+        overrides={overrides}
+        onChange={updateOverride}
+        onReset={resetOverrides}
+      />
+    );
+  };
+
   const renderElementProperties = (node: EditorNode) => (
-    node.fieldPath?.startsWith('shop.') ? renderShopProperties(node) : <ElementPropertiesFields node={node} page={page} onUpdatePath={updatePagePath} />
+    node.editor?.customEditor === 'branch-directory-card'
+      ? renderBranchDirectoryCardProperties(node)
+      : node.fieldPath?.startsWith('shop.')
+        ? renderShopProperties(node)
+        : <ElementPropertiesFields node={node} page={page} onUpdatePath={updatePagePath} />
   );
 
   return (
@@ -405,6 +461,8 @@ const SectionConfigForm = ({
   section,
   debouncedLoadItemOptions,
   itemsLoading,
+  branches,
+  branchesLoading,
   templateLocked,
   onConfigChange,
   onFeaturedItemsChange,
@@ -413,6 +471,8 @@ const SectionConfigForm = ({
   section: IPageSection;
   debouncedLoadItemOptions: (inputValue: string, callback: (options: Array<{ value: string; label: string; data: IItem }>) => void) => void;
   itemsLoading: boolean;
+  branches: IBranch[];
+  branchesLoading: boolean;
   templateLocked?: boolean;
   onConfigChange: (key: string, value: unknown) => void;
   onFeaturedItemsChange?: (items: IItem[]) => void;
@@ -667,12 +727,13 @@ const SectionConfigForm = ({
         <PropertyEditorGroup title="Content" description="Display mode, heading, and supporting copy" defaultOpen>
           <div className="landing-editor-fields-grid grid gap-2">
             <div>
-              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed display mode: <span className="font-medium text-foreground">{variant}</span></p> : <Label>Display mode</Label>}
+              {templateLocked ? <p className="text-xs text-muted-foreground">Fixed display mode: <span className="font-medium text-foreground">{variant === 'branches' ? 'Selectable business branches' : variant === 'cards' ? 'Custom location cards' : 'Branch / zone listing'}</span></p> : <Label>Display mode</Label>}
               {!templateLocked && (
                 <SectionTypeSelect value={variant} onValueChange={value => onConfigChange('variant', value)}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">Branch / zone listing (from API)</SelectItem>
+                    <SelectItem value="branches">Selectable business branches</SelectItem>
                     <SelectItem value="cards">Location cards (configured below)</SelectItem>
                   </SelectContent>
                 </SectionTypeSelect>
@@ -683,7 +744,80 @@ const SectionConfigForm = ({
             <div><Label>Subtitle (optional)</Label><Input value={(config.subtitle as string) ?? ''} onChange={e => onConfigChange('subtitle', e.target.value)} /></div>
           </div>
         </PropertyEditorGroup>
-        {variant === 'cards' ? (
+        {(variant === 'branches' || variant === 'cards') && (
+          <PropertyEditorGroup title="Card layout" description="Rows wrap automatically as the number of locations changes" defaultOpen>
+            <div className="space-y-2">
+              <Label htmlFor="branch-directory-columns">Cards per row on desktop</Label>
+              <SectionTypeSelect
+                value={String([1, 2, 3, 4, 5, 6].includes(Number(config.columns)) ? Number(config.columns) : 2)}
+                onValueChange={value => onConfigChange('columns', Number(value))}
+              >
+                <SelectTrigger id="branch-directory-columns" className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6].map(columns => <SelectItem key={columns} value={String(columns)}>{columns} per row</SelectItem>)}
+                </SelectContent>
+              </SectionTypeSelect>
+              <p className="text-xs text-muted-foreground">Mobile always shows one card per row. Additional rows are created automatically.</p>
+            </div>
+          </PropertyEditorGroup>
+        )}
+        {variant === 'branches' ? (() => {
+          const configuredBranchIds = Array.isArray(config.branchIds) ? (config.branchIds as unknown[]).map(String) : null;
+          const configuredExcludedBranchIds = Array.isArray(config.excludedBranchIds) ? (config.excludedBranchIds as unknown[]).map(String) : null;
+          const allBranchIds = branches.map(branch => branch.id).filter((branchId): branchId is string => Boolean(branchId));
+          const selectedBranchIds = configuredExcludedBranchIds
+            ? allBranchIds.filter(branchId => !configuredExcludedBranchIds.includes(branchId))
+            : configuredBranchIds ?? allBranchIds;
+          const saveExcludedBranchIds = (nextSelectedBranchIds: string[]) => {
+            onConfigChange('excludedBranchIds', allBranchIds.filter(branchId => !nextSelectedBranchIds.includes(branchId)));
+            if (configuredBranchIds) onConfigChange('branchIds', undefined);
+          };
+
+          return (
+            <div className="space-y-2">
+              <PropertyEditorGroup title="Included branches" description="Uncheck a branch to remove its card. Click a visible card in the preview or its entry under Branch Directory to edit it." badge={`${selectedBranchIds.length}/${branches.length}`} defaultOpen>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" className="h-7 text-xs" disabled={branchesLoading || branches.length === 0} onClick={() => saveExcludedBranchIds(allBranchIds)}>
+                      Select all
+                    </Button>
+                    <Button type="button" variant="outline" className="h-7 text-xs" disabled={branchesLoading || branches.length === 0} onClick={() => saveExcludedBranchIds([])}>
+                      Clear all
+                    </Button>
+                  </div>
+                  {branchesLoading && branches.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Loading branches…</p>
+                  ) : branches.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No business branches are available yet.</p>
+                  ) : (
+                    <div className="max-h-56 space-y-1 overflow-y-auto rounded-md border p-2">
+                      {branches.map(branch => {
+                        const branchId = branch.id ? String(branch.id) : '';
+                        if (!branchId) return null;
+                        const checkboxId = `branch-directory-${branchId}`;
+                        return (
+                          <div key={branchId} className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted">
+                            <Checkbox
+                              id={checkboxId}
+                              checked={selectedBranchIds.includes(branchId)}
+                              onCheckedChange={checked => {
+                                const nextSelectedBranchIds = checked
+                                  ? Array.from(new Set([...selectedBranchIds, branchId]))
+                                  : selectedBranchIds.filter(selectedId => selectedId !== branchId);
+                                saveExcludedBranchIds(nextSelectedBranchIds);
+                              }}
+                            />
+                            <Label htmlFor={checkboxId} className="flex-1 cursor-pointer">{branch.name || branchId}</Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </PropertyEditorGroup>
+            </div>
+          );
+        })() : variant === 'cards' ? (
           <PropertyEditorGroup title="Location cards" description="Configured branches and actions" badge={`${cards.length}`} defaultOpen>
             <div className="space-y-2">
             <Label className="text-xs">Location cards ({cards.length})</Label>
@@ -1398,6 +1532,148 @@ const SectionConfigForm = ({
   return <p className="text-xs text-muted-foreground">No extra configuration for this section type.</p>;
 };
 
+function BranchDirectoryCardOverridesEditor({
+  branchId,
+  branchName,
+  isIncluded,
+  overrides,
+  onChange,
+  onReset,
+}: {
+  branchId: string;
+  branchName: string;
+  isIncluded: boolean;
+  overrides: Record<string, unknown>;
+  onChange: (field: string, value: unknown) => void;
+  onReset: () => void;
+}) {
+  const image = (overrides.image as IAttachment) ?? null;
+  const updateTextOverride = (field: string, value: string) => onChange(field, value ? value : undefined);
+  const buttons = [
+    { label: 'Menu button', showField: 'showMenuButton', textField: 'menuButtonText', placeholder: 'View menu' },
+    { label: 'Shop button', showField: 'showShopButton', textField: 'shopButtonText', placeholder: 'Shop now' },
+    { label: 'Call button', showField: 'showCallButton', textField: 'callButtonText', placeholder: 'Call us' },
+    { label: 'Directions button', showField: 'showDirectionsButton', textField: 'directionsButtonText', placeholder: 'Get directions' },
+  ];
+
+  const showToggle = (field: string, label: string) => {
+    const id = `branch-card-${branchId}-${field}`;
+    return (
+      <div className="flex items-center gap-2">
+        <Checkbox id={id} checked={overrides[field] !== false} onCheckedChange={checked => onChange(field, checked ? undefined : false)} />
+        <Label htmlFor={id} className="cursor-pointer text-xs">{label}</Label>
+      </div>
+    );
+  };
+
+  return (
+    <PropertyEditorGroup
+      title={branchName}
+      description={isIncluded ? 'Shown in the directory; blank overrides use current branch data.' : 'Hidden from the directory; these overrides are kept if you add it again.'}
+      badge={Object.keys(overrides).length > 0 ? 'Customized' : 'Live data'}
+      defaultOpen
+      contentClassName="p-2"
+    >
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">Card content</span>
+          <Button type="button" variant="ghost" className="h-7 px-2 text-[11px]" disabled={Object.keys(overrides).length === 0} onClick={onReset}>
+            Reset overrides
+          </Button>
+        </div>
+
+        <div className="space-y-2 rounded-md border p-2">
+          {showToggle('showImage', 'Show image')}
+          <p className="text-[11px] text-muted-foreground">Overrides the branch logo used on the storefront. Clear the selected image to use the branch logo again.</p>
+          <SelectedImagePreview image={image} onClear={() => onChange('image', undefined)} />
+          <MediaLibrary handleFilesSelectCallback={files => {
+            const selected = transformAttachmentStructure(files, 'toIAttachment')[0];
+            if (selected) onChange('image', selected);
+          }} />
+          <Label htmlFor={`branch-card-${branchId}-imageAlt`} className="text-xs">Image alt text override</Label>
+          <Input
+            id={`branch-card-${branchId}-imageAlt`}
+            value={(overrides.imageAlt as string) ?? ''}
+            placeholder={`${branchName} location`}
+            onChange={event => updateTextOverride('imageAlt', event.target.value)}
+            className="h-8 text-xs"
+          />
+        </div>
+
+        <div className="landing-editor-fields-grid grid gap-2 rounded-md border p-2">
+          <div>
+            {showToggle('showTag', 'Show location tag')}
+            <Input
+              aria-label={`${branchName} location tag override`}
+              value={(overrides.tag as string) ?? ''}
+              placeholder="Use the branch city or state"
+              onChange={event => updateTextOverride('tag', event.target.value)}
+              className="mt-2 h-8 text-xs"
+            />
+          </div>
+          <div>
+            {showToggle('showTitle', 'Show branch name')}
+            <Input
+              aria-label={`${branchName} title override`}
+              value={(overrides.title as string) ?? ''}
+              placeholder={branchName}
+              onChange={event => updateTextOverride('title', event.target.value)}
+              className="mt-2 h-8 text-xs"
+            />
+          </div>
+          <div className="md:col-span-2">
+            {showToggle('showDescription', 'Show custom description')}
+            <Textarea
+              aria-label={`${branchName} description override`}
+              value={(overrides.description as string) ?? ''}
+              placeholder="Add an optional branch description"
+              onChange={event => updateTextOverride('description', event.target.value)}
+              className="mt-2 min-h-16 text-xs"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 rounded-md border p-2">
+          <p className="text-xs font-medium">Contact details</p>
+          {[
+            { label: 'Address', showField: 'showAddress', textField: 'addressText', placeholder: 'Use the branch address' },
+            { label: 'Phone', showField: 'showPhone', textField: 'phoneText', placeholder: 'Use the branch phone number' },
+            { label: 'Email', showField: 'showEmail', textField: 'emailText', placeholder: 'Use the branch email' },
+          ].map(field => (
+            <div key={field.textField} className="landing-editor-fields-grid grid items-center gap-2 md:grid-cols-[130px_1fr]">
+              {showToggle(field.showField, `Show ${field.label.toLowerCase()}`)}
+              <Input
+                aria-label={`${branchName} ${field.label.toLowerCase()} override`}
+                value={(overrides[field.textField] as string) ?? ''}
+                placeholder={field.placeholder}
+                onChange={event => updateTextOverride(field.textField, event.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2 rounded-md border p-2">
+          <p className="text-xs font-medium">Buttons</p>
+          <p className="text-[11px] text-muted-foreground">Button destinations stay connected to this branch. You can hide available buttons and change their labels.</p>
+          {buttons.map(button => (
+            <div key={button.showField} className="landing-editor-fields-grid grid items-center gap-2 md:grid-cols-[150px_1fr]">
+              {showToggle(button.showField, `Show ${button.label.toLowerCase()}`)}
+              <Input
+                aria-label={`${branchName} ${button.label.toLowerCase()} text override`}
+                value={(overrides[button.textField] as string) ?? ''}
+                placeholder={button.placeholder}
+                onChange={event => updateTextOverride(button.textField, event.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </PropertyEditorGroup>
+  );
+}
+
 const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
   const appearance = defaultSectionAppearance();
   switch (type) {
@@ -1422,10 +1698,12 @@ const defaultConfigFor = (type: SectionType): Record<string, unknown> => {
       return { title: 'Categories', eyebrow: '', layout: 'LAYOUT_ONE', showImages: true, categories: [], groups: [], appearance };
     case SectionType.BRANCH_DIRECTORY:
       return {
-        variant: 'default',
+        variant: 'branches',
         title: '',
         eyebrow: '',
         subtitle: '',
+        columns: 3,
+        branchOverrides: {},
         cards: [],
         appearance,
       };

@@ -452,9 +452,20 @@ export default function LandingEditorWorkspace({
                 </>
               ) : (page.sections ?? []).map((section, index) => {
                 const sectionId = section.id || `slot-${index + 1}`;
-                const expanded = expandedSections[sectionId] ?? index === selectedSectionIndex;
+                const expanded = expandedSections[sectionId] ?? (index === selectedSectionIndex || section.type === SectionType.BRANCH_DIRECTORY);
                 const node: EditorNode = { id: `section.${sectionId}`, kind: 'section', label: sectionLabel(section.type), fieldPath: `sections.${index}.config`, editable: true, locked: true };
-                const sectionElements = registry.filter(entry => entry.kind !== 'page' && entry.kind !== 'chrome' && entry.kind !== 'section' && entry.fieldPath?.startsWith(`sections.${index}.`));
+                const sectionConfig = section.config ?? {};
+                const sectionElements = registry
+                  .filter(entry => entry.kind !== 'page' && entry.kind !== 'chrome' && entry.kind !== 'section' && entry.fieldPath?.startsWith(`sections.${index}.`))
+                  .filter(entry => {
+                    if (entry.editor?.customEditor !== 'branch-directory-card') return true;
+                    if (section.type !== SectionType.BRANCH_DIRECTORY || sectionConfig.variant !== 'branches') return false;
+                    const branchId = entry.editor.branchId;
+                    if (!branchId) return false;
+                    if (Array.isArray(sectionConfig.excludedBranchIds)) return !sectionConfig.excludedBranchIds.map(String).includes(branchId);
+                    if (Array.isArray(sectionConfig.branchIds)) return sectionConfig.branchIds.map(String).includes(branchId);
+                    return true;
+                  });
                 return <div key={sectionId} className={cn('rounded-md border', activeNode?.id === node.id && 'border-primary/50 bg-primary/[0.03]')}>
                   <div className="flex items-center gap-1">
                     <button type="button" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left" onClick={() => { selectNode(node); toggleSection(sectionId); }}>
