@@ -6,6 +6,8 @@ import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
 import { KitchenOutputMode } from './ENUMS/kitchen-output-mode.model';
 import { PosHomePage } from './ENUMS/pos-home-page.model';
 import { ISeo } from './ITEM/retail/product.model';
+
+export { KitchenOutputMode };
 export interface IBusinessDayDetail {
   day: DayOfWeek;
   openingHours: { dayType: dayTypeEnum; from: string; to: string }[];
@@ -88,12 +90,6 @@ export interface ISeoPages {
   home: ISeo;
   retail: ISeo;
   restaurant: ISeo;
-}
-
-export enum KitchenOutputMode {
-  PRINT = 'PRINT',
-  KDS = 'KDS',
-  BOTH = 'BOTH',
 }
 
 export enum KitchenPrintGrouping {

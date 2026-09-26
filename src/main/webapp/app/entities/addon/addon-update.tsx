@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
@@ -188,6 +189,111 @@ export const AddonUpdate = () => {
                   onChange={(e) => dispatch(changeEntityField({ name: 'price', value: parseFloat(e.target.value) ?? 0 }))}
                   className="h-8 text-xs"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="addon-extra-price" className="text-xs">
+                    <Translate contentKey={'tempApp.addon.extraPrice'}>Extra Price</Translate>
+                  </Label>
+                  <Input
+                    id="addon-extra-price"
+                    type="number"
+                    step="0.01"
+                    value={addonEntity.extraPrice ?? ''}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'extraPrice', value: parseFloat(e.target.value) ?? 0 }))}
+                    className="h-8 text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    <Translate contentKey={'tempApp.addon.extraPriceHelp'}>
+                      Used when Extra is selected before this add-on. Leave 0 to use the default price.
+                    </Translate>
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="addon-add-price" className="text-xs">
+                    <Translate contentKey={'tempApp.addon.addPrice'}>Add Price</Translate>
+                  </Label>
+                  <Input
+                    id="addon-add-price"
+                    type="number"
+                    step="0.01"
+                    value={addonEntity.addPrice ?? ''}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'addPrice', value: parseFloat(e.target.value) ?? 0 }))}
+                    className="h-8 text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    <Translate contentKey={'tempApp.addon.addPriceHelp'}>
+                      Used when Add is selected before this add-on. Leave 0 to use the default price.
+                    </Translate>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs">
+                  <Translate contentKey={'tempApp.addon.optionSelectors'}>POS option selectors</Translate>
+                </Label>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="addon-show-no"
+                      checked={addonEntity.showNo ?? true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'showNo', value: Boolean(checked) }))}
+                    />
+                    <Label htmlFor="addon-show-no" className="text-xs whitespace-nowrap">
+                      <Translate contentKey={'tempApp.addon.showNo'}>Show No</Translate>
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="addon-show-easy"
+                      checked={addonEntity.showEasy ?? true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'showEasy', value: Boolean(checked) }))}
+                    />
+                    <Label htmlFor="addon-show-easy" className="text-xs whitespace-nowrap">
+                      <Translate contentKey={'tempApp.addon.showEasy'}>Show Easy</Translate>
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="addon-show-extra"
+                      checked={addonEntity.showExtra ?? true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'showExtra', value: Boolean(checked) }))}
+                    />
+                    <Label htmlFor="addon-show-extra" className="text-xs whitespace-nowrap">
+                      <Translate contentKey={'tempApp.addon.showExtra'}>Show Extra</Translate>
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="addon-show-add"
+                      checked={addonEntity.showAdd ?? true}
+                      onCheckedChange={checked => dispatch(changeEntityField({ name: 'showAdd', value: Boolean(checked) }))}
+                    />
+                    <Label htmlFor="addon-show-add" className="text-xs whitespace-nowrap">
+                      <Translate contentKey={'tempApp.addon.showAdd'}>Show Add</Translate>
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="addon-disable-quantity"
+                  checked={addonEntity.disableQuantity ?? true}
+                  onCheckedChange={checked => dispatch(changeEntityField({ name: 'disableQuantity', value: Boolean(checked) }))}
+                />
+                <div className="flex flex-col">
+                  <Label htmlFor="addon-disable-quantity" className="text-xs whitespace-nowrap">
+                    <Translate contentKey={'tempApp.addon.disableQuantity'}>Disable Quantity</Translate>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    <Translate contentKey={'tempApp.addon.disableQuantityHelp'}>
+                      When enabled, this add-on cannot be incremented or decremented on the POS.
+                    </Translate>
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1">

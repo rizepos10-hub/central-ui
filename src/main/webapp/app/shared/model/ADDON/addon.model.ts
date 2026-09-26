@@ -9,10 +9,25 @@ export interface IAddon {
   name?: string;
   desc?: string | null;
   price?: number;
+  extraPrice?: number;
+  addPrice?: number;
+  showNo?: boolean;
+  showEasy?: boolean;
+  showExtra?: boolean;
+  showAdd?: boolean;
+  disableQuantity?: boolean;
   discounts?: IDiscount[] | null;
   tags?: ITag[];
   accountingGroups?: IProfileGroup[];
   ingredients?: IIngredient[];
 }
 
-export const defaultValue: Readonly<IAddon> = {};
+export const defaultValue: Readonly<IAddon> = {
+  extraPrice: 0,
+  addPrice: 0,
+  showNo: true,
+  showEasy: true,
+  showExtra: true,
+  showAdd: true,
+  disableQuantity: true,
+};

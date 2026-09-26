@@ -22,6 +22,17 @@
       "name": "Name",
       "desc": "Desc",
       "price": "Price",
+      "extraPrice": "سعر Extra",
+      "addPrice": "سعر Add",
+      "extraPriceHelp": "يُستخدم عند اختيار Extra قبل هذه الإضافة. اتركه 0 لاستخدام السعر الافتراضي.",
+      "addPriceHelp": "يُستخدم عند اختيار Add قبل هذه الإضافة. اتركه 0 لاستخدام السعر الافتراضي.",
+      "optionSelectors": "محددات خيارات نقطة البيع",
+      "showNo": "إظهار No",
+      "showEasy": "إظهار Easy",
+      "showExtra": "إظهار Extra",
+      "showAdd": "إظهار Add",
+      "disableQuantity": "تعطيل الكمية",
+      "disableQuantityHelp": "عند التفعيل، لا يمكن زيادة أو إنقاص كمية هذه الإضافة في نقطة البيع.",
       "discounts": "Discounts",
       "item": "Item"
     }

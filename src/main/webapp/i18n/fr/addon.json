@@ -22,6 +22,17 @@
       "name": "Name",
       "desc": "Desc",
       "price": "Price",
+      "extraPrice": "Prix Extra",
+      "addPrice": "Prix Add",
+      "extraPriceHelp": "Utilisé lorsque Extra est sélectionné avant cet add-on. Laissez 0 pour utiliser le prix par défaut.",
+      "addPriceHelp": "Utilisé lorsque Add est sélectionné avant cet add-on. Laissez 0 pour utiliser le prix par défaut.",
+      "optionSelectors": "Sélecteurs d'options POS",
+      "showNo": "Afficher No",
+      "showEasy": "Afficher Easy",
+      "showExtra": "Afficher Extra",
+      "showAdd": "Afficher Add",
+      "disableQuantity": "Désactiver la quantité",
+      "disableQuantityHelp": "Lorsque cette option est activée, cet add-on ne peut pas être incrémenté ou décrémenté sur la caisse.",
       "discounts": "Discounts",
       "item": "Item"
     }

@@ -30,6 +30,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
 import { ArrowLeftRight } from 'lucide-react';
@@ -321,6 +322,86 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup, onGroupUpdated })
                       onChange={(e) => setAddon(prevState => ({ ...prevState, price: parseFloat(e.target.value) ?? 0 }))}
                       className="h-8 text-xs"
                     />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="addon-extra-price" className="text-xs">
+                        <Translate contentKey={'tempApp.addon.extraPrice'}>Extra Price</Translate>
+                      </Label>
+                      <Input
+                        id="addon-extra-price"
+                        type="number"
+                        step="0.01"
+                        value={addon?.extraPrice ?? ''}
+                        onChange={e => setAddon(prevState => ({ ...prevState, extraPrice: parseFloat(e.target.value) ?? 0 }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="addon-add-price" className="text-xs">
+                        <Translate contentKey={'tempApp.addon.addPrice'}>Add Price</Translate>
+                      </Label>
+                      <Input
+                        id="addon-add-price"
+                        type="number"
+                        step="0.01"
+                        value={addon?.addPrice ?? ''}
+                        onChange={e => setAddon(prevState => ({ ...prevState, addPrice: parseFloat(e.target.value) ?? 0 }))}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="modal-addon-show-no"
+                        checked={addon?.showNo ?? true}
+                        onCheckedChange={checked => setAddon(prevState => ({ ...prevState, showNo: Boolean(checked) }))}
+                      />
+                      <Label htmlFor="modal-addon-show-no" className="text-xs whitespace-nowrap">
+                        <Translate contentKey={'tempApp.addon.showNo'}>Show No</Translate>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="modal-addon-show-easy"
+                        checked={addon?.showEasy ?? true}
+                        onCheckedChange={checked => setAddon(prevState => ({ ...prevState, showEasy: Boolean(checked) }))}
+                      />
+                      <Label htmlFor="modal-addon-show-easy" className="text-xs whitespace-nowrap">
+                        <Translate contentKey={'tempApp.addon.showEasy'}>Show Easy</Translate>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="modal-addon-show-extra"
+                        checked={addon?.showExtra ?? true}
+                        onCheckedChange={checked => setAddon(prevState => ({ ...prevState, showExtra: Boolean(checked) }))}
+                      />
+                      <Label htmlFor="modal-addon-show-extra" className="text-xs whitespace-nowrap">
+                        <Translate contentKey={'tempApp.addon.showExtra'}>Show Extra</Translate>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="modal-addon-show-add"
+                        checked={addon?.showAdd ?? true}
+                        onCheckedChange={checked => setAddon(prevState => ({ ...prevState, showAdd: Boolean(checked) }))}
+                      />
+                      <Label htmlFor="modal-addon-show-add" className="text-xs whitespace-nowrap">
+                        <Translate contentKey={'tempApp.addon.showAdd'}>Show Add</Translate>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="modal-addon-disable-quantity"
+                        checked={addon?.disableQuantity ?? true}
+                        onCheckedChange={checked => setAddon(prevState => ({ ...prevState, disableQuantity: Boolean(checked) }))}
+                      />
+                      <Label htmlFor="modal-addon-disable-quantity" className="text-xs whitespace-nowrap">
+                        <Translate contentKey={'tempApp.addon.disableQuantity'}>Disable Quantity</Translate>
+                      </Label>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1">
                     <Label htmlFor="addon-profileGroup" className="text-xs">

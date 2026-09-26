@@ -1,6 +1,7 @@
 import { BusinessTypeEnum } from "./business-type";
 import { KitchenPrintGrouping } from "./business-detail.model";
 import { OrderMethod } from "./ENUMS/order-method.model";
+import { PosHomePage } from "./ENUMS/pos-home-page.model";
 import { ITv } from "./TV/tv.model";
 
 export interface ITerminalSettings {
@@ -12,6 +13,7 @@ export interface ITerminalSettings {
     showCurrencyOnPrintouts: boolean;
     countryCode: string | null;
     businessType: BusinessTypeEnum;
+    posHomePage?: PosHomePage | null;
     languageCode: string | null;
     customerScreenTV: ITv | null;
     creditCardMachineIp: string | null;
