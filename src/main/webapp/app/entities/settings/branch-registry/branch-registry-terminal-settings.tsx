@@ -166,6 +166,7 @@ const posHomePageOptions: { value: PosHomePage; label: string }[] = [
     { value: PosHomePage.NONE, label: 'None' },
     { value: PosHomePage.REGISTER, label: 'Register' },
     { value: PosHomePage.FLOOR_PLAN, label: 'Floor Plan' },
+    { value: PosHomePage.LOG_IN, label: 'Log-In' },
 ];
 
 const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
