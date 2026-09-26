@@ -6,6 +6,7 @@ import { BusinessTypeEnum } from 'app/shared/model/business-type';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity } from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
+import { PosHomePage } from 'app/shared/model/ENUMS/pos-home-page.model';
 import Select from 'app/shared/components/select/select';
 import { getEntities } from '../tv-config/tv/tv.reducer';
 import { ITv } from 'app/shared/model/TV/tv.model';
@@ -161,6 +162,13 @@ const categoriesBarHeightOptions = [
     { label: 'Extra large', value: 'extraLarge' },
 ];
 
+const posHomePageOptions: { value: PosHomePage; label: string }[] = [
+    { value: PosHomePage.NONE, label: 'None' },
+    { value: PosHomePage.REGISTER, label: 'Register' },
+    { value: PosHomePage.FLOOR_PLAN, label: 'Floor Plan' },
+    { value: PosHomePage.LOG_IN, label: 'Log-In' },
+];
+
 const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
     businessType === BusinessTypeEnum.RETAIL
         ? Object.values(OrderMethod).filter(method => method !== OrderMethod.DineIn)
@@ -294,6 +302,25 @@ function GeneralSettings() {
                     <SelectContent>
                         <SelectItem value="RETAIL">Retail</SelectItem>
                         <SelectItem value="RESTAURANT">Restaurant</SelectItem>
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="POS Home Page"
+                description="Screen the POS shows after finalizing a sale or leaving a table"
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.posHomePage || PosHomePage.REGISTER}
+                    onValueChange={(value: PosHomePage) => dispatch(changeTerminalField({ name: 'posHomePage', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select POS home page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {posHomePageOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
                     </SelectContent>
                 </ShadcnSelect>
             </FieldWrapper>
