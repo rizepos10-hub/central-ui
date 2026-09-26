@@ -1,10 +1,12 @@
 import { BusinessTypeEnum } from "./business-type";
+import { KitchenPrintGrouping } from "./business-detail.model";
 import { OrderMethod } from "./ENUMS/order-method.model";
 import { ITv } from "./TV/tv.model";
 
 export interface ITerminalSettings {
     showItemsPic: boolean;
     showItemThumbnailInOrderItems: boolean;
+    showItemDescriptionOnPriceChecker?: boolean | null;
     showCategoriesPic: boolean;
     showRetailItemsOnly: boolean;
     showCurrencyOnPrintouts: boolean;
@@ -25,7 +27,11 @@ export interface ITerminalSettings {
     receiveOnlineOrderPopups: boolean;
     notifyOnOnlineOrderAutoProcessed: boolean;
     enableWalkInType: boolean;
-    sendToKitchenOnPayButtonClick: boolean;
+    sendToKitchenOnPayButtonClick?: boolean | null;
+    kitchenPrintGrouping?: KitchenPrintGrouping | null;
+    printKitchenItemReconciliation?: boolean | null;
+    forceSendingByCourse?: boolean | null;
+    forcePrintEosReport?: boolean | null;
     pathToCustomerApp: string | null;
     customerAppIsOnSameDevice: boolean;
     openDrawerType: openDrawerTypeEnum | null;
@@ -47,8 +53,31 @@ export interface ITerminalSettings {
     categoriesScreenFont?: ICategoriesScreenFont | null;
     showMinimize?: boolean | null;
     displayCategoriesHorizontally?: boolean | null;
+    categoriesBarHeight?: 'small' | 'medium' | 'large' | 'extraLarge' | null;
     itemButtonBackgroundStyle?: 'partial' | 'full' | null;
     categoryButtonBackgroundStyle?: 'partial' | 'full' | null;
+    senitronReaderEnabled?: boolean | null;
+    senitronCdmBaseUrl?: string | null;
+    senitronDeviceId?: string | null;
+    senitronLocation?: string | null;
+    senitronClientId?: string | null;
+    senitronTransactionType?: string | null;
+    labelPrintProfiles?: ILabelPrintProfile[] | null;
+}
+
+export interface ILabelPrintProfile {
+    id?: string | null;
+    name?: string | null;
+    brand?: string | null;
+    modelId?: string | null;
+    language?: string | null;
+    windowsDriver?: boolean | null;
+    connection?: string | null;
+    printerName?: string | null;
+    ip?: string | null;
+    port?: number | null;
+    templateId?: string | null;
+    isDefault?: boolean | null;
 }
 
 export interface ICategoriesScreenFont {
@@ -169,6 +198,18 @@ interface Receipt {
     size: PrinterSizeEnum | null;
     reverse: boolean;
     printByPdf: boolean;
+    modelId?: string | null;
+    brand?: string | null;
+    font?: string | null;
+    charsPerLine?: number | null;
+    commandMode?: PrinterCommandModeEnum | null;
+    colorPrinter?: boolean | null;
+}
+
+export enum PrinterCommandModeEnum {
+    ESC_POS = 'ESC_POS',
+    STAR_LINE = 'STAR_LINE',
+    WINDOWS_DRIVER = 'WINDOWS_DRIVER',
 }
 
 export enum PrinterConnectionTypeEnum {

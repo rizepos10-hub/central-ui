@@ -28,7 +28,7 @@ import {
 } from './util/label-script';
 import { compileDirectPrintTemplate } from './util/direct-print-compiler';
 import { containRect } from './print/rotate-raster';
-import { deleteTemplate, getDefaultTemplateId, listTemplates, saveTemplate, setDefaultTemplateId } from './store/label-templates.storage';
+import { emptyCatalog, mergeCatalog, removeStored, setDefaultStored, upsertStored } from './store/label-templates.storage';
 import { fitComparePrice, layoutLabelText } from './util/text-layout';
 import { autoArrange, findLayoutWarnings } from './util/layout-warnings';
 import { LabelTemplate } from './model/label-template.model';
@@ -375,33 +375,29 @@ describe('designer reducer', () => {
   });
 });
 
-describe('template storage', () => {
-  beforeEach(() => localStorage.clear());
-
+describe('template catalog', () => {
   it('returns presets when nothing is stored', () => {
-    expect(listTemplates()).toHaveLength(6);
+    expect(mergeCatalog(emptyCatalog())).toHaveLength(6);
   });
 
   it('persists, lists and deletes custom templates', () => {
     const custom = duplicateTemplate(LABEL_PRESETS[0], 'Custom One');
-    saveTemplate(custom);
-    expect(listTemplates().some(t => t.id === custom.id)).toBe(true);
-    deleteTemplate(custom.id);
-    expect(listTemplates().some(t => t.id === custom.id)).toBe(false);
+    const saved = upsertStored(emptyCatalog(), custom);
+    expect(mergeCatalog(saved).some(t => t.id === custom.id)).toBe(true);
+    const removed = removeStored(saved, custom.id);
+    expect(mergeCatalog(removed).some(t => t.id === custom.id)).toBe(false);
   });
 
   it('tracks the default template id', () => {
     const custom = duplicateTemplate(LABEL_PRESETS[0], 'Default Candidate');
-    saveTemplate(custom);
-    setDefaultTemplateId(custom.id);
-    expect(getDefaultTemplateId()).toBe(custom.id);
-    expect(listTemplates().find(t => t.id === custom.id)?.isDefault).toBe(true);
+    const saved = setDefaultStored(upsertStored(emptyCatalog(), custom), custom.id);
+    expect(saved.defaultTemplateId).toBe(custom.id);
+    expect(mergeCatalog(saved).find(t => t.id === custom.id)?.isDefault).toBe(true);
   });
 
   it('normalizes legacy templates without explicit type metadata', () => {
-    localStorage.setItem(
-      'retail-label-templates',
-      JSON.stringify([
+    const legacy = mergeCatalog({
+      templates: [
         {
           id: 'legacy-template',
           name: 'Legacy',
@@ -411,11 +407,10 @@ describe('template storage', () => {
           isDefault: false,
           isActive: true,
           elements: [],
-        },
-      ])
-    );
-
-    const legacy = listTemplates().find(t => t.id === 'legacy-template');
+        } as LabelTemplate,
+      ],
+      defaultTemplateId: null,
+    }).find(t => t.id === 'legacy-template');
     expect(legacy?.templateType).toBe('visual');
     expect(legacy?.directPrint).toBeNull();
   });

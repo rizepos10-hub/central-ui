@@ -7,24 +7,25 @@ import {
 
 describe('duration format utils', () => {
   describe('formatWorkingDuration', () => {
-    it('formats short durations in seconds', () => {
-      expect(formatWorkingDuration(9)).toBe('9s');
-      expect(formatWorkingDuration(11)).toBe('11s');
+    it('formats short durations without seconds', () => {
+      expect(formatWorkingDuration(9)).toBe('0m');
+      expect(formatWorkingDuration(11)).toBe('0m');
+      expect(formatWorkingDuration(59)).toBe('0m');
     });
 
     it('formats mixed hour and minute durations', () => {
       expect(formatWorkingDuration(6480)).toBe('1h 48m');
-      expect(formatWorkingDuration(6510)).toBe('1h 48m 30s');
+      expect(formatWorkingDuration(6510)).toBe('1h 48m');
     });
 
     it('formats multi-day durations', () => {
-      expect(formatWorkingDuration(9071058)).toBe('104d 23h 44m 18s');
+      expect(formatWorkingDuration(9071058)).toBe('104d 23h 44m');
     });
 
-    it('returns 0s for zero, negative, or invalid values', () => {
-      expect(formatWorkingDuration(0)).toBe('0s');
-      expect(formatWorkingDuration(-5)).toBe('0s');
-      expect(formatWorkingDuration(Number.NaN)).toBe('0s');
+    it('returns 0m for zero, negative, or invalid values', () => {
+      expect(formatWorkingDuration(0)).toBe('0m');
+      expect(formatWorkingDuration(-5)).toBe('0m');
+      expect(formatWorkingDuration(Number.NaN)).toBe('0m');
     });
   });
 
@@ -46,9 +47,9 @@ describe('duration format utils', () => {
 
   describe('formatClockDuration', () => {
     it('formats clock records from the employee hours payload', () => {
-      expect(formatClockDuration('2025-07-01T15:47:29.032Z', '2025-07-01T15:47:38.546Z')).toBe('9s');
-      expect(formatClockDuration('2025-07-01T15:47:54.208Z', '2025-07-01T15:48:05.520Z')).toBe('11s');
-      expect(formatClockDuration('2025-07-01T15:48:11.965Z', '2025-10-14T15:32:30.503Z')).toBe('104d 23h 44m 18s');
+      expect(formatClockDuration('2025-07-01T15:47:29.032Z', '2025-07-01T15:47:38.546Z')).toBe('0m');
+      expect(formatClockDuration('2025-07-01T15:47:54.208Z', '2025-07-01T15:48:05.520Z')).toBe('0m');
+      expect(formatClockDuration('2025-07-01T15:48:11.965Z', '2025-10-14T15:32:30.503Z')).toBe('104d 23h 44m');
     });
 
     it('sums saleh shifts without producing NaN', () => {
@@ -63,22 +64,23 @@ describe('duration format utils', () => {
       }, 0);
 
       expect(totalSeconds).toBe(9071078);
-      expect(formatWorkingDuration(totalSeconds)).toBe('104d 23h 44m 38s');
+      expect(formatWorkingDuration(totalSeconds)).toBe('104d 23h 44m');
       expect(formatWorkingDuration(totalSeconds)).not.toContain('NaN');
     });
 
-    it('returns 0s for missing or invalid clock values', () => {
-      expect(formatClockDuration(undefined, '2025-07-01T15:47:38.546Z')).toBe('0s');
-      expect(formatClockDuration('2025-07-01T15:47:29.032Z', null)).toBe('0s');
-      expect(formatClockDuration('invalid', '2025-07-01T15:47:38.546Z')).toBe('0s');
+    it('returns 0m for missing or invalid clock values', () => {
+      expect(formatClockDuration(undefined, '2025-07-01T15:47:38.546Z')).toBe('0m');
+      expect(formatClockDuration('2025-07-01T15:47:29.032Z', null)).toBe('0m');
+      expect(formatClockDuration('invalid', '2025-07-01T15:47:38.546Z')).toBe('0m');
     });
   });
 
   describe('formatWorkingDurationTitle', () => {
-    it('formats hover titles with whole seconds', () => {
-      expect(formatWorkingDurationTitle(9)).toBe('9 seconds');
-      expect(formatWorkingDurationTitle(1)).toBe('1 second');
-      expect(formatWorkingDurationTitle(9071078)).toBe('9,071,078 seconds');
+    it('formats hover titles without seconds', () => {
+      expect(formatWorkingDurationTitle(9)).toBe('0 minutes');
+      expect(formatWorkingDurationTitle(60)).toBe('1 minute');
+      expect(formatWorkingDurationTitle(6510)).toBe('1 hour 48 minutes');
+      expect(formatWorkingDurationTitle(9071078)).toBe('104 days 23 hours 44 minutes');
     });
   });
 });

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import { useNavigate, useParams } from 'react-router-dom';
 import { TriangleAlert, WandSparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LabelElement, generateLabelId } from '../model/label-template.model';
+import { LabelElement, LabelTemplate, generateLabelId } from '../model/label-template.model';
 import { useLabelTemplates } from '../store/useLabelTemplates';
 import { createDesignerState, designerReducer } from '../store/designer-reducer';
 import { LabelCanvas } from '../components/LabelCanvas';
@@ -31,10 +31,14 @@ const blankTemplate = () => ({
   updatedAt: new Date().toISOString(),
 });
 
-const DesignerScreen = () => {
+type DesignerEditorProps = {
+  templateId?: string;
+  getTemplate: (id: string) => LabelTemplate | undefined;
+  saveTemplate: (template: LabelTemplate) => Promise<void>;
+};
+
+const DesignerEditor = ({ templateId, getTemplate, saveTemplate }: DesignerEditorProps) => {
   const navigate = useNavigate();
-  const { templateId } = useParams();
-  const { getTemplate, saveTemplate } = useLabelTemplates();
 
   const initialTemplate = useMemo(() => {
     if (templateId && templateId !== 'new') {
@@ -60,7 +64,7 @@ const DesignerScreen = () => {
   const warnIds = useMemo(() => warningElementIds(warnings), [warnings]);
   const isDirect = template.templateType === 'direct';
 
-  const onSave = useCallback(() => {
+  const onSave = useCallback(async () => {
     if (template.elements.length === 0) {
       window.alert('Add at least one element before saving.');
       return;
@@ -72,16 +76,20 @@ const DesignerScreen = () => {
       );
       if (!ok) return;
     }
-    savedRef.current = true;
-    saveTemplate(
-      normalizeLabelTemplate({
-        ...template,
-        name: template.name.trim() || 'Untitled label',
-        directPrint: isDirect ? template.directPrint ?? createDirectPrintSettings() : null,
-        updatedAt: new Date().toISOString(),
-      })
-    );
-    navigate('/labels');
+    try {
+      await saveTemplate(
+        normalizeLabelTemplate({
+          ...template,
+          name: template.name.trim() || 'Untitled label',
+          directPrint: isDirect ? template.directPrint ?? createDirectPrintSettings() : null,
+          updatedAt: new Date().toISOString(),
+        })
+      );
+      savedRef.current = true;
+      navigate('/labels');
+    } catch {
+      window.alert('Could not save this label template.');
+    }
   }, [isDirect, navigate, saveTemplate, template, warnings]);
 
   const onCancel = useCallback(() => {
@@ -246,5 +254,19 @@ const PanelTab = ({ active, disabled = false, onClick, children }: PanelTabProps
     {children}
   </button>
 );
+
+const DesignerScreen = () => {
+  const { templateId } = useParams();
+  const { ready, error, getTemplate, saveTemplate } = useLabelTemplates();
+  if (!ready) {
+    return <div className="w-full px-4 py-6 text-sm text-muted-foreground">Loading templates…</div>;
+  }
+  return (
+    <>
+      {error ? <div className="px-4 pt-4 text-sm text-red-600">{error}</div> : null}
+      <DesignerEditor templateId={templateId} getTemplate={getTemplate} saveTemplate={saveTemplate} />
+    </>
+  );
+};
 
 export default DesignerScreen;

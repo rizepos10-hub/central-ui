@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { FilterMatchMode } from "primereact/api";
 import { translate } from "react-jhipster";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { getEntities as getUsers } from "app/entities/branch-pos-user/user.reducer";
 import { filterEntities } from "app/modules/analytics/user-clock/user-clock.reducer";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { IUserClock } from "app/shared/model/user-clock.model";
@@ -31,6 +32,16 @@ import { useReactToPrint } from "react-to-print";
 import { analyticsReportPrintStyles, createReportFileName, downloadElementAsPdf } from "app/shared/util/report-export-utils";
 import { getReportApiErrorMessage } from 'app/shared/util/report-api-error-utils';
 
+const ALL_USERS = '__all__';
+
+const userOptionValue = (user: { userName?: string; username?: string; login?: string }) =>
+    user.userName || user.username || user.login || '';
+
+const userFullName = (user: { firstName?: string; lastName?: string }) =>
+    `${user.firstName || ''} ${user.lastName || ''}`.trim();
+
+const clockLogin = (clock: IUserClock) => (clock.username || clock.createdBy || '').trim();
+
 const initialState = {
     first: 0,
     rows: 500,
@@ -39,6 +50,7 @@ const initialState = {
     sortOrder: null,
     filters: {
         branchId: { value: null, matchMode: FilterMatchMode.EQUALS },
+        username: { value: null, matchMode: FilterMatchMode.EQUALS },
         instantClockedIn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         instantClockedOut: { value: null, matchMode: FilterMatchMode.ENDS_WITH },
     }
@@ -48,6 +60,7 @@ const EmployeeHoursReport = () => {
     const dispatch = useAppDispatch();
     const reportContentRef = useRef<HTMLDivElement>(null);
     const branches = useAppSelector(state => state.branch.entities);
+    const users = useAppSelector(state => state.PosBranchUser.entities);
     const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
     const closedUserClocks = userClocks.filter(clock => Boolean(clock.instantClockedOut));
     const loadingClocks = useAppSelector(state => state.userClock.loading);
@@ -64,7 +77,40 @@ const EmployeeHoursReport = () => {
 
     useEffect(() => {
         dispatch(getBranches({}));
+        dispatch(getUsers({}));
     }, []);
+
+    const sortedUsers = useMemo(
+        () =>
+            [...users]
+                .map(user => ({ user, value: userOptionValue(user) }))
+                .filter(entry => entry.value)
+                .sort((a, b) => a.value.localeCompare(b.value, undefined, { sensitivity: 'base' })),
+        [users]
+    );
+    const selectedUsername = filterState.filters.username.value as string | null;
+    const selectedUser = selectedUsername
+        ? users.find(user => userOptionValue(user) === selectedUsername)
+        : undefined;
+    const userLabel = selectedUsername
+        ? (selectedUser && userFullName(selectedUser)) || selectedUsername
+        : 'All users';
+
+    const displayClockName = (login: string) => {
+        if (!login) return '';
+        const match = users.find(user => userOptionValue(user) === login);
+        return (match && userFullName(match)) || login;
+    };
+
+    const handleUserChange = (value: string) => {
+        setFilterState({
+            ...filterState,
+            filters: {
+                ...filterState.filters,
+                username: { value: value === ALL_USERS ? null : value, matchMode: FilterMatchMode.EQUALS },
+            },
+        });
+    };
 
     const getUserClocks = async () => {
         setError(null);
@@ -102,7 +148,7 @@ const EmployeeHoursReport = () => {
 
     const calculateTotalHours = (username: string) => {
         const totalSeconds = closedUserClocks
-            .filter(clock => clock.username === username)
+            .filter(clock => clockLogin(clock) === username)
             .reduce((sum, clock) => sum + getClockElapsedSeconds(clock), 0);
 
         return formatWorkingDuration(totalSeconds);
@@ -114,10 +160,11 @@ const EmployeeHoursReport = () => {
         setError(null);
         const clocksByUser = {};
         closedUserClocks.forEach(clock => {
-            if (!clocksByUser[clock.username]) {
-                clocksByUser[clock.username] = [];
+            const login = clockLogin(clock);
+            if (!clocksByUser[login]) {
+                clocksByUser[login] = [];
             }
-            clocksByUser[clock.username].push(clock);
+            clocksByUser[login].push(clock);
         });
 
         const structuredExcelData = [];
@@ -129,7 +176,7 @@ const EmployeeHoursReport = () => {
                 totalSeconds += secondsThisClock;
 
                 structuredExcelData.push({
-                    Name: username,
+                    Name: displayClockName(username),
                     'Clock In': clock.instantClockedIn,
                     'Clock Out': clock.instantClockedOut,
                     'Working Hours': formatClockDuration(clock.instantClockedIn, clock.instantClockedOut)
@@ -170,10 +217,11 @@ const EmployeeHoursReport = () => {
 
     // Group user clocks by username
     const groupedUserClocks = closedUserClocks.reduce((acc, clock) => {
-        if (!acc[clock.username]) {
-            acc[clock.username] = [];
+        const login = clockLogin(clock);
+        if (!acc[login]) {
+            acc[login] = [];
         }
-        acc[clock.username].push(clock);
+        acc[login].push(clock);
         return acc;
     }, {} as Record<string, IUserClock[]>);
     const branchLabel = branches.find(branch => branch.id === filterState.filters.branchId.value)?.name || 'All branches';
@@ -181,7 +229,7 @@ const EmployeeHoursReport = () => {
         dateRange.from && dateRange.to
             ? `${format(dateRange.from, "yyyy-MM-dd")} - ${format(dateRange.to, "yyyy-MM-dd")}`
             : null;
-    const fileName = createReportFileName('Employee Hours Report', [branchLabel, dateRangeLabel]);
+    const fileName = createReportFileName('Employee Hours Report', [branchLabel, userLabel, dateRangeLabel]);
     const reportError = error || (userClockErrorMessage ? getReportApiErrorMessage(userClockErrorMessage, 'Unable to load employee hours report.') : null);
     const hasExportData = !reportError && closedUserClocks.length > 0;
 
@@ -241,6 +289,25 @@ const EmployeeHoursReport = () => {
                                 {branches.map(branch => (
                                     <SelectItem key={branch.id} value={branch.id} className="text-xs">
                                         {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <Label htmlFor="username" className="text-xs">User</Label>
+                        <Select value={selectedUsername ?? ALL_USERS} onValueChange={handleUserChange}>
+                            <SelectTrigger id="username" className="h-7 text-xs w-[200px]">
+                                <SelectValue placeholder="All users" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={ALL_USERS} className="text-xs">
+                                    All users
+                                </SelectItem>
+                                {sortedUsers.map(({ user, value }) => (
+                                    <SelectItem key={user.id || value} value={value} className="text-xs">
+                                        {userFullName(user) || value}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -314,7 +381,7 @@ const EmployeeHoursReport = () => {
                     className="rounded-lg border px-4 py-10 text-center text-xs text-muted-foreground"
                     data-testid="employee-hours-empty"
                 >
-                    No employee hours records found for the selected branch and date range.
+                    No employee hours records found for the selected branch, user, and date range.
                 </div>
             )}
 
@@ -337,6 +404,7 @@ const EmployeeHoursReport = () => {
                             forceVisible={busyAction === 'pdf'}
                             filters={[
                                 { label: 'Branch', value: branchLabel },
+                                { label: 'User', value: userLabel },
                                 { label: 'Date Range', value: dateRangeLabel },
                             ]}
                         />
@@ -356,7 +424,7 @@ const EmployeeHoursReport = () => {
                                     <React.Fragment key={username}>
                                         {clocks.map((clock, index) => (
                                             <TableRow key={clock.id}>
-                                                <TableCell className="text-xs">{index === 0 ? username : ''}</TableCell>
+                                                <TableCell className="text-xs">{index === 0 ? displayClockName(username) : ''}</TableCell>
                                                 <TableCell className="text-xs">
                                                     {formatDateForDisplay(clock.instantClockedIn)}
                                                 </TableCell>
@@ -379,7 +447,7 @@ const EmployeeHoursReport = () => {
                                                 className="text-xs text-right"
                                                 title={formatWorkingDurationTitle(
                                                     closedUserClocks
-                                                        .filter(userClock => userClock.username === username)
+                                                        .filter(userClock => clockLogin(userClock) === username)
                                                         .reduce((sum, userClock) => sum + getClockElapsedSeconds(userClock), 0)
                                                 )}
                                             >
