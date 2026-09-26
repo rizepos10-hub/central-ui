@@ -1,6 +1,7 @@
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model'
 import React, { useEffect } from 'react'
-import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
+import { findPrinterModel, fontsFor, methodsFor, PRINTER_BRANDS, PRINTER_MODELS } from 'app/shared/model/PRINTER/printer-models';
+import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, ILabelPrintProfile, openDrawerTypeEnum, ParityEnum, PrinterCommandModeEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { BusinessTypeEnum } from 'app/shared/model/business-type';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity } from './branch-registry.reducer';
@@ -61,6 +62,103 @@ const categoryFontMaxSize = 36;
 const buttonBackgroundStyleOptions = [
     { label: 'Partial', value: 'partial' },
     { label: 'Full Background', value: 'full' },
+];
+
+const labelPrinterBrands = [
+    { label: 'Zebra', value: 'Zebra' },
+    { label: 'Datamax', value: 'Datamax' },
+    { label: 'Xprinter', value: 'Xprinter' },
+    { label: 'Rollo', value: 'Rollo' },
+    { label: 'DYMO', value: 'DYMO' },
+    { label: 'Samsung', value: 'Samsung' },
+];
+
+const labelPrinterModels: Record<string, { label: string; value: string }[]> = {
+    Zebra: [
+        { label: 'ZD220', value: 'zebra_zd220' },
+        { label: 'ZD420', value: 'zebra_zd420' },
+        { label: 'ZD421', value: 'zebra_zd421' },
+        { label: 'GK420d', value: 'zebra_gk420d' },
+        { label: 'ZT230', value: 'zebra_zt230' },
+        { label: 'ZT411', value: 'zebra_zt411' },
+    ],
+    Datamax: [
+        { label: 'E-4205A', value: 'datamax_e_4205a' },
+        { label: 'E-4305A', value: 'datamax_e_4305a' },
+        { label: 'I-4212e', value: 'datamax_i_4212e' },
+        { label: 'M-4206', value: 'datamax_m_4206' },
+        { label: 'H-4212', value: 'datamax_h_4212' },
+    ],
+    Xprinter: [
+        { label: 'XP-365B', value: 'xprinter_xp_365b' },
+        { label: 'XP-370B', value: 'xprinter_xp_370b' },
+        { label: 'XP-420B', value: 'xprinter_xp_420b' },
+        { label: 'XP-460B', value: 'xprinter_xp_460b' },
+        { label: 'XP-DT425B', value: 'xprinter_xp_dt425b' },
+        { label: 'XP-TT426B', value: 'xprinter_xp_tt426b' },
+    ],
+    Rollo: [
+        { label: 'Rollo USB', value: 'rollo_rollo_usb' },
+        { label: 'Rollo Wireless', value: 'rollo_rollo_wireless' },
+        { label: 'X1040', value: 'rollo_x1040' },
+    ],
+    DYMO: [
+        { label: 'LabelWriter 450', value: 'dymo_labelwriter_450' },
+        { label: 'LabelWriter 550', value: 'dymo_labelwriter_550' },
+        { label: 'LabelWriter 5XL', value: 'dymo_labelwriter_5xl' },
+        { label: 'LabelWriter 4XL', value: 'dymo_labelwriter_4xl' },
+    ],
+    Samsung: [
+        { label: 'SLP-D220', value: 'samsung_slp_d220' },
+        { label: 'SLP-T400', value: 'samsung_slp_t400' },
+        { label: 'SLP-T403', value: 'samsung_slp_t403' },
+        { label: 'SLP-DX220', value: 'samsung_slp_dx220' },
+        { label: 'SLP-DX420', value: 'samsung_slp_dx420' },
+    ],
+};
+
+const labelPrinterLanguages: Record<string, { label: string; value: string }[]> = {
+    Zebra: [
+        { label: 'ZPL II', value: 'zpl' },
+        { label: 'EPL2', value: 'epl' },
+    ],
+    Datamax: [
+        { label: 'DPL', value: 'dpl' },
+        { label: 'ZPL II', value: 'zpl' },
+    ],
+    Xprinter: [
+        { label: 'TSPL', value: 'tspl' },
+        { label: 'ZPL II', value: 'zpl' },
+        { label: 'EPL2', value: 'epl' },
+    ],
+    Rollo: [{ label: 'ZPL II', value: 'zpl' }],
+    DYMO: [],
+    Samsung: [
+        { label: 'ZPL II', value: 'zpl' },
+        { label: 'EPL2', value: 'epl' },
+    ],
+};
+
+const emptyLabelPrintProfile = (index: number): ILabelPrintProfile => ({
+    id: `lp-${Date.now()}-${index}`,
+    name: `Label printer ${index + 1}`,
+    brand: null,
+    modelId: null,
+    language: 'zpl',
+    windowsDriver: false,
+    connection: PrinterConnectionTypeEnum.USB,
+    printerName: null,
+    ip: null,
+    port: 9100,
+    templateId: null,
+    isDefault: index === 0,
+});
+
+const categoriesBarHeightOptions = [
+    { label: 'Small', value: 'small' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'Large', value: 'large' },
+    { label: 'Extra large', value: 'extraLarge' },
 ];
 
 const getAllowedOrderMethods = (businessType?: BusinessTypeEnum) =>
@@ -220,17 +318,7 @@ function GeneralSettings() {
             </FieldWrapper>
 
             <FieldWrapper
-                title="Enable Split Bills"
-                description="Enable Split Bills"
-            >
-                <Checkbox
-                    checked={branchRegistry?.terminalSettings?.enableSplitBill}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: checked }))}
-                />
-            </FieldWrapper>
-
-            <FieldWrapper
-                title="Enable walk in"
+                title="Show Walk-in Order Type"
                 description='Enable the option to specify the walk-in order is "for here" or "to go"'
             >
                 <Checkbox
@@ -258,6 +346,56 @@ function GeneralSettings() {
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'notifyOnOnlineOrderAutoProcessed', value: checked }))}
                 />
             </FieldWrapper>
+
+            <FieldWrapper
+                title="Enable Split Bills"
+                description="Enable Split Bills"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.enableSplitBill}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Print Receipt by Default (Walk in)"
+                description="Disabling this will disable printing the receipt on payment. Only applies to walk-in orders"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.printReceiptByDefault}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Select Pricing Point"
+                description="When on, the user can select the pricing point to be used in the order and change it from automatic"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.selectPricingPoint}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Send to Kitchen on Pay"
+                description="Walk-in only: send to kitchen when Pay is clicked, before the payment screen"
+            >
+                <Checkbox
+                    checked={!!branchRegistry?.terminalSettings?.sendToKitchenOnPayButtonClick}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'sendToKitchenOnPayButtonClick', value: checked === true }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Force Sending by Course"
+                description="Table ordering: Send to Kitchen asks which course to send"
+            >
+                <Checkbox
+                    checked={!!branchRegistry?.terminalSettings?.forceSendingByCourse}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'forceSendingByCourse', value: checked === true }))}
+                />
+            </FieldWrapper>
         </div>
     );
 }
@@ -268,6 +406,16 @@ function PersonalizationSettings() {
 
     return (
         <div className="space-y-1">
+            <FieldWrapper
+                title="Show Category Pictures"
+                description="Show category pictures in the app"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showCategoriesPic}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showCategoriesPic', value: checked }))}
+                />
+            </FieldWrapper>
+
             <FieldWrapper
                 title="Show Item Pictures"
                 description="Show item pictures in the app"
@@ -285,6 +433,16 @@ function PersonalizationSettings() {
                 <Checkbox
                     checked={branchRegistry?.terminalSettings?.showItemThumbnailInOrderItems}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showItemThumbnailInOrderItems', value: checked }))}
+                />
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Show Item Description On Price Checker"
+                description="Show the item description on the price checker screen"
+            >
+                <Checkbox
+                    checked={branchRegistry?.terminalSettings?.showItemDescriptionOnPriceChecker !== false}
+                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'showItemDescriptionOnPriceChecker', value: checked === true }))}
                 />
             </FieldWrapper>
 
@@ -373,6 +531,27 @@ function PersonalizationSettings() {
                 />
             </FieldWrapper>
 
+            {!!branchRegistry?.terminalSettings?.displayCategoriesHorizontally && (
+            <FieldWrapper
+                title="Categories Bar Height"
+                description="Height of the horizontal category strip. Extra large is the current bar height."
+            >
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.categoriesBarHeight || 'large'}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'categoriesBarHeight', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Large" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {categoriesBarHeightOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+            )}
+
             <FieldWrapper
                 title="Item Background"
                 description="Partial keeps the item color on the bottom strip. Full Background fills the whole item button."
@@ -425,12 +604,71 @@ function PersonalizationSettings() {
                 title="Change POS Language"
                 description="Change display language of the terminal"
             >
-                <Input
-                    value={branchRegistry?.terminalSettings?.languageCode || ''}
-                    onChange={(e) => dispatch(changeTerminalField({ name: 'languageCode', value: e.target.value }))}
-                    className="w-48"
-                />
+                <ShadcnSelect
+                    value={branchRegistry?.terminalSettings?.languageCode || 'en'}
+                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'languageCode', value }))}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="English" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                    </SelectContent>
+                </ShadcnSelect>
             </FieldWrapper>
+
+            {branchRegistry?.terminalSettings?.businessType === BusinessTypeEnum.RETAIL && (
+                <>
+                    <FieldWrapper
+                        title="Enable Senitron RFID reader"
+                        description="Read EPC tags from the local Senitron CDM bridge at checkout"
+                    >
+                        <Checkbox
+                            checked={!!branchRegistry?.terminalSettings?.senitronReaderEnabled}
+                            onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'senitronReaderEnabled', value: checked === true }))}
+                        />
+                    </FieldWrapper>
+                    {!!branchRegistry?.terminalSettings?.senitronReaderEnabled && (
+                        <>
+                            <FieldWrapper title="Senitron CDM base URL" description="Local reader bridge address">
+                                <Input
+                                    className="w-48"
+                                    value={branchRegistry?.terminalSettings?.senitronCdmBaseUrl || ''}
+                                    onChange={e => dispatch(changeTerminalField({ name: 'senitronCdmBaseUrl', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Senitron reader device ID">
+                                <Input
+                                    className="w-48"
+                                    value={branchRegistry?.terminalSettings?.senitronDeviceId || ''}
+                                    onChange={e => dispatch(changeTerminalField({ name: 'senitronDeviceId', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Senitron reader location">
+                                <Input
+                                    className="w-48"
+                                    value={branchRegistry?.terminalSettings?.senitronLocation || ''}
+                                    onChange={e => dispatch(changeTerminalField({ name: 'senitronLocation', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Senitron reader client ID">
+                                <Input
+                                    className="w-48"
+                                    value={branchRegistry?.terminalSettings?.senitronClientId || ''}
+                                    onChange={e => dispatch(changeTerminalField({ name: 'senitronClientId', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Senitron transaction type">
+                                <Input
+                                    className="w-48"
+                                    value={branchRegistry?.terminalSettings?.senitronTransactionType || 'inventory'}
+                                    onChange={e => dispatch(changeTerminalField({ name: 'senitronTransactionType', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                        </>
+                    )}
+                </>
+            )}
         </div>
     );
 }
@@ -548,20 +786,11 @@ function CategoryFontPanel() {
 }
 
 function AdminActionsSettings() {
-    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
-    const dispatch = useAppDispatch();
-
     return (
-        <div className="space-y-1">
-            <FieldWrapper
-                title="Select Pricing Point"
-                description="Select Pricing Point"
-            >
-                <Checkbox
-                    checked={branchRegistry?.terminalSettings?.selectPricingPoint}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: checked }))}
-                />
-            </FieldWrapper>
+        <div className="space-y-1 p-3">
+            <p className="text-sm text-muted-foreground">
+                Bulk Sync Orders and Lock Order Ops run only on the register. They are not terminal-settings JSON and cannot be configured from Central.
+            </p>
         </div>
     );
 }
@@ -670,10 +899,13 @@ function Devices() {
 
     return (
         <Tabs defaultValue="price-computing-scale" className="w-full">
-            <TabsList>
+            <TabsList className="flex flex-wrap h-auto">
                 <TabsTrigger value="price-computing-scale">Price computing scale</TabsTrigger>
                 <TabsTrigger value="direct-scale">Direct scale</TabsTrigger>
                 <TabsTrigger value="debit-machine">Debit machine</TabsTrigger>
+                <TabsTrigger value="printers">Printers</TabsTrigger>
+                <TabsTrigger value="label-printers">Label printers</TabsTrigger>
+                <TabsTrigger value="cash-drawer">Cash drawer</TabsTrigger>
                 <TabsTrigger value="rize-integrator">Rize integrator</TabsTrigger>
                 <TabsTrigger value="customer-screen">Customer screen</TabsTrigger>
             </TabsList>
@@ -982,6 +1214,26 @@ function Devices() {
             </TabsContent>
             <TabsContent value="debit-machine">
                 <CreditCardSettings />
+            </TabsContent>
+            <TabsContent value="printers">
+                <Tabs defaultValue="receipt" className="w-full">
+                    <TabsList>
+                        <TabsTrigger value="receipt">Receipt printer</TabsTrigger>
+                        <TabsTrigger value="report">Report printer</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="receipt">
+                        <ReceiptPrinterSettings />
+                    </TabsContent>
+                    <TabsContent value="report">
+                        <ReportPrinterSettings />
+                    </TabsContent>
+                </Tabs>
+            </TabsContent>
+            <TabsContent value="label-printers">
+                <LabelPrinterProfilesSettings />
+            </TabsContent>
+            <TabsContent value="cash-drawer">
+                <CashDrawerSettings />
             </TabsContent>
             <TabsContent value="rize-integrator">
                 <div className="space-y-1">
@@ -1683,6 +1935,7 @@ export function PrinterProperties() {
             <TabsList>
                 <TabsTrigger value="receipt">Receipt printer</TabsTrigger>
                 <TabsTrigger value="report">Report printer</TabsTrigger>
+                <TabsTrigger value="labels">Label printers</TabsTrigger>
             </TabsList>
             <TabsContent value="receipt">
                 <ReceiptPrinterSettings />
@@ -1690,31 +1943,197 @@ export function PrinterProperties() {
             <TabsContent value="report">
                 <ReportPrinterSettings />
             </TabsContent>
+            <TabsContent value="labels">
+                <LabelPrinterProfilesSettings />
+            </TabsContent>
         </Tabs>
     );
 }
 
-function ReceiptPrinterSettings() {
+function LabelPrinterProfilesSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
-    const receiptPrinter = branchRegistry.terminalSettings?.printerSettings?.receipt?.[0];
-    const configuredReceiptCopies = branchRegistry.terminalSettings?.receiptCopies;
-    const receiptCopies = isValidReceiptCopies(configuredReceiptCopies)
-        ? configuredReceiptCopies
-        : DEFAULT_RECEIPT_COPIES;
+    const profiles = branchRegistry.terminalSettings?.labelPrintProfiles ?? [];
+
+    const setProfiles = (next: ILabelPrintProfile[]) => {
+        dispatch(changeTerminalField({ name: 'labelPrintProfiles', value: next }));
+    };
+
+    const updateProfile = (index: number, patch: Partial<ILabelPrintProfile>) => {
+        setProfiles(profiles.map((profile, current) => (current === index ? { ...profile, ...patch } : profile)));
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                    Pair a Central label design with the printer on this register. The design supplies size and field positions. The profile supplies brand, language, and connection.
+                </p>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setProfiles([...profiles, emptyLabelPrintProfile(profiles.length)])}
+                >
+                    Add profile
+                </Button>
+            </div>
+            {profiles.length === 0 && <p className="text-xs text-muted-foreground">No label printer profiles yet.</p>}
+            {profiles.map((profile, index) => {
+                const models = labelPrinterModels[profile.brand ?? ''] ?? [];
+                const languages = labelPrinterLanguages[profile.brand ?? ''] ?? [];
+                const driverOnly = profile.brand === 'DYMO' || profile.windowsDriver;
+                return (
+                    <Card key={profile.id ?? index}>
+                        <CardContent className="space-y-1 p-2">
+                            <FieldWrapper title="Name" description="Name shown on the POS">
+                                <Input
+                                    className="w-48"
+                                    value={profile.name ?? ''}
+                                    onChange={event => updateProfile(index, { name: event.target.value })}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Brand">
+                                <ShadcnSelect
+                                    value={profile.brand ?? ''}
+                                    onValueChange={value => {
+                                        const nextLanguages = labelPrinterLanguages[value] ?? [];
+                                        updateProfile(index, {
+                                            brand: value,
+                                            modelId: labelPrinterModels[value]?.[0]?.value ?? null,
+                                            language: nextLanguages[0]?.value ?? profile.language,
+                                            windowsDriver: value === 'DYMO' ? true : profile.windowsDriver,
+                                        });
+                                    }}
+                                >
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Select brand" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {labelPrinterBrands.map(brand => (
+                                            <SelectItem key={brand.value} value={brand.value}>{brand.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </ShadcnSelect>
+                            </FieldWrapper>
+                            <FieldWrapper title="Model">
+                                <ShadcnSelect
+                                    value={profile.modelId ?? ''}
+                                    onValueChange={value => updateProfile(index, { modelId: value })}
+                                >
+                                    <SelectTrigger className="w-48">
+                                        <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {models.map(model => (
+                                            <SelectItem key={model.value} value={model.value}>{model.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </ShadcnSelect>
+                            </FieldWrapper>
+                            {!driverOnly && (
+                                <FieldWrapper title="Language" description="Language used to send the printing job">
+                                    <ShadcnSelect
+                                        value={profile.language ?? ''}
+                                        onValueChange={value => updateProfile(index, { language: value })}
+                                    >
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue placeholder="Select language" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {languages.map(language => (
+                                                <SelectItem key={language.value} value={language.value}>{language.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </ShadcnSelect>
+                                </FieldWrapper>
+                            )}
+                            <FieldWrapper title="Windows driver" description="Yes sends an image. No sends the selected language">
+                                <Checkbox
+                                    checked={profile.windowsDriver === true || profile.brand === 'DYMO'}
+                                    disabled={profile.brand === 'DYMO'}
+                                    onCheckedChange={checked => updateProfile(index, { windowsDriver: checked === true })}
+                                />
+                            </FieldWrapper>
+                            {!driverOnly && (
+                                <FieldWrapper title="Connection">
+                                    <ShadcnSelect
+                                        value={profile.connection ?? PrinterConnectionTypeEnum.USB}
+                                        onValueChange={value => updateProfile(index, { connection: value })}
+                                    >
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.values(PrinterConnectionTypeEnum).map(type => (
+                                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </ShadcnSelect>
+                                </FieldWrapper>
+                            )}
+                            <FieldWrapper title={driverOnly ? 'Windows printer' : 'Printer name'}>
+                                <Input
+                                    className="w-48"
+                                    value={profile.printerName ?? ''}
+                                    onChange={event => updateProfile(index, { printerName: event.target.value || null })}
+                                />
+                            </FieldWrapper>
+                            {!driverOnly && profile.connection === PrinterConnectionTypeEnum.NETWORK && (
+                                <>
+                                    <FieldWrapper title="IP address">
+                                        <Input
+                                            className="w-48"
+                                            value={profile.ip ?? ''}
+                                            onChange={event => updateProfile(index, { ip: event.target.value || null })}
+                                        />
+                                    </FieldWrapper>
+                                    <FieldWrapper title="Port">
+                                        <Input
+                                            className="w-24"
+                                            value={profile.port ?? 9100}
+                                            onChange={event => updateProfile(index, { port: parseOptionalPositiveInteger(event.target.value) ?? 9100 })}
+                                        />
+                                    </FieldWrapper>
+                                </>
+                            )}
+                            <FieldWrapper title="Template id" description="Central label design id used by this register">
+                                <Input
+                                    className="w-48"
+                                    value={profile.templateId ?? ''}
+                                    onChange={event => updateProfile(index, { templateId: event.target.value || null })}
+                                />
+                            </FieldWrapper>
+                            <FieldWrapper title="Default profile">
+                                <Checkbox
+                                    checked={profile.isDefault === true}
+                                    onCheckedChange={checked =>
+                                        setProfiles(profiles.map((item, current) => ({ ...item, isDefault: checked === true && current === index })))
+                                    }
+                                />
+                            </FieldWrapper>
+                            <div className="flex justify-end">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setProfiles(profiles.filter((_, current) => current !== index))}
+                                >
+                                    Delete profile
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                );
+            })}
+        </div>
+    );
+}
+
+function CashDrawerSettings() {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     return (
         <div className="space-y-1">
-            <FieldWrapper
-                title="Print Receipt by Default (Walk in)"
-                description="Disabling this will disable printing the receipt on payment and you will be obliged to click the button to print it, only applies to walk in orders"
-            >
-                <Checkbox
-                    checked={branchRegistry.terminalSettings?.printReceiptByDefault}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: checked }))}
-                />
-            </FieldWrapper>
-
             <FieldWrapper
                 title="Open Drawer Type"
                 description="Set drawer to open either before or after printing or set to manually be opened"
@@ -1736,12 +2155,194 @@ function ReceiptPrinterSettings() {
 
             <FieldWrapper
                 title="Open Drawer on Debit/Credit Transactions"
-                description="Option to open drawer on debit/card related transactions"
+                description="Option to open drawer on debit/credit related transactions"
             >
                 <Checkbox
                     checked={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
                     onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'openDrawerOnDebitCreditTransactions', value: checked }))}
                 />
+            </FieldWrapper>
+        </div>
+    );
+}
+
+function ReceiptPrinterSettings() {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+    const receiptPrinter = branchRegistry.terminalSettings?.printerSettings?.receipt?.[0];
+    const configuredReceiptCopies = branchRegistry.terminalSettings?.receiptCopies;
+    const receiptCopies = isValidReceiptCopies(configuredReceiptCopies)
+        ? configuredReceiptCopies
+        : DEFAULT_RECEIPT_COPIES;
+    const selectedModel = findPrinterModel(receiptPrinter?.modelId);
+    const brandModels = PRINTER_MODELS.filter(model => model.brand === receiptPrinter?.brand);
+    const availableMethods = methodsFor(selectedModel);
+    const commandMode = (availableMethods.includes(receiptPrinter?.commandMode as any)
+        ? receiptPrinter?.commandMode
+        : availableMethods[0]) as PrinterCommandModeEnum;
+    const usesWindowsDriver = commandMode === PrinterCommandModeEnum.WINDOWS_DRIVER;
+    const paperSize = (selectedModel?.size || receiptPrinter?.size || PrinterSizeEnum.mm80) as PrinterSizeEnum;
+    const fontOptions = fontsFor(selectedModel, commandMode, paperSize);
+    const selectedFont = fontOptions.some(option => option.id === receiptPrinter?.font)
+        ? receiptPrinter?.font
+        : fontOptions[0]?.id;
+
+    const patchReceipt = (patch: Record<string, unknown>) => {
+        Object.entries(patch).forEach(([field, value]) => {
+            dispatch(changeTerminalField({ name: `printerSettings.receipt.0.${field}`, value }));
+        });
+    };
+
+    return (
+        <div className="space-y-1">
+            <FieldWrapper
+                title="Printer brand"
+                description="Choose the brand, then the model. The printing method loads that model's fonts and width"
+            >
+                <ShadcnSelect
+                    value={receiptPrinter?.brand || ''}
+                    onValueChange={(value) => {
+                        const methods = methodsFor(undefined);
+                        patchReceipt({
+                            brand: value,
+                            modelId: null,
+                            charsPerLine: null,
+                            commandMode: methods.includes(commandMode) ? commandMode : methods[0],
+                        });
+                    }}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {PRINTER_BRANDS.map(brand => (
+                            <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Printer model"
+                description={selectedModel?.label || (receiptPrinter?.brand ? `Models for ${receiptPrinter.brand}` : 'Select a brand first')}
+            >
+                <ShadcnSelect
+                    value={receiptPrinter?.modelId || '__none'}
+                    onValueChange={(value) => {
+                        if (value === '__none') {
+                            patchReceipt({ modelId: null, charsPerLine: null });
+                            return;
+                        }
+                        const model = findPrinterModel(value);
+                        if (!model) return;
+                        const methods = methodsFor(model);
+                        const nextMode = methods.includes(commandMode) ? commandMode : methods[0];
+                        const nextFonts = fontsFor(model, nextMode, model.size);
+                        patchReceipt({
+                            modelId: model.id,
+                            brand: model.brand,
+                            size: model.size,
+                            commandMode: nextMode,
+                            colorPrinter: model.twoColor && model.impact && nextMode !== PrinterCommandModeEnum.WINDOWS_DRIVER,
+                            font: nextFonts[0]?.id ?? null,
+                            charsPerLine: nextFonts[0]?.columns ?? null,
+                        });
+                    }}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="__none">Not set</SelectItem>
+                        {brandModels.map(model => (
+                            <SelectItem key={model.id} value={model.id}>{model.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Paper"
+                description={selectedModel
+                    ? `Taken from the printer model. Characters per line is ${selectedFont ? fontOptions.find(option => option.id === selectedFont)?.columns : selectedModel.fontAColumns}`
+                    : 'Choose a model to lock paper width, or pick a size below'}
+            >
+                <div className="w-48 h-9 px-3 border rounded-md flex items-center text-sm">
+                    {selectedModel ? `${selectedModel.size.replace('mm', '')} mm` : (receiptPrinter?.size || 'Not set')}
+                </div>
+            </FieldWrapper>
+
+            {!selectedModel && (
+                <FieldWrapper
+                    title="Printer Size"
+                    description="Used when no model is selected"
+                >
+                    <ShadcnSelect
+                        value={receiptPrinter?.size || PrinterSizeEnum.mm80}
+                        onValueChange={(value) => patchReceipt({ size: value })}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select printer size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.values(PrinterSizeEnum).map(type => (
+                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </ShadcnSelect>
+                </FieldWrapper>
+            )}
+
+            <FieldWrapper
+                title="Printing method"
+                description="ESC/POS, Star or Windows driver. Paper width and the fonts available follow this method"
+            >
+                <ShadcnSelect
+                    value={commandMode}
+                    onValueChange={(value) => {
+                        const nextFonts = fontsFor(selectedModel, value as PrinterCommandModeEnum, paperSize);
+                        patchReceipt({
+                            commandMode: value,
+                            printByPdf: value === PrinterCommandModeEnum.WINDOWS_DRIVER ? false : receiptPrinter?.printByPdf,
+                            colorPrinter: value === PrinterCommandModeEnum.WINDOWS_DRIVER ? false : receiptPrinter?.colorPrinter,
+                            font: nextFonts[0]?.id ?? null,
+                            charsPerLine: nextFonts[0]?.columns ?? null,
+                        });
+                    }}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableMethods.map(mode => (
+                            <SelectItem key={mode} value={mode}>
+                                {mode === PrinterCommandModeEnum.ESC_POS ? 'ESC/POS' : mode === PrinterCommandModeEnum.STAR_LINE ? 'Star' : 'Windows driver'}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
+            </FieldWrapper>
+
+            <FieldWrapper
+                title="Font"
+                description="Fonts available for the selected printing method"
+            >
+                <ShadcnSelect
+                    value={selectedFont || ''}
+                    onValueChange={(value) => {
+                        const option = fontOptions.find(item => item.id === value);
+                        patchReceipt({ font: value, charsPerLine: option?.columns ?? null });
+                    }}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {fontOptions.map(option => (
+                            <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </ShadcnSelect>
             </FieldWrapper>
 
             <FieldWrapper
@@ -1768,20 +2369,22 @@ function ReceiptPrinterSettings() {
                 description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
             >
                 <Checkbox
-                    checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.reverse', value: checked }))}
+                    checked={receiptPrinter?.reverse}
+                    onCheckedChange={(checked) => patchReceipt({ reverse: checked })}
                 />
             </FieldWrapper>
 
-            <FieldWrapper
-                title="Print By PDF"
-                description="Print receipt by PDF"
-            >
-                <Checkbox
-                    checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
-                    onCheckedChange={(checked) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.printByPdf', value: checked }))}
-                />
-            </FieldWrapper>
+            {!usesWindowsDriver && (
+                <FieldWrapper
+                    title="Print as PDF"
+                    description="Send the command to print as pdf and not by commands (usually used for printers that do not support all commands)"
+                >
+                    <Checkbox
+                        checked={receiptPrinter?.printByPdf}
+                        onCheckedChange={(checked) => patchReceipt({ printByPdf: checked })}
+                    />
+                </FieldWrapper>
+            )}
 
             <FieldWrapper
                 title="Printer Type"
@@ -1789,7 +2392,7 @@ function ReceiptPrinterSettings() {
             >
                 <ShadcnSelect
                     value={receiptPrinter?.type}
-                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value }))}
+                    onValueChange={(value) => patchReceipt({ type: value })}
                 >
                     <SelectTrigger className="w-48">
                         <SelectValue placeholder="Select printer type" />
@@ -1802,7 +2405,18 @@ function ReceiptPrinterSettings() {
                 </ShadcnSelect>
             </FieldWrapper>
 
-            {receiptPrinter?.type === PrinterConnectionTypeEnum.NETWORK ? (
+            <FieldWrapper
+                title="Printer Windows Driver"
+                description="Printer name from the Windows system"
+            >
+                <Input
+                    value={receiptPrinter?.name || ''}
+                    onChange={(e) => patchReceipt({ name: e.target.value })}
+                    className="w-48"
+                />
+            </FieldWrapper>
+
+            {receiptPrinter?.type === PrinterConnectionTypeEnum.NETWORK && (
                 <>
                     <FieldWrapper
                         title="Printer IP Address"
@@ -1811,7 +2425,7 @@ function ReceiptPrinterSettings() {
                         <Input
                             type="text"
                             value={receiptPrinter.ip || ''}
-                            onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.ip', value: e.target.value }))}
+                            onChange={(e) => patchReceipt({ ip: e.target.value })}
                             className="w-48"
                         />
                     </FieldWrapper>
@@ -1828,44 +2442,14 @@ function ReceiptPrinterSettings() {
                             onChange={(e) => {
                                 const value = parseOptionalPositiveInteger(e.target.value);
                                 if (value !== undefined) {
-                                    dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.port', value }));
+                                    patchReceipt({ port: value });
                                 }
                             }}
                             className="w-48"
                         />
                     </FieldWrapper>
                 </>
-            ) : (
-                <FieldWrapper
-                    title="Printer Name"
-                    description="Printer name from the windows system"
-                >
-                    <Input
-                        value={receiptPrinter?.name || ''}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
-                        className="w-48"
-                    />
-                </FieldWrapper>
             )}
-
-            <FieldWrapper
-                title="Printer Size"
-                description="Choose one of the supported printer sizes"
-            >
-                <ShadcnSelect
-                    value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.size}
-                    onValueChange={(value) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.size', value }))}
-                >
-                    <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Select printer size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Object.values(PrinterSizeEnum).map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </ShadcnSelect>
-            </FieldWrapper>
         </div>
     );
 }

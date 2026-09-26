@@ -20,7 +20,7 @@ import { directPrintLanguageName, isDirectPrintTemplate } from '../util/label-sc
 const TemplateListScreen = () => {
   const navigate = useNavigate();
   const { setTemplate } = useLabelFlow();
-  const { templates, removeTemplate, duplicate, setDefault, isPresetId } = useLabelTemplates();
+  const { templates, ready, error, removeTemplate, duplicate, setDefault, isPresetId } = useLabelTemplates();
 
   const onUse = (template: LabelTemplate) => {
     setTemplate(template);
@@ -43,6 +43,10 @@ const TemplateListScreen = () => {
         </Button>
       </div>
 
+      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {!ready ? <p className="mt-5 text-sm text-muted-foreground">Loading templates…</p> : null}
+
+      {ready ? (
       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {templates.map(template => (
           <TemplateCard
@@ -51,12 +55,19 @@ const TemplateListScreen = () => {
             isPreset={isPresetId(template.id)}
             onUse={() => onUse(template)}
             onDesign={() => navigate(`/labels/design/${template.id}`)}
-            onDuplicate={() => duplicate(template)}
-            onSetDefault={() => setDefault(template.id)}
-            onDelete={() => removeTemplate(template.id)}
+            onDuplicate={() => {
+              duplicate(template).catch(() => undefined);
+            }}
+            onSetDefault={() => {
+              setDefault(template.id).catch(() => undefined);
+            }}
+            onDelete={() => {
+              removeTemplate(template.id).catch(() => undefined);
+            }}
           />
         ))}
       </div>
+      ) : null}
     </div>
   );
 };
