@@ -25,7 +25,6 @@ import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
-import { KitchenOutputMode } from 'app/shared/model/ENUMS/kitchen-output-mode.model';
 import { PosHomePage } from 'app/shared/model/ENUMS/pos-home-page.model';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
