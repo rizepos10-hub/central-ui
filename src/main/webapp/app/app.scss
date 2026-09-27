@@ -371,3 +371,125 @@ a.anchor-btn:hover {
 .width-min {
   width: 1% !important;
 }
+
+/* Wholesale theme: scoped to .theme-wholesale (WholesalePage). Adopting it portal-wide means moving these
+   variables to :root / .dark. Status colors use their own --ws-* names because --success / --warning hold
+   color values, not HSL channels. */
+.theme-wholesale {
+  --background: 180 14% 97%;
+  --foreground: 200 18% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 200 18% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 18% 14%;
+  --primary: 174 100% 24%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 180 12% 94%;
+  --secondary-foreground: 195 14% 26%;
+  --muted: 180 12% 95%;
+  --muted-foreground: 200 8% 42%;
+  --accent: 172 45% 92%;
+  --accent-foreground: 175 80% 20%;
+  --destructive: 0 66% 47%;
+  --border: 180 10% 88%;
+  --input: 180 8% 78%;
+  --ring: 174 100% 30%;
+  --radius: 0.75rem;
+  --ws-approved: 123 46% 34%;
+  --ws-returned: 27 100% 47%;
+  --ws-cancelled: 0 66% 47%;
+  --ws-amendment: 330 79% 38%;
+  --ws-control-h: 32px;
+  --ws-row-h: 36px;
+  --ws-table-font: 13px;
+  --ws-mono: 'JetBrains Mono', Consolas, monospace;
+
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .theme-wholesale,
+.dark.theme-wholesale {
+  --background: 210 20% 8%;
+  --foreground: 180 10% 90%;
+  --card: 210 16% 11%;
+  --card-foreground: 180 10% 90%;
+  --popover: 210 16% 11%;
+  --popover-foreground: 180 10% 90%;
+  --primary: 172 55% 45%;
+  --primary-foreground: 210 20% 8%;
+  --secondary: 210 14% 16%;
+  --secondary-foreground: 180 8% 82%;
+  --muted: 210 14% 14%;
+  --muted-foreground: 200 8% 62%;
+  --accent: 174 40% 18%;
+  --accent-foreground: 172 60% 80%;
+  --destructive: 0 69% 67%;
+  --border: 210 12% 20%;
+  --input: 210 10% 28%;
+  --ring: 172 55% 45%;
+  --ws-approved: 123 38% 57%;
+  --ws-returned: 33 100% 60%;
+  --ws-cancelled: 0 69% 67%;
+  --ws-amendment: 330 70% 68%;
+}
+
+.theme-wholesale {
+  .ws-card {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: none;
+  }
+
+  .ws-control {
+    height: var(--ws-control-h);
+    font-size: 13px;
+  }
+
+  .ws-mono {
+    font-family: var(--ws-mono);
+  }
+
+  .ws-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--ws-mono);
+    font-size: calc(var(--ws-table-font) - 0.5px);
+  }
+
+  .ws-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--ws-table-font);
+
+    thead th {
+      position: sticky;
+      top: 0;
+      height: 32px;
+      padding: 0 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: hsl(var(--muted-foreground));
+      background-color: hsl(var(--muted));
+
+      &.ws-num {
+        text-align: right;
+      }
+    }
+
+    tbody td {
+      height: var(--ws-row-h);
+      padding: 0 12px;
+      border-top: 1px solid hsl(var(--border));
+    }
+
+    tbody tr:hover {
+      background-color: hsl(var(--accent) / 0.45);
+    }
+  }
+}

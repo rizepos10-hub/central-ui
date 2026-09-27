@@ -7,6 +7,7 @@ import RoutesPage from './routes';
 import RouteOrders from './route-orders';
 import LogisticsMap from './map';
 import ChooseRegister from 'app/entities/order/choose-register';
+import WholesaleThemePreview from './wholesale-ui/wholesale-theme-preview';
 
 const LogisticsRoutes = () => {
   return (
@@ -18,6 +19,7 @@ const LogisticsRoutes = () => {
       <Route path="routes" element={<RoutesPage />} />
       <Route path="routes/:routeId" element={<RouteOrders />} />
       <Route path="map" element={<LogisticsMap />} />
+      <Route path="theme-preview" element={<WholesaleThemePreview />} />
     </ErrorBoundaryRoutes>
   );
 };
