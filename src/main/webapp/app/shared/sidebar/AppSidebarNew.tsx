@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { model, MenuItem } from './AppMenu';
+import { MenuBadge } from './menu-badges';
 import { useAppSelector } from 'app/config/store';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import {
@@ -410,6 +411,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                           }}
                         >
                           <span className="text-sm truncate">{subItem.label}</span>
+                          {subItem.badge && <MenuBadge name={subItem.badge} />}
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
