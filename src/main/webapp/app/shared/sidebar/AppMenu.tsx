@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBusinessTypes } from 'app/entities/settings/business-type/business-type.reducer';
 import { BusinessType, BusinessTypeEnum } from '../model/business-type';
+import { WHOLESALE_ANY_ROLES, WHOLESALE_PAGE_ROLES } from 'app/modules/logistics/wholesale-access';
 
 export type MenuItem = {
   label: string;
@@ -305,37 +306,73 @@ export const model: MenuItem[] = [
   {
     label: 'Wholesale',
     icon: 'pi pi-truck',
-    role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+    role: WHOLESALE_ANY_ROLES,
     to: '/logistics/wholesale-orders',
     items: [
       {
         label: 'Create Order',
         to: '/logistics/create-order',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        role: WHOLESALE_PAGE_ROLES.createOrder,
         type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Processed Orders',
         to: '/logistics/wholesale-orders',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        role: WHOLESALE_PAGE_ROLES.wholesaleOrders,
         type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Saved Orders',
         to: '/logistics/saved-orders',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        role: WHOLESALE_PAGE_ROLES.savedOrders,
         type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Routes',
         to: '/logistics/routes',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        role: WHOLESALE_PAGE_ROLES.routes,
         type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Map',
         to: '/logistics/map',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN', 'ROLE_WHOLESALE_BOOKKEEPER', 'ROLE_WHOLESALE_SALESMAN'],
+        role: WHOLESALE_PAGE_ROLES.map,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Wholesale Customers',
+        to: '/logistics/customers',
+        role: WHOLESALE_PAGE_ROLES.customers,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Route Setup',
+        to: '/logistics/route-definitions',
+        role: WHOLESALE_PAGE_ROLES.routeDefinitions,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Factories',
+        to: '/logistics/factories',
+        role: WHOLESALE_PAGE_ROLES.factories,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Closures',
+        to: '/logistics/closures',
+        role: WHOLESALE_PAGE_ROLES.closures,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Wholesale Users',
+        to: '/logistics/users',
+        role: WHOLESALE_PAGE_ROLES.users,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Wholesale Settings',
+        to: '/logistics/settings',
+        role: WHOLESALE_PAGE_ROLES.settings,
         type: [BusinessTypeEnum.RETAIL],
       },
     ],

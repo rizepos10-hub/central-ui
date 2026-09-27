@@ -49,6 +49,8 @@ export interface IItem {
   skipAddonsPopup?: boolean;
   seo?: ISeo;
   ebtEligibleByBranch?: IEBTEligibleByBranch[];
+  /** How wholesale gets the item; null reads as PRODUCED. */
+  wholesaleSourcing?: 'PRODUCED' | 'PURCHASED' | null;
 }
 
 export const defaultValue: Readonly<IItem> = {};

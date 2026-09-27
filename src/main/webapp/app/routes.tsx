@@ -22,6 +22,7 @@ import BusinessDetailRoutes from "app/entities/settings/business-details";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
 import LogisticsRoutes from "app/modules/logistics/logisticsRoutes";
+import { WHOLESALE_ANY_ROLES } from "app/modules/logistics/wholesale-access";
 import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -166,7 +167,7 @@ const AppRoutes = () => {
         <Route
           path="logistics/*"
           element={
-            <PrivateRoute>
+            <PrivateRoute hasAnyAuthorities={WHOLESALE_ANY_ROLES}>
               <LogisticsRoutes />
             </PrivateRoute>
           }

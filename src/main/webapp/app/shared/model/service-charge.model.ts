@@ -99,6 +99,8 @@ export enum TransactionMethodEnum {
   custom = "custom",
   convergeLightbox = "convergeLightbox",
   onAccount = "onAccount",
+  check = "check",
+  creditMemo = "creditMemo",
 }
 
 export enum ServiceChargeCalculationMethod {

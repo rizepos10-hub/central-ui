@@ -84,6 +84,8 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const makeCheckAvailable = () => axios.post<IPaymentMethodSetting>(`${apiUrl}/check/make-available`);
+
 export const changeEntityField = createAction<{ name: string; value: any }>('paymentMethodSetting/change-entity-field');
 
 // slice

@@ -9,6 +9,7 @@ import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './simple-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
+import WholesaleSourcingField from "app/shared/components/item/wholesale-sourcing-field";
 import { IExchangeMeasure, ISimpleItem, ISimpleItemVariant } from "app/shared/model/ITEM/retail/simple-item.model";
 import { Steps } from "primereact/steps";
 import { MenuItem } from "primereact/menuitem";
@@ -435,6 +436,8 @@ export const SimpleItemUpdate = () => {
                             </div>
 
                             <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
+
+                            <WholesaleSourcingField value={simpleItem?.wholesaleSourcing} onChange={value => handleFieldChange('wholesaleSourcing', value)} />
 
                             <Row className="">
                               <Col md="4">
