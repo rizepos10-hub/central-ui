@@ -116,6 +116,19 @@ describe('Wholesale Users page', () => {
     );
   });
 
+  it('lets sales managers manage factory users but only view sales managers', async () => {
+    renderPage([AUTHORITIES.WHOLESALE_SALES_MANAGER]);
+    await screen.findByText('Mona Lee');
+    expect(screen.queryByText('New sales manager')).toBeNull();
+    expect(screen.queryByLabelText('Actions for Mona Lee')).toBeNull();
+    expect(screen.getByText('Read only.')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Factory users' }));
+    await screen.findByText('Omar Aziz');
+    expect(screen.getByText('New factory user')).toBeTruthy();
+    expect(screen.getByLabelText('Actions for Omar Aziz')).toBeTruthy();
+  });
+
   it('is read only for bookkeepers', async () => {
     renderPage([AUTHORITIES.WHOLESALE_BOOKKEEPER]);
     await screen.findByText('Mona Lee');

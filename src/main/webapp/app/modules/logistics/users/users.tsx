@@ -32,9 +32,13 @@ const PAGE_SIZE = 50;
 
 const WholesaleUsers = () => {
   const authorities = useAppSelector(state => state.authentication.account?.authorities ?? []);
-  const canManage = hasAnyAuthority(authorities, [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN, AUTHORITIES.WHOLESALE_SALES_MANAGER]);
-
   const [kind, setKind] = useState<WholesaleUserKind>('salesManagers');
+  const canManage = hasAnyAuthority(
+    authorities,
+    kind === 'salesManagers'
+      ? [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN]
+      : [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN, AUTHORITIES.WHOLESALE_SALES_MANAGER],
+  );
   const [page, setPage] = useState(0);
   const [users, setUsers] = useState<IWholesaleUser[]>([]);
   const [total, setTotal] = useState(0);
