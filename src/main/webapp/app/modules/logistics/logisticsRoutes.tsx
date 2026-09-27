@@ -14,6 +14,7 @@ import WholesaleFactories from './factories/factories';
 import WholesaleCustomers from './customers/customers';
 import WholesaleRouteDefinitions from './route-definitions/route-definitions';
 import WholesaleClosures from './closures/closures';
+import WholesaleUsers from './users/users';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -34,7 +35,7 @@ const LogisticsRoutes = () => {
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesaleRouteDefinitions />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />
       <Route path="closures" element={guard('closures', <WholesaleClosures />)} />
-      <Route path="users" element={guard('users', <WholesalePlaceholderPage title="Wholesale Users" />)} />
+      <Route path="users" element={guard('users', <WholesaleUsers />)} />
       <Route path="settings" element={guard('settings', <WholesalePlaceholderPage title="Wholesale Settings" />)} />
       <Route path="theme-preview" element={guard('themePreview', <WholesaleThemePreview />)} />
     </ErrorBoundaryRoutes>

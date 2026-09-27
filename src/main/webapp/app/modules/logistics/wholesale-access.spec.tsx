@@ -76,10 +76,11 @@ describe('Wholesale access', () => {
     expect(pagesFor(AUTHORITIES.WHOLESALE_ADMIN)).toEqual(all);
   });
 
-  it('has no Wholesale pages yet for factory users or unrelated roles', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual([]);
+  it('gives factory users only the Factories page, and unrelated roles nothing', () => {
+    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['factories']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories']);
+    expect(WHOLESALE_ANY_ROLES).toContain(AUTHORITIES.WHOLESALE_FACTORY);
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
-    expect(WHOLESALE_ANY_ROLES).not.toContain(AUTHORITIES.WHOLESALE_FACTORY);
   });
 
   it('shows each role only its menu items', () => {
