@@ -316,6 +316,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
       },
       {
+        label: 'Order Entry',
+        to: '/logistics/order-entry',
+        role: WHOLESALE_PAGE_ROLES.orderEntry,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Processed Orders',
         to: '/logistics/wholesale-orders',
         role: WHOLESALE_PAGE_ROLES.wholesaleOrders,
