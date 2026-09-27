@@ -9,6 +9,7 @@ import { Button as PrimeButton } from "primereact/button"
 
 import { createEntity, getEntity, reset, updateEntity } from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
+import WholesaleSourcingField from "app/shared/components/item/wholesale-sourcing-field";
 import { IVariableItem, IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -600,6 +601,8 @@ export const VariableItemUpdate = () => {
                         <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
                           <div className={`d-flex flex-column p-1 bg-white w-100`}>
                             <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
+
+                            <WholesaleSourcingField value={variableItem?.wholesaleSourcing} onChange={value => handleFieldChange('wholesaleSourcing', value)} />
 
                             <Row className={'mb-3'}>
                               <Row>

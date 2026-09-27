@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { runtimeConfig } from 'app/config/runtime-config';
 import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
 import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
+import WholesaleSourcingField from 'app/shared/components/item/wholesale-sourcing-field';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -1366,6 +1367,10 @@ export const ProductUpdate = () => {
                             groupedSections
                             hideCatalogImages={showCatalogImagePanel}
                           />
+
+                          <RetailFormSection title="Wholesale sourcing" description="Whether wholesale orders for this item are made in our factories or bought in.">
+                            <WholesaleSourcingField hideLabel value={product?.wholesaleSourcing} onChange={value => handleFieldChange('wholesaleSourcing', value)} />
+                          </RetailFormSection>
 
                           <RetailFormSection
                             title="Unit & product structure"
