@@ -11,6 +11,7 @@ import ChooseRegister from 'app/entities/order/choose-register';
 import WholesaleThemePreview from './wholesale-ui/wholesale-theme-preview';
 import WholesalePlaceholderPage from './wholesale-ui/wholesale-placeholder-page';
 import WholesaleFactories from './factories/factories';
+import WholesaleCustomers from './customers/customers';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -27,7 +28,7 @@ const LogisticsRoutes = () => {
       <Route path="routes" element={guard('routes', <RoutesPage />)} />
       <Route path="routes/:routeId" element={guard('routes', <RouteOrders />)} />
       <Route path="map" element={guard('map', <LogisticsMap />)} />
-      <Route path="customers" element={guard('customers', <WholesalePlaceholderPage title="Wholesale Customers" />)} />
+      <Route path="customers" element={guard('customers', <WholesaleCustomers />)} />
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesalePlaceholderPage title="Route Setup" />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />
       <Route path="closures" element={guard('closures', <WholesalePlaceholderPage title="Closures" />)} />
