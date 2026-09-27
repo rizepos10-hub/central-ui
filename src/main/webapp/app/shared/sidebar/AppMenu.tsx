@@ -331,6 +331,12 @@ export const model: MenuItem[] = [
         badge: 'wholesaleCallList',
       },
       {
+        label: 'Customer Notes',
+        to: '/logistics/customer-notes',
+        role: WHOLESALE_PAGE_ROLES.customerNotes,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Processed Orders',
         to: '/logistics/wholesale-orders',
         role: WHOLESALE_PAGE_ROLES.wholesaleOrders,

@@ -17,6 +17,7 @@ import WholesaleUsers from './users/users';
 import WholesaleSettings from './settings/settings';
 import OrderEntry from './sales/order-entry';
 import CallList from './sales/call-list';
+import CustomerNotes from './sales/customer-notes';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -30,6 +31,7 @@ const LogisticsRoutes = () => {
       <Route path="create-order" element={guard('createOrder', <ChooseRegister />)} />
       <Route path="order-entry" element={guard('orderEntry', <OrderEntry />)} />
       <Route path="call-list" element={guard('callList', <CallList />)} />
+      <Route path="customer-notes" element={guard('customerNotes', <CustomerNotes />)} />
       <Route path="wholesale-orders" element={guard('wholesaleOrders', <WholesaleOrders />)} />
       <Route path="saved-orders" element={guard('savedOrders', <WholesaleSavedOrders />)} />
       <Route path="routes" element={guard('routes', <RoutesPage />)} />
