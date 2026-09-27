@@ -1,6 +1,7 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
+import PrivateRoute from 'app/shared/auth/private-route';
 import WholesaleOrders from './wholesale-orders';
 import WholesaleSavedOrders from './wholesale-saved-orders';
 import RoutesPage from './routes';
@@ -8,18 +9,30 @@ import RouteOrders from './route-orders';
 import LogisticsMap from './map';
 import ChooseRegister from 'app/entities/order/choose-register';
 import WholesaleThemePreview from './wholesale-ui/wholesale-theme-preview';
+import WholesalePlaceholderPage from './wholesale-ui/wholesale-placeholder-page';
+import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
+
+const guard = (page: WholesalePageKey, element: React.ReactNode) => (
+  <PrivateRoute hasAnyAuthorities={WHOLESALE_PAGE_ROLES[page]}>{element}</PrivateRoute>
+);
 
 const LogisticsRoutes = () => {
   return (
     <ErrorBoundaryRoutes>
-      <Route index element={<WholesaleOrders />} />
-      <Route path="create-order" element={<ChooseRegister />} />
-      <Route path="wholesale-orders" element={<WholesaleOrders />} />
-      <Route path="saved-orders" element={<WholesaleSavedOrders />} />
-      <Route path="routes" element={<RoutesPage />} />
-      <Route path="routes/:routeId" element={<RouteOrders />} />
-      <Route path="map" element={<LogisticsMap />} />
-      <Route path="theme-preview" element={<WholesaleThemePreview />} />
+      <Route index element={guard('wholesaleOrders', <WholesaleOrders />)} />
+      <Route path="create-order" element={guard('createOrder', <ChooseRegister />)} />
+      <Route path="wholesale-orders" element={guard('wholesaleOrders', <WholesaleOrders />)} />
+      <Route path="saved-orders" element={guard('savedOrders', <WholesaleSavedOrders />)} />
+      <Route path="routes" element={guard('routes', <RoutesPage />)} />
+      <Route path="routes/:routeId" element={guard('routes', <RouteOrders />)} />
+      <Route path="map" element={guard('map', <LogisticsMap />)} />
+      <Route path="customers" element={guard('customers', <WholesalePlaceholderPage title="Wholesale Customers" />)} />
+      <Route path="route-definitions" element={guard('routeDefinitions', <WholesalePlaceholderPage title="Route Setup" />)} />
+      <Route path="factories" element={guard('factories', <WholesalePlaceholderPage title="Factories" />)} />
+      <Route path="closures" element={guard('closures', <WholesalePlaceholderPage title="Closures" />)} />
+      <Route path="users" element={guard('users', <WholesalePlaceholderPage title="Wholesale Users" />)} />
+      <Route path="settings" element={guard('settings', <WholesalePlaceholderPage title="Wholesale Settings" />)} />
+      <Route path="theme-preview" element={guard('themePreview', <WholesaleThemePreview />)} />
     </ErrorBoundaryRoutes>
   );
 };
