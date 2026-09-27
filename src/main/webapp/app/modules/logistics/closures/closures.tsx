@@ -29,7 +29,7 @@ import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/whol
 import { IWholesaleRouteDefinition, customerName } from '../customers/wholesale-customer.model';
 import { ClosureEditor } from './closure-editor';
 import { ClosuresCalendar } from './closures-calendar';
-import { deleteClosure, fetchClosures, fetchRouteDeliveryDays } from './closure.api';
+import { deleteClosure, fetchAllRouteDeliveryDays, fetchClosures } from './closure.api';
 import { IDeliveryDay, IWholesaleClosure, buildRouteMarks, formatDay, formatRange, monthGrid, newClosure, scopeLabel, toIsoDate } from './closure.model';
 
 const ALL = '__all';
@@ -94,14 +94,12 @@ const WholesaleClosures = () => {
   const routeDaysRequest = useRef(0);
   const loadRouteDays = useCallback(async () => {
     const request = ++routeDaysRequest.current;
-    const results = await Promise.all(
-      activeRoutes.map(route =>
-        fetchRouteDeliveryDays(route.id, from, to)
-          .then(list => ({ route, days: list }))
-          .catch(() => ({ route, days: [] as IDeliveryDay[] })),
-      ),
-    );
-    if (request === routeDaysRequest.current) setRouteDays(results);
+    if (activeRoutes.length === 0) {
+      setRouteDays([]);
+      return;
+    }
+    const byRoute = await fetchAllRouteDeliveryDays(from, to).catch((): Record<string, IDeliveryDay[]> => ({}));
+    if (request === routeDaysRequest.current) setRouteDays(activeRoutes.map(route => ({ route, days: byRoute[route.id] ?? [] })));
   }, [activeRoutes, from, to]);
 
   useEffect(() => {

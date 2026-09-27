@@ -6,7 +6,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { AUTHORITIES } from 'app/config/constants';
 
 import WholesaleClosures from './closures';
-import { fetchClosures, fetchRouteDeliveryDays, saveClosure } from './closure.api';
+import { fetchAllRouteDeliveryDays, fetchClosures, saveClosure } from './closure.api';
 import { fetchFactories } from '../factories/wholesale-factory.api';
 import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/wholesale-customer.api';
 import { IWholesaleClosure, buildRouteMarks, formatDay, monthGrid, toClosurePayload, validateClosure } from './closure.model';
@@ -15,7 +15,7 @@ jest.mock('./closure.api', () => ({
   fetchClosures: jest.fn(),
   saveClosure: jest.fn(),
   deleteClosure: jest.fn(),
-  fetchRouteDeliveryDays: jest.fn(),
+  fetchAllRouteDeliveryDays: jest.fn(),
 }));
 jest.mock('../factories/wholesale-factory.api', () => ({ fetchFactories: jest.fn() }));
 jest.mock('../customers/wholesale-customer.api', () => ({
@@ -91,16 +91,13 @@ describe('Closures page', () => {
       { id: 'r-2', name: 'East', active: true },
     ]);
     jest.mocked(fetchClosures).mockResolvedValue([holiday]);
-    jest.mocked(fetchRouteDeliveryDays).mockImplementation(routeId =>
-      Promise.resolve(
-        routeId === 'r-1'
-          ? [
-              { date: '2026-11-04', status: 'DELIVER' },
-              { date: '2026-11-11', status: 'SKIPPED', closureIds: ['cl-1'] },
-            ]
-          : [{ date: '2026-11-11', status: 'MOVED', deliveryDate: '2026-11-12', closureIds: ['cl-1'] }],
-      ),
-    );
+    jest.mocked(fetchAllRouteDeliveryDays).mockResolvedValue({
+      'r-1': [
+        { date: '2026-11-04', status: 'DELIVER' },
+        { date: '2026-11-11', status: 'SKIPPED', closureIds: ['cl-1'] },
+      ],
+      'r-2': [{ date: '2026-11-11', status: 'MOVED', deliveryDate: '2026-11-12', closureIds: ['cl-1'] }],
+    });
     jest.mocked(saveClosure).mockReset();
   });
 
@@ -112,6 +109,7 @@ describe('Closures page', () => {
     expect(within(cell('2026-11-12')).getByText(`East (from ${formatDay('2026-11-11')})`)).toBeTruthy();
     expect(within(cell('2026-11-04')).getByText('North')).toBeTruthy();
     expect(fetchClosures).toHaveBeenCalledWith('2026-10-26', '2026-12-06');
+    expect(fetchAllRouteDeliveryDays).toHaveBeenCalledWith('2026-10-26', '2026-12-06');
 
     fireEvent.click(screen.getByText('list'));
     expect(await screen.findByText('North, East')).toBeTruthy();
