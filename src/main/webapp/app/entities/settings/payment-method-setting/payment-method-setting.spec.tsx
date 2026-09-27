@@ -2,7 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PaymentMethodSetting from './payment-method-setting';
-import { getAllEntities, updateEntity } from './payment-method-setting.reducer';
+import { toast } from 'react-toastify';
+import { getAllEntities, makeCheckAvailable, updateEntity } from './payment-method-setting.reducer';
 
 const mockDispatch = jest.fn();
 let mockState;
@@ -15,7 +16,10 @@ jest.mock('app/config/store', () => ({
 jest.mock('./payment-method-setting.reducer', () => ({
   getAllEntities: jest.fn(() => ({ type: 'paymentMethodSetting/getAllEntities' })),
   updateEntity: jest.fn(payload => ({ type: 'paymentMethodSetting/updateEntity', payload })),
+  makeCheckAvailable: jest.fn(),
 }));
+
+jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 
 jest.mock('@/components/ui/checkbox', () => ({
   Checkbox: ({ checked, disabled, onCheckedChange, 'aria-label': ariaLabel }) => (
@@ -124,5 +128,50 @@ describe('PaymentMethodSetting', () => {
         })
       );
     });
+  });
+
+  it('offers to make Check available while it is missing and refreshes after adding it', async () => {
+    (makeCheckAvailable as jest.Mock).mockResolvedValue({ data: { id: 'check-id' } });
+    render(
+      <MemoryRouter>
+        <PaymentMethodSetting />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /make check available/i }));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Check added. Tick Show to offer it on registers.');
+    });
+    expect(makeCheckAvailable).toHaveBeenCalledTimes(1);
+    expect(getAllEntities).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the server reason when Check cannot be added', async () => {
+    (makeCheckAvailable as jest.Mock).mockRejectedValue({ response: { data: { title: 'A payment method named Check already exists' } } });
+    render(
+      <MemoryRouter>
+        <PaymentMethodSetting />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /make check available/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('A payment method named Check already exists');
+    });
+    expect(getAllEntities).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the Check offer once Check is in the list', () => {
+    mockState.paymentMethodSetting.entities.push({ id: 'check-id', transactionMethod: 'check', name: 'Check', show: false, order: 3 });
+    render(
+      <MemoryRouter>
+        <PaymentMethodSetting />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole('button', { name: /make check available/i })).toBeNull();
+    expect(screen.getByLabelText('Toggle visibility for Check')).not.toBeNull();
   });
 });

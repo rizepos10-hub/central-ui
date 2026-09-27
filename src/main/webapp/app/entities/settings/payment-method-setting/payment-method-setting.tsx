@@ -6,7 +6,8 @@ import { translate, Translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IPaymentMethodSetting } from 'app/shared/model/payment-method-setting.model';
 import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
-import { getAllEntities, updateEntity } from './payment-method-setting.reducer';
+import { toast } from 'react-toastify';
+import { getAllEntities, makeCheckAvailable, updateEntity } from './payment-method-setting.reducer';
 import { Pencil, Trash2, RefreshCw, Plus, Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
@@ -21,6 +22,8 @@ export const PaymentMethodSetting = () => {
   const [sortedSettings, setSortedSettings] = useState<IPaymentMethodSetting[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
   const [savingShowIds, setSavingShowIds] = useState<string[]>([]);
+  const [addingCheck, setAddingCheck] = useState(false);
+  const checkAvailable = paymentMethodSettings.some(setting => setting.transactionMethod === TransactionMethodEnum.check);
 
   useEffect(() => {
     dispatch(getAllEntities());
@@ -96,6 +99,19 @@ export const PaymentMethodSetting = () => {
     }
   };
 
+  const handleMakeCheckAvailable = async () => {
+    setAddingCheck(true);
+    try {
+      await makeCheckAvailable();
+      toast.success('Check added. Tick Show to offer it on registers.');
+      dispatch(getAllEntities());
+    } catch (error) {
+      toast.error(error?.response?.data?.title || 'Could not make Check available.');
+    } finally {
+      setAddingCheck(false);
+    }
+  };
+
   const listHeader = useMemo(
     () => (
       <div className="flex items-center gap-2 pr-2 text-xs font-semibold text-muted-foreground">
@@ -143,6 +159,18 @@ export const PaymentMethodSetting = () => {
           </Button>
         </div>
       </div>
+
+      {!loading && paymentMethodSettings.length > 0 && !checkAvailable ? (
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-xs">
+          <span className="text-muted-foreground">
+            Check is not available yet. Add it once the updated branch apps are deployed. It stays hidden on registers until you tick Show.
+          </span>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => void handleMakeCheckAvailable()} disabled={addingCheck || savingOrder}>
+            {addingCheck ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
+            Make Check available
+          </Button>
+        </div>
+      ) : null}
 
       <div className="mt-3">
         {loading ? (
