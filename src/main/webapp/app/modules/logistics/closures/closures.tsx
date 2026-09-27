@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -73,38 +73,44 @@ const WholesaleClosures = () => {
       .catch(() => setRoutes([]));
   }, []);
 
-  const shownRoutes = useMemo(
-    () => routes.filter(r => r.active !== false && (routeFilter === ALL || r.id === routeFilter)),
-    [routes, routeFilter],
-  );
+  const activeRoutes = useMemo(() => routes.filter(r => r.active !== false), [routes]);
 
+  const closuresRequest = useRef(0);
   const load = useCallback(async () => {
+    const request = ++closuresRequest.current;
     setLoading(true);
     try {
-      setClosures(await fetchClosures(from, to));
+      const list = await fetchClosures(from, to);
+      if (request === closuresRequest.current) setClosures(list);
     } catch (error) {
+      if (request !== closuresRequest.current) return;
+      setClosures([]);
       toast.error(wholesaleErrorMessage(error, 'The closures could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (request === closuresRequest.current) setLoading(false);
     }
   }, [from, to]);
 
+  const routeDaysRequest = useRef(0);
   const loadRouteDays = useCallback(async () => {
+    const request = ++routeDaysRequest.current;
     const results = await Promise.all(
-      shownRoutes.map(route =>
+      activeRoutes.map(route =>
         fetchRouteDeliveryDays(route.id, from, to)
           .then(list => ({ route, days: list }))
           .catch(() => ({ route, days: [] as IDeliveryDay[] })),
       ),
     );
-    setRouteDays(results);
-  }, [shownRoutes, from, to]);
+    if (request === routeDaysRequest.current) setRouteDays(results);
+  }, [activeRoutes, from, to]);
 
   useEffect(() => {
+    setClosures([]);
     load();
   }, [load]);
 
   useEffect(() => {
+    setRouteDays([]);
     loadRouteDays();
   }, [loadRouteDays]);
 
@@ -117,7 +123,10 @@ const WholesaleClosures = () => {
     );
   }, [closures]);
 
-  const routeMarks = useMemo(() => buildRouteMarks(routeDays), [routeDays]);
+  const routeMarks = useMemo(
+    () => buildRouteMarks(routeFilter === ALL ? routeDays : routeDays.filter(({ route }) => route.id === routeFilter)),
+    [routeDays, routeFilter],
+  );
 
   const target = (c: IWholesaleClosure) => {
     switch (c.scope) {

@@ -124,17 +124,19 @@ const CustomerPicker = ({ value, label, onChange }: { value?: string | null; lab
 
 export const ClosureEditor = ({ closure, factories, routes, customerNames, onClose, onSaved }: ClosureEditorProps) => {
   const [draft, setDraft] = useState<IWholesaleClosure>(newClosure(''));
-  const [customerLabel, setCustomerLabel] = useState<string | undefined>();
+  const [pickedCustomerLabel, setPickedCustomerLabel] = useState<string | undefined>();
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (closure) {
       setDraft({ ...closure });
-      setCustomerLabel(closure.scope === 'CUSTOMER' && closure.scopeId ? customerNames[closure.scopeId] : undefined);
+      setPickedCustomerLabel(undefined);
       setSubmitted(false);
     }
   }, [closure]);
+
+  const customerLabel = pickedCustomerLabel ?? (draft.scope === 'CUSTOMER' && draft.scopeId ? customerNames[draft.scopeId] : undefined);
 
   const errors = useMemo(() => validateClosure(draft), [draft]);
   const shown = submitted ? errors : {};
@@ -143,7 +145,7 @@ export const ClosureEditor = ({ closure, factories, routes, customerNames, onClo
 
   const setScope = (scope: ClosureScope) => {
     setDraft(prev => ({ ...prev, scope, scopeId: null }));
-    setCustomerLabel(undefined);
+    setPickedCustomerLabel(undefined);
   };
 
   const setFrom = (fromDate: string) => setDraft(prev => ({ ...prev, fromDate, toDate: !prev.toDate || prev.toDate < fromDate ? fromDate : prev.toDate }));
@@ -183,7 +185,7 @@ export const ClosureEditor = ({ closure, factories, routes, customerNames, onClo
                 label={customerLabel}
                 onChange={customer => {
                   set('scopeId', customer?.id ?? null);
-                  setCustomerLabel(customer ? customerName(customer) : undefined);
+                  setPickedCustomerLabel(customer ? customerName(customer) : undefined);
                 }}
               />
             )}

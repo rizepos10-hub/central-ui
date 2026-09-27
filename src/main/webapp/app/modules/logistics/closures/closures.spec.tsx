@@ -1,14 +1,14 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { AUTHORITIES } from 'app/config/constants';
 
 import WholesaleClosures from './closures';
 import { fetchClosures, fetchRouteDeliveryDays, saveClosure } from './closure.api';
 import { fetchFactories } from '../factories/wholesale-factory.api';
-import { fetchRouteDefinitions } from '../customers/wholesale-customer.api';
+import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/wholesale-customer.api';
 import { IWholesaleClosure, buildRouteMarks, formatDay, monthGrid, toClosurePayload, validateClosure } from './closure.model';
 
 jest.mock('./closure.api', () => ({
@@ -164,5 +164,48 @@ describe('Closures page', () => {
     await within(cell('2026-11-11')).findByText('Holiday (Everyone)');
     fireEvent.click(screen.getByLabelText('Next month'));
     await waitFor(() => expect(fetchClosures).toHaveBeenCalledWith('2026-11-30', '2027-01-10'));
+  });
+
+  it("drops the last month's closures when the next month fails to load", async () => {
+    renderPage([AUTHORITIES.WHOLESALE_ADMIN]);
+    await within(cell('2026-11-11')).findByText('Holiday (Everyone)');
+    jest.mocked(fetchClosures).mockRejectedValueOnce(new Error('down'));
+
+    fireEvent.click(screen.getByLabelText('Next month'));
+
+    await waitFor(() => expect(fetchClosures).toHaveBeenCalledWith('2026-11-30', '2027-01-10'));
+    await waitFor(() => expect(screen.queryByText('Holiday (Everyone)')).toBeNull());
+  });
+
+  it('ignores a slow answer for the month the user already left', async () => {
+    let answerNovember: (list: IWholesaleClosure[]) => void;
+    jest.mocked(fetchClosures).mockImplementation(from =>
+      from === '2026-10-26' ? new Promise(resolve => (answerNovember = resolve)) : Promise.resolve([]),
+    );
+    renderPage([AUTHORITIES.WHOLESALE_ADMIN]);
+    fireEvent.click(screen.getByLabelText('Next month'));
+    await waitFor(() => expect(fetchClosures).toHaveBeenCalledWith('2026-11-30', '2027-01-10'));
+
+    await act(async () => {
+      answerNovember([{ ...holiday, fromDate: '2026-12-02', toDate: '2026-12-02' }]);
+      await Promise.resolve();
+    });
+
+    expect(within(cell('2026-12-02')).queryByText('Holiday (Everyone)')).toBeNull();
+  });
+
+  it("names the customer in the editor once the customer's name arrives", async () => {
+    let answerCustomer: (customer: object) => void;
+    jest.mocked(fetchWholesaleCustomer).mockReturnValue(new Promise(resolve => (answerCustomer = resolve)) as never);
+    jest.mocked(fetchClosures).mockResolvedValue([{ ...holiday, scope: 'CUSTOMER', scopeId: 'c-1' }]);
+    renderPage([AUTHORITIES.WHOLESALE_ADMIN]);
+
+    fireEvent.click(await within(cell('2026-11-11')).findByText('Holiday (Customer)'));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('c-1')).toBeTruthy();
+
+    answerCustomer({ id: 'c-1', businessName: 'Corner Cafe' });
+
+    expect(await within(dialog).findByText('Corner Cafe')).toBeTruthy();
   });
 });
