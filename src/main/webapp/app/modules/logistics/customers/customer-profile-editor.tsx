@@ -14,6 +14,7 @@ import { cn } from '@/src/main/webapp/app/lib/utils';
 import { WsDialogContent, WsSelectContent } from '../wholesale-ui/wholesale-overlays';
 import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { IWholesaleFactory } from '../factories/wholesale-factory.model';
+import { OrderFrequencyEditor } from '../sales/order-frequency-editor';
 import { saveWholesaleProfile } from './wholesale-customer.api';
 import {
   DAYS,
@@ -83,6 +84,7 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
   const [followSuggestion, setFollowSuggestion] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showUsualOrder, setShowUsualOrder] = useState(false);
 
   const original = customer?.wholesaleProfile ?? null;
   const isNew = customer != null && original == null;
@@ -371,6 +373,11 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
         </div>
 
         <DialogFooter className="gap-2">
+          {!isNew && (
+            <Button variant="outline" className="ws-control sm:mr-auto" onClick={() => setShowUsualOrder(true)} disabled={saving}>
+              Usual order
+            </Button>
+          )}
           <Button variant="outline" className="ws-control" onClick={onClose} disabled={saving}>
             {readOnly ? 'Close' : 'Cancel'}
           </Button>
@@ -380,6 +387,7 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
             </Button>
           )}
         </DialogFooter>
+        <OrderFrequencyEditor customer={showUsualOrder ? customer : null} readOnly={readOnly} onClose={() => setShowUsualOrder(false)} />
       </WsDialogContent>
     </Dialog>
   );
