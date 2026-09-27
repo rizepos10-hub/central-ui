@@ -101,7 +101,7 @@ const WholesaleSettings = () => {
       .catch(error => toast.error(wholesaleErrorMessage(error, 'The wholesale settings could not be loaded.')));
   }, []);
 
-  const errors = useMemo(() => (draft ? validateSettings(draft, saved) : {}), [draft, saved]);
+  const errors = useMemo(() => (draft ? validateSettings(draft) : {}), [draft, saved]);
   const shown = submitted ? errors : {};
   const dirty = !sameSettings(draft, saved);
 
@@ -246,7 +246,7 @@ const WholesaleSettings = () => {
 
         <Section title="Stale returns" description="Bread brought back unsold, and how it is credited.">
           <div className="grid gap-4 sm:grid-cols-2">
-            {percent('staleReturnRateAlertPercent', 'Alert above return rate', 'Flag customers who return more than this share of what was delivered.')}
+            {percent('staleReturnRateAlertPercent', 'Alert above return rate', 'Flag customers who return more than this share of what was delivered. Leave empty for no alert.')}
             {percent('staleCreditPercent', 'Credit', 'Share of the price credited for stale returns.')}
           </div>
           <Choice label="Credit at" value={draft.staleCreditPriceSource ?? 'SOURCE_ORDER_PRICE'} options={PRICE_SOURCES} onChange={value => set('staleCreditPriceSource', value)} />

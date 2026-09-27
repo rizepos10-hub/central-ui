@@ -12,6 +12,8 @@ export interface IWholesaleSettings {
   escalateToManagerAtCutoff?: boolean | null;
   autoDraftFromFrequencyAtCutoff?: boolean | null;
   staleReturnRateAlertPercent?: number | null;
+  /** Request only: switches the alert off, since an empty percentage means "keep" on the server. */
+  clearStaleReturnRateAlertPercent?: boolean;
   staleCreditPercent?: number | null;
   staleCreditPriceSource?: StaleCreditPriceSource | null;
   deliveryNoteFooter?: string | null;
@@ -65,10 +67,9 @@ const percentError = (value: number | null | undefined, required: boolean) => {
   return Number.isFinite(value) && value >= 0 && value <= 100 ? undefined : 'Use a percentage from 0 to 100';
 };
 
-/** A saved percentage can't be cleared (the server keeps it when the field is empty), so it stays required. */
-export const validateSettings = (settings: IWholesaleSettings, saved: IWholesaleSettings | null): SettingsErrors => {
+export const validateSettings = (settings: IWholesaleSettings): SettingsErrors => {
   const errors: SettingsErrors = {};
-  const alert = percentError(settings.staleReturnRateAlertPercent, saved?.staleReturnRateAlertPercent != null);
+  const alert = percentError(settings.staleReturnRateAlertPercent, false);
   if (alert) errors.staleReturnRateAlertPercent = alert;
   const credit = percentError(settings.staleCreditPercent, true);
   if (credit) errors.staleCreditPercent = credit;
@@ -76,12 +77,13 @@ export const validateSettings = (settings: IWholesaleSettings, saved: IWholesale
   return errors;
 };
 
-/** Sends every field; an empty footer is sent as '' so the server clears it. */
+/** Sends every field; an empty footer is sent as '' and an empty alert percentage with the clear flag, so the server clears them. */
 export const toSettingsPayload = (settings: IWholesaleSettings): IWholesaleSettings => ({
   ...settings,
   approvalEmailRecipients: [...(settings.approvalEmailRecipients ?? [])],
   reminderTimes: [...(settings.reminderTimes ?? [])].sort(),
   deliveryNoteFooter: settings.deliveryNoteFooter ?? '',
+  clearStaleReturnRateAlertPercent: settings.staleReturnRateAlertPercent == null,
 });
 
 export const sameSettings = (a: IWholesaleSettings | null, b: IWholesaleSettings | null) =>
