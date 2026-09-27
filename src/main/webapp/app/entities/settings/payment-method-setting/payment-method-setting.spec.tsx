@@ -130,6 +130,31 @@ describe('PaymentMethodSetting', () => {
     });
   });
 
+  it('hides a shown method in one app and keeps per-app boxes off while Show is off', async () => {
+    render(
+      <MemoryRouter>
+        <PaymentMethodSetting />
+      </MemoryRouter>
+    );
+
+    const cashMobile = screen.getByLabelText<HTMLInputElement>('Show Cash in Mobile POS');
+    const customDesktop = screen.getByLabelText<HTMLInputElement>('Show Custom in Desktop POS');
+    expect(cashMobile.checked).toBe(true);
+    expect(customDesktop.checked).toBe(false);
+    expect(customDesktop.disabled).toBe(true);
+
+    fireEvent.click(cashMobile);
+
+    await waitFor(() => {
+      expect(updateEntity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entity: expect.objectContaining({ id: 'cash-id', show: true, hiddenInApps: ['MOBILE_POS'] }),
+          refreshList: false,
+        })
+      );
+    });
+  });
+
   it('offers to make Check available while it is missing and refreshes after adding it', async () => {
     (makeCheckAvailable as jest.Mock).mockResolvedValue({ data: { id: 'check-id' } });
     render(

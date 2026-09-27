@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { translate, Translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { IPaymentMethodSetting } from 'app/shared/model/payment-method-setting.model';
+import { IPaymentMethodSetting, PaymentMethodApp } from 'app/shared/model/payment-method-setting.model';
 import { TransactionMethodEnum } from 'app/shared/model/service-charge.model';
 import { toast } from 'react-toastify';
 import { getAllEntities, makeCheckAvailable, updateEntity } from './payment-method-setting.reducer';
@@ -12,6 +12,13 @@ import { Pencil, Trash2, RefreshCw, Plus, Loader2 } from 'lucide-react';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
 import { assignSequentialPaymentMethodOrder, sortPaymentMethodSettings } from 'app/shared/util/payment-method-setting-utils';
+
+const APP_COLUMNS: { app: PaymentMethodApp; label: string }[] = [
+  { app: 'DESKTOP_POS', label: 'Desktop POS' },
+  { app: 'MOBILE_POS', label: 'Mobile POS' },
+];
+
+const ROW_GRID = 'grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_70px_80px_80px_60px_40px_40px]';
 
 export const PaymentMethodSetting = () => {
   const dispatch = useAppDispatch();
@@ -72,16 +79,19 @@ export const PaymentMethodSetting = () => {
     }
   };
 
-  const handleShowToggle = async (setting: IPaymentMethodSetting, checked: boolean) => {
+  const handleShowToggle = (setting: IPaymentMethodSetting, checked: boolean) => saveVisibility(setting, { ...setting, show: checked });
+
+  const handleAppToggle = (setting: IPaymentMethodSetting, app: PaymentMethodApp, checked: boolean) => {
+    const hidden = (setting.hiddenInApps ?? []).filter(value => value !== app);
+    return saveVisibility(setting, { ...setting, hiddenInApps: checked ? hidden : [...hidden, app] });
+  };
+
+  const saveVisibility = async (setting: IPaymentMethodSetting, nextSetting: IPaymentMethodSetting) => {
     if (!setting.id || savingOrder) {
       return;
     }
 
     setSavingShowIds(prev => [...prev, setting.id]);
-    const nextSetting = {
-      ...setting,
-      show: checked,
-    };
 
     setSortedSettings(prev =>
       prev.map(row => (row.id === setting.id ? nextSetting : row))
@@ -117,10 +127,15 @@ export const PaymentMethodSetting = () => {
       <div className="flex items-center gap-2 pr-2 text-xs font-semibold text-muted-foreground">
         <div aria-hidden="true" className="flex w-4 flex-col gap-0.5" />
         <div aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
-        <div className="grid flex-1 grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_90px_70px_40px_40px] items-center gap-3">
+        <div className={`grid flex-1 ${ROW_GRID} items-center gap-3`}>
           <span>Transaction Method</span>
           <span>Name</span>
           <span className="text-center">Show</span>
+          {APP_COLUMNS.map(column => (
+            <span key={column.app} className="text-center">
+              {column.label}
+            </span>
+          ))}
           <span>Order</span>
           <span className="text-center">Edit</span>
           <span className="text-center">Delete</span>
@@ -209,7 +224,7 @@ export const PaymentMethodSetting = () => {
               const isSavingShow = !!setting.id && savingShowIds.includes(setting.id);
 
               return (
-                <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_90px_70px_40px_40px] items-center gap-3 pr-2 text-xs">
+                <div className={`grid ${ROW_GRID} items-center gap-3 pr-2 text-xs`}>
                   <span className="truncate">{formatTransactionMethod(setting.transactionMethod)}</span>
                   <Link className="truncate hover:underline" to={editUrl} onClick={e => e.stopPropagation()}>
                     {setting.name || '-'}
@@ -228,6 +243,23 @@ export const PaymentMethodSetting = () => {
                       aria-label={`Toggle visibility for ${setting.name || formatTransactionMethod(setting.transactionMethod)}`}
                     />
                   </div>
+                  {APP_COLUMNS.map(column => (
+                    <div
+                      key={column.app}
+                      className="flex justify-center"
+                      onClick={e => e.stopPropagation()}
+                      onMouseDown={e => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={!!setting.show && !setting.hiddenInApps?.includes(column.app)}
+                        disabled={!setting.show || savingOrder || isSavingShow}
+                        onCheckedChange={checked => {
+                          void handleAppToggle(setting, column.app, checked === true);
+                        }}
+                        aria-label={`Show ${setting.name || formatTransactionMethod(setting.transactionMethod)} in ${column.label}`}
+                      />
+                    </div>
+                  ))}
                   <span>{setting.order ?? '-'}</span>
                   <span className="flex justify-center">
                     <Link to={editUrl} onClick={e => e.stopPropagation()}>
