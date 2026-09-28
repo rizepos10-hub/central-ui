@@ -48,7 +48,7 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
   const toggleDay = (day: DayOfWeek) =>
     set('deliveryDays', draft.deliveryDays?.includes(day) ? draft.deliveryDays.filter(d => d !== day) : [...(draft.deliveryDays ?? []), day]);
 
-  const unknownDriver = draft.defaultDriverUsername && !drivers.some(d => d.username === draft.defaultDriverUsername);
+  const unknownDriver = draft.defaultDriverUserId && !drivers.some(d => d.id === draft.defaultDriverUserId);
 
   const save = async () => {
     setSubmitted(true);
@@ -117,8 +117,8 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
             <div className="grid gap-1.5">
               <Label>Default driver</Label>
               <Select
-                value={draft.defaultDriverUsername ?? NONE}
-                onValueChange={value => set('defaultDriverUsername', value === NONE ? null : value)}
+                value={draft.defaultDriverUserId ?? NONE}
+                onValueChange={value => set('defaultDriverUserId', value === NONE ? null : value)}
                 disabled={saving}
               >
                 <SelectTrigger className="ws-control" aria-label="Default driver">
@@ -127,11 +127,11 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
                 <WsSelectContent>
                   <SelectItem value={NONE}>No default driver</SelectItem>
                   {drivers.map(d => (
-                    <SelectItem key={d.username} value={d.username}>
+                    <SelectItem key={d.id} value={d.id}>
                       {driverName(d)}
                     </SelectItem>
                   ))}
-                  {unknownDriver && <SelectItem value={draft.defaultDriverUsername}>{draft.defaultDriverUsername}</SelectItem>}
+                  {unknownDriver && <SelectItem value={draft.defaultDriverUserId}>Driver no longer active</SelectItem>}
                 </WsSelectContent>
               </Select>
             </div>

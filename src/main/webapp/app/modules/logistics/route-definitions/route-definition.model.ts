@@ -2,7 +2,10 @@ import { DAYS, DayOfWeek, IWholesaleRouteDefinition } from '../customers/wholesa
 
 export interface IRouteDefinition extends Omit<IWholesaleRouteDefinition, 'id'> {
   id?: string;
+  /** The old POS driver; central keeps it but no longer uses it. */
   defaultDriverUsername?: string | null;
+  /** A Wholesale Driver user. */
+  defaultDriverUserId?: string | null;
   salesmanIds?: string[];
   notes?: string | null;
 }
@@ -30,7 +33,7 @@ export interface IRouteOptimization {
 }
 
 export interface IWholesaleDriver {
-  id?: string;
+  id: string;
   username: string;
   firstName?: string | null;
   lastName?: string | null;
@@ -42,7 +45,7 @@ export const newRoute = (): IRouteDefinition => ({
   name: '',
   code: '',
   factoryId: null,
-  defaultDriverUsername: null,
+  defaultDriverUserId: null,
   salesmanIds: [],
   deliveryDays: [],
   active: true,
@@ -61,7 +64,7 @@ export const toRoutePayload = (route: IRouteDefinition): IRouteDefinition => ({
   name: route.name?.trim(),
   code: blankToNull(route.code),
   factoryId: blankToNull(route.factoryId),
-  defaultDriverUsername: blankToNull(route.defaultDriverUsername),
+  defaultDriverUserId: blankToNull(route.defaultDriverUserId),
   deliveryDays: DAYS.map(d => d.value).filter(day => route.deliveryDays?.includes(day)),
   active: route.active !== false,
   color: blankToNull(route.color),

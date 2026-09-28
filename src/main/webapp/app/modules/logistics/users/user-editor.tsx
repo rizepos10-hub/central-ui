@@ -78,7 +78,9 @@ export const UserEditor = ({ kind, user, factories, readOnly, onClose, onSaved }
           <DialogDescription>
             {kind === 'factoryUsers'
               ? 'Signs in to the web and the factory kiosk, and only sees the factories assigned here.'
-              : 'Manages wholesale customers, routes, closures and salesmen.'}
+              : kind === 'drivers'
+                ? "Signs in to the Wholesale Driver app and delivers the runs assigned to them. Can be a route's default driver."
+                : 'Manages wholesale customers, routes, closures and salesmen.'}
           </DialogDescription>
         </DialogHeader>
 

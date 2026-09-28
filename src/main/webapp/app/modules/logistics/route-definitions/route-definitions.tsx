@@ -127,7 +127,7 @@ const WholesaleRouteDefinitions = () => {
   };
 
   const factoryName = (id?: string | null) => factories.find(f => f.id === id)?.name ?? null;
-  const driverLabel = (username?: string | null) => (username ? driverName(drivers.find(d => d.username === username)) || username : null);
+  const driverLabel = (userId?: string | null) => (userId ? driverName(drivers.find(d => d.id === userId)) || 'driver no longer active' : null);
 
   const run = async (action: () => Promise<void>, failure: string) => {
     setBusy(true);
@@ -248,7 +248,7 @@ const WholesaleRouteDefinitions = () => {
                     )}
                   </span>
                   <span className="pl-[18px] text-xs text-muted-foreground">
-                    {[factoryName(r.factoryId) ?? 'No factory', daysLabel(r.deliveryDays), driverLabel(r.defaultDriverUsername)].filter(Boolean).join(' / ')}
+                    {[factoryName(r.factoryId) ?? 'No factory', daysLabel(r.deliveryDays), driverLabel(r.defaultDriverUserId)].filter(Boolean).join(' / ')}
                   </span>
                 </button>
               </li>
@@ -266,7 +266,7 @@ const WholesaleRouteDefinitions = () => {
                 <div className="text-base font-semibold">{selected.name}</div>
                 <div className="text-xs text-muted-foreground">
                   Loads at {factoryName(selected.factoryId) ?? 'no factory'} / runs {daysLabel(selected.deliveryDays)} / driver{' '}
-                  {driverLabel(selected.defaultDriverUsername) ?? 'not set'}
+                  {driverLabel(selected.defaultDriverUserId) ?? 'not set'}
                 </div>
               </div>
               {selected.notes && <div className="text-xs text-muted-foreground">{selected.notes}</div>}

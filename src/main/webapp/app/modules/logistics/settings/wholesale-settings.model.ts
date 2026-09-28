@@ -1,6 +1,7 @@
 export type StaleCreditPriceSource = 'SOURCE_ORDER_PRICE' | 'CURRENT_PRICE';
 export type InvoiceTiming = 'ON_FACTORY_APPROVAL' | 'ON_DELIVERY' | 'MANUAL';
 export type ShortageAllocation = 'PROPORTIONAL' | 'PRIORITY' | 'MANUAL';
+export type ProofOfDelivery = 'NONE' | 'SIGNATURE' | 'SIGNATURE_AND_PHOTO';
 
 export interface IWholesaleSettings {
   salesmanCanViewOldOrders?: boolean | null;
@@ -19,6 +20,7 @@ export interface IWholesaleSettings {
   deliveryNoteFooter?: string | null;
   invoiceTiming?: InvoiceTiming | null;
   defaultShortageAllocation?: ShortageAllocation | null;
+  proofOfDelivery?: ProofOfDelivery | null;
 }
 
 export interface Option<T extends string> {
@@ -42,6 +44,12 @@ export const SHORTAGE_ALLOCATIONS: Option<ShortageAllocation>[] = [
   { value: 'PROPORTIONAL', label: 'Proportionally', description: "Each customer's quantity is reduced by the same share." },
   { value: 'PRIORITY', label: 'By customer priority', description: 'Customers with a lower allocation priority number keep their quantities first.' },
   { value: 'MANUAL', label: 'Manually', description: 'The shortage is split by hand.' },
+];
+
+export const PROOFS_OF_DELIVERY: Option<ProofOfDelivery>[] = [
+  { value: 'NONE', label: 'Nothing extra', description: 'Only the time and location of the delivery are recorded.' },
+  { value: 'SIGNATURE', label: 'Signature', description: "The customer signs on the driver's phone." },
+  { value: 'SIGNATURE_AND_PHOTO', label: 'Signature and photo', description: 'The customer signs and the driver photographs the delivery.' },
 ];
 
 export const MAX_FOOTER_LENGTH = 2000;
