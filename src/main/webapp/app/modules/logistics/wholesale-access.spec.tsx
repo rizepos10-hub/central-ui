@@ -87,23 +87,30 @@ describe('Wholesale access', () => {
   });
 
   it('shows each role only its menu items', () => {
-    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['Create Order', 'Order Entry', 'Call List', 'Customer Notes', 'Processed Orders', 'Saved Orders', 'Routes', 'Map']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['Call List', 'Order Entry', 'Create Order', 'Saved Orders', 'Processed Orders', 'Customer Notes', 'Routes', 'Map']);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
-      'Create Order',
-      'Order Entry',
+      'Factories',
+      'Route Setup',
+      'Wholesale Customers',
+      'Closures',
       'Call List',
-      'Customer Notes',
-      'Processed Orders',
+      'Order Entry',
+      'Create Order',
       'Saved Orders',
+      'Processed Orders',
+      'Customer Notes',
       'Routes',
       'Map',
-      'Wholesale Customers',
-      'Route Setup',
-      'Factories',
-      'Closures',
       'Wholesale Users',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
+  });
+
+  it('groups the menu into Config, Operations and Settings', () => {
+    const wholesale = model.find(item => item.label === 'Wholesale');
+    const sections = wholesale.items.map(item => item.section);
+    expect(sections.every(Boolean)).toBe(true);
+    expect(sections.filter((section, i) => section !== sections[i - 1])).toEqual(['Config', 'Operations', 'Settings']);
   });
 
   it('blocks a direct URL without the role', () => {
