@@ -21,7 +21,13 @@ export interface IWholesaleSettings {
   invoiceTiming?: InvoiceTiming | null;
   defaultShortageAllocation?: ShortageAllocation | null;
   proofOfDelivery?: ProofOfDelivery | null;
+  alertOnNotPaidCashOnly?: boolean | null;
+  staleRateWindowDays?: number | null;
+  liveTrackingIntervalSeconds?: number | null;
 }
+
+export const STALE_WINDOW_DAYS = { min: 1, max: 90, fallback: 7 };
+export const TRACKING_SECONDS = { min: 15, max: 900, fallback: 60 };
 
 export interface Option<T extends string> {
   value: T;
@@ -68,7 +74,14 @@ export const addUnique = (list: string[] | undefined, value: string, sort = fals
   return sort ? next.sort() : next;
 };
 
-export type SettingsErrors = Partial<Record<'staleReturnRateAlertPercent' | 'staleCreditPercent' | 'deliveryNoteFooter', string>>;
+export type SettingsErrors = Partial<
+  Record<'staleReturnRateAlertPercent' | 'staleCreditPercent' | 'deliveryNoteFooter' | 'staleRateWindowDays' | 'liveTrackingIntervalSeconds', string>
+>;
+
+const wholeNumberError = (value: number | null | undefined, range: { min: number; max: number }) => {
+  if (value == null) return undefined;
+  return Number.isInteger(value) && value >= range.min && value <= range.max ? undefined : `Use a whole number from ${range.min} to ${range.max}`;
+};
 
 const percentError = (value: number | null | undefined, required: boolean) => {
   if (value == null) return required ? 'Enter a percentage from 0 to 100' : undefined;
@@ -82,6 +95,10 @@ export const validateSettings = (settings: IWholesaleSettings): SettingsErrors =
   const credit = percentError(settings.staleCreditPercent, true);
   if (credit) errors.staleCreditPercent = credit;
   if ((settings.deliveryNoteFooter ?? '').length > MAX_FOOTER_LENGTH) errors.deliveryNoteFooter = `Use at most ${MAX_FOOTER_LENGTH} characters`;
+  const window = wholeNumberError(settings.staleRateWindowDays, STALE_WINDOW_DAYS);
+  if (window) errors.staleRateWindowDays = window;
+  const tracking = wholeNumberError(settings.liveTrackingIntervalSeconds, TRACKING_SECONDS);
+  if (tracking) errors.liveTrackingIntervalSeconds = tracking;
   return errors;
 };
 

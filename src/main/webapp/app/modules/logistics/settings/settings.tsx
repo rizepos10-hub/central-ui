@@ -20,6 +20,8 @@ import {
   PRICE_SOURCES,
   PROOFS_OF_DELIVERY,
   SHORTAGE_ALLOCATIONS,
+  STALE_WINDOW_DAYS,
+  TRACKING_SECONDS,
   addUnique,
   isEmail,
   isTime,
@@ -34,7 +36,8 @@ type BooleanKey =
   | 'allowOverDelivery'
   | 'requireReasonOnQuantityChange'
   | 'escalateToManagerAtCutoff'
-  | 'autoDraftFromFrequencyAtCutoff';
+  | 'autoDraftFromFrequencyAtCutoff'
+  | 'alertOnNotPaidCashOnly';
 
 const Section = ({ title, description, children }: { title: string; description: string; children: React.ReactNode }) => (
   <section className="ws-card grid gap-4 p-4 md:grid-cols-[260px_1fr]">
@@ -148,6 +151,33 @@ const WholesaleSettings = () => {
     </div>
   );
 
+  const wholeNumber = (
+    key: 'staleRateWindowDays' | 'liveTrackingIntervalSeconds',
+    range: { min: number; max: number; fallback: number },
+    label: string,
+    unit: string,
+    description: string,
+  ) => (
+    <div className="grid gap-1.5">
+      <Label htmlFor={`ws-setting-${key}`}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id={`ws-setting-${key}`}
+          type="number"
+          min={range.min}
+          max={range.max}
+          step={1}
+          className="ws-control ws-mono w-28"
+          placeholder={String(range.fallback)}
+          value={draft[key] ?? ''}
+          onChange={e => set(key, e.target.value === '' ? null : Number(e.target.value))}
+        />
+        <span className="text-muted-foreground">{unit}</span>
+      </div>
+      <span className={shown[key] ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>{shown[key] ?? description}</span>
+    </div>
+  );
+
   const addTime = () => {
     if (!isTime(newTime)) return;
     set('reminderTimes', addUnique(draft.reminderTimes, newTime.trim(), true));
@@ -249,6 +279,7 @@ const WholesaleSettings = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             {percent('staleReturnRateAlertPercent', 'Alert above return rate', 'Flag customers who return more than this share of what was delivered. Leave empty for no alert.')}
             {percent('staleCreditPercent', 'Credit', 'Share of the price credited for stale returns.')}
+            {wholeNumber('staleRateWindowDays', STALE_WINDOW_DAYS, 'Return rate period', 'days', 'The alert compares returns with deliveries over this many days.')}
           </div>
           <Choice label="Credit at" value={draft.staleCreditPriceSource ?? 'SOURCE_ORDER_PRICE'} options={PRICE_SOURCES} onChange={value => set('staleCreditPriceSource', value)} />
         </Section>
@@ -265,6 +296,14 @@ const WholesaleSettings = () => {
 
         <Section title="Delivery" description="What the driver records when a stop is completed, and the delivery note footer.">
           <Choice label="Proof of delivery" value={draft.proofOfDelivery ?? 'SIGNATURE'} options={PROOFS_OF_DELIVERY} onChange={value => set('proofOfDelivery', value)} />
+          {toggle('alertOnNotPaidCashOnly', 'Alert on unpaid cash-only stops', 'Raise an alert when a cash-only customer is left unpaid.')}
+          {wholeNumber(
+            'liveTrackingIntervalSeconds',
+            TRACKING_SECONDS,
+            'Driver location every',
+            'seconds',
+            'How often the driver app shares its location for Live Route while a run is open.',
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor="ws-delivery-footer">Footer</Label>
             <Textarea

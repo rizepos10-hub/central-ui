@@ -33,6 +33,13 @@ describe('wholesale settings model', () => {
     expect(validateSettings({ ...defaults, deliveryNoteFooter: 'x'.repeat(2001) }).deliveryNoteFooter).toBeDefined();
   });
 
+  it('keeps the stale rate period and tracking interval in the server ranges', () => {
+    expect(validateSettings({ ...defaults, staleRateWindowDays: 7, liveTrackingIntervalSeconds: 60 })).toEqual({});
+    expect(validateSettings({ ...defaults, staleRateWindowDays: 91 }).staleRateWindowDays).toBe('Use a whole number from 1 to 90');
+    expect(validateSettings({ ...defaults, staleRateWindowDays: 2.5 }).staleRateWindowDays).toBeDefined();
+    expect(validateSettings({ ...defaults, liveTrackingIntervalSeconds: 10 }).liveTrackingIntervalSeconds).toBe('Use a whole number from 15 to 900');
+  });
+
   it('sends an empty footer and an empty alert so they are cleared, and sorted reminder times', () => {
     expect(toSettingsPayload({ ...defaults, reminderTimes: ['16:00', '09:30'] })).toMatchObject({
       deliveryNoteFooter: '',
