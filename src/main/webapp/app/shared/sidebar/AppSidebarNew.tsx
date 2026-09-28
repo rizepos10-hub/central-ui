@@ -274,9 +274,24 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
     return !tourCompleted && (stepIndex === 3 || stepIndex === 6);
   };
 
+  // Sections start collapsed, except the one holding the current page; the user's choice is remembered either way.
+  const sectionKey = (parentKey: string, section: string) => `${parentKey}:section:${section}`;
+  const isSectionOpen = (parentKey: string, section: string, holdsActive: boolean) => {
+    const key = sectionKey(parentKey, section);
+    return expandedSubmenus.has(`${key}:open`) || (holdsActive && !expandedSubmenus.has(`${key}:closed`));
+  };
+  const toggleSection = (parentKey: string, section: string, open: boolean) => {
+    const key = sectionKey(parentKey, section);
+    const next = new Set(expandedSubmenus);
+    next.delete(open ? `${key}:open` : `${key}:closed`);
+    next.add(open ? `${key}:closed` : `${key}:open`);
+    setExpandedSubmenus(next);
+  };
+
   // Render submenu items recursively
   const renderSubmenuItems = (items: MenuItem[], parentKey: string, level = 0) => {
     const filteredItems = getFilteredMenuItems(items);
+    const activeSections = new Set(filteredItems.filter(i => i.section && isActiveRoute(i.to)).map(i => i.section));
 
     return filteredItems.map((item, index) => {
       const itemKey = `${parentKey}-${index}`;
@@ -424,18 +439,34 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
       }
 
       const startsSection = item.section && item.section !== filteredItems[index - 1]?.section;
+      const sectionOpen = !item.section || isSectionOpen(parentKey, item.section, activeSections.has(item.section));
+      const sectionItems = startsSection ? filteredItems.filter(i => i.section === item.section) : [];
 
       return (
         <React.Fragment key={itemKey}>
         {startsSection && (
-          <li className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground first:pt-1">{item.section}</li>
+          <li className="pt-1 first:pt-0">
+            <button
+              type="button"
+              aria-expanded={sectionOpen}
+              onClick={() => toggleSection(parentKey, item.section, sectionOpen)}
+              className="flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-sidebar-accent"
+            >
+              {sectionOpen ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />}
+              <span className="flex-1 truncate text-left">{item.section}</span>
+              {!sectionOpen && sectionItems.filter(i => i.badge).map(i => <MenuBadge key={i.to} name={i.badge} />)}
+              {!sectionOpen && <span className="font-normal normal-case tracking-normal">{sectionItems.length}</span>}
+            </button>
+          </li>
         )}
-        <SidebarMenuItem>
+        {sectionOpen && (
+        <SidebarMenuItem className={cn(item.section && 'ml-3.5 pl-2 before:absolute before:-top-1 before:bottom-0 before:left-0 before:w-px before:bg-sidebar-border')}>
           <SidebarMenuButton
             asChild
             isActive={isActive}
             className={cn(
-              'h-9 px-3 hover:bg-sidebar-accent transition-colors',
+              item.section ? 'h-7' : 'h-9',
+              'px-3 hover:bg-sidebar-accent transition-colors',
               isActive && 'bg-primary/10 font-medium text-primary hover:bg-primary/15',
               isTourTarget && 'tour-target',
               isBlocked && 'blocked'
@@ -460,6 +491,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
+        )}
         </React.Fragment>
       );
     });

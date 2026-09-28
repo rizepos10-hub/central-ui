@@ -110,13 +110,13 @@ describe('Wholesale access', () => {
     expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
       'Call List',
       'Order Entry',
+      'Customer Notes',
+      'Order Sheets',
       'Create Order',
       'Saved Orders',
       'Processed Orders',
-      'Customer Notes',
       'Routes',
       'Map',
-      'Order Sheets',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
       'Factories',
@@ -125,12 +125,7 @@ describe('Wholesale access', () => {
       'Closures',
       'Call List',
       'Order Entry',
-      'Create Order',
-      'Saved Orders',
-      'Processed Orders',
       'Customer Notes',
-      'Routes',
-      'Map',
       'Order Sheets',
       'Factory Orders',
       'Production',
@@ -139,15 +134,27 @@ describe('Wholesale access', () => {
       'Stale Returns',
       'Credit Memos',
       'Wholesale Users',
+      'Create Order',
+      'Saved Orders',
+      'Processed Orders',
+      'Routes',
+      'Map',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
   });
 
-  it('groups the menu into Config, Operations and Settings', () => {
+  it('groups the menu into its six sections, each in one block', () => {
     const wholesale = model.find(item => item.label === 'Wholesale');
     const sections = wholesale.items.map(item => item.section);
     expect(sections.every(Boolean)).toBe(true);
-    expect(sections.filter((section, i) => section !== sections[i - 1])).toEqual(['Config', 'Operations', 'Settings']);
+    expect(sections.filter((section, i) => section !== sections[i - 1])).toEqual([
+      'Configuration',
+      'Order Preparation',
+      'Production',
+      'Audits and Reconciliation',
+      'Settings',
+      'Other',
+    ]);
   });
 
   it('blocks a direct URL without the role', () => {
