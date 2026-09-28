@@ -54,6 +54,10 @@ describe('Wholesale access', () => {
       'savedOrders',
       'routes',
       'map',
+      'orderSheets',
+      'production',
+      'loadingLists',
+      'factoryOrders',
       'customers',
       'routeDefinitions',
       'factories',
@@ -62,32 +66,53 @@ describe('Wholesale access', () => {
     ]);
   });
 
-  it('keeps salesmen on the ordering pages', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['createOrder', 'orderEntry', 'callList', 'customerNotes', 'wholesaleOrders', 'savedOrders', 'routes', 'map']);
+  it('keeps salesmen on the ordering pages and their order sheets', () => {
+    expect(pagesFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
+      'createOrder',
+      'orderEntry',
+      'callList',
+      'customerNotes',
+      'wholesaleOrders',
+      'savedOrders',
+      'routes',
+      'map',
+      'orderSheets',
+    ]);
   });
 
-  it('lets bookkeepers read setup except factories and settings', () => {
+  it('lets bookkeepers read setup except factories and settings, and open factory orders for invoices', () => {
     const pages = pagesFor(AUTHORITIES.WHOLESALE_BOOKKEEPER);
-    expect(pages).toEqual(expect.arrayContaining(['customers', 'routeDefinitions', 'closures', 'users']));
+    expect(pages).toEqual(expect.arrayContaining(['customers', 'routeDefinitions', 'closures', 'users', 'factoryOrders']));
     expect(pages).not.toContain('factories');
     expect(pages).not.toContain('settings');
+    expect(pages).not.toContain('factoryFulfillment');
   });
 
-  it('gives administrators and wholesale admins every page', () => {
+  it('gives administrators every page and wholesale admins every page but the factory screen', () => {
     const all = Object.keys(WHOLESALE_PAGE_ROLES);
     expect(pagesFor(AUTHORITIES.ADMIN)).toEqual(all);
-    expect(pagesFor(AUTHORITIES.WHOLESALE_ADMIN)).toEqual(all);
+    expect(pagesFor(AUTHORITIES.WHOLESALE_ADMIN)).toEqual(all.filter(page => page !== 'factoryFulfillment'));
   });
 
-  it('gives factory users only the Factories page, and unrelated roles nothing', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['factories']);
-    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories']);
+  it('gives factory users their fulfillment, production and loading pages, and unrelated roles nothing', () => {
+    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['production', 'loadingLists', 'factoryFulfillment', 'factories']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories', 'Factory Fulfillment', 'Production', 'Loading Lists']);
     expect(WHOLESALE_ANY_ROLES).toContain(AUTHORITIES.WHOLESALE_FACTORY);
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
   });
 
   it('shows each role only its menu items', () => {
-    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['Call List', 'Order Entry', 'Create Order', 'Saved Orders', 'Processed Orders', 'Customer Notes', 'Routes', 'Map']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
+      'Call List',
+      'Order Entry',
+      'Create Order',
+      'Saved Orders',
+      'Processed Orders',
+      'Customer Notes',
+      'Routes',
+      'Map',
+      'Order Sheets',
+    ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
       'Factories',
       'Route Setup',
@@ -101,6 +126,10 @@ describe('Wholesale access', () => {
       'Customer Notes',
       'Routes',
       'Map',
+      'Order Sheets',
+      'Factory Orders',
+      'Production',
+      'Loading Lists',
       'Wholesale Users',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');

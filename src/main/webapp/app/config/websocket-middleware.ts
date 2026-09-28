@@ -115,6 +115,20 @@ const disconnect = () => {
   alreadyConnectedOnce = false;
 };
 
+/** Subscribes once the socket is connected; the returned function unsubscribes. Does nothing while signed out. */
+export const subscribeToTopic = (destination: string, onMessage: (body: any) => void): (() => void) => {
+  let subscription = null;
+  let cancelled = false;
+  connection?.then(() => {
+    if (cancelled || !stompClient) return;
+    subscription = stompClient.subscribe(destination, data => onMessage(JSON.parse(data.body)));
+  });
+  return () => {
+    cancelled = true;
+    subscription?.unsubscribe();
+  };
+};
+
 const receive = () => listener;
 const receiveNotifications = () => notificationListener;
 

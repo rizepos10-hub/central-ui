@@ -18,6 +18,13 @@ import WholesaleSettings from './settings/settings';
 import OrderEntry from './sales/order-entry';
 import CallList from './sales/call-list';
 import CustomerNotes from './sales/customer-notes';
+import OrderSheets from './operations/order-sheets';
+import Production from './operations/production';
+import LoadingLists from './operations/loading-lists';
+import FactoryOrders from './operations/factory-orders';
+import FactoryOrderDetail from './operations/factory-order-detail';
+import FactoryFulfillment from './operations/factory-fulfillment';
+import WholesaleHome from './operations/wholesale-home';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -27,7 +34,7 @@ const guard = (page: WholesalePageKey, element: React.ReactNode) => (
 const LogisticsRoutes = () => {
   return (
     <ErrorBoundaryRoutes>
-      <Route index element={guard('wholesaleOrders', <WholesaleOrders />)} />
+      <Route index element={<WholesaleHome />} />
       <Route path="create-order" element={guard('createOrder', <ChooseRegister />)} />
       <Route path="order-entry" element={guard('orderEntry', <OrderEntry />)} />
       <Route path="call-list" element={guard('callList', <CallList />)} />
@@ -37,6 +44,12 @@ const LogisticsRoutes = () => {
       <Route path="routes" element={guard('routes', <RoutesPage />)} />
       <Route path="routes/:routeId" element={guard('routes', <RouteOrders />)} />
       <Route path="map" element={guard('map', <LogisticsMap />)} />
+      <Route path="order-sheets" element={guard('orderSheets', <OrderSheets />)} />
+      <Route path="production" element={guard('production', <Production />)} />
+      <Route path="loading-lists" element={guard('loadingLists', <LoadingLists />)} />
+      <Route path="factory-orders" element={guard('factoryOrders', <FactoryOrders />)} />
+      <Route path="factory-orders/:id" element={guard('factoryOrders', <FactoryOrderDetail />)} />
+      <Route path="factory-fulfillment" element={guard('factoryFulfillment', <FactoryFulfillment />)} />
       <Route path="customers" element={guard('customers', <WholesaleCustomers />)} />
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesaleRouteDefinitions />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />
