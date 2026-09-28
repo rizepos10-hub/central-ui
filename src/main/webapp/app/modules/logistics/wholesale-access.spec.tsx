@@ -93,10 +93,10 @@ describe('Wholesale access', () => {
     expect(pages).not.toContain('factoryFulfillment');
   });
 
-  it('gives administrators every page and wholesale admins every page but the factory screen', () => {
+  it('gives administrators and wholesale admins every page', () => {
     const all = Object.keys(WHOLESALE_PAGE_ROLES);
     expect(pagesFor(AUTHORITIES.ADMIN)).toEqual(all);
-    expect(pagesFor(AUTHORITIES.WHOLESALE_ADMIN)).toEqual(all.filter(page => page !== 'factoryFulfillment'));
+    expect(pagesFor(AUTHORITIES.WHOLESALE_ADMIN)).toEqual(all);
   });
 
   it('gives factory users their fulfillment, production and loading pages, and unrelated roles nothing', () => {
