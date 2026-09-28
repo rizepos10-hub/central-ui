@@ -68,6 +68,7 @@ describe('Wholesale access', () => {
       'factories',
       'closures',
       'users',
+      'help',
     ]);
   });
 
@@ -82,6 +83,7 @@ describe('Wholesale access', () => {
       'routes',
       'map',
       'orderSheets',
+      'help',
     ]);
   });
 
@@ -103,8 +105,8 @@ describe('Wholesale access', () => {
   });
 
   it('gives factory users their fulfillment, production and loading pages, and unrelated roles nothing', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['production', 'loadingLists', 'factoryFulfillment', 'factories']);
-    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories', 'Factory Fulfillment', 'Production', 'Loading Lists']);
+    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['production', 'loadingLists', 'factoryFulfillment', 'factories', 'help']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories', 'Factory Fulfillment', 'Production', 'Loading Lists', 'Help']);
     expect(WHOLESALE_ANY_ROLES).toContain(AUTHORITIES.WHOLESALE_FACTORY);
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
   });
@@ -120,6 +122,7 @@ describe('Wholesale access', () => {
       'Processed Orders',
       'Routes',
       'Map',
+      'Help',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
       'Dashboard',
@@ -144,6 +147,7 @@ describe('Wholesale access', () => {
       'Processed Orders',
       'Routes',
       'Map',
+      'Help',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
     expect(menuFor(AUTHORITIES.WHOLESALE_BOOKKEEPER)).toEqual(
@@ -151,11 +155,13 @@ describe('Wholesale access', () => {
     );
   });
 
-  it('puts the Dashboard first, then groups the menu into its six sections, each in one block', () => {
+  it('puts the Dashboard first and Help last, with the six sections in one block each between them', () => {
     const wholesale = model.find(item => item.label === 'Wholesale');
     expect(wholesale.items[0].label).toBe('Dashboard');
     expect(wholesale.items[0].section).toBeUndefined();
-    const sections = wholesale.items.slice(1).map(item => item.section);
+    expect(wholesale.items[wholesale.items.length - 1].label).toBe('Help');
+    expect(wholesale.items[wholesale.items.length - 1].section).toBeUndefined();
+    const sections = wholesale.items.slice(1, -1).map(item => item.section);
     expect(sections.every(Boolean)).toBe(true);
     expect(sections.filter((section, i) => section !== sections[i - 1])).toEqual([
       'Configuration',

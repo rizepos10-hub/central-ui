@@ -517,6 +517,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RETAIL],
         section: 'Other',
       },
+      {
+        label: 'Help',
+        to: '/logistics/help',
+        role: WHOLESALE_PAGE_ROLES.help,
+        type: [BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RETAIL],
   },

@@ -35,6 +35,7 @@ import Alerts from './audits/alerts';
 import CustomerAccounts from './audits/customer-accounts';
 import Invoices from './audits/invoices';
 import LiveRoute from './audits/live-route';
+import WholesaleHelp from './help/help';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -77,6 +78,7 @@ const LogisticsRoutes = () => {
       <Route path="users" element={guard('users', <WholesaleUsers />)} />
       <Route path="settings" element={guard('settings', <WholesaleSettings />)} />
       <Route path="theme-preview" element={guard('themePreview', <WholesaleThemePreview />)} />
+      <Route path="help" element={guard('help', <WholesaleHelp />)} />
     </ErrorBoundaryRoutes>
   );
 };
