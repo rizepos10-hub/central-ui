@@ -46,6 +46,7 @@ const renderAt = (path: string, authorities: string[], page: WholesalePageKey) =
 describe('Wholesale access', () => {
   it('gives sales managers the ordering and setup pages, but not settings', () => {
     expect(pagesFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
+      'dashboard',
       'createOrder',
       'orderEntry',
       'callList',
@@ -59,6 +60,7 @@ describe('Wholesale access', () => {
       'loadingLists',
       'factoryOrders',
       'deliveryRuns',
+      'liveRoute',
       'staleReturns',
       'creditMemos',
       'customers',
@@ -88,6 +90,7 @@ describe('Wholesale access', () => {
     expect(pages).toEqual(
       expect.arrayContaining(['customers', 'routeDefinitions', 'closures', 'users', 'factoryOrders', 'deliveryRuns', 'cashHandover', 'staleReturns', 'creditMemos']),
     );
+    expect(pages).toEqual(expect.arrayContaining(['dashboard', 'liveRoute', 'reconciliation', 'alerts', 'customerAccounts', 'invoices']));
     expect(pages).not.toContain('factories');
     expect(pages).not.toContain('settings');
     expect(pages).not.toContain('factoryFulfillment');
@@ -119,6 +122,7 @@ describe('Wholesale access', () => {
       'Map',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
+      'Dashboard',
       'Factories',
       'Route Setup',
       'Wholesale Customers',
@@ -131,6 +135,7 @@ describe('Wholesale access', () => {
       'Production',
       'Loading Lists',
       'Delivery Runs',
+      'Live Route',
       'Stale Returns',
       'Credit Memos',
       'Wholesale Users',
@@ -141,11 +146,16 @@ describe('Wholesale access', () => {
       'Map',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
+    expect(menuFor(AUTHORITIES.WHOLESALE_BOOKKEEPER)).toEqual(
+      expect.arrayContaining(['Dashboard', 'Live Route', 'Reconciliation', 'Alerts', 'Customer Accounts', 'Invoices']),
+    );
   });
 
-  it('groups the menu into its six sections, each in one block', () => {
+  it('puts the Dashboard first, then groups the menu into its six sections, each in one block', () => {
     const wholesale = model.find(item => item.label === 'Wholesale');
-    const sections = wholesale.items.map(item => item.section);
+    expect(wholesale.items[0].label).toBe('Dashboard');
+    expect(wholesale.items[0].section).toBeUndefined();
+    const sections = wholesale.items.slice(1).map(item => item.section);
     expect(sections.every(Boolean)).toBe(true);
     expect(sections.filter((section, i) => section !== sections[i - 1])).toEqual([
       'Configuration',

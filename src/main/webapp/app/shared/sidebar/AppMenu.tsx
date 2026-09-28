@@ -314,6 +314,12 @@ export const model: MenuItem[] = [
     to: '/logistics/wholesale-orders',
     items: [
       {
+        label: 'Dashboard',
+        to: '/logistics/dashboard',
+        role: WHOLESALE_PAGE_ROLES.dashboard,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
         label: 'Factories',
         to: '/logistics/factories',
         role: WHOLESALE_PAGE_ROLES.factories,
@@ -406,6 +412,28 @@ export const model: MenuItem[] = [
         section: 'Production',
       },
       {
+        label: 'Live Route',
+        to: '/logistics/live-route',
+        role: WHOLESALE_PAGE_ROLES.liveRoute,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Production',
+      },
+      {
+        label: 'Reconciliation',
+        to: '/logistics/reconciliation',
+        role: WHOLESALE_PAGE_ROLES.reconciliation,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Audits and Reconciliation',
+      },
+      {
+        label: 'Alerts',
+        to: '/logistics/alerts',
+        role: WHOLESALE_PAGE_ROLES.alerts,
+        type: [BusinessTypeEnum.RETAIL],
+        badge: 'wholesaleAlerts',
+        section: 'Audits and Reconciliation',
+      },
+      {
         label: 'Cash Handover',
         to: '/logistics/cash-handover',
         role: WHOLESALE_PAGE_ROLES.cashHandover,
@@ -423,6 +451,20 @@ export const model: MenuItem[] = [
         label: 'Credit Memos',
         to: '/logistics/credit-memos',
         role: WHOLESALE_PAGE_ROLES.creditMemos,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Audits and Reconciliation',
+      },
+      {
+        label: 'Customer Accounts',
+        to: '/logistics/customer-accounts',
+        role: WHOLESALE_PAGE_ROLES.customerAccounts,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Audits and Reconciliation',
+      },
+      {
+        label: 'Invoices',
+        to: '/logistics/invoices',
+        role: WHOLESALE_PAGE_ROLES.invoices,
         type: [BusinessTypeEnum.RETAIL],
         section: 'Audits and Reconciliation',
       },

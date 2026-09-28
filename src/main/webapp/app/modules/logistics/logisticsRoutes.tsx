@@ -29,6 +29,12 @@ import DeliveryRuns from './delivery/delivery-runs';
 import CashHandover from './delivery/cash-handover';
 import StaleReturns from './delivery/stale-returns';
 import CreditMemos from './delivery/credit-memos';
+import Dashboard from './audits/dashboard';
+import Reconciliation from './audits/reconciliation';
+import Alerts from './audits/alerts';
+import CustomerAccounts from './audits/customer-accounts';
+import Invoices from './audits/invoices';
+import LiveRoute from './audits/live-route';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -58,6 +64,12 @@ const LogisticsRoutes = () => {
       <Route path="cash-handover" element={guard('cashHandover', <CashHandover />)} />
       <Route path="stale-returns" element={guard('staleReturns', <StaleReturns />)} />
       <Route path="credit-memos" element={guard('creditMemos', <CreditMemos />)} />
+      <Route path="dashboard" element={guard('dashboard', <Dashboard />)} />
+      <Route path="live-route" element={guard('liveRoute', <LiveRoute />)} />
+      <Route path="reconciliation" element={guard('reconciliation', <Reconciliation />)} />
+      <Route path="alerts" element={guard('alerts', <Alerts />)} />
+      <Route path="customer-accounts" element={guard('customerAccounts', <CustomerAccounts />)} />
+      <Route path="invoices" element={guard('invoices', <Invoices />)} />
       <Route path="customers" element={guard('customers', <WholesaleCustomers />)} />
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesaleRouteDefinitions />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />
