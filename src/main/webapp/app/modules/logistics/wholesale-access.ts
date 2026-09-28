@@ -58,6 +58,7 @@ export const WHOLESALE_PAGE_ROLES = {
   users: [ADMIN, WHOLESALE_ADMIN, WHOLESALE_SALES_MANAGER, WHOLESALE_BOOKKEEPER],
   settings: [ADMIN, WHOLESALE_ADMIN],
   themePreview: [ADMIN, WHOLESALE_ADMIN],
+  help: [...ordering, WHOLESALE_FACTORY],
 };
 
 export type WholesalePageKey = keyof typeof WHOLESALE_PAGE_ROLES;
