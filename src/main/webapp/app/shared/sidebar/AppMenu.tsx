@@ -15,6 +15,8 @@ export type MenuItem = {
   type: BusinessTypeEnum[];
   /** Key into MENU_BADGES; a string so the item survives the sidebar's JSON copy of the menu. */
   badge?: string;
+  /** Heading shown above the first visible item of each section. */
+  section?: string;
 };
 
 
@@ -312,16 +314,32 @@ export const model: MenuItem[] = [
     to: '/logistics/wholesale-orders',
     items: [
       {
-        label: 'Create Order',
-        to: '/logistics/create-order',
-        role: WHOLESALE_PAGE_ROLES.createOrder,
+        label: 'Factories',
+        to: '/logistics/factories',
+        role: WHOLESALE_PAGE_ROLES.factories,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Config',
       },
       {
-        label: 'Order Entry',
-        to: '/logistics/order-entry',
-        role: WHOLESALE_PAGE_ROLES.orderEntry,
+        label: 'Route Setup',
+        to: '/logistics/route-definitions',
+        role: WHOLESALE_PAGE_ROLES.routeDefinitions,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Config',
+      },
+      {
+        label: 'Wholesale Customers',
+        to: '/logistics/customers',
+        role: WHOLESALE_PAGE_ROLES.customers,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Config',
+      },
+      {
+        label: 'Closures',
+        to: '/logistics/closures',
+        role: WHOLESALE_PAGE_ROLES.closures,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Config',
       },
       {
         label: 'Call List',
@@ -329,72 +347,70 @@ export const model: MenuItem[] = [
         role: WHOLESALE_PAGE_ROLES.callList,
         type: [BusinessTypeEnum.RETAIL],
         badge: 'wholesaleCallList',
+        section: 'Operations',
       },
       {
-        label: 'Customer Notes',
-        to: '/logistics/customer-notes',
-        role: WHOLESALE_PAGE_ROLES.customerNotes,
+        label: 'Order Entry',
+        to: '/logistics/order-entry',
+        role: WHOLESALE_PAGE_ROLES.orderEntry,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
       },
       {
-        label: 'Processed Orders',
-        to: '/logistics/wholesale-orders',
-        role: WHOLESALE_PAGE_ROLES.wholesaleOrders,
+        label: 'Create Order',
+        to: '/logistics/create-order',
+        role: WHOLESALE_PAGE_ROLES.createOrder,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
       },
       {
         label: 'Saved Orders',
         to: '/logistics/saved-orders',
         role: WHOLESALE_PAGE_ROLES.savedOrders,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
+      },
+      {
+        label: 'Processed Orders',
+        to: '/logistics/wholesale-orders',
+        role: WHOLESALE_PAGE_ROLES.wholesaleOrders,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
+      },
+      {
+        label: 'Customer Notes',
+        to: '/logistics/customer-notes',
+        role: WHOLESALE_PAGE_ROLES.customerNotes,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
       },
       {
         label: 'Routes',
         to: '/logistics/routes',
         role: WHOLESALE_PAGE_ROLES.routes,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
       },
       {
         label: 'Map',
         to: '/logistics/map',
         role: WHOLESALE_PAGE_ROLES.map,
         type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Wholesale Customers',
-        to: '/logistics/customers',
-        role: WHOLESALE_PAGE_ROLES.customers,
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Route Setup',
-        to: '/logistics/route-definitions',
-        role: WHOLESALE_PAGE_ROLES.routeDefinitions,
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Factories',
-        to: '/logistics/factories',
-        role: WHOLESALE_PAGE_ROLES.factories,
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Closures',
-        to: '/logistics/closures',
-        role: WHOLESALE_PAGE_ROLES.closures,
-        type: [BusinessTypeEnum.RETAIL],
+        section: 'Operations',
       },
       {
         label: 'Wholesale Users',
         to: '/logistics/users',
         role: WHOLESALE_PAGE_ROLES.users,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Settings',
       },
       {
         label: 'Wholesale Settings',
         to: '/logistics/settings',
         role: WHOLESALE_PAGE_ROLES.settings,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Settings',
       },
     ],
     type: [BusinessTypeEnum.RETAIL],

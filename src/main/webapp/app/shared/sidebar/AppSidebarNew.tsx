@@ -423,8 +423,14 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
         );
       }
 
+      const startsSection = item.section && item.section !== filteredItems[index - 1]?.section;
+
       return (
-        <SidebarMenuItem key={itemKey}>
+        <React.Fragment key={itemKey}>
+        {startsSection && (
+          <li className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground first:pt-1">{item.section}</li>
+        )}
+        <SidebarMenuItem>
           <SidebarMenuButton
             asChild
             isActive={isActive}
@@ -450,9 +456,11 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
             >
               {item.icon && React.createElement(getIconComponent(item.icon), { className: "h-4 w-4 text-muted-foreground flex-shrink-0" })}
               <span className="text-sm truncate">{item.label}</span>
+              {item.badge && <MenuBadge name={item.badge} />}
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
+        </React.Fragment>
       );
     });
   };
