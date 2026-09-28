@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 
 const ErrorBoundaryRoutes = React.lazy(() => import('app/shared/error/error-boundary-routes'));
 const OnlineOrderingRoutes = React.lazy(() => import('app/entities/online-ordering/routes'));
@@ -20,7 +20,6 @@ const ProfileGroups = React.lazy(() => import('./settings/profile-group'));
 const VoidReasons = React.lazy(() => import('./settings/void-reason'));
 const BranchPosUser = React.lazy(() => import('./branch-pos-user'));
 const BackOfficeUser = React.lazy(() => import('./back-office-user'));
-const SalesmenUser = React.lazy(() => import('./salesmen-user'));
 const BookkeeperUser = React.lazy(() => import('./bookkeeper-user'));
 const Printer = React.lazy(() => import('app/entities/settings/printing/printer'));
 const PrintingProfiles = React.lazy(() => import('app/entities/settings/printing/printing-profiles'));
@@ -84,7 +83,7 @@ export default () => {
         <Route path="menu/*" element={<Menu />} />
         <Route path="back-office-user/*" element={<BackOfficeUser />} />
         <Route path="branch-pos-user/*" element={<BranchPosUser />} />
-        <Route path="salesmen-user/*" element={<SalesmenUser />} />
+        <Route path="salesmen-user/*" element={<Navigate to="/logistics/salesmen" replace />} />
         <Route path="bookkeeper-user/*" element={<BookkeeperUser />} />
         <Route path="pos-authority-group/*" element={<PosAuthorityGroupRoutes />} />
 
