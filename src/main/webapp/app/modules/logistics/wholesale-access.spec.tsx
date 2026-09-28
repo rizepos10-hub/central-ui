@@ -111,6 +111,14 @@ describe('Wholesale access', () => {
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
   });
 
+  it('lists Salesmen under Wholesale configuration for administrators only, not under Users', () => {
+    const salesmen = model.find(item => item.label === 'Wholesale').items.find(item => item.label === 'Salesmen');
+    expect(salesmen).toEqual(expect.objectContaining({ to: '/salesmen-user', section: 'Configuration' }));
+    expect(menuFor(AUTHORITIES.ADMIN)).toContain('Salesmen');
+    expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).not.toContain('Salesmen');
+    expect(model.find(item => item.label === 'Users').items.map(item => item.label)).not.toContain('Salesmen');
+  });
+
   it('shows each role only its menu items', () => {
     expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
       'Call List',

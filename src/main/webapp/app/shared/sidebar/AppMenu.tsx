@@ -106,11 +106,6 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Salesmen',
-        to: '/salesmen-user',
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
         label: 'Bookkeeper',
         to: '/bookkeeper-user',
         type: [BusinessTypeEnum.RETAIL],
@@ -337,6 +332,13 @@ export const model: MenuItem[] = [
         label: 'Wholesale Customers',
         to: '/logistics/customers',
         role: WHOLESALE_PAGE_ROLES.customers,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Configuration',
+      },
+      {
+        label: 'Salesmen',
+        to: '/salesmen-user',
+        role: ['ROLE_ADMINISTRATOR'],
         type: [BusinessTypeEnum.RETAIL],
         section: 'Configuration',
       },
