@@ -12,6 +12,8 @@ import {
   IOrderFrequency,
   IRouteOverride,
   ISuggestedOrder,
+  IUsualOrderPreview,
+  IUsualOrderResult,
   NoteStatus,
 } from './sales.model';
 
@@ -42,6 +44,12 @@ export const saveRouteOverride = async (override: IRouteOverride) => {
   const response = await axios.post<IRouteOverride>(`${api}/route-overrides`, override);
   return response.status === 204 ? null : response.data;
 };
+
+export const fetchUsualOrderPreview = async (date: string, routeId?: string) =>
+  (await axios.get<IUsualOrderPreview[]>(`${api}/usual-orders/preview`, { params: { date, routeId } })).data;
+
+export const generateUsualOrders = async (request: { date: string; routeId?: string; branchId: string; tillId?: string | null; customerIds: string[] }) =>
+  (await axios.post<IUsualOrderResult>(`${api}/usual-orders/generate`, request)).data;
 
 export const placeWholesaleOrder = async (request: object) => (await axios.post<{ id: string }>('api/orders/place-order', request)).data;
 

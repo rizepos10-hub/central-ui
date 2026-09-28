@@ -73,6 +73,32 @@ export interface IOrderEntryCustomer {
   defaultDeliveryAddressId?: string | null;
   deliveryWindowStart?: string | null;
   deliveryWindowEnd?: string | null;
+  /** The ones among orderIds generated from the usual order. */
+  autoOrderIds?: string[];
+}
+
+export interface IUsualOrderLine {
+  itemId: string;
+  variantId?: string | null;
+  name: string;
+  quantity: number;
+  price?: number | null;
+  notes?: string | null;
+}
+
+export interface IUsualOrderPreview {
+  customerId: string;
+  name: string;
+  routeId?: string | null;
+  stopSequence?: number | null;
+  lines: IUsualOrderLine[];
+  /** Set when no order would be generated for the customer. */
+  skipReason?: string | null;
+}
+
+export interface IUsualOrderResult {
+  created: { customerId: string; name: string; orderId: string }[];
+  skipped: { customerId: string; name: string; reason: string }[];
 }
 
 export interface IItemHistory {

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, ChevronDown, ChevronRight, Printer, Search } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Printer, Search, WandSparkles } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/wholesale-customer.api';
 import { IWholesaleCustomer, IWholesaleRouteDefinition, OrderMethod } from '../customers/wholesale-customer.model';
 import { CustomerNoteDialog } from './customer-note-dialog';
+import { GenerateUsualOrdersDialog } from './generate-usual-orders-dialog';
 import {
   OrderRegister,
   fetchCatalog,
@@ -87,6 +88,7 @@ const OrderEntry = () => {
   const [filter, setFilter] = useState('');
   const [saving, setSaving] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [generateOpen, setGenerateOpen] = useState(false);
 
   useEffect(() => {
     fetchRouteDefinitions()
@@ -296,6 +298,10 @@ const OrderEntry = () => {
               ))}
             </WsSelectContent>
           </Select>
+          <Button variant="outline" className="ws-control" onClick={() => setGenerateOpen(true)}>
+            <WandSparkles className="mr-1 h-4 w-4" />
+            Generate usual orders
+          </Button>
         </>
       }
     >
@@ -323,6 +329,7 @@ const OrderEntry = () => {
                   <span className="ws-mono w-6 text-xs text-muted-foreground">{c.stopSequence ?? ''}</span>
                   <span className="min-w-0 flex-1 truncate">{c.name}</span>
                   {c.orderIds.length > 0 && <WholesaleStatusBadge tone="approved">Ordered</WholesaleStatusBadge>}
+                  {c.autoOrderIds?.length > 0 && <WholesaleStatusBadge tone="new">Usual</WholesaleStatusBadge>}
                   {!c.deliveryDay && <WholesaleStatusBadge tone="amendment">Off day</WholesaleStatusBadge>}
                   {c.overrideId && <WholesaleStatusBadge tone="neutral">Moved</WholesaleStatusBadge>}
                 </button>
@@ -380,6 +387,7 @@ const OrderEntry = () => {
                         <Link to={`/order/${id}`} className="text-primary hover:underline">
                           {id}
                         </Link>
+                        {entry.autoOrderIds?.includes(id) && <span className="text-muted-foreground"> (generated from usual order)</span>}
                       </React.Fragment>
                     ))}
                     . Saving adds another order.
@@ -520,6 +528,15 @@ const OrderEntry = () => {
         </div>
       </div>
 
+      <GenerateUsualOrdersDialog
+        open={generateOpen}
+        date={date}
+        routeId={routeId === ALL ? undefined : routeId}
+        routeLabel={routeId === ALL ? 'all routes' : routeName(routeId)}
+        register={register}
+        onClose={() => setGenerateOpen(false)}
+        onGenerated={loadCustomers}
+      />
       {entry && (
         <CustomerNoteDialog
           open={noteOpen}
