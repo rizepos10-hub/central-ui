@@ -64,6 +64,7 @@ describe('Wholesale access', () => {
       'staleReturns',
       'creditMemos',
       'customers',
+      'salesmen',
       'routeDefinitions',
       'factories',
       'closures',
@@ -111,11 +112,12 @@ describe('Wholesale access', () => {
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
   });
 
-  it('lists Salesmen under Wholesale configuration for administrators only, not under Users', () => {
+  it('lists Salesmen under Wholesale configuration for admins and sales managers, not under Users', () => {
     const salesmen = model.find(item => item.label === 'Wholesale').items.find(item => item.label === 'Salesmen');
-    expect(salesmen).toEqual(expect.objectContaining({ to: '/salesmen-user', section: 'Configuration' }));
-    expect(menuFor(AUTHORITIES.ADMIN)).toContain('Salesmen');
-    expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).not.toContain('Salesmen');
+    expect(salesmen).toEqual(expect.objectContaining({ to: '/logistics/salesmen', section: 'Configuration' }));
+    expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Salesmen');
+    expect(menuFor(AUTHORITIES.WHOLESALE_BOOKKEEPER)).not.toContain('Salesmen');
+    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).not.toContain('Salesmen');
     expect(model.find(item => item.label === 'Users').items.map(item => item.label)).not.toContain('Salesmen');
   });
 
@@ -137,6 +139,7 @@ describe('Wholesale access', () => {
       'Factories',
       'Route Setup',
       'Wholesale Customers',
+      'Salesmen',
       'Closures',
       'Call List',
       'Order Entry',

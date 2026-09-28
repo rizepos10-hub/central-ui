@@ -337,8 +337,8 @@ export const model: MenuItem[] = [
       },
       {
         label: 'Salesmen',
-        to: '/salesmen-user',
-        role: ['ROLE_ADMINISTRATOR'],
+        to: '/logistics/salesmen',
+        role: WHOLESALE_PAGE_ROLES.salesmen,
         type: [BusinessTypeEnum.RETAIL],
         section: 'Configuration',
       },

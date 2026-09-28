@@ -14,6 +14,7 @@ import WholesaleCustomers from './customers/customers';
 import WholesaleRouteDefinitions from './route-definitions/route-definitions';
 import WholesaleClosures from './closures/closures';
 import WholesaleUsers from './users/users';
+import WholesaleSalesmen from './salesmen/salesmen';
 import WholesaleSettings from './settings/settings';
 import OrderEntry from './sales/order-entry';
 import CallList from './sales/call-list';
@@ -74,6 +75,7 @@ const LogisticsRoutes = () => {
       <Route path="customers" element={guard('customers', <WholesaleCustomers />)} />
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesaleRouteDefinitions />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />
+      <Route path="salesmen" element={guard('salesmen', <WholesaleSalesmen />)} />
       <Route path="closures" element={guard('closures', <WholesaleClosures />)} />
       <Route path="users" element={guard('users', <WholesaleUsers />)} />
       <Route path="settings" element={guard('settings', <WholesaleSettings />)} />

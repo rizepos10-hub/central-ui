@@ -279,6 +279,42 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    id: 'salesmen',
+    title: 'Salesmen',
+    group: 'Configuration',
+    page: 'salesmen',
+    path: '/logistics/salesmen',
+    summary: 'Add salesmen and choose which customers they sell to and which product categories they can order.',
+    sections: [
+      {
+        heading: 'Add a salesman',
+        steps: [
+          'Click New salesman.',
+          'Enter the First name, Last name and Email. The Username defaults to the email.',
+          'Set a Password. Leave Ask them to choose a new password ticked so they pick their own at first sign-in.',
+          'Tick their Branches and click Create salesman.',
+        ],
+      },
+      {
+        heading: 'Assign customers and categories',
+        steps: [
+          'Pick the salesman on the left.',
+          'Under Customers, search for a wholesale customer and click Assign. Click the X next to a customer to remove them.',
+          'Under Product categories, tick the categories they can order from. Changes are saved as soon as you tick.',
+        ],
+      },
+      {
+        heading: 'What it changes',
+        bullets: [
+          'Salesmen only see their assigned customers in Order Entry, the Call List and Order Sheets.',
+          'Salesmen can only order items from their categories. With no categories they can\u2019t order any products.',
+          'A customer can be assigned to more than one salesman.',
+          'Wholesale admins and sales managers manage salesmen; salesmen and bookkeepers don\u2019t see this page.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'closures',
     title: 'Closures',
     group: 'Configuration',
