@@ -7,7 +7,7 @@ import { AUTHORITIES } from 'app/config/constants';
 
 import WholesaleFactories from './factories';
 import { deleteFactory, fetchFactories, saveFactory } from './wholesale-factory.api';
-import { IWholesaleFactory, toFactoryPayload, validateFactory } from './wholesale-factory.model';
+import { IWholesaleFactory, addressFromGoogle, toFactoryPayload, validateFactory } from './wholesale-factory.model';
 
 jest.mock('./wholesale-factory.api', () => ({
   fetchFactories: jest.fn(),
@@ -22,7 +22,9 @@ jest.mock('@vis.gl/react-google-maps', () => ({
   useMapsLibrary: () => null,
 }));
 
-jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('react-geocode', () => ({ RequestType: { LATLNG: 'latlng' }, geocode: jest.fn(), setKey: jest.fn() }));
+
+jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn(), warn: jest.fn() } }));
 
 const windsor: IWholesaleFactory = {
   id: 'f-1',
@@ -70,6 +72,30 @@ describe('factory model', () => {
       fulfillmentScreenEnabled: false,
     });
   });
+
+  it('reads the address parts from a Google result', () => {
+    const part = (long_name: string, ...types: string[]) => ({ long_name, short_name: long_name, types });
+    expect(
+      addressFromGoogle({
+        formatted_address: '100 Queen St W, Toronto, ON M5H 2N2, Canada',
+        address_components: [
+          part('100', 'street_number'),
+          part('Queen Street West', 'route'),
+          part('Toronto', 'locality'),
+          part('Ontario', 'administrative_area_level_1'),
+          part('Canada', 'country'),
+          part('M5H 2N2', 'postal_code'),
+        ],
+      }),
+    ).toEqual({
+      fullAddress: '100 Queen St W, Toronto, ON M5H 2N2, Canada',
+      street: '100 Queen Street West',
+      city: 'Toronto',
+      state: 'Ontario',
+      country: 'Canada',
+      postalCode: 'M5H 2N2',
+    });
+  });
 });
 
 describe('Factories page', () => {
@@ -106,6 +132,7 @@ describe('Factories page', () => {
 
     fireEvent.click(screen.getByText('New factory'));
     await screen.findByRole('dialog');
+    expect(screen.getByText('America/Toronto (America/Toronto)')).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Toronto' } });
     fireEvent.change(screen.getByLabelText('Code'), { target: { value: 'TOR' } });
     fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '43.6532' } });
