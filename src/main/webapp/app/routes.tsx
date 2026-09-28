@@ -23,6 +23,9 @@ import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
 import LogisticsRoutes from "app/modules/logistics/logisticsRoutes";
 import { WHOLESALE_ANY_ROLES } from "app/modules/logistics/wholesale-access";
+import PortalShop from "app/modules/logistics/portal/portal-shop";
+import { PortalHomeRedirect } from "app/modules/logistics/portal/portal-home-redirect";
+import { PORTAL_ROLE } from "app/modules/logistics/portal/portal.model";
 import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -118,7 +121,18 @@ const AppRoutes = () => {
           index
           element={
             <PrivateRoute>
-              <Home />
+              <PortalHomeRedirect>
+                <Home />
+              </PortalHomeRedirect>
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="portal"
+          element={
+            <PrivateRoute hasAnyAuthorities={[PORTAL_ROLE]}>
+              <PortalShop />
             </PrivateRoute>
           }
         />

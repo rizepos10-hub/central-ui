@@ -7,6 +7,7 @@ import { IWholesaleSettings, sameSettings, toSettingsPayload, validateSettings }
 
 jest.mock('./wholesale-settings.api', () => ({ fetchSettings: jest.fn(), saveSettings: jest.fn() }));
 jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('../salesmen/salesman.api', () => ({ fetchBranches: jest.fn(() => Promise.resolve([{ id: 'b-1', name: 'Main' }])) }));
 
 const defaults: IWholesaleSettings = {
   salesmanCanViewOldOrders: false,
@@ -47,6 +48,8 @@ describe('wholesale settings model', () => {
       clearStaleReturnRateAlertPercent: false,
     });
     expect(toSettingsPayload({ ...defaults, staleReturnRateAlertPercent: null }).clearStaleReturnRateAlertPercent).toBe(true);
+    expect(toSettingsPayload({ ...defaults, portalBranchId: null }).portalBranchId).toBe('');
+    expect(toSettingsPayload({ ...defaults, portalBranchId: 'b-1' }).portalBranchId).toBe('b-1');
     expect(sameSettings(defaults, { ...defaults, deliveryNoteFooter: '' })).toBe(true);
   });
 });
@@ -86,6 +89,7 @@ describe('Wholesale Settings page', () => {
       defaultShortageAllocation: 'PRIORITY',
       deliveryNoteFooter: 'Thank you!',
       clearStaleReturnRateAlertPercent: false,
+      portalBranchId: '',
     };
     await waitFor(() => expect(saveSettings).toHaveBeenCalledWith(expected));
     await waitFor(() => expect(screen.queryByText('You have unsaved changes.')).toBeNull());

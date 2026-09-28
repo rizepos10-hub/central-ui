@@ -9,8 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
+import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { WholesalePage } from '../wholesale-ui/wholesale-page';
+import { WsSelectContent } from '../wholesale-ui/wholesale-overlays';
 import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
+import { fetchBranches } from '../salesmen/salesman.api';
+import { IBranchRef } from '../salesmen/salesman.model';
 import { fetchSettings, saveSettings } from './wholesale-settings.api';
 import {
   INVOICE_TIMINGS,
@@ -38,6 +43,8 @@ type BooleanKey =
   | 'escalateToManagerAtCutoff'
   | 'autoDraftFromFrequencyAtCutoff'
   | 'alertOnNotPaidCashOnly';
+
+const NO_BRANCH = '__none';
 
 const Section = ({ title, description, children }: { title: string; description: string; children: React.ReactNode }) => (
   <section className="ws-card grid gap-4 p-4 md:grid-cols-[260px_1fr]">
@@ -95,6 +102,13 @@ const WholesaleSettings = () => {
   const [newTime, setNewTime] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [branches, setBranches] = useState<IBranchRef[]>([]);
+
+  useEffect(() => {
+    fetchBranches()
+      .then(setBranches)
+      .catch(() => setBranches([]));
+  }, []);
 
   useEffect(() => {
     fetchSettings()
@@ -315,6 +329,29 @@ const WholesaleSettings = () => {
             <span className={cn('text-right text-xs', footerLength > MAX_FOOTER_LENGTH ? 'text-destructive' : 'text-muted-foreground')}>
               {shown.deliveryNoteFooter ?? `${footerLength} / ${MAX_FOOTER_LENGTH}`}
             </span>
+          </div>
+        </Section>
+
+        <Section title="Customer portal" description="Customers ordering for themselves. Give a customer access from Wholesale Customers.">
+          <div className="grid gap-1.5">
+            <Label>Record portal orders under</Label>
+            <Select value={draft.portalBranchId || NO_BRANCH} onValueChange={value => set('portalBranchId', value === NO_BRANCH ? null : value)}>
+              <SelectTrigger className="ws-control w-72" aria-label="Portal branch">
+                <SelectValue />
+              </SelectTrigger>
+              <WsSelectContent>
+                <SelectItem value={NO_BRANCH}>No branch (portal ordering is off)</SelectItem>
+                {branches.map(b => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+                {draft.portalBranchId && !branches.some(b => b.id === draft.portalBranchId) && (
+                  <SelectItem value={draft.portalBranchId}>Unknown branch</SelectItem>
+                )}
+              </WsSelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">Customers can only order on the portal once a branch is chosen.</span>
           </div>
         </Section>
       </fieldset>
