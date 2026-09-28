@@ -35,9 +35,9 @@ const WholesaleUsers = () => {
   const [kind, setKind] = useState<WholesaleUserKind>('salesManagers');
   const canManage = hasAnyAuthority(
     authorities,
-    kind === 'salesManagers'
-      ? [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN]
-      : [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN, AUTHORITIES.WHOLESALE_SALES_MANAGER],
+    kind === 'factoryUsers'
+      ? [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN, AUTHORITIES.WHOLESALE_SALES_MANAGER]
+      : [AUTHORITIES.ADMIN, AUTHORITIES.WHOLESALE_ADMIN],
   );
   const [page, setPage] = useState(0);
   const [users, setUsers] = useState<IWholesaleUser[]>([]);
@@ -109,7 +109,7 @@ const WholesaleUsers = () => {
   return (
     <WholesalePage
       title="Wholesale Users"
-      context="Sales managers, and factory users with the factories they work for"
+      context="Sales managers, factory users with the factories they work for, and drivers"
       actions={
         canManage && (
           <Button className="ws-control" onClick={() => setEditing(newUser())}>

@@ -18,6 +18,7 @@ import {
   MAX_FOOTER_LENGTH,
   Option,
   PRICE_SOURCES,
+  PROOFS_OF_DELIVERY,
   SHORTAGE_ALLOCATIONS,
   addUnique,
   isEmail,
@@ -262,7 +263,8 @@ const WholesaleSettings = () => {
           />
         </Section>
 
-        <Section title="Delivery note" description="Printed at the bottom of every delivery note.">
+        <Section title="Delivery" description="What the driver records when a stop is completed, and the delivery note footer.">
+          <Choice label="Proof of delivery" value={draft.proofOfDelivery ?? 'SIGNATURE'} options={PROOFS_OF_DELIVERY} onChange={value => set('proofOfDelivery', value)} />
           <div className="grid gap-1.5">
             <Label htmlFor="ws-delivery-footer">Footer</Label>
             <Textarea

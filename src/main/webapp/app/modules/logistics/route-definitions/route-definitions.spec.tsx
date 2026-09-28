@@ -69,17 +69,17 @@ describe('route model', () => {
 
   it('builds the route payload', () => {
     expect(
-      toRoutePayload({ name: ' North ', code: '', deliveryDays: ['FRIDAY', 'MONDAY'], defaultDriverUsername: ' ', salesmanIds: ['s-1'] }),
-    ).toMatchObject({ name: 'North', code: null, deliveryDays: ['MONDAY', 'FRIDAY'], defaultDriverUsername: null, active: true, salesmanIds: ['s-1'] });
+      toRoutePayload({ name: ' North ', code: '', deliveryDays: ['FRIDAY', 'MONDAY'], defaultDriverUserId: ' ', salesmanIds: ['s-1'] }),
+    ).toMatchObject({ name: 'North', code: null, deliveryDays: ['MONDAY', 'FRIDAY'], defaultDriverUserId: null, active: true, salesmanIds: ['s-1'] });
   });
 });
 
 describe('Route Setup page', () => {
   beforeEach(() => {
     jest.mocked(fetchFactories).mockResolvedValue([{ id: 'f-win', name: 'Windsor', active: true, latitude: 42.31, longitude: -83.03 }]);
-    jest.mocked(fetchDrivers).mockResolvedValue([{ username: 'driver1', firstName: 'Dana' }]);
+    jest.mocked(fetchDrivers).mockResolvedValue([{ id: 'd-1', username: 'driver1', firstName: 'Dana' }]);
     jest.mocked(fetchRoutes).mockResolvedValue([
-      { id: 'r-1', name: 'Windsor North', factoryId: 'f-win', deliveryDays: ['MONDAY'], defaultDriverUsername: 'driver1', active: true },
+      { id: 'r-1', name: 'Windsor North', factoryId: 'f-win', deliveryDays: ['MONDAY'], defaultDriverUsername: 'pos-driver', defaultDriverUserId: 'd-1', active: true },
     ]);
     jest.mocked(fetchStops).mockResolvedValue([cafe, deli, bistro]);
     jest.mocked(saveStopOrder).mockReset();

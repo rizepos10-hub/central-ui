@@ -102,6 +102,17 @@ describe('Wholesale Settings page', () => {
     expect(screen.queryByText('You have unsaved changes.')).toBeNull();
   });
 
+  it('shows signature as the default proof of delivery and saves another choice', async () => {
+    jest.mocked(saveSettings).mockImplementation(settings => Promise.resolve(settings));
+    render(<WholesaleSettings />);
+    await screen.findByText('14:00');
+    const proof = screen.getByRole('radiogroup', { name: 'Proof of delivery' });
+    expect(within(proof).getByRole('radio', { name: /^Signature The customer/ }).getAttribute('aria-checked')).toBe('true');
+    fireEvent.click(within(proof).getByRole('radio', { name: /Signature and photo/ }));
+    fireEvent.click(screen.getByText('Save settings'));
+    await waitFor(() => expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({ proofOfDelivery: 'SIGNATURE_AND_PHOTO' })));
+  });
+
   it('switches the alert off when its percentage is emptied', async () => {
     jest.mocked(saveSettings).mockImplementation(settings => Promise.resolve({ ...settings, staleReturnRateAlertPercent: null }));
     render(<WholesaleSettings />);

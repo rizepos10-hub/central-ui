@@ -1,4 +1,4 @@
-export type WholesaleUserKind = 'salesManagers' | 'factoryUsers';
+export type WholesaleUserKind = 'salesManagers' | 'factoryUsers' | 'drivers';
 
 export interface IWholesaleUser {
   id?: string;
@@ -20,6 +20,7 @@ export interface IWholesaleUserDraft extends IWholesaleUser {
 export const USER_KINDS: { value: WholesaleUserKind; label: string; singular: string }[] = [
   { value: 'salesManagers', label: 'Sales managers', singular: 'sales manager' },
   { value: 'factoryUsers', label: 'Factory users', singular: 'factory user' },
+  { value: 'drivers', label: 'Drivers', singular: 'driver' },
 ];
 
 export const kindSingular = (kind: WholesaleUserKind) => USER_KINDS.find(k => k.value === kind)?.singular ?? 'user';

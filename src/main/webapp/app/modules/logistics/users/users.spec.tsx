@@ -129,6 +129,45 @@ describe('Wholesale Users page', () => {
     expect(screen.getByLabelText('Actions for Omar Aziz')).toBeTruthy();
   });
 
+  it('creates a driver without factories, and only wholesale admins manage drivers', async () => {
+    const driver: IWholesaleUser = { id: 'u-4', firstName: 'Dana', lastName: 'Cole', email: 'dana@bakery.ca', username: 'dana', enabled: true };
+    jest.mocked(fetchUsers).mockImplementation(kind => Promise.resolve({ items: kind === 'drivers' ? [driver] : [manager], total: 1 }));
+    jest.mocked(saveUser).mockResolvedValue({ ...driver, id: 'u-5', firstName: 'Sam' });
+    const { unmount } = renderPage([AUTHORITIES.WHOLESALE_ADMIN]);
+    await screen.findByText('Mona Lee');
+    fireEvent.click(screen.getByRole('tab', { name: 'Drivers' }));
+    expect(await screen.findByText('Dana Cole')).toBeTruthy();
+    expect(fetchUsers).toHaveBeenCalledWith('drivers', 0, 50);
+
+    fireEvent.click(screen.getByText('New driver'));
+    await screen.findByRole('dialog');
+    expect(screen.queryByRole('group', { name: 'Factories' })).toBeNull();
+    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Sam' } });
+    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Cole' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'sam@bakery.ca' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Welcome2026' } });
+    fireEvent.click(screen.getByText('Create driver'));
+    await waitFor(() =>
+      expect(saveUser).toHaveBeenCalledWith('drivers', undefined, {
+        firstName: 'Sam',
+        lastName: 'Cole',
+        email: 'sam@bakery.ca',
+        username: null,
+        password: 'Welcome2026',
+        temporaryPassword: true,
+        factoryIds: [],
+      }),
+    );
+    unmount();
+
+    renderPage([AUTHORITIES.WHOLESALE_SALES_MANAGER]);
+    await screen.findByText('Mona Lee');
+    fireEvent.click(screen.getByRole('tab', { name: 'Drivers' }));
+    await screen.findByText('Dana Cole');
+    expect(screen.queryByText('New driver')).toBeNull();
+    expect(screen.getByText('Read only.')).toBeTruthy();
+  });
+
   it('is read only for bookkeepers', async () => {
     renderPage([AUTHORITIES.WHOLESALE_BOOKKEEPER]);
     await screen.findByText('Mona Lee');

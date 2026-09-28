@@ -5,6 +5,7 @@ import { IWholesaleUser, IWholesaleUserDraft, WholesaleUserKind } from './wholes
 const paths: Record<WholesaleUserKind, string> = {
   salesManagers: 'api/wholesale/sales-managers',
   factoryUsers: 'api/wholesale/factory-users',
+  drivers: 'api/wholesale/driver-users',
 };
 
 export const fetchUsers = async (kind: WholesaleUserKind, page: number, size: number) => {
