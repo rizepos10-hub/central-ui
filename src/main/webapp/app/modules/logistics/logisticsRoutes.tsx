@@ -25,6 +25,10 @@ import FactoryOrders from './operations/factory-orders';
 import FactoryOrderDetail from './operations/factory-order-detail';
 import FactoryFulfillment from './operations/factory-fulfillment';
 import WholesaleHome from './operations/wholesale-home';
+import DeliveryRuns from './delivery/delivery-runs';
+import CashHandover from './delivery/cash-handover';
+import StaleReturns from './delivery/stale-returns';
+import CreditMemos from './delivery/credit-memos';
 import { WHOLESALE_PAGE_ROLES, WholesalePageKey } from './wholesale-access';
 
 const guard = (page: WholesalePageKey, element: React.ReactNode) => (
@@ -50,6 +54,10 @@ const LogisticsRoutes = () => {
       <Route path="factory-orders" element={guard('factoryOrders', <FactoryOrders />)} />
       <Route path="factory-orders/:id" element={guard('factoryOrders', <FactoryOrderDetail />)} />
       <Route path="factory-fulfillment" element={guard('factoryFulfillment', <FactoryFulfillment />)} />
+      <Route path="delivery-runs" element={guard('deliveryRuns', <DeliveryRuns />)} />
+      <Route path="cash-handover" element={guard('cashHandover', <CashHandover />)} />
+      <Route path="stale-returns" element={guard('staleReturns', <StaleReturns />)} />
+      <Route path="credit-memos" element={guard('creditMemos', <CreditMemos />)} />
       <Route path="customers" element={guard('customers', <WholesaleCustomers />)} />
       <Route path="route-definitions" element={guard('routeDefinitions', <WholesaleRouteDefinitions />)} />
       <Route path="factories" element={guard('factories', <WholesaleFactories />)} />

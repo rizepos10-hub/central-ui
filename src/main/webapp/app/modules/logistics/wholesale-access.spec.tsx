@@ -58,6 +58,9 @@ describe('Wholesale access', () => {
       'production',
       'loadingLists',
       'factoryOrders',
+      'deliveryRuns',
+      'staleReturns',
+      'creditMemos',
       'customers',
       'routeDefinitions',
       'factories',
@@ -82,7 +85,9 @@ describe('Wholesale access', () => {
 
   it('lets bookkeepers read setup except factories and settings, and open factory orders for invoices', () => {
     const pages = pagesFor(AUTHORITIES.WHOLESALE_BOOKKEEPER);
-    expect(pages).toEqual(expect.arrayContaining(['customers', 'routeDefinitions', 'closures', 'users', 'factoryOrders']));
+    expect(pages).toEqual(
+      expect.arrayContaining(['customers', 'routeDefinitions', 'closures', 'users', 'factoryOrders', 'deliveryRuns', 'cashHandover', 'staleReturns', 'creditMemos']),
+    );
     expect(pages).not.toContain('factories');
     expect(pages).not.toContain('settings');
     expect(pages).not.toContain('factoryFulfillment');
@@ -130,6 +135,9 @@ describe('Wholesale access', () => {
       'Factory Orders',
       'Production',
       'Loading Lists',
+      'Delivery Runs',
+      'Stale Returns',
+      'Credit Memos',
       'Wholesale Users',
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
