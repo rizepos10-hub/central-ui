@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
+import { RequestType, geocode, setKey } from 'react-geocode';
+import ReactSelect from 'react-select';
 import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlaceAutocompleteClassic } from 'app/shared/components/google/autocomplete-classic';
+import { runtimeConfig } from 'app/config/runtime-config';
+import allTimeZones from '../../../../content/samples/all_time_zones.json';
 
 import { WsDialogContent, WsSelectContent } from '../wholesale-ui/wholesale-overlays';
 import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
@@ -18,6 +22,7 @@ import {
   IWholesaleFactory,
   SEND_MODES,
   WholesaleFactorySendMode,
+  addressFromGoogle,
   newFactory,
   toFactoryPayload,
   validateFactory,
@@ -25,10 +30,9 @@ import {
 
 const MAP_ID = 'wholesale-factory-map';
 
-const timeZones = (() => {
-  const supported = (Intl as any).supportedValuesOf?.('timeZone') as string[] | undefined;
-  return supported?.length ? supported : ['America/Toronto', 'America/Detroit', 'America/New_York', 'America/Chicago', 'UTC'];
-})();
+type TimeZoneOption = (typeof allTimeZones)[number];
+
+const timeZoneLabel = (zone: TimeZoneOption) => `${zone.Continent}/${zone.City} (${zone.ZoneId})`;
 
 interface FactoryEditorProps {
   /** The factory to edit, a new one when it has no id, or null when closed. */
@@ -68,25 +72,34 @@ export const FactoryEditor = ({ factory, readOnly, onClose, onSaved }: FactoryEd
     setDraft(prev => ({ ...prev, latitude: Number(lat.toFixed(6)), longitude: Number(lng.toFixed(6)) }));
   }, []);
 
+  const setGoogleAddress = useCallback((source: Parameters<typeof addressFromGoogle>[0]) => {
+    setDraft(prev => ({ ...prev, address: { ...prev.address, ...addressFromGoogle(source) } }));
+  }, []);
+
   const onMapClick = useCallback(
     (event: MapMouseEvent) => {
       const latLng = event.detail?.latLng;
-      if (!readOnly && latLng) setPin(latLng.lat, latLng.lng);
+      if (readOnly || !latLng) return;
+      setPin(latLng.lat, latLng.lng);
+      setKey(runtimeConfig.GOOGLE_MAPS_API_KEY);
+      geocode(RequestType.LATLNG, `${latLng.lat},${latLng.lng}`)
+        .then(({ results }) => {
+          if (results?.[0]) setGoogleAddress(results[0]);
+          else toast.warn('Google Maps has no address for that spot.');
+        })
+        .catch(() => toast.error('Google Maps could not find the address for that spot.'));
     },
-    [readOnly, setPin],
+    [readOnly, setPin, setGoogleAddress],
   );
 
   const onPlaceSelect = useCallback(
     (place: google.maps.places.PlaceResult | null) => {
       const location = place?.geometry?.location;
       if (!place || !location) return;
-      setDraft(prev => ({
-        ...prev,
-        address: { ...prev.address, fullAddress: place.formatted_address || place.name || prev.address?.fullAddress },
-      }));
+      setGoogleAddress(place);
       setPin(location.lat(), location.lng());
     },
-    [setPin],
+    [setPin, setGoogleAddress],
   );
 
   const coordinate = (key: 'latitude' | 'longitude', text: string) => {
@@ -140,13 +153,18 @@ export const FactoryEditor = ({ factory, readOnly, onClose, onSaved }: FactoryEd
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="factory-address">Address</Label>
-              <Input
-                id="factory-address"
-                className="ws-control"
-                value={draft.address?.fullAddress ?? ''}
-                onChange={e => set('address', { ...draft.address, fullAddress: e.target.value })}
-              />
+              <Label>Address</Label>
+              {!readOnly && (
+                <PlaceAutocompleteClassic
+                  onPlaceSelect={onPlaceSelect}
+                  placeholder="Search the address on Google Maps"
+                  className="w-full"
+                  inputClassName="ws-control w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              )}
+              <span data-testid="factory-address" className={draft.address?.fullAddress ? 'text-sm' : 'text-xs text-muted-foreground'}>
+                {draft.address?.fullAddress || (readOnly ? 'No address' : 'Pick the address from the search or click the map.')}
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -163,18 +181,20 @@ export const FactoryEditor = ({ factory, readOnly, onClose, onSaved }: FactoryEd
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="factory-zone">Time zone</Label>
-                <Input
-                  id="factory-zone"
-                  className="ws-control"
-                  list="factory-time-zones"
-                  value={draft.timeZone ?? ''}
-                  onChange={e => set('timeZone', e.target.value)}
+                <ReactSelect<TimeZoneOption>
+                  inputId="factory-zone"
+                  value={allTimeZones.find(zone => zone.ZoneId === draft.timeZone) ?? null}
+                  options={allTimeZones}
+                  getOptionLabel={timeZoneLabel}
+                  getOptionValue={zone => zone.ZoneId}
+                  onChange={zone => set('timeZone', zone?.ZoneId ?? null)}
+                  isDisabled={readOnly || saving}
+                  isSearchable
+                  isClearable
+                  placeholder="Search a city or zone"
+                  styles={{ menu: base => ({ ...base, zIndex: 60 }), control: base => ({ ...base, fontSize: 14 }) }}
                 />
-                <datalist id="factory-time-zones">
-                  {timeZones.map(zone => (
-                    <option key={zone} value={zone} />
-                  ))}
-                </datalist>
+                {shown.timeZone && <span className="text-xs text-destructive">{shown.timeZone}</span>}
               </div>
             </div>
 
@@ -232,14 +252,6 @@ export const FactoryEditor = ({ factory, readOnly, onClose, onSaved }: FactoryEd
           </fieldset>
 
           <div className="grid content-start gap-2">
-            {!readOnly && (
-              <PlaceAutocompleteClassic
-                onPlaceSelect={onPlaceSelect}
-                placeholder="Search the factory address to drop the pin"
-                className="w-full"
-                inputClassName="ws-control w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            )}
             <div className="h-[300px] overflow-hidden rounded-md border">
               <Map
                 id={MAP_ID}
@@ -287,7 +299,7 @@ export const FactoryEditor = ({ factory, readOnly, onClose, onSaved }: FactoryEd
               </Button>
             </fieldset>
             <span className={shown.location ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>
-              {shown.location ?? (readOnly ? 'The pin customers are matched to.' : 'Click the map to move the pin. Customers are matched to the nearest active factory.')}
+              {shown.location ?? (readOnly ? 'The pin customers are matched to.' : 'Click the map to move the pin and fill the address from Google Maps. Customers are matched to the nearest active factory.')}
             </span>
           </div>
         </div>

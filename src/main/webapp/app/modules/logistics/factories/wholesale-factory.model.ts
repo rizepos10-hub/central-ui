@@ -64,11 +64,22 @@ const CUTOFF = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const blank = (value?: string | null) => value == null || value.trim() === '';
 
+export const isValidTimeZone = (zone: string) => {
+  try {
+    return Boolean(new Intl.DateTimeFormat('en-US', { timeZone: zone }));
+  } catch {
+    return false;
+  }
+};
+
+type FactoryField = 'name' | 'orderCutoffTime' | 'timeZone' | 'location';
+
 /** The same checks central makes, so most mistakes show next to the field instead of as an error after saving. */
-export const validateFactory = (factory: IWholesaleFactory): Partial<Record<'name' | 'orderCutoffTime' | 'location', string>> => {
-  const errors: Partial<Record<'name' | 'orderCutoffTime' | 'location', string>> = {};
+export const validateFactory = (factory: IWholesaleFactory): Partial<Record<FactoryField, string>> => {
+  const errors: Partial<Record<FactoryField, string>> = {};
   if (blank(factory.name)) errors.name = 'Enter the factory name';
   if (!blank(factory.orderCutoffTime) && !CUTOFF.test(factory.orderCutoffTime.trim())) errors.orderCutoffTime = 'Use HH:mm, for example 19:00';
+  if (!blank(factory.timeZone) && !isValidTimeZone(factory.timeZone.trim())) errors.timeZone = 'Choose the time zone from the list';
   const hasLat = factory.latitude != null;
   const hasLng = factory.longitude != null;
   if (hasLat !== hasLng) {
@@ -77,6 +88,28 @@ export const validateFactory = (factory: IWholesaleFactory): Partial<Record<'nam
     errors.location = 'Latitude or longitude is out of range';
   }
   return errors;
+};
+
+interface GoogleAddressSource {
+  formatted_address?: string;
+  name?: string;
+  address_components?: { long_name: string; short_name: string; types: string[] }[];
+}
+
+const component = (source: GoogleAddressSource | null | undefined, type: string) =>
+  source?.address_components?.find(c => c.types?.includes(type))?.long_name ?? '';
+
+/** The factory address from a Google place or reverse-geocoding result, read the same way as the branch address. */
+export const addressFromGoogle = (source: GoogleAddressSource | null | undefined): IWholesaleFactoryAddress => {
+  const route = component(source, 'route');
+  return {
+    fullAddress: source?.formatted_address || source?.name || null,
+    street: [component(source, 'street_number'), route].filter(Boolean).join(' ') || route || null,
+    city: component(source, 'locality') || component(source, 'postal_town') || component(source, 'administrative_area_level_2') || null,
+    state: component(source, 'administrative_area_level_1') || null,
+    country: component(source, 'country') || null,
+    postalCode: component(source, 'postal_code') || null,
+  };
 };
 
 const trimOrNull = (value?: string | null) => (blank(value) ? null : value.trim());
