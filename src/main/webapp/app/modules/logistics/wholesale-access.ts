@@ -29,6 +29,9 @@ const ordering = [
  */
 export const WHOLESALE_PAGE_ROLES = {
   createOrder: ordering,
+  orderEntry: [ADMIN, WHOLESALE_ADMIN, WHOLESALE_SALES_MANAGER, WHOLESALE_SALESMAN],
+  callList: [ADMIN, WHOLESALE_ADMIN, WHOLESALE_SALES_MANAGER, WHOLESALE_SALESMAN],
+  customerNotes: [ADMIN, WHOLESALE_ADMIN, WHOLESALE_SALES_MANAGER, WHOLESALE_SALESMAN, WHOLESALE_BOOKKEEPER],
   wholesaleOrders: ordering,
   savedOrders: ordering,
   routes: ordering,

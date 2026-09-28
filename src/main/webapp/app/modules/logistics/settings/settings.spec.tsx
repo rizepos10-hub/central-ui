@@ -25,15 +25,21 @@ const defaults: IWholesaleSettings = {
 };
 
 describe('wholesale settings model', () => {
-  it('keeps a saved alert percentage required, since the server cannot clear it', () => {
-    expect(validateSettings({ ...defaults, staleReturnRateAlertPercent: null }, defaults).staleReturnRateAlertPercent).toBeDefined();
-    expect(validateSettings({ ...defaults, staleReturnRateAlertPercent: null }, { ...defaults, staleReturnRateAlertPercent: null })).toEqual({});
-    expect(validateSettings({ ...defaults, staleCreditPercent: 120 }, defaults).staleCreditPercent).toBe('Use a percentage from 0 to 100');
-    expect(validateSettings({ ...defaults, deliveryNoteFooter: 'x'.repeat(2001) }, defaults).deliveryNoteFooter).toBeDefined();
+  it('allows an empty alert percentage but requires the stale credit one', () => {
+    expect(validateSettings({ ...defaults, staleReturnRateAlertPercent: null })).toEqual({});
+    expect(validateSettings({ ...defaults, staleReturnRateAlertPercent: 101 }).staleReturnRateAlertPercent).toBe('Use a percentage from 0 to 100');
+    expect(validateSettings({ ...defaults, staleCreditPercent: null }).staleCreditPercent).toBe('Enter a percentage from 0 to 100');
+    expect(validateSettings({ ...defaults, staleCreditPercent: 120 }).staleCreditPercent).toBe('Use a percentage from 0 to 100');
+    expect(validateSettings({ ...defaults, deliveryNoteFooter: 'x'.repeat(2001) }).deliveryNoteFooter).toBeDefined();
   });
 
-  it('sends an empty footer so it is cleared, and sorted reminder times', () => {
-    expect(toSettingsPayload({ ...defaults, reminderTimes: ['16:00', '09:30'] })).toMatchObject({ deliveryNoteFooter: '', reminderTimes: ['09:30', '16:00'] });
+  it('sends an empty footer and an empty alert so they are cleared, and sorted reminder times', () => {
+    expect(toSettingsPayload({ ...defaults, reminderTimes: ['16:00', '09:30'] })).toMatchObject({
+      deliveryNoteFooter: '',
+      reminderTimes: ['09:30', '16:00'],
+      clearStaleReturnRateAlertPercent: false,
+    });
+    expect(toSettingsPayload({ ...defaults, staleReturnRateAlertPercent: null }).clearStaleReturnRateAlertPercent).toBe(true);
     expect(sameSettings(defaults, { ...defaults, deliveryNoteFooter: '' })).toBe(true);
   });
 });
@@ -72,6 +78,7 @@ describe('Wholesale Settings page', () => {
       approvalEmailRecipients: ['manager@bakery.ca'],
       defaultShortageAllocation: 'PRIORITY',
       deliveryNoteFooter: 'Thank you!',
+      clearStaleReturnRateAlertPercent: false,
     };
     await waitFor(() => expect(saveSettings).toHaveBeenCalledWith(expected));
     await waitFor(() => expect(screen.queryByText('You have unsaved changes.')).toBeNull());
@@ -95,12 +102,14 @@ describe('Wholesale Settings page', () => {
     expect(screen.queryByText('You have unsaved changes.')).toBeNull();
   });
 
-  it('does not save an emptied alert percentage', async () => {
+  it('switches the alert off when its percentage is emptied', async () => {
+    jest.mocked(saveSettings).mockImplementation(settings => Promise.resolve({ ...settings, staleReturnRateAlertPercent: null }));
     render(<WholesaleSettings />);
     await screen.findByText('14:00');
     fireEvent.change(screen.getByLabelText('Alert above return rate'), { target: { value: '' } });
     fireEvent.click(screen.getByText('Save settings'));
-    expect(await screen.findByText('Enter a percentage from 0 to 100')).toBeTruthy();
-    expect(saveSettings).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({ staleReturnRateAlertPercent: null, clearStaleReturnRateAlertPercent: true })),
+    );
   });
 });

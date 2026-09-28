@@ -47,6 +47,9 @@ describe('Wholesale access', () => {
   it('gives sales managers the ordering and setup pages, but not settings', () => {
     expect(pagesFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
       'createOrder',
+      'orderEntry',
+      'callList',
+      'customerNotes',
       'wholesaleOrders',
       'savedOrders',
       'routes',
@@ -60,7 +63,7 @@ describe('Wholesale access', () => {
   });
 
   it('keeps salesmen on the ordering pages', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['createOrder', 'wholesaleOrders', 'savedOrders', 'routes', 'map']);
+    expect(pagesFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['createOrder', 'orderEntry', 'callList', 'customerNotes', 'wholesaleOrders', 'savedOrders', 'routes', 'map']);
   });
 
   it('lets bookkeepers read setup except factories and settings', () => {
@@ -84,9 +87,12 @@ describe('Wholesale access', () => {
   });
 
   it('shows each role only its menu items', () => {
-    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['Create Order', 'Processed Orders', 'Saved Orders', 'Routes', 'Map']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual(['Create Order', 'Order Entry', 'Call List', 'Customer Notes', 'Processed Orders', 'Saved Orders', 'Routes', 'Map']);
     expect(menuFor(AUTHORITIES.WHOLESALE_SALES_MANAGER)).toEqual([
       'Create Order',
+      'Order Entry',
+      'Call List',
+      'Customer Notes',
       'Processed Orders',
       'Saved Orders',
       'Routes',

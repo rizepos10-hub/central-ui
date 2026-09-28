@@ -13,6 +13,8 @@ export type MenuItem = {
   icon?: string;
   items?: MenuItem[];
   type: BusinessTypeEnum[];
+  /** Key into MENU_BADGES; a string so the item survives the sidebar's JSON copy of the menu. */
+  badge?: string;
 };
 
 
@@ -313,6 +315,25 @@ export const model: MenuItem[] = [
         label: 'Create Order',
         to: '/logistics/create-order',
         role: WHOLESALE_PAGE_ROLES.createOrder,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Order Entry',
+        to: '/logistics/order-entry',
+        role: WHOLESALE_PAGE_ROLES.orderEntry,
+        type: [BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Call List',
+        to: '/logistics/call-list',
+        role: WHOLESALE_PAGE_ROLES.callList,
+        type: [BusinessTypeEnum.RETAIL],
+        badge: 'wholesaleCallList',
+      },
+      {
+        label: 'Customer Notes',
+        to: '/logistics/customer-notes',
+        role: WHOLESALE_PAGE_ROLES.customerNotes,
         type: [BusinessTypeEnum.RETAIL],
       },
       {

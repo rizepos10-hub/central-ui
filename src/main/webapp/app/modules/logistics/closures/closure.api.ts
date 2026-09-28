@@ -15,5 +15,6 @@ export const deleteClosure = async (id: string) => {
   await axios.delete(`${apiUrl}/${id}`);
 };
 
-export const fetchRouteDeliveryDays = async (routeId: string, from: string, to: string) =>
-  (await axios.get<IDeliveryDay[]>(`${apiUrl}/delivery-days`, { params: { routeId, from, to } })).data;
+/** Delivery days of every active route, keyed by route id. */
+export const fetchAllRouteDeliveryDays = async (from: string, to: string) =>
+  (await axios.get<Record<string, IDeliveryDay[]>>(`${apiUrl}/route-delivery-days`, { params: { from, to } })).data;
