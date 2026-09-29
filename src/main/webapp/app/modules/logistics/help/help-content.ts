@@ -1413,8 +1413,10 @@ export const HELP_TOPICS: HelpTopic[] = [
         heading: 'Set up an account',
         steps: [
           'Open Settings, then Non-Revenue Accounts.',
-          'Click New and name the account. The receipt label is what prints; leave it blank to use the name.',
+          'Click New and name the account.',
           'Choose whether the till can take money in, pay money out, or both.',
+          'Enter the label that prints for each direction, for example Lottery for deposits and Lottery Paid Out for withdrawals. Leave a label blank to print the name and the direction.',
+          'Enter the commission % you earn and whether it is on deposits, withdrawals, or both. The commission is your revenue.',
           'Leave the amount open, fix it, or offer a list of denominations.',
           'Leave branches and payment methods empty to allow every branch and every method.',
           'Click Save.',
@@ -1429,7 +1431,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       },
       {
         heading: 'See the money',
-        text: ['Reports, Non-Revenue Accounts shows deposits, withdrawals, settlements and the balance still held at the end of the dates you choose.'],
+        text: ['Reports, Non-Revenue Accounts shows deposits, withdrawals, settlements, the commission you earned, and the balance still held at the end of the dates you choose. The balance is after commission.'],
       },
     ],
   },

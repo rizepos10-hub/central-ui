@@ -1,6 +1,7 @@
 export type NonRevenueDirection = 'DEPOSIT' | 'WITHDRAWAL' | 'BOTH';
 export type NonRevenueAmountMode = 'OPEN' | 'FIXED' | 'DENOMINATIONS';
 export type NonRevenueApproval = 'NONE' | 'WITHDRAWAL' | 'OVER_LIMIT' | 'ALWAYS';
+export type NonRevenueCommissionBase = 'DEPOSITS' | 'WITHDRAWALS' | 'BOTH';
 
 export interface NonRevenueRules {
   direction: NonRevenueDirection;
@@ -25,11 +26,16 @@ export interface NonRevenueRules {
 export interface NonRevenueAccount {
   id?: string;
   name: string;
+  /** Printed for deposits, e.g. "Lottery". */
   receiptLabel?: string | null;
+  /** Printed for withdrawals, e.g. "Lottery Paid Out". */
+  withdrawalLabel?: string | null;
   color?: string | null;
   sortOrder?: number | null;
   branchIds: string[];
   rules: NonRevenueRules;
+  commissionPercent?: number | null;
+  commissionAppliesTo: NonRevenueCommissionBase;
 }
 
 export const emptyRules = (): NonRevenueRules => ({
@@ -55,8 +61,11 @@ export const emptyRules = (): NonRevenueRules => ({
 export const emptyAccount = (): NonRevenueAccount => ({
   name: '',
   receiptLabel: '',
+  withdrawalLabel: '',
   color: '',
   sortOrder: null,
   branchIds: [],
   rules: emptyRules(),
+  commissionPercent: null,
+  commissionAppliesTo: 'DEPOSITS',
 });
