@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-import { IPaymentMethod, IShippingQuote, IShippingSettings, ITestResult, ShippingProvider } from './shipping.model';
+import { IPaymentMethod, IServiceChargeOption, IShippingQuote, IShippingSettings, ITestResult, ShippingProvider } from './shipping.model';
 
 const apiUrl = 'api/wholesale/shipping';
 
 export const fetchShippingSettings = async () => (await axios.get<IShippingSettings>(`${apiUrl}/settings`)).data;
 
 export const saveShippingSettings = async (payload: object) => (await axios.put<IShippingSettings>(`${apiUrl}/settings`, payload)).data;
+
+/** Service charges of type shipping fee the fee can be charged as. */
+export const fetchShippingServiceCharges = async () =>
+  (await axios.get<IServiceChargeOption[]>(`${apiUrl}/settings/service-charges`)).data;
 
 /** Tests the key typed on the page, or the saved one when none is typed. */
 export const testShippingProvider = async (provider: ShippingProvider, request: { apiKey?: string | null; sandbox?: boolean }) =>

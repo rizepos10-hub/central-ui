@@ -3,12 +3,19 @@ import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ShippingSettings from './shipping-settings';
-import { fetchClickShipPaymentMethods, fetchShippingSettings, saveShippingSettings, testShippingProvider } from './shipping.api';
+import {
+  fetchClickShipPaymentMethods,
+  fetchShippingServiceCharges,
+  fetchShippingSettings,
+  saveShippingSettings,
+  testShippingProvider,
+} from './shipping.api';
 import { IShippingSettings, newRateRow, quoteSource, toDraft, toShippingPayload, validateShipping } from './shipping.model';
 import { WHOLESALE_PAGE_ROLES } from '../wholesale-access';
 import { model } from 'app/shared/sidebar/AppMenu';
 
 jest.mock('./shipping.api', () => ({
+  fetchShippingServiceCharges: jest.fn(),
   fetchShippingSettings: jest.fn(),
   saveShippingSettings: jest.fn(),
   testShippingProvider: jest.fn(),
@@ -86,6 +93,10 @@ describe('Shipping settings page', () => {
       .mockImplementation(payload => Promise.resolve({ ...saved, ...(payload as IShippingSettings), easyPostApiKeyConfigured: true }));
     jest.mocked(testShippingProvider).mockReset().mockResolvedValue({ ok: true, message: 'Connected to EasyPost' });
     jest.mocked(fetchClickShipPaymentMethods).mockReset().mockResolvedValue([{ id: 'pm1', label: 'Net 30' }]);
+    jest
+      .mocked(fetchShippingServiceCharges)
+      .mockReset()
+      .mockResolvedValue([{ id: 'sc1', name: 'Freight', accountingGroupName: 'HST 13%' }]);
   });
 
   const renderPage = () =>
@@ -128,6 +139,21 @@ describe('Shipping settings page', () => {
     fireEvent.click(screen.getByText('Load payment methods'));
 
     await waitFor(() => expect(fetchClickShipPaymentMethods).toHaveBeenCalledWith({ apiKey: 'cs-key', sandbox: true }));
+  });
+
+  it('charges the fee as a shipping service charge, or none', async () => {
+    renderPage();
+    const select = await screen.findByLabelText('Shipping service charge');
+    expect(select.textContent).toContain('None (Shipping, untaxed)');
+    expect(toShippingPayload(toDraft(saved)).serviceChargeId).toBeNull();
+    expect(toShippingPayload(toDraft({ ...saved, serviceChargeId: 'sc1' })).serviceChargeId).toBe('sc1');
+    await waitFor(() => expect(fetchShippingServiceCharges).toHaveBeenCalled());
+  });
+
+  it('shows the saved service charge with its accounting group', async () => {
+    jest.mocked(fetchShippingSettings).mockResolvedValue({ ...saved, serviceChargeId: 'sc1' });
+    renderPage();
+    await waitFor(() => expect(screen.getByLabelText('Shipping service charge').textContent).toContain('Freight (HST 13%)'));
   });
 
   it('adds and removes rate table rows', async () => {

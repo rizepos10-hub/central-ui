@@ -45,6 +45,13 @@ export interface IShippingSettings {
   palletHeightCm?: number | null;
   rateTable?: IRateRow[];
   autoBuyLabel?: boolean;
+  serviceChargeId?: string | null;
+}
+
+export interface IServiceChargeOption {
+  id: string;
+  name?: string | null;
+  accountingGroupName?: string | null;
 }
 
 export interface IPaymentMethod {
@@ -93,6 +100,7 @@ export interface IShippingDraft {
   numbers: Record<NumberField, string>;
   rateTable: IRateDraft[];
   autoBuyLabel: boolean;
+  serviceChargeId: string;
 }
 
 export const SOURCE_LABEL: Record<ShippingSource, string> = {
@@ -145,6 +153,7 @@ export const toDraft = (settings: IShippingSettings): IShippingDraft => ({
     perKg: text(row.perKg),
   })),
   autoBuyLabel: settings.autoBuyLabel !== false,
+  serviceChargeId: settings.serviceChargeId ?? '',
 });
 
 const parse = (value: string) => (value.trim() === '' ? null : Number(value));
@@ -198,6 +207,7 @@ export const toShippingPayload = (draft: IShippingDraft) => ({
     perKg: parse(row.perKg) ?? 0,
   })),
   autoBuyLabel: draft.autoBuyLabel,
+  serviceChargeId: draft.serviceChargeId || null,
 });
 
 /** "ClickShip / Purolator Ground" */

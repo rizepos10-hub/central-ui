@@ -12,11 +12,18 @@ import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/
 import { WholesalePage } from '../wholesale-ui/wholesale-page';
 import { WsSelectContent } from '../wholesale-ui/wholesale-overlays';
 import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
-import { fetchClickShipPaymentMethods, fetchShippingSettings, saveShippingSettings, testShippingProvider } from './shipping.api';
+import {
+  fetchClickShipPaymentMethods,
+  fetchShippingServiceCharges,
+  fetchShippingSettings,
+  saveShippingSettings,
+  testShippingProvider,
+} from './shipping.api';
 import {
   COUNTRIES,
   CURRENCIES,
   IPaymentMethod,
+  IServiceChargeOption,
   IShippingDraft,
   IShippingSettings,
   ITestResult,
@@ -30,6 +37,7 @@ import {
 } from './shipping.model';
 
 const NO_METHOD = '__none';
+const NO_CHARGE = '__none';
 
 const Section = ({ id, title, description, children }: { id?: string; title: string; description: React.ReactNode; children: React.ReactNode }) => (
   <section id={id} className="ws-card grid scroll-mt-4 gap-4 p-4 md:grid-cols-[260px_1fr]">
@@ -108,6 +116,7 @@ const ShippingSettings = () => {
   const [results, setResults] = useState<Partial<Record<ShippingProvider, ITestResult>>>({});
   const [methods, setMethods] = useState<IPaymentMethod[] | null>(null);
   const [loadingMethods, setLoadingMethods] = useState(false);
+  const [serviceCharges, setServiceCharges] = useState<IServiceChargeOption[]>([]);
 
   useEffect(() => {
     fetchShippingSettings()
@@ -116,6 +125,9 @@ const ShippingSettings = () => {
         setDraft(toDraft(settings));
       })
       .catch(error => toast.error(wholesaleErrorMessage(error, 'The shipping settings could not be loaded.')));
+    fetchShippingServiceCharges()
+      .then(setServiceCharges)
+      .catch(error => toast.error(wholesaleErrorMessage(error, 'The service charges could not be loaded.')));
   }, []);
 
   useEffect(() => {
@@ -224,6 +236,7 @@ const ShippingSettings = () => {
 
   const methodOptions = methods ?? [];
   const savedMethodMissing = draft.clickShipPaymentMethodId && !methodOptions.some(m => m.id === draft.clickShipPaymentMethodId);
+  const savedChargeMissing = draft.serviceChargeId && !serviceCharges.some(c => c.id === draft.serviceChargeId);
 
   return (
     <WholesalePage title="Shipping Settings" context="Carrier rates and labels for orders on carrier routes">
@@ -354,6 +367,28 @@ const ShippingSettings = () => {
               </WsSelectContent>
             </Select>
             <span className="text-xs text-muted-foreground">Rates in other currencies are only used when none come in this one.</span>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Charge as</Label>
+            <Select value={draft.serviceChargeId || NO_CHARGE} onValueChange={value => set('serviceChargeId', value === NO_CHARGE ? '' : value)}>
+              <SelectTrigger className="ws-control w-72" aria-label="Shipping service charge">
+                <SelectValue />
+              </SelectTrigger>
+              <WsSelectContent>
+                <SelectItem value={NO_CHARGE}>None (Shipping, untaxed)</SelectItem>
+                {serviceCharges.map(c => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name || 'Unnamed'}
+                    {c.accountingGroupName ? ` (${c.accountingGroupName})` : ' (untaxed)'}
+                  </SelectItem>
+                ))}
+                {savedChargeMissing && <SelectItem value={draft.serviceChargeId}>Saved service charge (no longer available)</SelectItem>}
+              </WsSelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">
+              A service charge of type Shipping fee. The fee is charged under its name and taxed with its accounting group; its own amount
+              is not used.
+            </span>
           </div>
           {numberField('markupPercent', 'Added on top of the carrier rate. The rate table price is used as is.')}
           {numberField('weightPerUnitKg', 'Shipping weight of one unit ordered, packaging included. The order weight is units times this.')}

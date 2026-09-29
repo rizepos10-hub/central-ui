@@ -1174,7 +1174,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         text: [
           'Every connected provider is asked for rates and the cheapest is used, plus the markup. Orders heavier than the largest parcel ship on a pallet, which only ClickShip quotes.',
           'When no provider is connected or none answers, the rate table price is used: the flat fee plus the price per kg, from the row for the customer\u2019s province or state, else the row for the whole country.',
-          'An order is weighed as units ordered times the weight per unit. The fee is added to the order as a Shipping charge and is on the invoice.',
+          'An order is weighed as units ordered times the weight per unit. The fee is added to the order as a Shipping charge, taxed when Charge as is set, and is on the invoice.',
         ],
       },
       {
@@ -1183,6 +1183,11 @@ export const HELP_TOPICS: HelpTopic[] = [
           headers: ['Setting', 'What it does', 'Default'],
           rows: [
             ['Currency', 'CAD or USD. Rates in the other currency are only used when none come in this one.', 'CAD'],
+            [
+              'Charge as',
+              'A service charge of type Shipping fee. The fee takes its name and is taxed with its accounting group; its own amount is not used.',
+              'None (untaxed)',
+            ],
             ['Markup', 'Percentage added to live carrier rates.', '0%'],
             ['Weight per unit', 'Shipping weight of one unit ordered, packaging included.', '0.5 kg'],
             ['Buy the label when shipping', 'Shipping without a tracking number buys the label from the provider that quoted the order.', 'On'],
