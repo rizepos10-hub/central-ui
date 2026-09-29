@@ -195,7 +195,7 @@ const MenuPosPreview = ({ data }) => {
                     >
                       <div className="flex items-center justify-between p-2 pb-1">
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                          {subScreen?.componentType === 'SUB_SCREENS' ? 'Screen' : 'Item'}
+                          {subScreen?.componentType === 'SUB_SCREENS' ? 'Screen' : subScreen?.componentType === 'NON_REVENUE_ACCOUNT' ? 'Account' : 'Item'}
                         </span>
                         {subScreen?.componentType === 'SUB_SCREENS' && (
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
