@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { IDiscount } from 'app/shared/model/discount.model';
+import { buildPostFilterSearchQuery } from 'app/shared/util/post-filter-search-util';
 import { IVisibility } from 'app/shared/model/visibility.model';
 
 export interface NamedRef {
@@ -44,9 +45,6 @@ export interface RestaurantBulkItem {
   [key: string]: unknown;
 }
 
-const PAGE_SIZE = 100;
-const MAX_ITEMS = 2000;
-
 const SEARCH: Record<RestaurantKind, string> = {
   regular: 'api/_search/items/restaurant-variable',
   pizza: 'api/_search/items/restaurant-pizza',
@@ -62,43 +60,32 @@ const SAVE: Record<RestaurantKind, string> = {
 const searchKind = async (
   kind: RestaurantKind,
   filters: Record<string, { value: unknown; matchMode: string }>,
-  limit: number,
-): Promise<{ items: RestaurantBulkItem[]; capped: boolean }> => {
-  const items: RestaurantBulkItem[] = [];
-  let total = 0;
-  let page = 0;
-  do {
-    const response = await axios.post<Omit<RestaurantBulkItem, 'kind'>[]>(SEARCH[kind], {
-      rows: Math.min(PAGE_SIZE, limit - items.length),
-      page,
-      sortField: 'name',
-      sortOrder: 1,
-      filters,
-    });
-    total = Number(response.headers['x-total-count'] ?? items.length + response.data.length);
-    items.push(...response.data.map(item => ({ ...item, kind })));
-    page += 1;
-  } while (items.length < total && items.length < limit);
-  return { items, capped: total > items.length };
+  page: number,
+  rows: number,
+): Promise<{ items: RestaurantBulkItem[]; total: number }> => {
+  const response = await axios.post<Omit<RestaurantBulkItem, 'kind'>[]>(SEARCH[kind], {
+    rows,
+    page,
+    sortField: 'name',
+    sortOrder: 1,
+    filters,
+  });
+  const total = Number(response.headers['x-total-count'] ?? response.data.length);
+  return { items: response.data.map(item => ({ ...item, kind })), total };
 };
 
-/** Loads restaurant items from the regular, pizza, and combo catalogs, up to MAX_ITEMS. */
+/** Loads one page from each selected restaurant catalog. */
 export const searchRestaurantItems = async (
   filters: Record<string, { value: unknown; matchMode: string }>,
   kinds: RestaurantKind[],
-): Promise<{ items: RestaurantBulkItem[]; capped: boolean }> => {
-  const items: RestaurantBulkItem[] = [];
-  let capped = false;
-  for (const kind of kinds) {
-    if (items.length >= MAX_ITEMS) {
-      capped = true;
-      break;
-    }
-    const result = await searchKind(kind, filters, MAX_ITEMS - items.length);
-    items.push(...result.items);
-    if (result.capped) capped = true;
-  }
-  return { items, capped };
+  page: number,
+  rows: number,
+): Promise<{ items: RestaurantBulkItem[]; total: number; pageCount: number }> => {
+  const perKind = Math.max(1, Math.ceil(rows / kinds.length));
+  const results = await Promise.all(kinds.map(kind => searchKind(kind, filters, page, perKind)));
+  const total = results.reduce((sum, result) => sum + result.total, 0);
+  const pageCount = Math.max(1, ...results.map(result => Math.ceil(result.total / perKind) || 0));
+  return { items: results.flatMap(result => result.items), total, pageCount };
 };
 
 export const saveRestaurantItems = async (items: RestaurantBulkItem[]): Promise<void> => {
@@ -114,9 +101,17 @@ export const saveRestaurantItems = async (items: RestaurantBulkItem[]): Promise<
   );
 };
 
+const byName = (left: NamedRef, right: NamedRef) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' });
+
 export const loadOptions = async (url: string): Promise<NamedRef[]> => {
   const { data } = await axios.get<NamedRef[]>(url, { params: { page: 0, size: 500, sort: 'name,asc' } });
-  return (data ?? []).filter(option => option?.id).map(option => ({ id: option.id, name: option.name ?? option.id }));
+  return (data ?? []).filter(option => option?.id).map(option => ({ id: option.id, name: option.name ?? option.id })).sort(byName);
+};
+
+/** Type-ahead category search, same endpoint the item list uses. */
+export const searchNamedOptions = async (url: string, query: string): Promise<NamedRef[]> => {
+  const { data } = await axios.post<NamedRef[]>(url, buildPostFilterSearchQuery({ query, page: 0, size: 30, sort: 'name,asc' }));
+  return (data ?? []).filter(option => option?.id).map(option => ({ id: option.id, name: option.name ?? option.id })).sort(byName);
 };
 
 export const loadDiscounts = async (): Promise<IDiscount[]> => {
