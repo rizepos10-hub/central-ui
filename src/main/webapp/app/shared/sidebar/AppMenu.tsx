@@ -512,6 +512,13 @@ export const model: MenuItem[] = [
         section: 'Settings',
       },
       {
+        label: 'Shipping Settings',
+        to: '/logistics/shipping-settings',
+        role: WHOLESALE_PAGE_ROLES.shippingSettings,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Settings',
+      },
+      {
         label: 'Create Order',
         to: '/logistics/create-order',
         role: WHOLESALE_PAGE_ROLES.createOrder,

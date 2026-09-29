@@ -25,7 +25,9 @@ import { NoteDialog } from '../operations/note-dialog';
 import { money } from '../sales/sales.model';
 import { fetchSettings } from '../settings/wholesale-settings.api';
 import { IWholesaleCarrier } from '../settings/wholesale-settings.model';
+import { isLiveSource } from '../shipping/shipping.model';
 import { deliverOrder, fetchShipments, shipOrder } from './shipments.api';
+import { FeeDialog, LabelChoice, ShippingCell } from './shipping-fee';
 import {
   DELIVERY_ROLES,
   IShipRequest,
@@ -56,17 +58,20 @@ const ShipDialog = ({
   const [request, setRequest] = useState<IShipRequest>({ carrierId: null, trackingNumber: '', notes: '' });
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [buyLabel, setBuyLabel] = useState(false);
   const active = carriers.filter(c => c.id && c.active !== false);
+  const provider = isLiveSource(row?.shipping?.source) ? row.shipping.source : null;
 
   useEffect(() => {
     if (row) {
       const preset = row.carrierId && active.some(c => c.id === row.carrierId) ? row.carrierId : active.length === 1 ? active[0].id : null;
       setRequest({ carrierId: preset, trackingNumber: '', notes: '' });
       setSubmitted(false);
+      setBuyLabel(isLiveSource(row.shipping?.source));
     }
   }, [row]);
 
-  const errors = shipmentErrors(request);
+  const errors = buyLabel ? {} : shipmentErrors(request);
   const shown = submitted ? errors : {};
 
   const ship = async () => {
@@ -74,8 +79,12 @@ const ShipDialog = ({
     if (Object.keys(errors).length > 0) return;
     setBusy(true);
     try {
+      const notes = request.notes?.trim() || null;
       onShipped(
-        await shipOrder(row.orderId, { ...request, trackingNumber: request.trackingNumber.trim(), notes: request.notes?.trim() || null })
+        await shipOrder(
+          row.orderId,
+          buyLabel ? { carrierId: null, trackingNumber: '', notes } : { ...request, trackingNumber: request.trackingNumber.trim(), notes }
+        )
       );
     } catch (error) {
       toast.error(wholesaleErrorMessage(error, 'The order could not be shipped.'));
@@ -94,7 +103,10 @@ const ShipDialog = ({
           </DialogDescription>
         </DialogHeader>
         <fieldset disabled={busy} className="grid gap-3">
-          <div className="grid gap-1.5">
+          {provider && (
+            <LabelChoice provider={provider} quote={row.shipping} buyLabel={buyLabel} onChange={setBuyLabel} />
+          )}
+          <div className={cn('grid gap-1.5', buyLabel && 'hidden')}>
             <Label>Carrier</Label>
             <Select
               value={request.carrierId ?? NONE}
@@ -115,7 +127,7 @@ const ShipDialog = ({
             {shown.carrierId && <span className="text-xs text-destructive">{shown.carrierId}</span>}
             {active.length === 0 && <span className="text-xs text-destructive">No active carriers. Add one in Wholesale Settings.</span>}
           </div>
-          <div className="grid gap-1.5">
+          <div className={cn('grid gap-1.5', buyLabel && 'hidden')}>
             <Label htmlFor="ws-tracking-number">Tracking number</Label>
             <Input
               id="ws-tracking-number"
@@ -140,7 +152,7 @@ const ShipDialog = ({
             Cancel
           </Button>
           <Button className="ws-control" onClick={ship} disabled={busy}>
-            {busy ? 'Working...' : 'Ship'}
+            {busy ? (buyLabel ? 'Buying label...' : 'Working...') : buyLabel ? 'Buy label and ship' : 'Ship'}
           </Button>
         </DialogFooter>
       </WsDialogContent>
@@ -165,6 +177,7 @@ const Shipments = () => {
   const [carriers, setCarriers] = useState<IWholesaleCarrier[]>([]);
   const [shipping, setShipping] = useState<IShipmentRow | null>(null);
   const [delivering, setDelivering] = useState<IShipmentRow | null>(null);
+  const [feeRow, setFeeRow] = useState<IShipmentRow | null>(null);
 
   useEffect(() => {
     fetchFactories()
@@ -268,6 +281,7 @@ const Shipments = () => {
               <th>Stage</th>
               <th>Carrier</th>
               <th>Tracking</th>
+              <th>Shipping</th>
               <th className="ws-num">Total</th>
               <th />
             </tr>
@@ -303,9 +317,22 @@ const Shipments = () => {
                   ) : (
                     row.trackingNumber ?? ''
                   )}
+                  {row.labelUrl && (
+                    <a href={row.labelUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-xs text-primary hover:underline">
+                      Label
+                    </a>
+                  )}
+                </td>
+                <td>
+                  <ShippingCell quote={row.shipping} />
                 </td>
                 <td className="ws-num">{money(row.total)}</td>
                 <td className="whitespace-nowrap text-right">
+                  {canDeliver && (row.stage === 'READY' || row.stage === 'WAITING_FACTORY') && (
+                    <Button size="sm" variant="outline" className="ws-control mr-2" onClick={() => setFeeRow(row)}>
+                      Fee
+                    </Button>
+                  )}
                   {canShip && row.stage === 'READY' && (
                     <Button size="sm" className="ws-control" onClick={() => setShipping(row)}>
                       Ship
@@ -321,14 +348,14 @@ const Shipments = () => {
             ))}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-muted-foreground">
+                <td colSpan={10} className="py-8 text-center text-muted-foreground">
                   {empty}
                 </td>
               </tr>
             )}
             {loading && rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-muted-foreground">
+                <td colSpan={10} className="py-8 text-center text-muted-foreground">
                   Loading shipments...
                 </td>
               </tr>
@@ -343,6 +370,8 @@ const Shipments = () => {
         onClose={() => setShipping(null)}
         onShipped={saved => done(`Order ${saved.sequenceNumber ?? ''} shipped`)}
       />
+
+      <FeeDialog row={feeRow} onClose={() => setFeeRow(null)} onSaved={load} />
 
       <NoteDialog
         open={delivering != null}
