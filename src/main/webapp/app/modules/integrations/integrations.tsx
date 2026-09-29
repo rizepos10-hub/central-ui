@@ -11,6 +11,8 @@ export type Integration = {
   logo: string;
   /** Integrations without a settings page yet are listed as coming soon. */
   settingsPath?: string;
+  /** Shown instead of "Coming soon" for integrations that need no setup here. */
+  note?: string;
 };
 
 export const INTEGRATIONS: Integration[] = [
@@ -26,9 +28,9 @@ export const INTEGRATIONS: Integration[] = [
     id: 'tookan',
     name: 'Tookan',
     category: 'Delivery dispatch',
-    description: 'Book delivery tasks with Tookan and track drivers for delivery orders.',
+    description: 'Delivery tasks are booked on the shared Rize Tookan account, so there is nothing to set up per business.',
     logo: '/content/images/integrations/tookan.svg',
-    settingsPath: '/tookan-settings',
+    note: 'Shared account',
   },
   {
     id: 'easypost',
@@ -81,7 +83,9 @@ const Integrations = () => {
               <div className="flex items-center gap-2 text-sm font-semibold">
                 {integration.name}
                 {!integration.settingsPath && (
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Coming soon</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {integration.note ?? 'Coming soon'}
+                  </span>
                 )}
               </div>
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{integration.category}</div>
