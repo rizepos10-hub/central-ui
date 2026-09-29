@@ -329,6 +329,7 @@ export const model: MenuItem[] = [
       {
         label: 'Dashboard',
         to: '/logistics/dashboard',
+        icon: 'pi pi-home',
         role: WHOLESALE_PAGE_ROLES.dashboard,
         type: [BusinessTypeEnum.RETAIL],
       },
@@ -562,6 +563,7 @@ export const model: MenuItem[] = [
       {
         label: 'Help',
         to: '/logistics/help',
+        icon: 'pi pi-book',
         role: WHOLESALE_PAGE_ROLES.help,
         type: [BusinessTypeEnum.RETAIL],
       },
