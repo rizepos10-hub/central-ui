@@ -279,12 +279,20 @@ export const model: MenuItem[] = [
         label: 'Products',
         to: '/product',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Bulk Updates',
-        to: '/retail/bulk-updates',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        items: [
+          {
+            label: 'Products',
+            to: '/product',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            type: [BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Bulk Updates',
+            to: '/retail/bulk-updates',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            type: [BusinessTypeEnum.RETAIL],
+          },
+        ],
         type: [BusinessTypeEnum.RETAIL],
       },
       {
