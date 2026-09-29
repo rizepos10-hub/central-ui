@@ -172,13 +172,13 @@ export const model: MenuItem[] = [
             role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
             type: [BusinessTypeEnum.RESTAURANT],
           },
+          {
+            label: 'Bulk Updates',
+            to: '/restaurant/bulk-updates',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            type: [BusinessTypeEnum.RESTAURANT],
+          },
         ],
-        type: [BusinessTypeEnum.RESTAURANT],
-      },
-      {
-        label: 'Bulk Updates',
-        to: '/restaurant/bulk-updates',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         type: [BusinessTypeEnum.RESTAURANT],
       },
       {

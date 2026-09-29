@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Loader2, Search } from 'lucide-react';
 
@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverAnchor } from '@/components/ui/popover';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from 'app/modules/logistics/wholesale-ui/wholesale-page';
-import { WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
+import { WsPopoverContent, WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { WholesaleStatusBadge } from 'app/modules/logistics/wholesale-ui/wholesale-status-badge';
 import { wholesaleErrorMessage } from 'app/modules/logistics/wholesale-ui/wholesale-error';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -22,6 +23,7 @@ import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import {
   loadDiscounts,
   loadOptions,
+  searchNamedOptions,
   NamedRef,
   RestaurantBulkItem,
   RestaurantKind,
@@ -143,6 +145,18 @@ const withinCount = (count: number, min: string, max: string) => {
   return true;
 };
 
+const PAGE_SIZES = [10, 20, 30, 40, 50, 100, 200];
+const SCAN_BATCH = 100;
+const SCAN_CAP = 400;
+
+const matchesRestaurantClient = (item: RestaurantBulkItem, filters: Filters) => {
+  const variants = item.variants ?? [];
+  if (!withinCount(variants.length, filters.variantsMin, filters.variantsMax)) return false;
+  if (filters.price === 'missing' && variants.every(hasPrice)) return false;
+  if (filters.price === 'present' && variants.some(variant => !hasPrice(variant))) return false;
+  return true;
+};
+
 const currentValue = (field: BulkField, item: RestaurantBulkItem, variant: RestaurantVariant) => {
   switch (field) {
     case 'salePrice':
@@ -167,7 +181,11 @@ const RestaurantBulkUpdates = () => {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [items, setItems] = useState<RestaurantBulkItem[]>([]);
   const [searched, setSearched] = useState(false);
-  const [capped, setCapped] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rows, setRows] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const [filterNote, setFilterNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -195,8 +213,10 @@ const RestaurantBulkUpdates = () => {
     loadDiscounts().then(setDiscounts).catch(() => setDiscounts([]));
   }, []);
 
-  const search = async () => {
+  const search = async (nextPage = 0, nextRows = rows) => {
     setLoading(true);
+    setPage(nextPage);
+    setRows(nextRows);
     try {
       const server: Record<string, { value: unknown; matchMode: string }> = {
         isArchived: { value: false, matchMode: 'EQUALS' },
@@ -206,22 +226,37 @@ const RestaurantBulkUpdates = () => {
       if (filters.brandId !== ANY) server['brand.id'] = { value: filters.brandId, matchMode: 'EQUALS' };
       if (filters.taxId !== ANY) server['accountingGroups.id'] = { value: filters.taxId, matchMode: 'EQUALS' };
       if (filters.productionCenterId !== ANY) server['productionCenter.id'] = { value: filters.productionCenterId, matchMode: 'EQUALS' };
+      if (filters.byWeight === 'yes') server.isByWeight = { value: true, matchMode: 'EQUALS' };
+      if (filters.byWeight === 'no') server.isByWeight = { value: true, matchMode: 'NOT_EQUALS' };
+      if (filters.askForPrice === 'yes') server.askForPrice = { value: true, matchMode: 'EQUALS' };
+      if (filters.askForPrice === 'no') server.askForPrice = { value: true, matchMode: 'NOT_EQUALS' };
 
       const kinds: RestaurantKind[] = filters.type === ANY ? ['regular', 'pizza', 'combo'] : [filters.type as RestaurantKind];
-      const result = await searchRestaurantItems(server, kinds);
-      const filtered = result.items.filter(item => {
-        const variants = item.variants ?? [];
-        if (!withinCount(variants.length, filters.variantsMin, filters.variantsMax)) return false;
-        if (filters.price === 'missing' && variants.every(hasPrice)) return false;
-        if (filters.price === 'present' && variants.some(variant => !hasPrice(variant))) return false;
-        if (filters.byWeight === 'yes' && item.byWeight !== true) return false;
-        if (filters.byWeight === 'no' && item.byWeight === true) return false;
-        if (filters.askForPrice === 'yes' && item.askForPrice !== true) return false;
-        if (filters.askForPrice === 'no' && item.askForPrice === true) return false;
-        return true;
-      });
-      setItems(filtered);
-      setCapped(result.capped);
+      const needsScan = filters.variantsMin.trim() !== '' || filters.variantsMax.trim() !== '' || filters.price === 'missing' || filters.price === 'present';
+      if (!needsScan) {
+        const result = await searchRestaurantItems(server, kinds, nextPage, nextRows);
+        setItems(result.items);
+        setTotal(result.total);
+        setPageCount(result.pageCount);
+        setFilterNote('');
+      } else {
+        const matched: RestaurantBulkItem[] = [];
+        let serverPage = 0;
+        let scanned = 0;
+        let finished = false;
+        while (scanned < SCAN_CAP && !finished) {
+          const batch = await searchRestaurantItems(server, kinds, serverPage, SCAN_BATCH);
+          scanned += batch.items.length;
+          matched.push(...batch.items.filter(item => matchesRestaurantClient(item, filters)));
+          finished = batch.items.length === 0 || serverPage + 1 >= batch.pageCount;
+          serverPage += 1;
+        }
+        const start = nextPage * nextRows;
+        setItems(matched.slice(start, start + nextRows));
+        setTotal(matched.length);
+        setPageCount(Math.max(1, Math.ceil(matched.length / nextRows)));
+        setFilterNote(!finished && scanned >= SCAN_CAP ? `Checked the first ${SCAN_CAP} items` : '');
+      }
       setSelected(new Set());
       setSearched(true);
     } catch (error) {
@@ -389,7 +424,7 @@ const RestaurantBulkUpdates = () => {
     try {
       await saveRestaurantItems(updated);
       toast.success(`${updated.length} ${updated.length === 1 ? 'item' : 'items'} updated.`);
-      await search();
+      await search(page, rows);
     } catch (error) {
       toast.error(wholesaleErrorMessage(error, 'The update could not be saved.'));
     } finally {
@@ -413,7 +448,7 @@ const RestaurantBulkUpdates = () => {
         >
           <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', !filtersOpen && '-rotate-90')} />
           <h2 className="m-0 text-sm font-semibold">Filter</h2>
-          {searched && !filtersOpen && <span className="text-xs text-muted-foreground">{items.length} items</span>}
+          {searched && !filtersOpen && <span className="text-xs text-muted-foreground">{total} items</span>}
         </button>
         {filtersOpen && (
           <div className="grid gap-3 px-4 pb-4">
@@ -422,9 +457,16 @@ const RestaurantBulkUpdates = () => {
                 <Label htmlFor="restaurant-bulk-name">Name</Label>
                 <Input id="restaurant-bulk-name" className="ws-control" value={filters.name} placeholder="Contains" onChange={e => setFilters(prev => ({ ...prev, name: e.target.value }))} />
               </div>
-              <OptionFilter label="Category" value={filters.categoryId} options={categories} onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
+              <CategoryFilter value={filters.categoryId} searchUrl="api/_search/restaurant-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
               <OptionFilter label="Brand" value={filters.brandId} options={brands} onChange={brandId => setFilters(prev => ({ ...prev, brandId }))} />
-              <OptionFilter label="Tax group" value={filters.taxId} options={taxes} onChange={taxId => setFilters(prev => ({ ...prev, taxId }))} />
+              <div className="flex items-end gap-2">
+                <div className="min-w-0 flex-1">
+                  <OptionFilter label="Tax group" value={filters.taxId} options={taxes} onChange={taxId => setFilters(prev => ({ ...prev, taxId }))} />
+                </div>
+                <div className="w-[9.5rem] shrink-0">
+                  <TriFilter label="Sell by weight" value={filters.byWeight} onChange={byWeight => setFilters(prev => ({ ...prev, byWeight }))} />
+                </div>
+              </div>
               <OptionFilter label="Production center" value={filters.productionCenterId} options={centers} onChange={productionCenterId => setFilters(prev => ({ ...prev, productionCenterId }))} />
               <div className="grid gap-1.5">
                 <Label>Type</Label>
@@ -445,29 +487,32 @@ const RestaurantBulkUpdates = () => {
                   <Input className="ws-control" type="number" min={0} placeholder="Max" aria-label="Maximum variants" value={filters.variantsMax} onChange={e => setFilters(prev => ({ ...prev, variantsMax: e.target.value }))} />
                 </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label>Price</Label>
-                <Select value={filters.price} onValueChange={price => setFilters(prev => ({ ...prev, price: price as PriceFilter }))}>
-                  <SelectTrigger className="ws-control"><SelectValue /></SelectTrigger>
-                  <WsSelectContent>
-                    <SelectItem value="any">Any</SelectItem>
-                    <SelectItem value="missing">Missing a price</SelectItem>
-                    <SelectItem value="present">Every variant has a price</SelectItem>
-                  </WsSelectContent>
-                </Select>
+              <div className="flex items-end gap-2">
+                <div className="grid min-w-0 flex-1 gap-1.5">
+                  <Label>Price</Label>
+                  <Select value={filters.price} onValueChange={price => setFilters(prev => ({ ...prev, price: price as PriceFilter }))}>
+                    <SelectTrigger className="ws-control"><SelectValue /></SelectTrigger>
+                    <WsSelectContent>
+                      <SelectItem value="any">Any</SelectItem>
+                      <SelectItem value="missing">Missing a price</SelectItem>
+                      <SelectItem value="present">Every variant has a price</SelectItem>
+                    </WsSelectContent>
+                  </Select>
+                </div>
+                <div className="w-[9.5rem] shrink-0">
+                  <TriFilter label="Ask for price" value={filters.askForPrice} onChange={askForPrice => setFilters(prev => ({ ...prev, askForPrice }))} />
+                </div>
               </div>
-              <TriFilter label="Sell by weight" value={filters.byWeight} onChange={byWeight => setFilters(prev => ({ ...prev, byWeight }))} />
-              <TriFilter label="Ask for price" value={filters.askForPrice} onChange={askForPrice => setFilters(prev => ({ ...prev, askForPrice }))} />
             </div>
             <div className="flex items-center gap-2">
               <Button className="ws-control" disabled={loading} onClick={() => void search()}>
                 {loading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}
                 Search
               </Button>
-              <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setItems([]); setSearched(false); setSelected(new Set()); }}>
+              <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setItems([]); setSearched(false); setSelected(new Set()); setPage(0); setTotal(0); setPageCount(1); setFilterNote(''); }}>
                 Clear
               </Button>
-              {searched && <span className="text-xs text-muted-foreground">{items.length} items{capped ? ' (first 2,000 from the server; narrow the filter)' : ''}</span>}
+              {searched && <span className="text-xs text-muted-foreground">{total} items{filterNote ? ` · ${filterNote}` : ''}</span>}
             </div>
           </div>
         )}
@@ -569,7 +614,8 @@ const RestaurantBulkUpdates = () => {
         )}
       </section>
 
-      <div className="ws-card max-h-[60vh] overflow-auto">
+      <div className="ws-card">
+        <div className="max-h-[60vh] overflow-auto">
         <table className="ws-table" aria-label="Restaurant items">
           <thead>
             <tr>
@@ -590,20 +636,161 @@ const RestaurantBulkUpdates = () => {
             {!searched && <tr><td colSpan={5} className="text-center text-muted-foreground">Search to list items.</td></tr>}
             {searched && items.length === 0 && <tr><td colSpan={5} className="text-center text-muted-foreground">No items match.</td></tr>}
             {items.map(item => (
-              <tr key={`${item.kind}-${item.id}`}>
-                <td>
-                  <Checkbox aria-label={`Select ${item.name}`} checked={!!item.id && selected.has(item.id)} onCheckedChange={checked => item.id && toggleItem(item.id, checked === true)} />
-                </td>
-                <td className="font-medium">{item.name}</td>
-                <td><WholesaleStatusBadge tone={item.kind === 'regular' ? 'neutral' : item.kind === 'pizza' ? 'new' : 'approved'}>{KIND_LABEL[item.kind]}</WholesaleStatusBadge></td>
-                <td className="ws-num">{item.variants?.length ?? 0}</td>
-                <td className="ws-num">{priceRange(item)}</td>
-              </tr>
+              <Fragment key={`${item.kind}-${item.id}`}>
+                <tr>
+                  <td>
+                    <Checkbox aria-label={`Select ${item.name}`} checked={!!item.id && selected.has(item.id)} onCheckedChange={checked => item.id && toggleItem(item.id, checked === true)} />
+                  </td>
+                  <td className="font-medium">{item.name}</td>
+                  <td><WholesaleStatusBadge tone={item.kind === 'regular' ? 'neutral' : item.kind === 'pizza' ? 'new' : 'approved'}>{KIND_LABEL[item.kind]}</WholesaleStatusBadge></td>
+                  <td className="ws-num">{item.variants?.length ?? 0}</td>
+                  <td className="ws-num">{priceRange(item)}</td>
+                </tr>
+                {(item.variants ?? []).length > 0 && (
+                  <tr className="bg-muted/30">
+                    <td colSpan={5} className="p-0">
+                      <div className="ml-10 mr-3 mb-2 border-l-2 border-border">
+                        <table className="ws-table" aria-label={`Variants of ${item.name}`}>
+                          <thead>
+                            <tr>
+                              <th>Variant</th>
+                              <th className="ws-num">Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(item.variants ?? []).map(variant => (
+                              <tr key={variant.id ?? `${item.id}-${variant.name}`}>
+                                <td>{variant.name || '-'}</td>
+                                <td className="ws-num">{variant.price ?? '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
+        </div>
+        {searched && (
+          <PageBar
+            page={page}
+            rows={rows}
+            total={total}
+            pageCount={pageCount}
+            loading={loading}
+            combined={filters.type === ANY}
+            onPage={nextPage => void search(nextPage, rows)}
+            onRows={nextRows => void search(0, nextRows)}
+          />
+        )}
       </div>
     </WholesalePage>
+  );
+};
+
+const PageBar = ({
+  page,
+  rows,
+  total,
+  pageCount,
+  loading,
+  combined,
+  onPage,
+  onRows,
+}: {
+  page: number;
+  rows: number;
+  total: number;
+  pageCount: number;
+  loading: boolean;
+  combined: boolean;
+  onPage: (page: number) => void;
+  onRows: (rows: number) => void;
+}) => {
+  const from = total === 0 ? 0 : page * rows + 1;
+  const to = total === 0 ? 0 : Math.min(total, (page + 1) * rows);
+  const label = total === 0 ? 'No entries' : combined ? `Page ${page + 1} of ${pageCount} · ${total} items` : `Showing ${from} to ${to} of ${total}`;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <Select value={String(rows)} onValueChange={value => onRows(Number(value))}>
+          <SelectTrigger className="ws-control w-20" aria-label="Rows per page"><SelectValue /></SelectTrigger>
+          <WsSelectContent>
+            {PAGE_SIZES.map(size => (
+              <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+            ))}
+          </WsSelectContent>
+        </Select>
+        <Button variant="outline" className="ws-control" disabled={loading || page <= 0} onClick={() => onPage(page - 1)}>Previous</Button>
+        <Button variant="outline" className="ws-control" disabled={loading || page + 1 >= pageCount} onClick={() => onPage(page + 1)}>Next</Button>
+      </div>
+    </div>
+  );
+};
+
+const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchUrl: string; onChange: (value: string) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [options, setOptions] = useState<NamedRef[]>([]);
+  const [label, setLabel] = useState('');
+
+  useEffect(() => {
+    if (value === ANY) setLabel('');
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let ignore = false;
+    const timeoutId = window.setTimeout(() => {
+      searchNamedOptions(searchUrl, query)
+        .then(next => { if (!ignore) setOptions(next); })
+        .catch(() => { if (!ignore) setOptions([]); });
+    }, 250);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [open, query, searchUrl]);
+
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor="restaurant-bulk-category">Category</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverAnchor asChild>
+          <Input
+            id="restaurant-bulk-category"
+            className="ws-control"
+            placeholder="Any"
+            value={open ? query : label}
+            onChange={event => {
+              setQuery(event.target.value);
+              setOpen(true);
+              if (!event.target.value.trim()) onChange(ANY);
+            }}
+            onFocus={() => {
+              setQuery('');
+              setOpen(true);
+            }}
+          />
+        </PopoverAnchor>
+        <WsPopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1" onOpenAutoFocus={event => event.preventDefault()}>
+          <div className="max-h-56 overflow-auto">
+            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(ANY); setLabel(''); setQuery(''); setOpen(false); }}>Any</button>
+            {options.map(option => (
+              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(option.id); setLabel(option.name); setQuery(''); setOpen(false); }}>
+                {option.name}
+              </button>
+            ))}
+            {options.length === 0 && <div className="px-2 py-1.5 text-[13px] text-muted-foreground">No categories</div>}
+          </div>
+        </WsPopoverContent>
+      </Popover>
+    </div>
   );
 };
 
