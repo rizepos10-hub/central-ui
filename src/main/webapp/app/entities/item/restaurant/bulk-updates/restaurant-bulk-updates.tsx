@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Loader2, Search } from 'lucide-react';
 
@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverAnchor } from '@/components/ui/popover';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from 'app/modules/logistics/wholesale-ui/wholesale-page';
-import { WsPopoverContent, WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
+import { WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { WholesaleStatusBadge } from 'app/modules/logistics/wholesale-ui/wholesale-status-badge';
 import { wholesaleErrorMessage } from 'app/modules/logistics/wholesale-ui/wholesale-error';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -157,25 +156,6 @@ const matchesRestaurantClient = (item: RestaurantBulkItem, filters: Filters) => 
   return true;
 };
 
-const currentValue = (field: BulkField, item: RestaurantBulkItem, variant: RestaurantVariant) => {
-  switch (field) {
-    case 'salePrice':
-      return variant.salePrice ?? '-';
-    case 'variantDescription':
-      return variant.description || '-';
-    case 'preparationTime':
-      return variant.preparationTime ?? '-';
-    case 'tax':
-      return ((item.kind === 'regular' ? variant.accountingGroups : item.accountingGroups) ?? []).map(group => group.name).join(', ') || '-';
-    case 'mixAndMatch':
-      return variant.mixAndMatchRule?.name || '-';
-    case 'discount':
-      return (variant.discounts ?? []).map(discountLabel).join(', ') || '-';
-    default:
-      return variant.price ?? '-';
-  }
-};
-
 const RestaurantBulkUpdates = () => {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(true);
@@ -258,6 +238,7 @@ const RestaurantBulkUpdates = () => {
         setFilterNote(!finished && scanned >= SCAN_CAP ? `Checked the first ${SCAN_CAP} items` : '');
       }
       setSelected(new Set());
+      setCheckedVariants(new Set());
       setSearched(true);
     } catch (error) {
       toast.error(wholesaleErrorMessage(error, 'The items could not be loaded.'));
@@ -270,26 +251,31 @@ const RestaurantBulkUpdates = () => {
 
   const variantLines = useMemo(
     () =>
-      selectedItems.flatMap(item =>
+      items.flatMap(item =>
         (item.variants ?? []).map(variant => ({
           key: variantKey(item.id ?? '', variant.id ?? ''),
           item,
           variant,
         })),
       ),
-    [selectedItems],
+    [items],
   );
 
-  useEffect(() => {
-    if (!VARIANT_FIELDS.has(field)) return;
-    setCheckedVariants(new Set(variantLines.map(line => line.key)));
-  }, [field, variantLines]);
-
-  const toggleItem = (id: string, on: boolean) => {
+  const toggleItem = (item: RestaurantBulkItem, on: boolean) => {
+    const id = item.id ?? '';
     setSelected(prev => {
       const next = new Set(prev);
       if (on) next.add(id);
       else next.delete(id);
+      return next;
+    });
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      (item.variants ?? []).forEach(variant => {
+        const key = variantKey(id, variant.id ?? '');
+        if (on) next.add(key);
+        else next.delete(key);
+      });
       return next;
     });
   };
@@ -319,7 +305,7 @@ const RestaurantBulkUpdates = () => {
   const needsRef = field === 'category' || field === 'brand' || field === 'tag' || field === 'tax' || field === 'productionCenter' || field === 'mixAndMatch' || field === 'discount';
 
   const apply = async () => {
-    if (!selectedItems.length) return;
+    if (!VARIANT_FIELDS.has(field) && !selectedItems.length) return;
     const number = Number(textValue);
     if (needsNumber && (!Number.isFinite(number) || number < 0)) {
       toast.error(field === 'preparationTime' ? 'Enter a preparation time of 0 or more.' : 'Enter a price of 0 or more.');
@@ -345,7 +331,7 @@ const RestaurantBulkUpdates = () => {
     const discount = discounts.find(entry => entry.id === refValue);
     const yes = boolValue === 'true';
 
-    const updated = selectedItems
+    const updated = (VARIANT_FIELDS.has(field) ? items : selectedItems)
       .filter(item => !VARIANT_FIELDS.has(field) || chosenByItem.has(item.id ?? ''))
       .map(item => {
         const next: RestaurantBulkItem = { ...item, variants: (item.variants ?? []).map(variant => ({ ...variant })) };
@@ -457,7 +443,7 @@ const RestaurantBulkUpdates = () => {
                 <Label htmlFor="restaurant-bulk-name">Name</Label>
                 <Input id="restaurant-bulk-name" className="ws-control" value={filters.name} placeholder="Contains" onChange={e => setFilters(prev => ({ ...prev, name: e.target.value }))} />
               </div>
-              <CategoryFilter value={filters.categoryId} searchUrl="api/_search/restaurant-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
+              <CategoryFilter inputId="restaurant-bulk-category" value={filters.categoryId} searchUrl="api/_search/restaurant-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
               <OptionFilter label="Brand" value={filters.brandId} options={brands} onChange={brandId => setFilters(prev => ({ ...prev, brandId }))} />
               <div className="flex items-end gap-2">
                 <div className="min-w-0 flex-1">
@@ -509,7 +495,7 @@ const RestaurantBulkUpdates = () => {
                 {loading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}
                 Search
               </Button>
-              <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setItems([]); setSearched(false); setSelected(new Set()); setPage(0); setTotal(0); setPageCount(1); setFilterNote(''); }}>
+              <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setItems([]); setSearched(false); setSelected(new Set()); setCheckedVariants(new Set()); setPage(0); setTotal(0); setPageCount(1); setFilterNote(''); }}>
                 Clear
               </Button>
               {searched && <span className="text-xs text-muted-foreground">{total} items{filterNote ? ` · ${filterNote}` : ''}</span>}
@@ -564,54 +550,16 @@ const RestaurantBulkUpdates = () => {
               </Select>
             )}
           </div>
-          <Button className="ws-control" disabled={saving || selectedItems.length === 0} onClick={() => void apply()}>
+          <Button className="ws-control" disabled={saving || (VARIANT_FIELDS.has(field) ? checkedVariants.size === 0 : selectedItems.length === 0)} onClick={() => void apply()}>
             {saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             Apply to {VARIANT_FIELDS.has(field) ? checkedVariants.size : selectedItems.length}
           </Button>
         </div>
         <p className="m-0 text-xs text-muted-foreground">
           {VARIANT_FIELDS.has(field)
-            ? 'Each variant is listed below. Uncheck a variant to leave it unchanged.'
+            ? 'Check the variants under each item. Unchecked variants stay unchanged.'
             : 'This value is saved on every selected item.'}
         </p>
-
-        {VARIANT_FIELDS.has(field) && (
-          <div className="max-h-[320px] overflow-auto rounded-md border">
-            <table className="ws-table" aria-label="Variants to update">
-              <thead>
-                <tr>
-                  <th className="w-10">
-                    <Checkbox
-                      aria-label="Select all variants"
-                      checked={variantLines.length > 0 && variantLines.every(line => checkedVariants.has(line.key))}
-                      onCheckedChange={checked => setCheckedVariants(checked === true ? new Set(variantLines.map(line => line.key)) : new Set())}
-                    />
-                  </th>
-                  <th>Item</th>
-                  <th>Type</th>
-                  <th>Variant</th>
-                  <th>Current</th>
-                </tr>
-              </thead>
-              <tbody>
-                {variantLines.length === 0 && (
-                  <tr><td colSpan={5} className="text-center text-muted-foreground">Select items in the list first.</td></tr>
-                )}
-                {variantLines.map(line => (
-                  <tr key={line.key}>
-                    <td>
-                      <Checkbox aria-label={`Update ${line.item.name} ${line.variant.name ?? ''}`} checked={checkedVariants.has(line.key)} onCheckedChange={checked => toggleVariant(line.key, checked === true)} />
-                    </td>
-                    <td className="font-medium">{line.item.name}</td>
-                    <td>{KIND_LABEL[line.item.kind]}</td>
-                    <td>{line.variant.name || '-'}</td>
-                    <td>{currentValue(field, line.item, line.variant)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </section>
 
       <div className="ws-card">
@@ -623,7 +571,11 @@ const RestaurantBulkUpdates = () => {
                 <Checkbox
                   aria-label="Select all items"
                   checked={allSelected}
-                  onCheckedChange={checked => setSelected(checked === true ? new Set(items.map(item => item.id ?? '').filter(Boolean)) : new Set())}
+                  onCheckedChange={checked => {
+                    const on = checked === true;
+                    setSelected(on ? new Set(items.map(item => item.id ?? '').filter(Boolean)) : new Set());
+                    setCheckedVariants(on ? new Set(items.flatMap(item => (item.variants ?? []).map(variant => variantKey(item.id ?? '', variant.id ?? '')))) : new Set());
+                  }}
                 />
               </th>
               <th>Name</th>
@@ -639,7 +591,7 @@ const RestaurantBulkUpdates = () => {
               <Fragment key={`${item.kind}-${item.id}`}>
                 <tr>
                   <td>
-                    <Checkbox aria-label={`Select ${item.name}`} checked={!!item.id && selected.has(item.id)} onCheckedChange={checked => item.id && toggleItem(item.id, checked === true)} />
+                    <Checkbox aria-label={`Select ${item.name}`} checked={!!item.id && selected.has(item.id)} onCheckedChange={checked => toggleItem(item, checked === true)} />
                   </td>
                   <td className="font-medium">{item.name}</td>
                   <td><WholesaleStatusBadge tone={item.kind === 'regular' ? 'neutral' : item.kind === 'pizza' ? 'new' : 'approved'}>{KIND_LABEL[item.kind]}</WholesaleStatusBadge></td>
@@ -653,17 +605,24 @@ const RestaurantBulkUpdates = () => {
                         <table className="ws-table" aria-label={`Variants of ${item.name}`}>
                           <thead>
                             <tr>
+                              <th className="w-10" />
                               <th>Variant</th>
                               <th className="ws-num">Price</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {(item.variants ?? []).map(variant => (
-                              <tr key={variant.id ?? `${item.id}-${variant.name}`}>
-                                <td>{variant.name || '-'}</td>
-                                <td className="ws-num">{variant.price ?? '-'}</td>
-                              </tr>
-                            ))}
+                            {(item.variants ?? []).map(variant => {
+                              const key = variantKey(item.id ?? '', variant.id ?? '');
+                              return (
+                                <tr key={variant.id ?? `${item.id}-${variant.name}`}>
+                                  <td>
+                                    <Checkbox aria-label={`Select ${item.name} ${variant.name ?? ''}`} checked={checkedVariants.has(key)} onCheckedChange={checked => toggleVariant(key, checked === true)} />
+                                  </td>
+                                  <td>{variant.name || '-'}</td>
+                                  <td className="ws-num">{variant.price ?? '-'}</td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -733,7 +692,8 @@ const PageBar = ({
   );
 };
 
-const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchUrl: string; onChange: (value: string) => void }) => {
+const CategoryFilter = ({ value, searchUrl, inputId, onChange }: { value: string; searchUrl: string; inputId: string; onChange: (value: string) => void }) => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<NamedRef[]>([]);
@@ -742,6 +702,15 @@ const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchU
   useEffect(() => {
     if (value === ANY) setLabel('');
   }, [value]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -757,39 +726,44 @@ const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchU
     };
   }, [open, query, searchUrl]);
 
+  const choose = (id: string, name: string) => {
+    onChange(id);
+    setLabel(name);
+    setQuery('');
+    setOpen(false);
+  };
+
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor="restaurant-bulk-category">Category</Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverAnchor asChild>
-          <Input
-            id="restaurant-bulk-category"
-            className="ws-control"
-            placeholder="Any"
-            value={open ? query : label}
-            onChange={event => {
-              setQuery(event.target.value);
-              setOpen(true);
-              if (!event.target.value.trim()) onChange(ANY);
-            }}
-            onFocus={() => {
-              setQuery('');
-              setOpen(true);
-            }}
-          />
-        </PopoverAnchor>
-        <WsPopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1" onOpenAutoFocus={event => event.preventDefault()}>
-          <div className="max-h-56 overflow-auto">
-            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(ANY); setLabel(''); setQuery(''); setOpen(false); }}>Any</button>
+    <div className="grid gap-1.5" ref={rootRef}>
+      <Label htmlFor={inputId}>Category</Label>
+      <div className="relative">
+        <Input
+          id={inputId}
+          className="ws-control"
+          placeholder="Any"
+          value={open ? query : label}
+          onChange={event => {
+            setQuery(event.target.value);
+            setOpen(true);
+            if (!event.target.value.trim()) onChange(ANY);
+          }}
+          onFocus={() => {
+            setQuery(label);
+            setOpen(true);
+          }}
+        />
+        {open && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border bg-popover p-1 shadow-md">
+            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onMouseDown={event => event.preventDefault()} onClick={() => choose(ANY, '')}>Any</button>
             {options.map(option => (
-              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(option.id); setLabel(option.name); setQuery(''); setOpen(false); }}>
+              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onMouseDown={event => event.preventDefault()} onClick={() => choose(option.id, option.name)}>
                 {option.name}
               </button>
             ))}
             {options.length === 0 && <div className="px-2 py-1.5 text-[13px] text-muted-foreground">No categories</div>}
           </div>
-        </WsPopoverContent>
-      </Popover>
+        )}
+      </div>
     </div>
   );
 };
