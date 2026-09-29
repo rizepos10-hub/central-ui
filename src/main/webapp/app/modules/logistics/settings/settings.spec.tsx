@@ -90,6 +90,8 @@ describe('Wholesale Settings page', () => {
       deliveryNoteFooter: 'Thank you!',
       clearStaleReturnRateAlertPercent: false,
       portalBranchId: '',
+      carriers: [],
+      carrierCutoffTimes: [],
     };
     await waitFor(() => expect(saveSettings).toHaveBeenCalledWith(expected));
     await waitFor(() => expect(screen.queryByText('You have unsaved changes.')).toBeNull());
@@ -132,6 +134,37 @@ describe('Wholesale Settings page', () => {
     fireEvent.click(screen.getByText('Save settings'));
     await waitFor(() =>
       expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({ staleReturnRateAlertPercent: null, clearStaleReturnRateAlertPercent: true })),
+    );
+  });
+
+  it('turns on carrier shipping with a carrier and cut-off times', async () => {
+    jest.mocked(saveSettings).mockImplementation(settings => Promise.resolve(settings));
+    render(<WholesaleSettings />);
+    await screen.findByText('14:00');
+    expect(screen.queryByText('Add carrier')).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('Ship by carrier'));
+    fireEvent.click(screen.getByText('Add carrier'));
+    fireEvent.change(screen.getByLabelText('Carrier 1 name'), { target: { value: ' Purolator ' } });
+    fireEvent.change(screen.getByLabelText('Carrier 1 tracking link'), { target: { value: 'https://purolator.com/t?n={tracking}' } });
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Send to the factory' })).getByRole('radio', { name: /At cut-off times/ }));
+
+    fireEvent.click(screen.getByText('Save settings'));
+    expect(await screen.findByText('Add at least one cut-off time')).toBeTruthy();
+    expect(saveSettings).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('Cut-off times'), { target: { value: '15:00' } });
+    fireEvent.click(screen.getAllByText('Add time')[1]);
+    fireEvent.click(screen.getByText('Save settings'));
+    await waitFor(() =>
+      expect(saveSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          carrierShippingEnabled: true,
+          carrierDispatch: 'AT_CUTOFF_TIMES',
+          carrierCutoffTimes: ['15:00'],
+          carriers: [{ name: 'Purolator', trackingUrl: 'https://purolator.com/t?n={tracking}', active: true }],
+        }),
+      ),
     );
   });
 });

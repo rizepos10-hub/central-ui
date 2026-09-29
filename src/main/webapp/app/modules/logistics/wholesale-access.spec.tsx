@@ -61,6 +61,7 @@ describe('Wholesale access', () => {
       'loadingLists',
       'factoryOrders',
       'deliveryRuns',
+      'shipments',
       'liveRoute',
       'staleReturns',
       'creditMemos',
@@ -108,8 +109,8 @@ describe('Wholesale access', () => {
   });
 
   it('gives factory users their fulfillment, production and loading pages, and unrelated roles nothing', () => {
-    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['production', 'loadingLists', 'factoryFulfillment', 'factories', 'help']);
-    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories', 'Factory Fulfillment', 'Production', 'Loading Lists', 'Help']);
+    expect(pagesFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['production', 'loadingLists', 'factoryFulfillment', 'shipments', 'factories', 'help']);
+    expect(menuFor(AUTHORITIES.WHOLESALE_FACTORY)).toEqual(['Factories', 'Factory Fulfillment', 'Production', 'Loading Lists', 'Shipments', 'Help']);
     expect(WHOLESALE_ANY_ROLES).toContain(AUTHORITIES.WHOLESALE_FACTORY);
     expect(pagesFor(AUTHORITIES.ONLINE_ORDERING_USER)).toEqual([]);
   });
@@ -153,6 +154,7 @@ describe('Wholesale access', () => {
       'Production',
       'Loading Lists',
       'Delivery Runs',
+      'Shipments',
       'Live Route',
       'Stale Returns',
       'Credit Memos',

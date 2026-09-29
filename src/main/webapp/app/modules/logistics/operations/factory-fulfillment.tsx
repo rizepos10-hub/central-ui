@@ -30,6 +30,7 @@ import {
   SHORTAGE_REASONS,
   ShortageReason,
   TRACKABLE,
+  carrierLabel,
   factoryOrderTone,
   formatQty,
   hasShortage,
@@ -235,6 +236,7 @@ const FactoryFulfillment = () => {
               <span className="flex items-center gap-2">
                 <span className="font-semibold">{formatDay(o.deliveryDate)}</span>
                 <span className="text-xs text-muted-foreground">v{o.version}</span>
+                {carrierLabel(o.carrierKey) && <span className="text-xs font-medium text-primary">{carrierLabel(o.carrierKey)}</span>}
                 <span className="flex-1" />
                 <WholesaleStatusBadge tone={factoryOrderTone(o.status)}>{FACTORY_ORDER_STATUS_LABEL[o.status]}</WholesaleStatusBadge>
               </span>
@@ -255,6 +257,7 @@ const FactoryFulfillment = () => {
                 {detail.factoryName}, {formatDay(order.deliveryDate)}
               </h2>
               <span className="text-muted-foreground">v{order.version}</span>
+              {carrierLabel(order.carrierKey) && <WholesaleStatusBadge tone="new">{carrierLabel(order.carrierKey)}</WholesaleStatusBadge>}
               <WholesaleStatusBadge tone={factoryOrderTone(order.status)}>{FACTORY_ORDER_STATUS_LABEL[order.status]}</WholesaleStatusBadge>
               <div className="flex-1" />
               {order.status === 'APPROVED' && (

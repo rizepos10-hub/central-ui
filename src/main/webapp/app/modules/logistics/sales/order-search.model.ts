@@ -1,6 +1,6 @@
 import { WholesaleStatusTone } from '../wholesale-ui/wholesale-status-badge';
 
-export type OrderStage = 'OPEN' | 'WITH_FACTORY' | 'DELIVERED' | 'CANCELLED';
+export type OrderStage = 'OPEN' | 'WITH_FACTORY' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 export type OrderStatusFilter = 'UNFULFILLED' | OrderStage | 'ALL';
 export type OrderPaymentFilter = 'ANY' | 'UNPAID' | 'PAID';
 
@@ -51,6 +51,7 @@ export const STATUS_FILTERS: { value: OrderStatusFilter; label: string }[] = [
   { value: 'UNFULFILLED', label: 'Unfulfilled' },
   { value: 'OPEN', label: 'Open' },
   { value: 'WITH_FACTORY', label: 'With factory' },
+  { value: 'SHIPPED', label: 'Shipped' },
   { value: 'DELIVERED', label: 'Delivered' },
   { value: 'CANCELLED', label: 'Cancelled' },
   { value: 'ALL', label: 'All' },
@@ -65,6 +66,7 @@ export const PAYMENT_FILTERS: { value: OrderPaymentFilter; label: string }[] = [
 export const STAGE_LABEL: Record<OrderStage, string> = {
   OPEN: 'Open',
   WITH_FACTORY: 'With factory',
+  SHIPPED: 'Shipped',
   DELIVERED: 'Delivered',
   CANCELLED: 'Cancelled',
 };
@@ -72,6 +74,7 @@ export const STAGE_LABEL: Record<OrderStage, string> = {
 export const STAGE_TONE: Record<OrderStage, WholesaleStatusTone> = {
   OPEN: 'new',
   WITH_FACTORY: 'amendment',
+  SHIPPED: 'neutral',
   DELIVERED: 'approved',
   CANCELLED: 'cancelled',
 };

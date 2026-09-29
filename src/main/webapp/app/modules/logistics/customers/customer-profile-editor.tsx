@@ -18,6 +18,7 @@ import { OrderFrequencyEditor } from '../sales/order-frequency-editor';
 import { CustomerNotesDialog } from '../sales/customer-notes-dialog';
 import { PortalAccessDialog } from '../portal/portal-access-dialog';
 import { saveWholesaleProfile } from './wholesale-customer.api';
+import { CarrierCustomerFields } from './carrier-customer-fields';
 import {
   DAYS,
   DayOfWeek,
@@ -221,7 +222,9 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
               </span>
             </div>
 
-            <div className="grid gap-1.5">
+            {route?.carrierShipping && <CarrierCustomerFields profile={draft} disabled={disabled} onChange={value => set('carrierId', value)} />}
+
+            <div className={cn('grid gap-1.5', route?.carrierShipping && 'hidden')}>
               <Label>Delivery days</Label>
               <div className="flex flex-wrap gap-1" role="group" aria-label="Delivery days">
                 {DAYS.map(day => {

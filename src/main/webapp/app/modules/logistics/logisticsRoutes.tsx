@@ -29,6 +29,7 @@ import FactoryFulfillment from './operations/factory-fulfillment';
 import WholesaleHome from './operations/wholesale-home';
 import DeliveryRuns from './delivery/delivery-runs';
 import CashHandover from './delivery/cash-handover';
+import Shipments from './shipments/shipments';
 import StaleReturns from './delivery/stale-returns';
 import CreditMemos from './delivery/credit-memos';
 import Dashboard from './audits/dashboard';
@@ -65,6 +66,7 @@ const LogisticsRoutes = () => {
       <Route path="factory-orders/:id" element={guard('factoryOrders', <FactoryOrderDetail />)} />
       <Route path="factory-fulfillment" element={guard('factoryFulfillment', <FactoryFulfillment />)} />
       <Route path="delivery-runs" element={guard('deliveryRuns', <DeliveryRuns />)} />
+      <Route path="shipments" element={guard('shipments', <Shipments />)} />
       <Route path="cash-handover" element={guard('cashHandover', <CashHandover />)} />
       <Route path="stale-returns" element={guard('staleReturns', <StaleReturns />)} />
       <Route path="credit-memos" element={guard('creditMemos', <CreditMemos />)} />

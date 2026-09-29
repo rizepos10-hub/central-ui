@@ -26,6 +26,7 @@ import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { fetchFactories } from '../factories/wholesale-factory.api';
 import { IWholesaleFactory } from '../factories/wholesale-factory.model';
 import { IWholesaleCustomer, customerName, daysLabel } from '../customers/wholesale-customer.model';
+import { fetchSettings } from '../settings/wholesale-settings.api';
 import { AddStopDialog } from './add-stop-dialog';
 import { RouteEditor } from './route-editor';
 import { RouteMap } from './route-map';
@@ -68,6 +69,7 @@ const WholesaleRouteDefinitions = () => {
   const [editing, setEditing] = useState<IRouteDefinition | null>(null);
   const [deleting, setDeleting] = useState<IRouteDefinition | null>(null);
   const [addingTo, setAddingTo] = useState<IRouteDefinition | null>(null);
+  const [carrierShippingEnabled, setCarrierShippingEnabled] = useState(false);
 
   const selected = routes.find(r => r.id === selectedId) ?? null;
   const dirty = !sameOrder(order, stops);
@@ -80,6 +82,9 @@ const WholesaleRouteDefinitions = () => {
     fetchDrivers()
       .then(setDrivers)
       .catch(() => setDrivers([]));
+    fetchSettings()
+      .then(settings => setCarrierShippingEnabled(settings.carrierShippingEnabled === true))
+      .catch(() => setCarrierShippingEnabled(false));
     fetchRoutes()
       .then(list => {
         setRoutes(list);
@@ -241,6 +246,7 @@ const WholesaleRouteDefinitions = () => {
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.color || DEFAULT_ROUTE_COLOR }} />
                     <span className="font-medium">{r.name}</span>
                     {r.code && <span className="ws-mono text-xs text-muted-foreground">{r.code}</span>}
+                    {r.carrierShipping && <WholesaleStatusBadge tone="new">Carrier</WholesaleStatusBadge>}
                     {r.active === false && (
                       <WholesaleStatusBadge tone="neutral" className="ml-auto">
                         Inactive
@@ -265,8 +271,14 @@ const WholesaleRouteDefinitions = () => {
               <div className="min-w-0">
                 <div className="text-base font-semibold">{selected.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  Loads at {factoryName(selected.factoryId) ?? 'no factory'} / runs {daysLabel(selected.deliveryDays)} / driver{' '}
-                  {driverLabel(selected.defaultDriverUserId) ?? 'not set'}
+                  {selected.carrierShipping ? (
+                    <>Loads at {factoryName(selected.factoryId) ?? 'no factory'} / shipped by carrier, every day</>
+                  ) : (
+                    <>
+                      Loads at {factoryName(selected.factoryId) ?? 'no factory'} / runs {daysLabel(selected.deliveryDays)} / driver{' '}
+                      {driverLabel(selected.defaultDriverUserId) ?? 'not set'}
+                    </>
+                  )}
                 </div>
               </div>
               {selected.notes && <div className="text-xs text-muted-foreground">{selected.notes}</div>}
@@ -374,7 +386,14 @@ const WholesaleRouteDefinitions = () => {
         )}
       </div>
 
-      <RouteEditor route={editing} factories={factories} drivers={drivers} onClose={() => setEditing(null)} onSaved={onSaved} />
+      <RouteEditor
+        route={editing}
+        factories={factories}
+        drivers={drivers}
+        onClose={() => setEditing(null)}
+        onSaved={onSaved}
+        carrierShippingEnabled={carrierShippingEnabled}
+      />
 
       <AddStopDialog route={addingTo} routes={routes} onClose={() => setAddingTo(null)} onPick={onAdd} />
 

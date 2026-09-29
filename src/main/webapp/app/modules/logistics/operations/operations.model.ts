@@ -172,7 +172,16 @@ export interface IFactoryOrder {
   approvedBy?: string | null;
   approvalNote?: string | null;
   productionStartedAt?: string | null;
+  /** Set on carrier factory orders: "order-<id>" for one order, "cutoff-<date>T<HH:mm>" for a cut-off batch. */
+  carrierKey?: string | null;
 }
+
+/** "Carrier order" or "Carrier cut-off 14:00"; null for the daily factory order. */
+export const carrierLabel = (carrierKey?: string | null) => {
+  if (!carrierKey) return null;
+  const cutoff = /^cutoff-.*T(\d{2}:\d{2})$/.exec(carrierKey);
+  return cutoff ? `Carrier cut-off ${cutoff[1]}` : 'Carrier order';
+};
 
 export interface IFactoryOrderDetail {
   order: IFactoryOrder;
@@ -208,6 +217,7 @@ export interface IFactoryOrderSummary {
   sentAt?: string | null;
   returnedAt?: string | null;
   approvedAt?: string | null;
+  carrierKey?: string | null;
 }
 
 export interface ILineAvailability {
