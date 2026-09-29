@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   Home,
+  Megaphone,
   Monitor,
   Users,
   Tag,
@@ -60,6 +61,7 @@ const iconMap: Record<string, React.ElementType> = {
   'pi pi-box': Package,
   'pi pi-users': Users,
   'pi pi-dollar': DollarSign,
+  'pi pi-megaphone': Megaphone,
   'pi pi-wallet': Wallet,
   'pi pi-chart-bar': Newspaper,
   ' pi pi-chart-bar': Newspaper,

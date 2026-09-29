@@ -623,6 +623,20 @@ export const model: MenuItem[] = [
         to: '/customer',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
+      {
+        label: 'Settings',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/on-account-settings',
+        items: [
+          {
+            label: 'On Account Settings',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/on-account-settings',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
@@ -666,12 +680,16 @@ export const model: MenuItem[] = [
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
-    label: 'Loyalty',
-    role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-
-    icon: 'pi pi-wallet',
+    label: 'Marketing',
+    role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+    icon: 'pi pi-megaphone',
     to: '/loyalty-cards',
     items: [
+      {
+        label: 'Loyalty',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/loyalty-cards',
+        items: [
       {
         label: 'Loyalty Cards',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
@@ -701,6 +719,15 @@ export const model: MenuItem[] = [
           }
         ],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+    ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+      {
+        label: 'Flyers',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/flyers',
+        type: [BusinessTypeEnum.RETAIL],
       },
     ],
     type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
@@ -1012,21 +1039,9 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Service Charge',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/service-charge',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
         label: 'Payment Method Settings',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/payment-method-setting',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'On Account Settings',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/on-account-settings',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       // {
@@ -1042,28 +1057,42 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Discounts',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/discount',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
         label: 'Voids',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/void-reasons',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Pricing Points',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/pricing-point',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Flyers',
+        label: 'Price Settings',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/flyers',
-        type: [BusinessTypeEnum.RETAIL],
+        to: '/pricing-point',
+        items: [
+          {
+            label: 'Pricing Points',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/pricing-point',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Mix & Match',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/mix-and-match-rule',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Service Charge',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/service-charge',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+          {
+            label: 'Discounts',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            to: '/discount',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Custom Definitions',
@@ -1101,12 +1130,6 @@ export const model: MenuItem[] = [
         label: 'Units of Measures',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/item-measure',
-        type: [BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Mix & Match',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/mix-and-match-rule',
         type: [BusinessTypeEnum.RETAIL],
       },
       {
@@ -1194,7 +1217,7 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Data Management Tools',
+        label: 'Import & Export',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/import-from-old-system',
         items: [
