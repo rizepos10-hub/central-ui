@@ -49,6 +49,7 @@ describe('Wholesale access', () => {
       'dashboard',
       'createOrder',
       'orderEntry',
+      'orders',
       'callList',
       'customerNotes',
       'wholesaleOrders',
@@ -77,6 +78,7 @@ describe('Wholesale access', () => {
     expect(pagesFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
       'createOrder',
       'orderEntry',
+      'orders',
       'callList',
       'customerNotes',
       'wholesaleOrders',
@@ -125,6 +127,7 @@ describe('Wholesale access', () => {
     expect(menuFor(AUTHORITIES.WHOLESALE_SALESMAN)).toEqual([
       'Call List',
       'Order Entry',
+      'Orders',
       'Customer Notes',
       'Order Sheets',
       'Create Order',
@@ -138,11 +141,12 @@ describe('Wholesale access', () => {
       'Dashboard',
       'Factories',
       'Route Setup',
-      'Wholesale Customers',
+      'Customers',
       'Salesmen',
       'Closures',
       'Call List',
       'Order Entry',
+      'Orders',
       'Customer Notes',
       'Order Sheets',
       'Factory Orders',
@@ -162,7 +166,7 @@ describe('Wholesale access', () => {
     ]);
     expect(menuFor(AUTHORITIES.WHOLESALE_ADMIN)).toContain('Wholesale Settings');
     expect(menuFor(AUTHORITIES.WHOLESALE_BOOKKEEPER)).toEqual(
-      expect.arrayContaining(['Dashboard', 'Live Route', 'Reconciliation', 'Alerts', 'Customer Accounts', 'Invoices']),
+      expect.arrayContaining(['Dashboard', 'Orders', 'Live Route', 'Reconciliation', 'Alerts', 'Customer Accounts', 'Invoices']),
     );
   });
 

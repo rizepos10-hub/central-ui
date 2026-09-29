@@ -332,7 +332,7 @@ const WholesaleSettings = () => {
           </div>
         </Section>
 
-        <Section title="Customer portal" description="Customers ordering for themselves. Give a customer access from Wholesale Customers.">
+        <Section title="Customer portal" description="Customers ordering for themselves. Give a customer access from Customers.">
           <div className="grid gap-1.5">
             <Label>Record portal orders under</Label>
             <Select value={draft.portalBranchId || NO_BRANCH} onValueChange={value => set('portalBranchId', value === NO_BRANCH ? null : value)}>

@@ -79,7 +79,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         heading: 'Where to start',
         bullets: [
-          'New setup: Factories, then Route Setup, then Wholesale Customers, then Wholesale Users and Wholesale Settings.',
+          'New setup: Factories, then Route Setup, then Customers, then Wholesale Users and Wholesale Settings.',
           'Salespeople: Call List and Order Entry.',
           'Managers: Order Sheets, Factory Orders, Delivery Runs and the Dashboard.',
           'Bookkeepers: Cash Handover, Reconciliation, Alerts and Customer Accounts.',
@@ -97,7 +97,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         heading: 'Good to know',
         bullets: [
-          'Some pages are read only for some roles, for example bookkeepers can read Route Setup and Wholesale Customers but not change them. The page says "Read only" when that is the case.',
+          'Some pages are read only for some roles, for example bookkeepers can read Route Setup and Customers but not change them. The page says "Read only" when that is the case.',
           'Factory users only see the factories they are assigned to on Wholesale Users.',
           'Opening Wholesale takes admins, sales managers and bookkeepers to the Dashboard, factory users to Factory Fulfillment and everyone else to Processed Orders.',
           'Roles are given on Wholesale Users (sales managers, factory users, drivers) or in the company user settings.',
@@ -241,7 +241,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: 'wholesale-customers',
-    title: 'Wholesale Customers',
+    title: 'Customers',
     group: 'Configuration',
     page: 'customers',
     path: '/logistics/customers',
@@ -332,7 +332,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         heading: 'Give a customer access',
         steps: [
-          'Open Wholesale Customers and click the customer.',
+          'Open Customers and click the customer.',
           'Click Portal access.',
           'Check the email, set a temporary password and tick the categories they can order from.',
           'Leave Email the sign-in link ticked and click Give access. The customer gets the link, their username and the temporary password.',
@@ -442,10 +442,16 @@ export const HELP_TOPICS: HelpTopic[] = [
         heading: 'Warnings on the customer',
         bullets: [
           'Cash only and Blocked badges.',
-          'Over the credit limit, and unpaid orders with the oldest date.',
+          'Over the credit limit, and unpaid orders with the oldest date. Click View unpaid orders to see them on the Orders page.',
           'Off day: the date is not one of the customer\u2019s delivery days; the order is marked off schedule.',
           'Route on this date: puts the customer on another route for that one day.',
           'If the customer already ordered, saving adds another order.',
+        ],
+      },
+      {
+        heading: 'Unfulfilled orders before saving',
+        text: [
+          'When you save, the customer\u2019s orders that are not delivered yet are listed first, with the ones for the same day marked. Cancel the ones that are no longer needed, then click Keep them and place the new order, or Back to the order to change it. Orders that already went to the factory are changed with Amend on Factory Orders.',
         ],
       },
       {
@@ -459,6 +465,40 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         heading: 'Messages you may see',
         bullets: ['Choose the register the order is placed on.', 'Enter a quantity for at least one item.'],
+      },
+    ],
+  },
+  {
+    id: 'orders',
+    title: 'Orders',
+    group: 'Order Preparation',
+    page: 'orders',
+    path: '/logistics/orders',
+    summary: 'Find wholesale orders by status and payment, see their items and cancel open ones.',
+    sections: [
+      {
+        heading: 'Find orders',
+        steps: [
+          'Pick a status: Unfulfilled (open or with the factory, the default), Open, With factory, Delivered, Cancelled or All.',
+          'Narrow by Payment, by customer name or account number, and by delivery dates.',
+          'Click an order to see its items. All orders of shows every order of that customer.',
+        ],
+      },
+      {
+        heading: 'Statuses',
+        bullets: [
+          'Open: taken but not sent to the factory yet.',
+          'With factory: sent to the factory and not delivered yet.',
+          'Delivered: the driver recorded the delivery, or the order is closed.',
+          'Cancelled: cancelled or rejected.',
+        ],
+      },
+      {
+        heading: 'Cancel an order',
+        text: [
+          'Open orders that are unpaid can be cancelled while their route is not locked for the day. Orders with the factory are changed with Amend on Factory Orders.',
+          'The number beside Orders in the menu is how many unfulfilled orders you can see.',
+        ],
       },
     ],
   },

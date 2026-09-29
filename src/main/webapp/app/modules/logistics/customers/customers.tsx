@@ -105,7 +105,7 @@ const WholesaleCustomers = () => {
 
   return (
     <WholesalePage
-      title="Wholesale Customers"
+      title="Customers"
       context={`${total} ${status === 'all' ? '' : `${status} `}wholesale customer${total === 1 ? '' : 's'} / route, delivery days, factory and payment`}
       actions={
         canEdit && (

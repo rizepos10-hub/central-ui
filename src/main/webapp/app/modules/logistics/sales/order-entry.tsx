@@ -18,6 +18,9 @@ import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/whol
 import { IWholesaleCustomer, IWholesaleRouteDefinition, OrderMethod } from '../customers/wholesale-customer.model';
 import { CustomerNoteDialog } from './customer-note-dialog';
 import { GenerateUsualOrdersDialog } from './generate-usual-orders-dialog';
+import { UnfulfilledOrdersDialog } from './unfulfilled-orders-dialog';
+import { fetchUnfulfilledOrders } from './order-search.api';
+import { IOrderRow, notifyOrdersChanged, ordersLink } from './order-search.model';
 import {
   OrderRegister,
   fetchCatalog,
@@ -89,6 +92,7 @@ const OrderEntry = () => {
   const [saving, setSaving] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [unfulfilled, setUnfulfilled] = useState<{ then: 'stay' | 'next' | 'print'; orders: IOrderRow[] } | null>(null);
 
   useEffect(() => {
     fetchRouteDefinitions()
@@ -203,7 +207,7 @@ const OrderEntry = () => {
     }
   };
 
-  const save = async (then: 'stay' | 'next' | 'print') => {
+  const save = async (then: 'stay' | 'next' | 'print', reviewed = false) => {
     if (!selected || !entry) return;
     if (!register) {
       toast.error('Choose the register the order is placed on.');
@@ -227,9 +231,18 @@ const OrderEntry = () => {
       return;
     }
     setSaving(true);
+    if (!reviewed) {
+      const open = await fetchUnfulfilledOrders(entry.customerId).catch((): IOrderRow[] => []);
+      if (open.length > 0) {
+        setSaving(false);
+        setUnfulfilled({ then, orders: open });
+        return;
+      }
+    }
     try {
       const order = await placeWholesaleOrder(request);
       toast.success(`Order saved for ${entry.name}`);
+      notifyOrdersChanged();
       if (then === 'print') {
         const lines = selected.rows
           .filter(r => request.items.some(i => i.itemId === r.itemId && i.variantId === r.variantId))
@@ -384,7 +397,7 @@ const OrderEntry = () => {
                     {entry.orderIds.map((id, i) => (
                       <React.Fragment key={id}>
                         {i > 0 && ', '}
-                        <Link to={`/order/${id}`} className="text-primary hover:underline">
+                        <Link to={ordersLink({ status: 'ALL', customerId: entry.customerId, from: date, to: date })} className="text-primary hover:underline">
                           {id}
                         </Link>
                         {entry.autoOrderIds?.includes(id) && <span className="text-muted-foreground"> (generated from usual order)</span>}
@@ -403,6 +416,11 @@ const OrderEntry = () => {
                   <p className="m-0 flex items-center gap-1.5 text-[13px] text-[hsl(var(--ws-returned))]" role="alert">
                     <AlertTriangle className="h-4 w-4" />
                     {warning}
+                    {(selected.credit?.unpaidOrders ?? 0) > 0 && (
+                      <Link to={ordersLink({ status: 'ALL', payment: 'UNPAID', customerId: entry.customerId })} className="ml-1 text-primary hover:underline">
+                        View unpaid orders
+                      </Link>
+                    )}
                   </p>
                 )}
               </div>
@@ -536,6 +554,21 @@ const OrderEntry = () => {
         register={register}
         onClose={() => setGenerateOpen(false)}
         onGenerated={loadCustomers}
+      />
+      <UnfulfilledOrdersDialog
+        customer={unfulfilled && entry ? { id: entry.customerId, name: entry.name } : null}
+        orders={unfulfilled?.orders ?? []}
+        deliveryDate={date}
+        onOrderChanged={row => {
+          setUnfulfilled(prev => prev && { ...prev, orders: prev.orders.map(o => (o.id === row.id ? row : o)) });
+          loadCustomers();
+        }}
+        onBack={() => setUnfulfilled(null)}
+        onPlace={() => {
+          const then = unfulfilled?.then ?? 'stay';
+          setUnfulfilled(null);
+          save(then, true);
+        }}
       />
       {entry && (
         <CustomerNoteDialog
