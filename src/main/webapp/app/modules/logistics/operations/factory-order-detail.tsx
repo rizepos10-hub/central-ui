@@ -24,6 +24,7 @@ import {
   IFactoryOrderDetail,
   INVOICEABLE,
   IProductCustomers,
+  carrierLabel,
   factoryOrderTone,
   formatQty,
   formatTime,
@@ -116,6 +117,7 @@ const FactoryOrderDetail = () => {
           </Link>
           {detail.factoryName ?? 'Factory order'}
           <span className="text-base font-normal text-muted-foreground">v{order.version}</span>
+          {carrierLabel(order.carrierKey) && <WholesaleStatusBadge tone="new">{carrierLabel(order.carrierKey)}</WholesaleStatusBadge>}
           <WholesaleStatusBadge tone={factoryOrderTone(order.status)}>{FACTORY_ORDER_STATUS_LABEL[order.status]}</WholesaleStatusBadge>
         </span>
       }

@@ -434,6 +434,13 @@ export const model: MenuItem[] = [
         section: 'Production',
       },
       {
+        label: 'Shipments',
+        to: '/logistics/shipments',
+        role: WHOLESALE_PAGE_ROLES.shipments,
+        type: [BusinessTypeEnum.RETAIL],
+        section: 'Production',
+      },
+      {
         label: 'Live Route',
         to: '/logistics/live-route',
         role: WHOLESALE_PAGE_ROLES.liveRoute,

@@ -34,6 +34,8 @@ export interface ICustomerWholesaleProfile {
   deliveryWindowEnd?: string | null;
   active?: boolean | null;
   allocationPriority?: number | null;
+  /** Default carrier for a customer on a carrier route. */
+  carrierId?: string | null;
 }
 
 export interface IWholesaleCustomer {
@@ -60,6 +62,8 @@ export interface IWholesaleRouteDefinition {
   deliveryDays?: DayOfWeek[];
   active?: boolean | null;
   color?: string | null;
+  /** Shipped by a carrier: open every day, no driver and no order sheet. */
+  carrierShipping?: boolean | null;
 }
 
 export const DAYS: { value: DayOfWeek; short: string }[] = [
@@ -149,6 +153,7 @@ export const toProfilePayload = (profile: ICustomerWholesaleProfile, followSugge
   deliveryWindowEnd: blankToNull(profile.deliveryWindowEnd),
   active: profile.active !== false,
   allocationPriority: profile.allocationPriority ?? null,
+  carrierId: blankToNull(profile.carrierId),
 });
 
 /** Same choice as the server: the chosen address, else the default address, else the first. */

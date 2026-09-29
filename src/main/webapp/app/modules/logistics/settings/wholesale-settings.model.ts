@@ -2,6 +2,16 @@ export type StaleCreditPriceSource = 'SOURCE_ORDER_PRICE' | 'CURRENT_PRICE';
 export type InvoiceTiming = 'ON_FACTORY_APPROVAL' | 'ON_DELIVERY' | 'MANUAL';
 export type ShortageAllocation = 'PROPORTIONAL' | 'PRIORITY' | 'MANUAL';
 export type ProofOfDelivery = 'NONE' | 'SIGNATURE' | 'SIGNATURE_AND_PHOTO';
+export type CarrierDispatch = 'ON_ORDER' | 'AT_CUTOFF_TIMES';
+
+export interface IWholesaleCarrier {
+  /** Set by the server for new carriers. */
+  id?: string | null;
+  name: string;
+  /** Link with {tracking} where the tracking number goes. */
+  trackingUrl?: string | null;
+  active?: boolean | null;
+}
 
 export interface IWholesaleSettings {
   salesmanCanViewOldOrders?: boolean | null;
@@ -26,6 +36,12 @@ export interface IWholesaleSettings {
   liveTrackingIntervalSeconds?: number | null;
   /** Branch the customer portal records its orders under; the portal can't take orders without it. */
   portalBranchId?: string | null;
+  /** Orders on carrier routes are shipped by a carrier instead of a driver. */
+  carrierShippingEnabled?: boolean | null;
+  carriers?: IWholesaleCarrier[];
+  carrierDispatch?: CarrierDispatch | null;
+  /** HH:mm, used when carrierDispatch is AT_CUTOFF_TIMES. */
+  carrierCutoffTimes?: string[];
 }
 
 export const STALE_WINDOW_DAYS = { min: 1, max: 90, fallback: 7 };
@@ -60,6 +76,11 @@ export const PROOFS_OF_DELIVERY: Option<ProofOfDelivery>[] = [
   { value: 'SIGNATURE_AND_PHOTO', label: 'Signature and photo', description: 'The customer signs and the driver photographs the delivery.' },
 ];
 
+export const CARRIER_DISPATCHES: Option<CarrierDispatch>[] = [
+  { value: 'ON_ORDER', label: 'Right away', description: 'Each order goes to the factory as its own factory order as soon as it is placed.' },
+  { value: 'AT_CUTOFF_TIMES', label: 'At cut-off times', description: 'Orders are collected and sent to the factory together at each cut-off time.' },
+];
+
 export const MAX_FOOTER_LENGTH = 2000;
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -77,8 +98,26 @@ export const addUnique = (list: string[] | undefined, value: string, sort = fals
 };
 
 export type SettingsErrors = Partial<
-  Record<'staleReturnRateAlertPercent' | 'staleCreditPercent' | 'deliveryNoteFooter' | 'staleRateWindowDays' | 'liveTrackingIntervalSeconds', string>
+  Record<
+    'staleReturnRateAlertPercent' | 'staleCreditPercent' | 'deliveryNoteFooter' | 'staleRateWindowDays' | 'liveTrackingIntervalSeconds' | 'carriers' | 'carrierCutoffTimes',
+    string
+  >
 >;
+
+const TRACKING_LINK = /^https?:\/\//i;
+
+export const carrierError = (carriers: IWholesaleCarrier[] | undefined): string | undefined => {
+  const names = new Set<string>();
+  for (const carrier of carriers ?? []) {
+    const name = (carrier.name ?? '').trim().toLowerCase();
+    if (!name) return 'Every carrier needs a name';
+    if (names.has(name)) return `Carrier names must be unique: ${carrier.name.trim()}`;
+    names.add(name);
+    const link = (carrier.trackingUrl ?? '').trim();
+    if (link && !TRACKING_LINK.test(link)) return 'Tracking links must start with http:// or https://';
+  }
+  return undefined;
+};
 
 const wholeNumberError = (value: number | null | undefined, range: { min: number; max: number }) => {
   if (value == null) return undefined;
@@ -101,6 +140,11 @@ export const validateSettings = (settings: IWholesaleSettings): SettingsErrors =
   if (window) errors.staleRateWindowDays = window;
   const tracking = wholeNumberError(settings.liveTrackingIntervalSeconds, TRACKING_SECONDS);
   if (tracking) errors.liveTrackingIntervalSeconds = tracking;
+  const carriers = carrierError(settings.carriers);
+  if (carriers) errors.carriers = carriers;
+  if (settings.carrierShippingEnabled && settings.carrierDispatch === 'AT_CUTOFF_TIMES' && (settings.carrierCutoffTimes ?? []).length === 0) {
+    errors.carrierCutoffTimes = 'Add at least one cut-off time';
+  }
   return errors;
 };
 
@@ -109,6 +153,8 @@ export const toSettingsPayload = (settings: IWholesaleSettings): IWholesaleSetti
   ...settings,
   approvalEmailRecipients: [...(settings.approvalEmailRecipients ?? [])],
   reminderTimes: [...(settings.reminderTimes ?? [])].sort(),
+  carriers: (settings.carriers ?? []).map(c => ({ ...c, name: (c.name ?? '').trim(), trackingUrl: (c.trackingUrl ?? '').trim() || null })),
+  carrierCutoffTimes: [...(settings.carrierCutoffTimes ?? [])].sort(),
   deliveryNoteFooter: settings.deliveryNoteFooter ?? '',
   portalBranchId: settings.portalBranchId ?? '',
   clearStaleReturnRateAlertPercent: settings.staleReturnRateAlertPercent == null,

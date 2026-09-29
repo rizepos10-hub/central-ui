@@ -17,7 +17,9 @@ import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { fetchBranches } from '../salesmen/salesman.api';
 import { IBranchRef } from '../salesmen/salesman.model';
 import { fetchSettings, saveSettings } from './wholesale-settings.api';
+import { CarrierSettings } from './carrier-settings';
 import {
+  CARRIER_DISPATCHES,
   INVOICE_TIMINGS,
   IWholesaleSettings,
   MAX_FOOTER_LENGTH,
@@ -330,6 +332,18 @@ const WholesaleSettings = () => {
               {shown.deliveryNoteFooter ?? `${footerLength} / ${MAX_FOOTER_LENGTH}`}
             </span>
           </div>
+        </Section>
+
+        <Section title="Carrier shipping" description="Ship orders with a parcel or freight carrier instead of your own drivers.">
+          <CarrierSettings
+            draft={draft}
+            errors={shown}
+            set={set}
+            chips={(values, label, onRemove) => <Chips values={values} label={label} onRemove={onRemove} />}
+            dispatchChoice={
+              <Choice label="Send to the factory" value={draft.carrierDispatch ?? 'ON_ORDER'} options={CARRIER_DISPATCHES} onChange={value => set('carrierDispatch', value)} />
+            }
+          />
         </Section>
 
         <Section title="Customer portal" description="Customers ordering for themselves. Give a customer access from Customers.">

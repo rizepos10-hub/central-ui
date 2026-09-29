@@ -26,9 +26,11 @@ interface RouteEditorProps {
   drivers: IWholesaleDriver[];
   onClose: () => void;
   onSaved: (route: IRouteDefinition) => void;
+  /** Carrier shipping is on in the wholesale settings. */
+  carrierShippingEnabled?: boolean;
 }
 
-export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: RouteEditorProps) => {
+export const RouteEditor = ({ route, factories, drivers, onClose, onSaved, carrierShippingEnabled }: RouteEditorProps) => {
   const [draft, setDraft] = useState<IRouteDefinition>(newRoute());
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -49,6 +51,7 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
     set('deliveryDays', draft.deliveryDays?.includes(day) ? draft.deliveryDays.filter(d => d !== day) : [...(draft.deliveryDays ?? []), day]);
 
   const unknownDriver = draft.defaultDriverUserId && !drivers.some(d => d.id === draft.defaultDriverUserId);
+  const carrier = draft.carrierShipping === true;
 
   const save = async () => {
     setSubmitted(true);
@@ -114,7 +117,7 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
                 </WsSelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5">
+            <div className={cn('grid gap-1.5', carrier && 'hidden')}>
               <Label>Default driver</Label>
               <Select
                 value={draft.defaultDriverUserId ?? NONE}
@@ -137,7 +140,17 @@ export const RouteEditor = ({ route, factories, drivers, onClose, onSaved }: Rou
             </div>
           </div>
 
-          <div className="grid gap-1.5">
+          {(carrierShippingEnabled || carrier) && (
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox className="mt-0.5" checked={carrier} onCheckedChange={checked => set('carrierShipping', checked === true)} disabled={saving} />
+              <span>
+                Ship by carrier
+                <span className="block text-xs text-muted-foreground">Open every day, with no driver and no order sheet. Orders go to the factory and are shipped by a carrier.</span>
+              </span>
+            </label>
+          )}
+
+          <div className={cn('grid gap-1.5', carrier && 'hidden')}>
             <Label>Delivery days</Label>
             <div className="flex flex-wrap gap-1" role="group" aria-label="Route delivery days">
               {DAYS.map(day => {

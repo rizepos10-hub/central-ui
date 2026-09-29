@@ -742,6 +742,47 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    id: 'shipments',
+    title: 'Shipments',
+    group: 'Production',
+    page: 'shipments',
+    path: '/logistics/shipments',
+    summary: 'Orders shipped by a carrier instead of a driver: waiting for the factory, ready to ship, with the carrier, and delivered.',
+    sections: [
+      {
+        heading: 'Set up carrier shipping',
+        steps: [
+          'In Wholesale Settings, turn on Ship by carrier, add your carriers and choose when orders go to the factory.',
+          'In Route Setup, edit a route and tick Ship by carrier. A carrier route is open every day and has no driver and no order sheet.',
+          'In Customers, put the customer on the carrier route. Carrier customers must pay On account and cannot be cash only. You can pick their usual carrier.',
+        ],
+      },
+      {
+        heading: 'How carrier orders go to the factory',
+        text: [
+          'With Right away, each carrier order becomes its own factory order within a minute of being placed. With At cut-off times, orders for today and tomorrow are sent together at each cut-off time.',
+          'Once an order is sent to the factory it can no longer be changed. Carrier orders are never part of the daily factory order or a delivery run.',
+        ],
+      },
+      {
+        heading: 'Ship an order',
+        steps: [
+          'Open Ready to ship. An order is ready once the factory approves it.',
+          'Click Ship, choose the carrier and enter the tracking number.',
+          'Click Ship. The tracking number links to the carrier\u2019s tracking page when the carrier has a tracking link.',
+        ],
+      },
+      {
+        heading: 'Confirm delivery',
+        steps: ['Open Shipped and click Delivered when the carrier has delivered the order.', 'The order is invoiced (or billed) and the amount is put on the customer\u2019s account.'],
+      },
+      {
+        heading: 'Who can do what',
+        text: ['Factories and admins ship orders. Sales managers and admins confirm delivery.'],
+      },
+    ],
+  },
+  {
     id: 'live-route',
     title: 'Live Route',
     group: 'Production',
@@ -1087,6 +1128,10 @@ export const HELP_TOPICS: HelpTopic[] = [
             ['Alert on unpaid cash-only stops', 'Raise an alert when a cash-only customer is left unpaid.', 'On'],
             ['Driver location every', 'Seconds between the driver app\u2019s location shares for Live Route (15 to 900).', '60 seconds'],
             ['Footer', 'Text printed at the bottom of the delivery note (up to 2000 characters).', 'Empty'],
+            ['Ship by carrier', 'Lets routes be carrier routes, shipped by a carrier instead of a driver. See Shipments.', 'Off'],
+            ['Carriers', 'The carriers you ship with, each with an optional tracking link where {tracking} is replaced by the tracking number.', 'None'],
+            ['Send to the factory', 'Right away (one factory order per order) or At cut-off times (orders collected and sent together).', 'Right away'],
+            ['Cut-off times', 'With At cut-off times: when collected carrier orders for today and tomorrow go to the factory.', 'None'],
           ],
         },
       },
