@@ -21,6 +21,7 @@ import { ConfirmDialog } from "primereact/confirmdialog";
 import { getTenantFromURL } from "app/shared/util/tenant-utils";
 import GuidedTour from "../components/guided-tour/guided-tour";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { isPortalCustomer } from "app/modules/logistics/portal/portal.model";
 
 
 
@@ -192,10 +193,11 @@ export const Layout = (props: ChildContainerProps) => {
 
 
   const tenant = getTenantFromURL();
+  const portalCustomer = useAppSelector(state => isPortalCustomer(state.authentication.account?.authorities));
 
   return (
     <React.Fragment>
-      {isAuthenticated && tenant ? (
+      {isAuthenticated && tenant && !portalCustomer ? (
         <SidebarProvider>
           <div className={classNames('layout-container flex min-h-screen w-full', containerClass)}>
             <AppMenu />

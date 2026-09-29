@@ -16,6 +16,7 @@ import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { IWholesaleFactory } from '../factories/wholesale-factory.model';
 import { OrderFrequencyEditor } from '../sales/order-frequency-editor';
 import { CustomerNotesDialog } from '../sales/customer-notes-dialog';
+import { PortalAccessDialog } from '../portal/portal-access-dialog';
 import { saveWholesaleProfile } from './wholesale-customer.api';
 import {
   DAYS,
@@ -87,6 +88,7 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
   const [saving, setSaving] = useState(false);
   const [showUsualOrder, setShowUsualOrder] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showPortal, setShowPortal] = useState(false);
 
   const original = customer?.wholesaleProfile ?? null;
   const isNew = customer != null && original == null;
@@ -381,8 +383,13 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
             </Button>
           )}
           {!isNew && (
-            <Button variant="outline" className="ws-control sm:mr-auto" onClick={() => setShowUsualOrder(true)} disabled={saving}>
+            <Button variant="outline" className="ws-control" onClick={() => setShowUsualOrder(true)} disabled={saving}>
               Usual order
+            </Button>
+          )}
+          {!isNew && (
+            <Button variant="outline" className="ws-control sm:mr-auto" onClick={() => setShowPortal(true)} disabled={saving}>
+              Portal access
             </Button>
           )}
           <Button variant="outline" className="ws-control" onClick={onClose} disabled={saving}>
@@ -396,6 +403,11 @@ export const CustomerProfileEditor = ({ customer, factories, routes, readOnly, o
         </DialogFooter>
         <OrderFrequencyEditor customer={showUsualOrder ? customer : null} readOnly={readOnly} onClose={() => setShowUsualOrder(false)} />
         <CustomerNotesDialog customer={showNotes && customer ? { id: customer.id, name: customerName(customer) } : null} onClose={() => setShowNotes(false)} />
+        <PortalAccessDialog
+          customer={showPortal && customer ? { id: customer.id, name: customerName(customer), email: customer.email } : null}
+          readOnly={readOnly}
+          onClose={() => setShowPortal(false)}
+        />
       </WsDialogContent>
     </Dialog>
   );

@@ -24,6 +24,8 @@ export interface IWholesaleSettings {
   alertOnNotPaidCashOnly?: boolean | null;
   staleRateWindowDays?: number | null;
   liveTrackingIntervalSeconds?: number | null;
+  /** Branch the customer portal records its orders under; the portal can't take orders without it. */
+  portalBranchId?: string | null;
 }
 
 export const STALE_WINDOW_DAYS = { min: 1, max: 90, fallback: 7 };
@@ -102,12 +104,13 @@ export const validateSettings = (settings: IWholesaleSettings): SettingsErrors =
   return errors;
 };
 
-/** Sends every field; an empty footer is sent as '' and an empty alert percentage with the clear flag, so the server clears them. */
+/** Sends every field; an empty footer or portal branch is sent as '' and an empty alert percentage with the clear flag, so the server clears them. */
 export const toSettingsPayload = (settings: IWholesaleSettings): IWholesaleSettings => ({
   ...settings,
   approvalEmailRecipients: [...(settings.approvalEmailRecipients ?? [])],
   reminderTimes: [...(settings.reminderTimes ?? [])].sort(),
   deliveryNoteFooter: settings.deliveryNoteFooter ?? '',
+  portalBranchId: settings.portalBranchId ?? '',
   clearStaleReturnRateAlertPercent: settings.staleReturnRateAlertPercent == null,
 });
 

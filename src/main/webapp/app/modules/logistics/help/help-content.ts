@@ -315,6 +315,50 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    id: 'customer-portal',
+    title: 'Customer portal',
+    group: 'Configuration',
+    page: 'customers',
+    path: '/logistics/customers',
+    summary: 'Let wholesale customers place and change their own orders online until the factory cut-off, at their own prices.',
+    sections: [
+      {
+        heading: 'Turn the portal on',
+        steps: [
+          'Open Wholesale Settings and, under Customer portal, choose the branch portal orders are recorded under. Save.',
+          'Without a branch, customers can sign in but can\u2019t order.',
+        ],
+      },
+      {
+        heading: 'Give a customer access',
+        steps: [
+          'Open Wholesale Customers and click the customer.',
+          'Click Portal access.',
+          'Check the email, set a temporary password and tick the categories they can order from.',
+          'Leave Email the sign-in link ticked and click Give access. The customer gets the link, their username and the temporary password.',
+          'They choose their own password after signing in.',
+        ],
+      },
+      {
+        heading: 'What the customer sees',
+        bullets: [
+          'Their delivery days for the next four weeks, skipping closures, with the time ordering closes.',
+          'Their usual items first, prefilled with their usual quantities, then the categories you ticked, with a search.',
+          'Their own prices, from their pricing points.',
+          'After the cut-off, or once the day is being prepared, the day is locked and they are asked to contact their salesman.',
+          'They can change or cancel an order until the cut-off. Items a salesman added from other categories stay on the order.',
+        ],
+      },
+      {
+        heading: 'Change or stop access',
+        bullets: [
+          'Open Portal access again to change the categories, email a new temporary password or untick Can sign in and order.',
+          'Salesmen see orders customers placed or changed on the portal at the top of their Wholesale home page.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'closures',
     title: 'Closures',
     group: 'Configuration',
