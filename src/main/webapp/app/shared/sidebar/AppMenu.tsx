@@ -966,6 +966,21 @@ export const model: MenuItem[] = [
   //   type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   // },
   {
+    label: 'Integrations',
+    icon: 'pi pi-link',
+    role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+    to: '/integrations',
+    items: [
+      {
+        label: 'All Integrations',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        to: '/integrations',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+      },
+    ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+  },
+  {
     label: 'Settings',
     role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
     to: '/details',
@@ -1012,12 +1027,6 @@ export const model: MenuItem[] = [
         label: 'On Account Settings',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/on-account-settings',
-        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-      },
-      {
-        label: 'Senitron',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/senitron-settings',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       // {
