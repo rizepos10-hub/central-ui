@@ -16,14 +16,24 @@ const renderAt = () =>
         <Route path="/integrations" element={<Integrations />} />
         <Route path="/senitron-settings" element={<div>senitron page</div>} />
         <Route path="/tookan-settings" element={<div>tookan page</div>} />
+        <Route path="/logistics/shipping-settings" element={<div>shipping page</div>} />
       </Routes>
     </MemoryRouter>
   );
 
 describe('Integrations', () => {
-  it('lists Senitron, Tookan and Kitchen Hub with their logos', () => {
+  it('opens the shipping settings from the EasyPost and ClickShip cards', () => {
     renderAt();
-    expect(INTEGRATIONS.map(i => i.id)).toEqual(['senitron', 'tookan', 'kitchenhub']);
+    expect(INTEGRATIONS.find(i => i.id === 'clickship')?.settingsPath).toBe('/logistics/shipping-settings#clickship');
+    fireEvent.click(screen.getByLabelText('EasyPost settings'));
+    expect(screen.getByText('shipping page')).toBeTruthy();
+  });
+
+  it('lists Senitron, Tookan, EasyPost, ClickShip and Kitchen Hub with their logos', () => {
+    renderAt();
+    expect(INTEGRATIONS.map(i => i.id)).toEqual(['senitron', 'tookan', 'easypost', 'clickship', 'kitchenhub']);
+    expect(screen.getByAltText('EasyPost')).toBeTruthy();
+    expect(screen.getByAltText('ClickShip')).toBeTruthy();
     expect(screen.getByAltText('Senitron')).toBeTruthy();
     expect(screen.getByAltText('Tookan')).toBeTruthy();
     expect(screen.getByAltText('Kitchen Hub')).toBeTruthy();

@@ -30,6 +30,7 @@ import WholesaleHome from './operations/wholesale-home';
 import DeliveryRuns from './delivery/delivery-runs';
 import CashHandover from './delivery/cash-handover';
 import Shipments from './shipments/shipments';
+import ShippingSettings from './shipping/shipping-settings';
 import StaleReturns from './delivery/stale-returns';
 import CreditMemos from './delivery/credit-memos';
 import Dashboard from './audits/dashboard';
@@ -83,6 +84,7 @@ const LogisticsRoutes = () => {
       <Route path="closures" element={guard('closures', <WholesaleClosures />)} />
       <Route path="users" element={guard('users', <WholesaleUsers />)} />
       <Route path="settings" element={guard('settings', <WholesaleSettings />)} />
+      <Route path="shipping-settings" element={guard('shippingSettings', <ShippingSettings />)} />
       <Route path="theme-preview" element={guard('themePreview', <WholesaleThemePreview />)} />
       <Route path="help" element={guard('help', <WholesaleHelp />)} />
     </ErrorBoundaryRoutes>

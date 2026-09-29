@@ -31,6 +31,22 @@ export const INTEGRATIONS: Integration[] = [
     settingsPath: '/tookan-settings',
   },
   {
+    id: 'easypost',
+    name: 'EasyPost',
+    category: 'Shipping',
+    description: 'Parcel rates and labels from many carriers for wholesale orders shipped by carrier.',
+    logo: '/content/images/integrations/easypost.svg',
+    settingsPath: '/logistics/shipping-settings#easypost',
+  },
+  {
+    id: 'clickship',
+    name: 'ClickShip',
+    category: 'Shipping',
+    description: 'Parcel and pallet rates and labels through ClickShip (Freightcom) for wholesale carrier orders.',
+    logo: '/content/images/integrations/clickship.svg',
+    settingsPath: '/logistics/shipping-settings#clickship',
+  },
+  {
     id: 'kitchenhub',
     name: 'Kitchen Hub',
     category: 'Delivery marketplaces',

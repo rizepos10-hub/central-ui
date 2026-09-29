@@ -773,12 +773,26 @@ export const HELP_TOPICS: HelpTopic[] = [
         ],
       },
       {
+        heading: 'Buy the label',
+        text: [
+          'When EasyPost or ClickShip quoted the order, Ship offers Buy the label. The label is bought with the quoted service, and the carrier, tracking number and a Label link are filled in.',
+          'If buying fails, choose Enter a tracking number and ship it by hand.',
+        ],
+      },
+      {
+        heading: 'Shipping fee',
+        text: [
+          'The Shipping column shows the fee charged and where it came from. It is priced from the rate table when the order is saved, and replaced by the live carrier rate within a minute.',
+          'Click Fee to charge a different amount or Get a new quote. The fee can no longer change once the order is shipped or invoiced. See Shipping Settings.',
+        ],
+      },
+      {
         heading: 'Confirm delivery',
         steps: ['Open Shipped and click Delivered when the carrier has delivered the order.', 'The order is invoiced (or billed) and the amount is put on the customer\u2019s account.'],
       },
       {
         heading: 'Who can do what',
-        text: ['Factories and admins ship orders. Sales managers and admins confirm delivery.'],
+        text: ['Factories and admins ship orders. Sales managers and admins confirm delivery and change shipping fees.'],
       },
     ],
   },
@@ -1136,6 +1150,53 @@ export const HELP_TOPICS: HelpTopic[] = [
         },
       },
       { heading: 'Saving', text: ['Changes show a bar at the bottom: Save settings, or Discard to go back.'] },
+    ],
+  },
+  {
+    id: 'shipping-settings',
+    title: 'Shipping Settings',
+    group: 'Settings',
+    page: 'shippingSettings',
+    path: '/logistics/shipping-settings',
+    summary: 'EasyPost and ClickShip connections and how the shipping fee of carrier orders is priced. Other orders are not affected.',
+    sections: [
+      {
+        heading: 'Connect EasyPost or ClickShip',
+        steps: [
+          'Open Shipping Settings (or click the EasyPost or ClickShip card on the Integrations page).',
+          'Tick Use EasyPost or Use ClickShip and paste the API key. Keys are stored encrypted and never shown again.',
+          'For ClickShip, click Load payment methods and choose the one labels are paid with. Tick Test environment while trying it out.',
+          'Click Test connection, then Save settings.',
+        ],
+      },
+      {
+        heading: 'How the fee is chosen',
+        text: [
+          'Every connected provider is asked for rates and the cheapest is used, plus the markup. Orders heavier than the largest parcel ship on a pallet, which only ClickShip quotes.',
+          'When no provider is connected or none answers, the rate table price is used: the flat fee plus the price per kg, from the row for the customer\u2019s province or state, else the row for the whole country.',
+          'An order is weighed as units ordered times the weight per unit. The fee is added to the order as a Shipping charge, taxed when Charge as is set, and is on the invoice.',
+        ],
+      },
+      {
+        heading: 'Settings',
+        table: {
+          headers: ['Setting', 'What it does', 'Default'],
+          rows: [
+            ['Currency', 'CAD or USD. Rates in the other currency are only used when none come in this one.', 'CAD'],
+            [
+              'Charge as',
+              'A service charge of type Shipping fee. The fee takes its name and is taxed with its accounting group; its own amount is not used.',
+              'None (untaxed)',
+            ],
+            ['Markup', 'Percentage added to live carrier rates.', '0%'],
+            ['Weight per unit', 'Shipping weight of one unit ordered, packaging included.', '0.5 kg'],
+            ['Buy the label when shipping', 'Shipping without a tracking number buys the label from the provider that quoted the order.', 'On'],
+            ['Parcel size and largest parcel', 'Box sent to the carriers; heavier orders go on a pallet.', '40 x 30 x 30 cm, 30 kg'],
+            ['Pallet size', 'Pallet sent to ClickShip for heavy orders.', '120 x 100 x 120 cm'],
+            ['Rate table', 'Flat fee and price per kg per country, optionally per province or state.', 'None'],
+          ],
+        },
+      },
     ],
   },
 

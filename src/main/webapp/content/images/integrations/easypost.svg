@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" role="img" aria-label="EasyPost">
+  <rect x="12" y="14" width="36" height="36" rx="10" fill="#1F4CFF"/>
+  <path d="M21 25l19 7-19 7 4-7z" fill="#fff"/>
+  <text x="58" y="42" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" fill="#1E1E2A">EasyPost</text>
+</svg>

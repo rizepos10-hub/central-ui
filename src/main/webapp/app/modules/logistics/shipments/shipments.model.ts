@@ -1,6 +1,7 @@
 import { AUTHORITIES } from 'app/config/constants';
 
 import { WholesaleStatusTone } from '../wholesale-ui/wholesale-status-badge';
+import { IShippingQuote } from '../shipping/shipping.model';
 
 export type ShipmentStage = 'WAITING_FACTORY' | 'READY' | 'SHIPPED' | 'DELIVERED';
 
@@ -24,6 +25,8 @@ export interface IShipmentRow {
   deliveredAt?: string | null;
   deliveredBy?: string | null;
   total?: number | null;
+  labelUrl?: string | null;
+  shipping?: IShippingQuote | null;
 }
 
 export interface IShipRequest {
