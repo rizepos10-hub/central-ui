@@ -22,6 +22,12 @@ const renderAt = () =>
   );
 
 describe('Integrations', () => {
+  it('is in the menu for wholesale admins, who set up shipping', () => {
+    const menu = model.find(m => m.label === 'Integrations');
+    expect(menu?.role).toContain('ROLE_WHOLESALE_ADMIN');
+    expect(menu?.items?.[0].role).toContain('ROLE_WHOLESALE_ADMIN');
+  });
+
   it('opens the shipping settings from the EasyPost and ClickShip cards', () => {
     renderAt();
     expect(INTEGRATIONS.find(i => i.id === 'clickship')?.settingsPath).toBe('/logistics/shipping-settings#clickship');
