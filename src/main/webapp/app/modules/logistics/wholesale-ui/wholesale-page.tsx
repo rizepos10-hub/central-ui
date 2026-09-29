@@ -44,4 +44,16 @@ export const WholesalePage = ({ title, context, actions, className, children }: 
   );
 };
 
+/** Applies the Wholesale theme to existing pages that keep their own layout, and hosts their overlays. */
+export const WholesaleThemeScope = ({ className, children }: { className?: string; children?: React.ReactNode }) => {
+  const [root, setRoot] = useState<HTMLDivElement | null>(null);
+  return (
+    <WholesalePortalContext.Provider value={root}>
+      <div ref={setRoot} data-testid="wholesale-theme-scope" className={cn('theme-wholesale min-h-full', className)}>
+        {children}
+      </div>
+    </WholesalePortalContext.Provider>
+  );
+};
+
 export default WholesalePage;

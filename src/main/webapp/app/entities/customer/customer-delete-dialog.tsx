@@ -9,12 +9,12 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { WsAlertDialogContent as AlertDialogContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 
 export const CustomerDeleteDialog = () => {
   const dispatch = useAppDispatch();

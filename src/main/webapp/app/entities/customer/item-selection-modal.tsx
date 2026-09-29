@@ -5,12 +5,13 @@ import { getSortState, translate } from "react-jhipster";
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
 import { getEntities, searchEntities } from 'app/entities/item/restaurant/restaurant-item.reducer';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { WsDialogContent as DialogContent, WsSelectContent as SelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
 interface ItemSelectionModalProps {

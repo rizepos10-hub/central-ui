@@ -5,7 +5,7 @@ import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
 
 import { WsDialogContent, WsPopoverContent } from './wholesale-overlays';
-import { WholesalePage } from './wholesale-page';
+import { WholesalePage, WholesaleThemeScope } from './wholesale-page';
 import { WholesaleStatusBadge, wholesaleStatusTone } from './wholesale-status-badge';
 
 describe('Wholesale UI', () => {
@@ -34,6 +34,23 @@ describe('Wholesale UI', () => {
       </WholesalePage>,
     );
     expect(screen.getByTestId('wholesale-page').contains(screen.getByText('7:00 PM'))).toBe(true);
+  });
+
+  it('themes existing pages and keeps their dialogs inside the theme scope', () => {
+    render(
+      <WholesaleThemeScope>
+        <h1>Customers</h1>
+        <Dialog open>
+          <WsDialogContent>
+            <DialogTitle>Delivery address</DialogTitle>
+          </WsDialogContent>
+        </Dialog>
+      </WholesaleThemeScope>,
+    );
+    const root = screen.getByTestId('wholesale-theme-scope');
+    expect(root.classList.contains('theme-wholesale')).toBe(true);
+    expect(root.contains(screen.getByText('Customers'))).toBe(true);
+    expect(root.contains(screen.getByRole('dialog'))).toBe(true);
   });
 
   it('falls back to the document body outside a Wholesale page', () => {

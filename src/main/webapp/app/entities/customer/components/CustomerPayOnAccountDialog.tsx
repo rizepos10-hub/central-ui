@@ -12,10 +12,10 @@ import { getAllEntities as getPaymentMethodSettings } from 'app/entities/setting
 import { getCustomerOnAccountPaydownValidation } from '../customer-pay-by-on-account.utils';
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { WsDialogContent as DialogContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
