@@ -176,6 +176,12 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT],
       },
       {
+        label: 'Bulk Updates',
+        to: '/restaurant/bulk-updates',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        type: [BusinessTypeEnum.RESTAURANT],
+      },
+      {
         label: 'Pizza Settings',
         to: '/pizza-size',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
