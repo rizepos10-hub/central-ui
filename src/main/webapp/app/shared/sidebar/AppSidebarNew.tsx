@@ -34,8 +34,13 @@ import {
   Banknote,
   Settings,
   ChevronRight,
-  ChevronDown,
   Command,
+  SlidersHorizontal,
+  ClipboardList,
+  Factory,
+  ReceiptText,
+  Archive,
+  Folder,
   Truck,
   Newspaper,
   Utensils,
@@ -75,6 +80,25 @@ const getIconComponent = (iconClass?: string): React.ElementType => {
   if (!iconClass) return Settings;
   return iconMap[iconClass] || Settings;
 };
+
+const SECTION_ICONS: Record<string, React.ElementType> = {
+  Configuration: SlidersHorizontal,
+  'Order Preparation': ClipboardList,
+  Production: Factory,
+  'Audits and Reconciliation': ReceiptText,
+  Settings,
+  Other: Archive,
+};
+
+/** Every row of the submenu panel: links, collapsible headers and sections. */
+const ROW =
+  'relative flex h-8 w-full min-w-0 items-center justify-start gap-2 rounded-md px-2 text-sm font-normal text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground';
+const ACTIVE =
+  'bg-primary/10 font-medium !text-primary hover:bg-primary/15 data-[active=true]:bg-primary/10 before:absolute before:bottom-1.5 before:left-0 before:top-1.5 before:w-[3px] before:rounded-full before:bg-primary';
+
+const TreeChevron = ({ open }: { open: boolean }) => (
+  <ChevronRight className={cn('ml-auto h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-150', open && 'rotate-90')} />
+);
 
 const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
   const { state, setOpen } = useSidebar();
@@ -318,18 +342,15 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                 }
                 toggleSubmenu(itemKey);
               }}
-              className={cn(
-                'justify-between h-9 px-3 hover:bg-sidebar-accent transition-colors !text-sidebar-accent-foreground',
-                isExpanded && 'bg-sidebar-accent font-medium'
-              )}
+              aria-expanded={isExpanded}
+              className={ROW}
             >
-              <span className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm truncate">{item.label}</span>
-              </span>
-              {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+              {item.icon && React.createElement(getIconComponent(item.icon), { className: 'h-4 w-4 text-muted-foreground flex-shrink-0' })}
+              <span className="flex-1 truncate">{item.label}</span>
+              <TreeChevron open={isExpanded} />
             </SidebarMenuButton>
             {isExpanded && (
-              <SidebarMenuSub className="ml-2 border-l-2 border-sidebar-accent pl-2 mt-1 mb-1 space-y-1 overflow-hidden">
+              <SidebarMenuSub className="mx-0 translate-x-0 gap-0.5 overflow-hidden border-l-0 px-0 py-0.5 pl-4">
                 {item.items?.map((subItem, subIndex) => {
                   const subItemKey = `${itemKey}-${subIndex}`;
                   const subHasChildren = subItem.items && subItem.items.length > 0;
@@ -353,30 +374,23 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                             }
                             toggleSubmenu(subItemKey);
                           }}
-                          className={cn(
-                            'h-8 px-3 hover:bg-sidebar-accent/70 transition-colors rounded-md justify-between !text-sidebar-accent-foreground',
-                            subIsExpanded && 'bg-sidebar-accent/70 font-medium'
-                          )}
+                          aria-expanded={subIsExpanded}
+                          className={cn(ROW, 'translate-x-0 cursor-pointer')}
                         >
-                          <span className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="text-sm truncate">{subItem.label}</span>
-                          </span>
-                          {subIsExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />}
+                          <span className="flex-1 truncate">{subItem.label}</span>
+                          <TreeChevron open={subIsExpanded} />
                         </SidebarMenuSubButton>
                         {subIsExpanded && (
-                          <div className="ml-2 border-l-2 border-sidebar-accent/50 pl-2 mt-1 space-y-1 overflow-hidden">
+                          <div className="flex flex-col gap-0.5 overflow-hidden py-0.5 pl-4">
                             {subItem.items?.map((nestedItem, nestedIndex) => {
                               const nestedItemKey = `${subItemKey}-${nestedIndex}`;
                               const nestedIsActive = isActiveRoute(nestedItem.to);
 
                               return (
-                                <div key={nestedItemKey} className="py-0.5">
+                                <div key={nestedItemKey}>
                                   <Link
                                     to={isBlocked ? '#' : nestedItem.to}
-                                    className={cn(
-                                      'flex items-center gap-2 h-7 px-3 rounded-md text-sm hover:bg-sidebar-accent/70 transition-colors !text-sidebar-accent-foreground',
-                                      nestedIsActive && 'bg-primary/10 font-medium hover:bg-primary/15'
-                                    )}
+                                    className={cn(ROW, nestedIsActive && ACTIVE)}
                                     onClick={(e) => {
                                       if (isBlocked) {
                                         e.preventDefault();
@@ -409,8 +423,9 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                         asChild
                         isActive={subIsActive}
                         className={cn(
-                          'h-8 px-3 hover:bg-sidebar-accent/70 transition-colors rounded-md',
-                          subIsActive && 'bg-primary/10 font-medium text-primary hover:bg-primary/15',
+                          ROW,
+                          'translate-x-0',
+                          subIsActive && ACTIVE,
                           subIsTourTarget && 'tour-target',
                           isBlocked && 'blocked'
                         )}
@@ -427,7 +442,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                             }
                           }}
                         >
-                          <span className="text-sm truncate">{subItem.label}</span>
+                          <span className="flex-1 truncate">{subItem.label}</span>
                           {subItem.badge && <MenuBadge name={subItem.badge} />}
                         </Link>
                       </SidebarMenuSubButton>
@@ -447,29 +462,28 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
       return (
         <React.Fragment key={itemKey}>
         {startsSection && (
-          <li className="pt-1 first:pt-0">
+          <li>
             <button
               type="button"
               aria-expanded={sectionOpen}
               onClick={() => toggleSection(parentKey, item.section, sectionOpen)}
-              className="flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:bg-sidebar-accent"
+              className={ROW}
             >
-              {sectionOpen ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />}
+              {React.createElement(SECTION_ICONS[item.section] ?? Folder, { className: 'h-4 w-4 text-muted-foreground flex-shrink-0' })}
               <span className="flex-1 truncate text-left">{item.section}</span>
               {!sectionOpen && sectionItems.filter(i => i.badge).map(i => <MenuBadge key={i.to} name={i.badge} />)}
-              {!sectionOpen && <span className="font-normal normal-case tracking-normal">{sectionItems.length}</span>}
+              <TreeChevron open={sectionOpen} />
             </button>
           </li>
         )}
         {sectionOpen && (
-        <SidebarMenuItem className={cn(item.section && 'ml-3.5 pl-2 before:absolute before:-top-1 before:bottom-0 before:left-0 before:w-px before:bg-sidebar-border')}>
+        <SidebarMenuItem className={cn(item.section && 'pl-6')}>
           <SidebarMenuButton
             asChild
             isActive={isActive}
             className={cn(
-              item.section ? 'h-7' : 'h-9',
-              'px-3 hover:bg-sidebar-accent transition-colors',
-              isActive && 'bg-primary/10 font-medium text-primary hover:bg-primary/15',
+              ROW,
+              isActive && ACTIVE,
               isTourTarget && 'tour-target',
               isBlocked && 'blocked'
             )}
@@ -485,10 +499,9 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
                   return false;
                 }
               }}
-              className="flex items-center gap-2 min-w-0"
             >
               {item.icon && React.createElement(getIconComponent(item.icon), { className: "h-4 w-4 text-muted-foreground flex-shrink-0" })}
-              <span className="text-sm truncate">{item.label}</span>
+              <span className="flex-1 truncate">{item.label}</span>
               {item.badge && <MenuBadge name={item.badge} />}
             </Link>
           </SidebarMenuButton>
@@ -594,7 +607,7 @@ const AppSidebarNew: React.FC<AppSidebarNewProps> = ({ businessTypes }) => {
           <SidebarHeader className="h-12 border-b flex items-center justify-center bg-sidebar-accent/50 px-2">
             <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
               {activeMenuItem.icon && React.createElement(getIconComponent(activeMenuItem.icon), { className: "h-4 w-4 text-primary flex-shrink-0" })}
-              <span className="text-xs font-semibold tracking-wide truncate">{activeMenuItem.label}</span>
+              <span className="text-sm font-semibold truncate">{activeMenuItem.label}</span>
             </div>
           </SidebarHeader>
 
