@@ -20,6 +20,7 @@ interface ReportRow {
   settlements?: number;
   settlementCount?: number;
   balance?: number;
+  commission?: number;
   net?: number;
   balanceChange?: number;
 }
@@ -59,7 +60,7 @@ const NonRevenueReport = () => {
   const totals = report?.totals;
 
   return (
-    <WholesalePage title="Non-Revenue Accounts" context="Deposits, withdrawals and settlements for money that is not a sale. The balance is the amount still held at the end of the period.">
+    <WholesalePage title="Non-Revenue Accounts" context="Deposits, withdrawals and settlements for money that is not a sale. Commission is your revenue. The balance is the amount still held at the end of the period, after commission.">
       <section className="ws-card grid gap-3 p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="grid gap-1.5">
@@ -85,12 +86,13 @@ const NonRevenueReport = () => {
               <th className="ws-num">Withdrawals</th>
               <th className="ws-num">Settlements</th>
               <th className="ws-num">Net</th>
+              <th className="ws-num">Commission</th>
               <th className="ws-num">Balance</th>
             </tr>
           </thead>
           <tbody>
-            {!report && <tr><td colSpan={6} className="text-center text-muted-foreground">Choose the dates and search.</td></tr>}
-            {report && rows.length === 0 && <tr><td colSpan={6} className="text-center text-muted-foreground">No activity in this period.</td></tr>}
+            {!report && <tr><td colSpan={7} className="text-center text-muted-foreground">Choose the dates and search.</td></tr>}
+            {report && rows.length === 0 && <tr><td colSpan={7} className="text-center text-muted-foreground">No activity in this period.</td></tr>}
             {rows.map(row => (
               <tr key={row.accountId || row.accountName}>
                 <td className="font-medium">{row.accountName}</td>
@@ -98,6 +100,7 @@ const NonRevenueReport = () => {
                 <td className="ws-num">{amount(row.withdrawals)} <span className="text-muted-foreground">({row.withdrawalCount ?? 0})</span></td>
                 <td className="ws-num">{amount(row.settlements)} <span className="text-muted-foreground">({row.settlementCount ?? 0})</span></td>
                 <td className="ws-num">{amount(row.net)}</td>
+                <td className="ws-num">{amount(row.commission)}</td>
                 <td className="ws-num">{amount(row.balance)}</td>
               </tr>
             ))}
@@ -108,6 +111,7 @@ const NonRevenueReport = () => {
                 <td className="ws-num">{amount(totals.withdrawals)}</td>
                 <td className="ws-num">{amount(totals.settlements)}</td>
                 <td className="ws-num">{amount(totals.net)}</td>
+                <td className="ws-num">{amount(totals.commission)}</td>
                 <td className="ws-num">{amount(totals.balance)}</td>
               </tr>
             )}

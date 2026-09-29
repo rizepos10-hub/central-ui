@@ -18,6 +18,7 @@ import {
   NonRevenueAccount,
   NonRevenueAmountMode,
   NonRevenueApproval,
+  NonRevenueCommissionBase,
   NonRevenueDirection,
 } from 'app/shared/model/non-revenue-account.model';
 
@@ -90,6 +91,10 @@ const NonRevenueAccounts = () => {
       toast.error('Enter at least one denomination.');
       return;
     }
+    if (draft.commissionPercent != null && (draft.commissionPercent < 0 || draft.commissionPercent > 100)) {
+      toast.error('Commission must be between 0 and 100%.');
+      return;
+    }
     setSaving(true);
     try {
       const body = { ...draft, name: draft.name.trim(), rules: { ...emptyRules(), ...draft.rules } };
@@ -160,9 +165,16 @@ const NonRevenueAccounts = () => {
               <Field label="Name">
                 <Input className="ws-control" value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} />
               </Field>
-              <Field label="Receipt label">
-                <Input className="ws-control" value={draft.receiptLabel ?? ''} onChange={event => setDraft({ ...draft, receiptLabel: event.target.value })} />
-              </Field>
+              {draft.rules.direction !== 'WITHDRAWAL' && (
+                <Field label="Deposit label">
+                  <Input className="ws-control" placeholder="Lottery" value={draft.receiptLabel ?? ''} onChange={event => setDraft({ ...draft, receiptLabel: event.target.value })} />
+                </Field>
+              )}
+              {draft.rules.direction !== 'DEPOSIT' && (
+                <Field label="Withdrawal label">
+                  <Input className="ws-control" placeholder="Lottery Paid Out" value={draft.withdrawalLabel ?? ''} onChange={event => setDraft({ ...draft, withdrawalLabel: event.target.value })} />
+                </Field>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Color">
                   <Input className="ws-control" placeholder="#336699" value={draft.color ?? ''} onChange={event => setDraft({ ...draft, color: event.target.value })} />
@@ -191,6 +203,13 @@ const NonRevenueAccounts = () => {
                   <Input className="ws-control" type="number" min={0} step="0.01" value={money(draft.rules.maxAmount)} onChange={event => updateRules({ maxAmount: parseOptional(event.target.value) })} />
                 </Field>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Commission %">
+                  <Input className="ws-control" type="number" min={0} max={100} step="0.01" placeholder="0" value={money(draft.commissionPercent)} onChange={event => setDraft({ ...draft, commissionPercent: parseOptional(event.target.value) })} />
+                </Field>
+                <Choice label="Commission on" value={draft.commissionAppliesTo} options={['DEPOSITS', 'WITHDRAWALS', 'BOTH']} onChange={value => setDraft({ ...draft, commissionAppliesTo: value as NonRevenueCommissionBase })} />
+              </div>
+              <p className="m-0 -mt-1 text-xs text-muted-foreground">The commission is your revenue. The report deducts it from the amount you owe.</p>
               <Choice label="Approval" value={draft.rules.approval} options={['NONE', 'WITHDRAWAL', 'OVER_LIMIT', 'ALWAYS']} onChange={value => updateRules({ approval: value as NonRevenueApproval })} />
               {draft.rules.approval === 'OVER_LIMIT' && (
                 <Field label="Approval above">
