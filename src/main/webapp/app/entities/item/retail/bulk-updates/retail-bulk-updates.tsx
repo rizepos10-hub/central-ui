@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Loader2, Search } from 'lucide-react';
 
@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverAnchor } from '@/components/ui/popover';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from 'app/modules/logistics/wholesale-ui/wholesale-page';
-import { WsPopoverContent, WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
+import { WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { WholesaleStatusBadge } from 'app/modules/logistics/wholesale-ui/wholesale-status-badge';
 import { wholesaleErrorMessage } from 'app/modules/logistics/wholesale-ui/wholesale-error';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
@@ -211,6 +210,7 @@ const RetailBulkUpdates = () => {
         setFilterNote(!finished && scanned < serverTotal ? `Checked the first ${SCAN_CAP} products` : '');
       }
       setSelected(new Set());
+      setCheckedVariants(new Set());
       setSearched(true);
     } catch (error) {
       toast.error(wholesaleErrorMessage(error, 'The products could not be loaded.'));
@@ -223,26 +223,31 @@ const RetailBulkUpdates = () => {
 
   const variantLines = useMemo(
     () =>
-      selectedProducts.flatMap(product =>
+      products.flatMap(product =>
         (product.variants ?? []).map(variant => ({
           key: variantKey(product.id ?? '', variant.id ?? ''),
           product,
           variant,
         })),
       ),
-    [selectedProducts],
+    [products],
   );
 
-  useEffect(() => {
-    if (!VARIANT_FIELDS.has(field)) return;
-    setCheckedVariants(new Set(variantLines.map(line => line.key)));
-  }, [field, variantLines]);
-
-  const toggleProduct = (id: string, on: boolean) => {
+  const toggleProduct = (product: IProduct, on: boolean) => {
+    const id = product.id ?? '';
     setSelected(prev => {
       const next = new Set(prev);
       if (on) next.add(id);
       else next.delete(id);
+      return next;
+    });
+    setCheckedVariants(prev => {
+      const next = new Set(prev);
+      (product.variants ?? []).forEach(variant => {
+        const key = variantKey(id, variant.id ?? '');
+        if (on) next.add(key);
+        else next.delete(key);
+      });
       return next;
     });
   };
@@ -263,7 +268,7 @@ const RetailBulkUpdates = () => {
   const needsRef = field === 'category' || field === 'brand' || field === 'tax' || field === 'baseMeasure';
 
   const apply = async () => {
-    if (!selectedProducts.length) return;
+    if (!VARIANT_FIELDS.has(field) && !selectedProducts.length) return;
     const number = Number(textValue);
     if (needsNumber && (!Number.isFinite(number) || number < 0)) {
       toast.error('Enter a price of 0 or more.');
@@ -288,7 +293,7 @@ const RetailBulkUpdates = () => {
     const ref = refOptions.find(option => option.id === refValue);
     const yes = boolValue === 'true';
 
-    const updated = selectedProducts
+    const updated = (VARIANT_FIELDS.has(field) ? products : selectedProducts)
       .filter(product => !VARIANT_FIELDS.has(field) || chosenByItem.has(product.id ?? ''))
       .map(product => {
         const next: IProduct = { ...product, variants: (product.variants ?? []).map(variant => ({ ...variant })) };
@@ -378,7 +383,7 @@ const RetailBulkUpdates = () => {
             <Label htmlFor="bulk-name">Name</Label>
             <Input id="bulk-name" className="ws-control" value={filters.name} placeholder="Contains" onChange={e => setFilters(prev => ({ ...prev, name: e.target.value }))} />
           </div>
-          <CategoryFilter value={filters.categoryId} searchUrl="api/_search/retail-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
+          <CategoryFilter inputId="bulk-category" value={filters.categoryId} searchUrl="api/_search/retail-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
           <OptionFilter label="Brand" value={filters.brandId} options={brands} onChange={brandId => setFilters(prev => ({ ...prev, brandId }))} />
           <div className="flex items-end gap-2">
             <div className="min-w-0 flex-1">
@@ -431,7 +436,7 @@ const RetailBulkUpdates = () => {
             {loading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}
             Search
           </Button>
-          <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setProducts([]); setSearched(false); setSelected(new Set()); setPage(0); setTotal(0); setFilterNote(''); }}>
+          <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setProducts([]); setSearched(false); setSelected(new Set()); setCheckedVariants(new Set()); setPage(0); setTotal(0); setFilterNote(''); }}>
             Clear
           </Button>
           {searched && <span className="text-xs text-muted-foreground">{total} products{filterNote ? ` · ${filterNote}` : ''}</span>}
@@ -485,56 +490,16 @@ const RetailBulkUpdates = () => {
               </Select>
             )}
           </div>
-          <Button className="ws-control" disabled={saving || selectedProducts.length === 0} onClick={() => void apply()}>
+          <Button className="ws-control" disabled={saving || (VARIANT_FIELDS.has(field) ? checkedVariants.size === 0 : selectedProducts.length === 0)} onClick={() => void apply()}>
             {saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             Apply to {VARIANT_FIELDS.has(field) ? checkedVariants.size : selectedProducts.length}
           </Button>
         </div>
         <p className="m-0 text-xs text-muted-foreground">
           {VARIANT_FIELDS.has(field)
-            ? 'Each variant is listed below. Uncheck a variant to leave it unchanged.'
+            ? 'Check the variants under each product. Unchecked variants stay unchanged.'
             : 'This value is saved on every selected product.'}
         </p>
-
-        {VARIANT_FIELDS.has(field) && (
-          <div className="max-h-[320px] overflow-auto rounded-md border">
-            <table className="ws-table" aria-label="Variants to update">
-              <thead>
-                <tr>
-                  <th className="w-10">
-                    <Checkbox
-                      aria-label="Select all variants"
-                      checked={variantLines.length > 0 && variantLines.every(line => checkedVariants.has(line.key))}
-                      onCheckedChange={checked => setCheckedVariants(checked === true ? new Set(variantLines.map(line => line.key)) : new Set())}
-                    />
-                  </th>
-                  <th>Product</th>
-                  <th>Variant</th>
-                  <th>SKU</th>
-                  <th className="ws-num">{field === 'salePrice' ? 'Sale price' : field === 'price' ? 'Price' : 'Current'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {variantLines.length === 0 && (
-                  <tr><td colSpan={5} className="text-center text-muted-foreground">Select products in the list first.</td></tr>
-                )}
-                {variantLines.map(line => (
-                  <tr key={line.key}>
-                    <td>
-                      <Checkbox aria-label={`Update ${line.product.name} ${line.variant.name ?? ''}`} checked={checkedVariants.has(line.key)} onCheckedChange={checked => toggleVariant(line.key, checked === true)} />
-                    </td>
-                    <td className="font-medium">{line.product.name}</td>
-                    <td>{line.variant.name || (isSimple(line.product) ? 'Simple' : '-')}</td>
-                    <td className="ws-mono text-[12.5px]">{skuText(line.variant) || <span className="text-[hsl(var(--ws-returned))]">Missing</span>}</td>
-                    <td className="ws-num">
-                      {field === 'salePrice' ? line.variant.salePrice ?? '-' : field === 'tax' ? (line.variant.accountingGroups ?? []).map(group => group.name).join(', ') || '-' : field === 'variantDescription' ? line.variant.description || '-' : line.variant.price ?? '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </section>
 
       <div className="ws-card">
@@ -546,7 +511,11 @@ const RetailBulkUpdates = () => {
                 <Checkbox
                   aria-label="Select all products"
                   checked={allSelected}
-                  onCheckedChange={checked => setSelected(checked === true ? new Set(products.map(product => product.id ?? '').filter(Boolean)) : new Set())}
+                  onCheckedChange={checked => {
+                    const on = checked === true;
+                    setSelected(on ? new Set(products.map(product => product.id ?? '').filter(Boolean)) : new Set());
+                    setCheckedVariants(on ? new Set(products.flatMap(product => (product.variants ?? []).map(variant => variantKey(product.id ?? '', variant.id ?? '')))) : new Set());
+                  }}
                 />
               </th>
               <th>Name</th>
@@ -562,7 +531,7 @@ const RetailBulkUpdates = () => {
               <Fragment key={product.id}>
                 <tr>
                   <td>
-                    <Checkbox aria-label={`Select ${product.name}`} checked={!!product.id && selected.has(product.id)} onCheckedChange={checked => product.id && toggleProduct(product.id, checked === true)} />
+                    <Checkbox aria-label={`Select ${product.name}`} checked={!!product.id && selected.has(product.id)} onCheckedChange={checked => toggleProduct(product, checked === true)} />
                   </td>
                   <td className="font-medium">{product.name}</td>
                   <td><WholesaleStatusBadge tone={isSimple(product) ? 'neutral' : 'new'}>{isSimple(product) ? 'Simple' : 'Variable'}</WholesaleStatusBadge></td>
@@ -576,19 +545,26 @@ const RetailBulkUpdates = () => {
                         <table className="ws-table" aria-label={`Variants of ${product.name}`}>
                           <thead>
                             <tr>
+                              <th className="w-10" />
                               <th>Variant</th>
                               <th>SKU</th>
                               <th className="ws-num">Price</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {(product.variants ?? []).map(variant => (
-                              <tr key={variant.id ?? `${product.id}-${variant.name}`}>
-                                <td>{formatVariant(variant.name, variant.attributeValues) || (isSimple(product) ? 'Simple' : '-')}</td>
-                                <td className="ws-mono text-[12.5px]">{formatSkuList(variant) || <span className="text-[hsl(var(--ws-returned))]">Missing</span>}</td>
-                                <td className="ws-num">{variant.price ?? '-'}</td>
-                              </tr>
-                            ))}
+                            {(product.variants ?? []).map(variant => {
+                              const key = variantKey(product.id ?? '', variant.id ?? '');
+                              return (
+                                <tr key={variant.id ?? `${product.id}-${variant.name}`}>
+                                  <td>
+                                    <Checkbox aria-label={`Select ${product.name} ${variant.name ?? ''}`} checked={checkedVariants.has(key)} onCheckedChange={checked => toggleVariant(key, checked === true)} />
+                                  </td>
+                                  <td>{formatVariant(variant.name, variant.attributeValues) || (isSimple(product) ? 'Simple' : '-')}</td>
+                                  <td className="ws-mono text-[12.5px]">{formatSkuList(variant) || <span className="text-[hsl(var(--ws-returned))]">Missing</span>}</td>
+                                  <td className="ws-num">{variant.price ?? '-'}</td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -652,7 +628,8 @@ const PageBar = ({
   );
 };
 
-const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchUrl: string; onChange: (value: string) => void }) => {
+const CategoryFilter = ({ value, searchUrl, inputId, onChange }: { value: string; searchUrl: string; inputId: string; onChange: (value: string) => void }) => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<NamedRef[]>([]);
@@ -661,6 +638,15 @@ const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchU
   useEffect(() => {
     if (value === ANY) setLabel('');
   }, [value]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -676,39 +662,44 @@ const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchU
     };
   }, [open, query, searchUrl]);
 
+  const choose = (id: string, name: string) => {
+    onChange(id);
+    setLabel(name);
+    setQuery('');
+    setOpen(false);
+  };
+
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor="bulk-category">Category</Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverAnchor asChild>
-          <Input
-            id="bulk-category"
-            className="ws-control"
-            placeholder="Any"
-            value={open ? query : label}
-            onChange={event => {
-              setQuery(event.target.value);
-              setOpen(true);
-              if (!event.target.value.trim()) onChange(ANY);
-            }}
-            onFocus={() => {
-              setQuery('');
-              setOpen(true);
-            }}
-          />
-        </PopoverAnchor>
-        <WsPopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1" onOpenAutoFocus={event => event.preventDefault()}>
-          <div className="max-h-56 overflow-auto">
-            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(ANY); setLabel(''); setQuery(''); setOpen(false); }}>Any</button>
+    <div className="grid gap-1.5" ref={rootRef}>
+      <Label htmlFor={inputId}>Category</Label>
+      <div className="relative">
+        <Input
+          id={inputId}
+          className="ws-control"
+          placeholder="Any"
+          value={open ? query : label}
+          onChange={event => {
+            setQuery(event.target.value);
+            setOpen(true);
+            if (!event.target.value.trim()) onChange(ANY);
+          }}
+          onFocus={() => {
+            setQuery(label);
+            setOpen(true);
+          }}
+        />
+        {open && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border bg-popover p-1 shadow-md">
+            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onMouseDown={event => event.preventDefault()} onClick={() => choose(ANY, '')}>Any</button>
             {options.map(option => (
-              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(option.id); setLabel(option.name); setQuery(''); setOpen(false); }}>
+              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onMouseDown={event => event.preventDefault()} onClick={() => choose(option.id, option.name)}>
                 {option.name}
               </button>
             ))}
             {options.length === 0 && <div className="px-2 py-1.5 text-[13px] text-muted-foreground">No categories</div>}
           </div>
-        </WsPopoverContent>
-      </Popover>
+        )}
+      </div>
     </div>
   );
 };
