@@ -76,7 +76,7 @@ const SenitronSettingsPage = () => {
         <h2 className="text-xl font-bold">Senitron Settings</h2>
         <div className="flex gap-2">
           <Button asChild variant="outline" className="h-8 text-xs">
-            <Link to="/details">
+            <Link to="/integrations">
               <ArrowLeft className="h-3 w-3 mr-1" />
               Back
             </Link>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 64" role="img" aria-label="Senitron">
+  <g fill="none" stroke="#00A99D" stroke-width="4" stroke-linecap="round">
+    <path d="M14 32a16 16 0 0 1 16-16"/>
+    <path d="M20 32a10 10 0 0 1 10-10"/>
+    <path d="M46 32a16 16 0 0 1-16 16"/>
+    <path d="M40 32a10 10 0 0 1-10 10"/>
+  </g>
+  <circle cx="30" cy="32" r="4" fill="#00A99D"/>
+  <text x="58" y="42" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#1F3B4D">senitron</text>
+</svg>
