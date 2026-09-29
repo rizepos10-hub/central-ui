@@ -57,6 +57,7 @@ export interface IBranchDetails {
   pstNumber?: string | null;
   enableAskOnTablePermissions?: boolean;
   cashbackEnabled?: boolean;
+  shareGiftCards?: boolean;
   kitchenPrintGrouping?: KitchenPrintGrouping;
   kitchenOutputMode?: KitchenOutputMode;
   printKitchenItemReconciliation?: boolean;
