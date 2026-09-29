@@ -37,6 +37,7 @@ const FloorPlanTable = React.lazy(() => import("app/entities/settings/floor-plan
 const FloorPlanSettings = React.lazy(() => import("app/entities/settings/floor-plans/floor-plan-settings"));
 const FloorPlan = React.lazy(() => import("app/entities/settings/floor-plans"));
 const PizzaItem = React.lazy(() => import("app/entities/item/restaurant/pizza-item"));
+const RestaurantCatalogImport = React.lazy(() => import("app/entities/item/restaurant/catalog-import/restaurant-catalog-import"));
 const PizzaToppingGroup = React.lazy(() => import("app/entities/pizza-settings/pizza-topping-group"));
 const RetailAttributes = React.lazy(() => import("app/entities/item/retail/attributes"));
 const Loyalty = React.lazy(() => import("app/entities/loyalty"));
@@ -133,6 +134,7 @@ export default () => {
         <Route path="restaurant/pizza/*" element={<PizzaItem />} />
         <Route path="restaurant/regular/*" element={<RegularItem />} />
         <Route path="restaurant/combo/*" element={<ComboItem />} />
+        <Route path="restaurant/catalog-import" element={<RestaurantCatalogImport />} />
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="product/*" element={<Product />} />
