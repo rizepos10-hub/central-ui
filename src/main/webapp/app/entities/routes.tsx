@@ -49,6 +49,7 @@ const Supplier = React.lazy(() => import("app/entities/inventory/supplier"));
 const ItemMeasure = React.lazy(() => import("app/entities/item-measure"));
 const MixAndMatchRule = React.lazy(() => import("app/entities/mix-and-match-rule"));
 const Product = React.lazy(() => import("app/entities/item/retail/product"));
+const RetailBulkUpdates = React.lazy(() => import("app/entities/item/retail/bulk-updates/retail-bulk-updates"));
 const Tag = React.lazy(() => import("app/entities/tag"));
 const TagGroup = React.lazy(() => import("app/entities/tag-group"));
 const BranchRegistry = React.lazy(() => import("app/entities/settings/branch-registry"));
@@ -138,6 +139,7 @@ export default () => {
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="product/*" element={<Product />} />
+        <Route path="retail/bulk-updates" element={<RetailBulkUpdates />} />
         <Route path="barcodes/*" element={<Barcode />} />
         <Route path="labels/*" element={<Labels />} />
 
