@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import axios from 'axios';
 import { Trash2, Edit2, Grid2X2, Columns2 } from 'lucide-react';
 import { Translate } from 'react-jhipster';
 import { components as ReactSelectComponents, OptionProps, SingleValueProps } from 'react-select';
@@ -128,10 +129,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         isMainScreenModalOpen: false,
         isSubScreenModalOpen: false,
         isItemModalOpen: false,
+        isAccountModalOpen: false,
         isEditModalOpen: false,
         isPreviewModalOpen: false,
     });
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [nonRevenueAccounts, setNonRevenueAccounts] = useState<Array<{ id: string; name: string }>>([]);
+    const [selectedAccountId, setSelectedAccountId] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<{ type: 'card' | 'mainScreen', index: number, item?: any, name?: string } | null>(null);
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
     const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
@@ -345,6 +349,15 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 setIsModalOpen({
                     ...isModalOpen,
                     isItemModalOpen: true,
+                });
+            } else if (itemType === 'Account') {
+                axios.get<Array<{ id: string; name: string }>>('api/non-revenue-accounts')
+                    .then(({ data }) => setNonRevenueAccounts((data ?? []).filter(account => account?.id)))
+                    .catch(() => setNonRevenueAccounts([]));
+                setSelectedAccountId('');
+                setIsModalOpen({
+                    ...isModalOpen,
+                    isAccountModalOpen: true,
                 });
             }
         } else {
@@ -766,7 +779,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         <Card className={`flex flex-col p-0 cursor-pointer h-full transition-all hover:shadow-md border-2 hover:border-primary/50 overflow-visible relative`}>
                                             <div className="flex items-center justify-between p-2 pb-1 shrink-0">
                                                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                                                    {item?.componentType === 'SUB_SCREENS' ? 'Screen' : 'Item'}
+                                                    {item?.componentType === 'SUB_SCREENS' ? 'Screen' : item?.componentType === 'NON_REVENUE_ACCOUNT' ? 'Account' : 'Item'}
                                                 </span>
                                                 <div className="flex gap-1">
                                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-muted" onClick={() => openEditModal(item, index, 'sub', subScreenStack)}>
@@ -1268,6 +1281,37 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         if (updatedSubScreenStack) {
             setSubScreenStack(updatedSubScreenStack);
         }
+    };
+
+    const handleAddAccount = () => {
+        const account = nonRevenueAccounts.find(entry => entry.id === selectedAccountId);
+        if (!account || selectedMainScreenIndex === null) return;
+        const updatedData = { ...data };
+        const updatedMenuScreens = [...updatedData.menuScreens];
+        const newId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        const button: IMenuScreen = {
+            id: newId,
+            name: account.name,
+            backgroundColor: selectedColorTheme,
+            managerOnlyAccess: false,
+            componentType: 'NON_REVENUE_ACCOUNT',
+            component: { accountId: account.id },
+        };
+        if (subScreenStack.length <= 1) {
+            updatedMenuScreens[selectedMainScreenIndex] = {
+                ...updatedMenuScreens[selectedMainScreenIndex],
+                subScreens: [...(updatedMenuScreens[selectedMainScreenIndex].subScreens || []), button],
+            };
+        } else {
+            const topSubScreen = subScreenStack[subScreenStack.length - 1];
+            updatedMenuScreens[selectedMainScreenIndex] = {
+                ...updatedMenuScreens[selectedMainScreenIndex],
+                subScreens: findAndAddItem(updatedMenuScreens[selectedMainScreenIndex].subScreens, topSubScreen, button),
+            };
+        }
+        updatedData.menuScreens = updatedMenuScreens;
+        setData(updatedData);
+        setIsModalOpen({ ...isModalOpen, isAccountModalOpen: false });
     };
 
     const handleAddSelectedItems = (items: IItem[]) => {
@@ -1976,6 +2020,26 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <Dialog open={isModalOpen.isAccountModalOpen} onOpenChange={open => setIsModalOpen({ ...isModalOpen, isAccountModalOpen: open })}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add account</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-2">
+                        <Label>Non-revenue account</Label>
+                        <Select
+                            options={nonRevenueAccounts.map(account => ({ value: account.id, label: account.name }))}
+                            value={nonRevenueAccounts.map(account => ({ value: account.id, label: account.name })).find(option => option.value === selectedAccountId) || null}
+                            onChange={option => setSelectedAccountId(option?.value || '')}
+                            placeholder="Choose an account"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" size="sm" onClick={() => setIsModalOpen({ ...isModalOpen, isAccountModalOpen: false })}>Cancel</Button>
+                        <Button size="sm" disabled={!selectedAccountId} onClick={handleAddAccount}>Add</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             {isModalOpen.isItemModalOpen && (
                 <ItemSelectionModal
                     isOpen={isModalOpen.isItemModalOpen}
@@ -2420,6 +2484,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     <Button disabled={!mainScreen} variant="outline" size="sm" className="h-8 text-xs px-3 font-medium" onClick={() => handleButtonAdd('Item')}>
                                         <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
                                     </Button>
+                                    {menu.type === "POS" && (
+                                        <Button disabled={!mainScreen} variant="outline" size="sm" className="h-8 text-xs px-3 font-medium" onClick={() => handleButtonAdd('Account')}>
+                                            Add Account
+                                        </Button>
+                                    )}
                                     {menu.type === "POS" && (
                                         <Button disabled={!mainScreen} variant="outline" size="sm" className="h-8 text-xs px-3 font-medium" onClick={() => handleButtonAdd('Sub-screen')}>
                                             <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>

@@ -1403,6 +1403,37 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    id: 'non-revenue-accounts',
+    title: 'Non-Revenue Accounts',
+    group: 'Reference',
+    summary: 'Money held for someone else, such as lottery or phone cards. It is not a sale.',
+    path: '/non-revenue-accounts',
+    sections: [
+      {
+        heading: 'Set up an account',
+        steps: [
+          'Open Settings, then Non-Revenue Accounts.',
+          'Click New and name the account. The receipt label is what prints; leave it blank to use the name.',
+          'Choose whether the till can take money in, pay money out, or both.',
+          'Leave the amount open, fix it, or offer a list of denominations.',
+          'Leave branches and payment methods empty to allow every branch and every method.',
+          'Click Save.',
+        ],
+      },
+      {
+        heading: 'Put it on the till',
+        bullets: [
+          'Open the POS menu and click Add Account.',
+          'Pick the account. The button adds a deposit or withdrawal line instead of an item.',
+        ],
+      },
+      {
+        heading: 'See the money',
+        text: ['Reports, Non-Revenue Accounts shows deposits, withdrawals, settlements and the balance still held at the end of the dates you choose.'],
+      },
+    ],
+  },
+  {
     id: 'troubleshooting',
     title: 'Troubleshooting',
     group: 'Reference',

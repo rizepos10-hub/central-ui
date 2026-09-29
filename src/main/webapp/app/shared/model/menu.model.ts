@@ -37,7 +37,7 @@ export interface IMenuScreen {
   description?: string;
   backgroundColor?: string;
   managerOnlyAccess?: boolean;
-  componentType?: "SUB_SCREENS" | "ITEM" | "POS";
+  componentType?: "SUB_SCREENS" | "ITEM" | "POS" | "NON_REVENUE_ACCOUNT";
   allowMultiButtonSelect?: boolean;
   numberOfColumns?: number;
   isDefault?: boolean;
@@ -51,6 +51,7 @@ export interface IMenuScreen {
   component?: {
     item?: IItem | null;
     itemId?: string | null;
+    accountId?: string | null;
   }
 }
 
