@@ -1017,12 +1017,12 @@ export const model: MenuItem[] = [
   {
     label: 'Integrations',
     icon: 'pi pi-link',
-    role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+    role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN'],
     to: '/integrations',
     items: [
       {
         label: 'All Integrations',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN', 'ROLE_WHOLESALE_ADMIN'],
         to: '/integrations',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
