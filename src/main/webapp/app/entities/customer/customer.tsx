@@ -499,7 +499,7 @@ export const Customer = () => {
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div className="ws-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
