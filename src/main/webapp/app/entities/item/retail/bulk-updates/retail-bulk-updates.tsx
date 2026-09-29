@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Loader2, Search } from 'lucide-react';
+import { ChevronDown, Loader2, Search } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from 'app/modules/logistics/wholesale-ui/wholesale-page';
 import { WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
@@ -121,6 +123,7 @@ const withinCount = (count: number, min: string, max: string) => {
 
 const RetailBulkUpdates = () => {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [searched, setSearched] = useState(false);
   const [capped, setCapped] = useState(false);
@@ -149,14 +152,14 @@ const RetailBulkUpdates = () => {
     setLoading(true);
     try {
       const server: Record<string, { value: unknown; matchMode: string }> = {
-        isArchived: { value: false, matchMode: 'equals' },
+        isArchived: { value: false, matchMode: 'EQUALS' },
       };
-      if (filters.name.trim()) server.name = { value: filters.name.trim(), matchMode: 'contains' };
-      if (filters.categoryId !== ANY) server['categories.id'] = { value: filters.categoryId, matchMode: 'equals' };
-      if (filters.brandId !== ANY) server['brand.id'] = { value: filters.brandId, matchMode: 'equals' };
-      if (filters.taxId !== ANY) server['accountingGroups.id'] = { value: filters.taxId, matchMode: 'equals' };
-      if (filters.type !== ANY) server.itemVariantType = { value: filters.type, matchMode: 'equals' };
-      if (filters.sku === 'contains' && filters.skuText.trim()) server['variants.skus'] = { value: filters.skuText.trim(), matchMode: 'contains' };
+      if (filters.name.trim()) server.name = { value: filters.name.trim(), matchMode: 'CONTAINS' };
+      if (filters.categoryId !== ANY) server['categories.id'] = { value: filters.categoryId, matchMode: 'EQUALS' };
+      if (filters.brandId !== ANY) server['brand.id'] = { value: filters.brandId, matchMode: 'EQUALS' };
+      if (filters.taxId !== ANY) server['accountingGroups.id'] = { value: filters.taxId, matchMode: 'EQUALS' };
+      if (filters.type !== ANY) server.itemVariantType = { value: filters.type, matchMode: 'EQUALS' };
+      if (filters.sku === 'contains' && filters.skuText.trim()) server['variants.skus'] = { value: filters.skuText.trim(), matchMode: 'CONTAINS' };
 
       const result = await searchRetailProducts(server);
       const filtered = result.items.filter(product => {
@@ -321,8 +324,20 @@ const RetailBulkUpdates = () => {
       title="Bulk Updates"
       context="Filter the retail catalog, select products, then set one field on all of them. Name and SKU are not changed here."
     >
-      <section className="ws-card grid gap-3 p-4">
-        <h2 className="m-0 text-sm font-semibold">Filter</h2>
+      <section className="ws-card">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 px-4 py-3 text-left"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen(open => !open)}
+        >
+          <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', !filtersOpen && '-rotate-90')} />
+          <h2 className="m-0 text-sm font-semibold">Filter</h2>
+          {searched && !filtersOpen && (
+            <span className="text-xs text-muted-foreground">{products.length} products</span>
+          )}
+        </button>
+        {filtersOpen && <div className="grid gap-3 px-4 pb-4">
         <div className="grid gap-3 md:grid-cols-4">
           <div className="grid gap-1.5">
             <Label htmlFor="bulk-name">Name</Label>
@@ -380,6 +395,7 @@ const RetailBulkUpdates = () => {
           </Button>
           {searched && <span className="text-xs text-muted-foreground">{products.length} products{capped ? ' (first 2,000 from the server; narrow the filter)' : ''}</span>}
         </div>
+        </div>}
       </section>
 
       <section className="ws-card grid gap-3 p-4">
