@@ -73,11 +73,10 @@ const CashPayment = React.lazy(() => import('./cash-payment'));
 const PaymentMethodSetting = React.lazy(() => import('./settings/payment-method-setting/index'));
 const TookanSettings = React.lazy(() => import('./settings/tookan'));
 const SenitronSettings = React.lazy(() => import('./settings/senitron'));
-const IcabbiSettings = React.lazy(() => import('./settings/icabbi/icabbi'));
 const Integrations = React.lazy(() => import('app/modules/integrations/integrations'));
+const ThirdPartyIntegrations = React.lazy(() => import('./settings/third-party-integrations'));
 const KioskSlidesSettings = React.lazy(() => import('./settings/kiosk-slides'));
 const OnAccountSettings = React.lazy(() => import('./settings/on-account'));
-const ThirdPartyIntegrations = React.lazy(() => import('./settings/third-party-integrations'));
 const Flyers = React.lazy(() => import('./flyers'));
 
 export default () => {
@@ -176,11 +175,10 @@ export default () => {
         <Route path="payment-method-setting/*" element={<PaymentMethodSetting />} />
         <Route path="tookan-settings/*" element={<TookanSettings />} />
         <Route path="senitron-settings/*" element={<SenitronSettings />} />
-        <Route path="icabbi-settings/*" element={<IcabbiSettings />} />
         <Route path="integrations" element={<Integrations />} />
+        <Route path="third-party-integrations/*" element={<ThirdPartyIntegrations />} />
         <Route path="kiosk-slides-settings/*" element={<KioskSlidesSettings />} />
         <Route path="on-account-settings/*" element={<OnAccountSettings />} />
-        <Route path="third-party-integrations/*" element={<ThirdPartyIntegrations />} />
         <Route path="flyers/*" element={<Flyers />} />
       </ErrorBoundaryRoutes>
     </Suspense>

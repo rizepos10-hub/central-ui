@@ -37,7 +37,14 @@ describe('Integrations', () => {
 
   it('lists Senitron, Tookan, EasyPost, ClickShip and Kitchen Hub with their logos', () => {
     renderAt();
-    expect(INTEGRATIONS.map(i => i.id)).toEqual(['senitron', 'tookan', 'easypost', 'clickship', 'kitchenhub']);
+    expect(INTEGRATIONS.map(i => i.id)).toEqual([
+      'senitron',
+      'tookan',
+      'easypost',
+      'clickship',
+      'kitchenhub',
+      'uber_eats',
+    ]);
     expect(screen.getByAltText('EasyPost')).toBeTruthy();
     expect(screen.getByAltText('ClickShip')).toBeTruthy();
     expect(screen.getByAltText('Senitron')).toBeTruthy();
@@ -51,10 +58,13 @@ describe('Integrations', () => {
     expect(screen.getByText('senitron page')).toBeTruthy();
   });
 
-  it('opens Tookan settings', () => {
+  it('does not open the retired per-branch Tookan page, as Tookan uses the shared account', () => {
     renderAt();
-    fireEvent.click(screen.getByLabelText('Tookan settings'));
-    expect(screen.getByText('tookan page')).toBeTruthy();
+    const card = screen.getByLabelText<HTMLButtonElement>('Tookan settings');
+    expect(card.disabled).toBe(true);
+    expect(screen.getByText('Shared account')).toBeTruthy();
+    fireEvent.click(card);
+    expect(screen.queryByText('tookan page')).toBeNull();
   });
 
   it('shows Kitchen Hub as coming soon and not clickable', () => {

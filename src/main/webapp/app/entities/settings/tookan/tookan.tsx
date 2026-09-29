@@ -1,81 +1,128 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Copy, Save, Truck } from 'lucide-react';
+import { ArrowLeft, Copy, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { runtimeConfig } from 'app/config/runtime-config';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import {
+  defaultTookanSettingValue,
+  ITookanSettingRequest,
+  ITookanSettingValue,
+  normalizeTookanSettingValue,
+} from 'app/shared/model/tookan-setting.model';
+import { getTenantFromURL } from 'app/shared/util/tenant-utils';
 import { PageWrapper } from 'app/shared/layout/page-wrapper';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-interface ProviderSettingsResponse {
-  providerKey: string;
-  enabled: boolean;
-  configuredCredentials: Record<string, boolean>;
-  options: Record<string, unknown>;
-}
-
-const defaultSettings: ProviderSettingsResponse = {
-  providerKey: 'tookan',
-  enabled: false,
-  configuredCredentials: { apiKey: false, webhookSharedSecret: false },
-  options: { autoAssignment: false, notify: true, geofence: false, trackingLink: true },
-};
-
-const apiUrl = '/api/integration-provider-settings/tookan';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { changeEntityField, getTookanAgents, getTookanSetting, getTookanTeams, updateTookanSetting } from './tookan.reducer';
 
 const TookanSettings = () => {
-  const [settings, setSettings] = useState<ProviderSettingsResponse>(defaultSettings);
+  const dispatch = useAppDispatch();
+  const branches = useAppSelector(state => state.branch.entities);
+  const tookanEntity = useAppSelector(state => state.tookanSetting.entity);
+  const teams = useAppSelector(state => state.tookanSetting.teams);
+  const loading = useAppSelector(state => state.tookanSetting.loading);
+  const updating = useAppSelector(state => state.tookanSetting.updating);
+  const updateSuccess = useAppSelector(state => state.tookanSetting.updateSuccess);
+
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [webhookSecretInput, setWebhookSecretInput] = useState('');
-  const [teamIdInput, setTeamIdInput] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const webhookUrl = useMemo(() => `${runtimeConfig.SERVER_DOMAIN.replace(/\/$/, '')}/api/tookan/event`, []);
-  const options = { ...defaultSettings.options, ...(settings.options || {}) };
+  const tenant = getTenantFromURL() || '{tenant}';
+  const webhookBaseUrl = useMemo(() => runtimeConfig.SERVER_DOMAIN.replace(/\/$/, ''), []);
+  const webhookUrl = useMemo(() => `${webhookBaseUrl}/api/tookan/event/${tenant}`, [tenant, webhookBaseUrl]);
+  const tookanPlatformFeeQuery = useMemo(
+    () =>
+      encodeURIComponent(
+        JSON.stringify({
+          first: 0,
+          rows: 20,
+          page: 0,
+          sortField: null,
+          sortOrder: null,
+          filters: {
+            key: { value: 'PLATFORM_FEE', matchMode: 'equals' },
+            deliveryProvider: { value: 'TOOKAN', matchMode: 'equals' },
+          },
+        })
+      ),
+    []
+  );
+  const settingValue = normalizeTookanSettingValue(tookanEntity.value || defaultTookanSettingValue);
 
   useEffect(() => {
-    axios.get<ProviderSettingsResponse>(apiUrl)
-      .then(response => {
-        setSettings({ ...defaultSettings, ...response.data, configuredCredentials: { ...defaultSettings.configuredCredentials, ...response.data.configuredCredentials } });
-        setTeamIdInput(response.data.options?.teamId == null ? '' : String(response.data.options.teamId));
-      })
-      .catch(error => toast.error(getApiErrorMessage(error, 'Could not load Tookan settings.')))
-      .finally(() => setLoading(false));
-  }, []);
+    dispatch(getBranches({}));
+  }, [dispatch]);
 
-  const updateOption = (name: string, value: boolean) => {
-    setSettings(current => ({ ...current, options: { ...current.options, [name]: value } }));
+  useEffect(() => {
+    if (!selectedBranchId && branches?.length > 0 && branches[0].id) {
+      setSelectedBranchId(branches[0].id);
+    }
+  }, [branches, selectedBranchId]);
+
+  useEffect(() => {
+    if (!selectedBranchId) return;
+    dispatch(getTookanSetting(selectedBranchId));
+    dispatch(getTookanTeams(selectedBranchId));
+  }, [dispatch, selectedBranchId]);
+
+  useEffect(() => {
+    if (!selectedBranchId) return;
+    dispatch(getTookanAgents({ branchId: selectedBranchId, teamId: settingValue.teamId ?? null }));
+  }, [dispatch, selectedBranchId, settingValue.teamId]);
+
+  useEffect(() => {
+    if (updateSuccess) {
+      toast.success('Tookan settings saved.');
+      setApiKeyInput('');
+      setWebhookSecretInput('');
+    }
+  }, [updateSuccess]);
+
+  const updateField = (name: keyof ITookanSettingValue, value: any) => {
+    dispatch(changeEntityField({ name, value }));
+  };
+
+  const getApiErrorMessage = (error: any, fallback: string) => {
+    const data = error?.response?.data;
+    return (
+      data?.message ||
+      data?.localizedMessage ||
+      data?.detail ||
+      data?.title ||
+      error?.message ||
+      fallback
+    );
   };
 
   const onSave = async () => {
-    setSaving(true);
+    if (!selectedBranchId) {
+      toast.error('Please select a branch first.');
+      return;
+    }
+    const normalized = normalizeTookanSettingValue(settingValue);
+    const { deliveryConfiguration: _dc, chargeCalculationSetting: _ccs, ...integrationOnly } = normalized;
+    void _dc;
+    void _ccs;
+    const request: ITookanSettingRequest = {
+      branchId: selectedBranchId,
+      value: {
+        ...integrationOnly,
+        apiKey: apiKeyInput.trim(),
+        webhookSharedSecret: webhookSecretInput.trim(),
+      },
+    };
     try {
-      const response = await axios.put<ProviderSettingsResponse>(apiUrl, {
-        enabled: settings.enabled,
-        credentials: { apiKey: apiKeyInput.trim(), webhookSharedSecret: webhookSecretInput.trim() },
-        options: {
-          teamId: teamIdInput.trim() ? Number(teamIdInput) : null,
-          autoAssignment: options.autoAssignment,
-          notify: options.notify,
-          geofence: options.geofence,
-          trackingLink: options.trackingLink,
-        },
-      });
-      setSettings({ ...defaultSettings, ...response.data, configuredCredentials: { ...defaultSettings.configuredCredentials, ...response.data.configuredCredentials } });
-      setTeamIdInput(response.data.options?.teamId == null ? '' : String(response.data.options.teamId));
-      setApiKeyInput('');
-      setWebhookSecretInput('');
-      toast.success('Tookan settings saved.');
+      await dispatch(updateTookanSetting(request)).unwrap();
     } catch (error: any) {
       toast.error(getApiErrorMessage(error, 'Failed to save Tookan settings.'));
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -83,111 +130,159 @@ const TookanSettings = () => {
     try {
       await navigator.clipboard.writeText(webhookUrl);
       toast.success('Webhook URL copied.');
-    } catch {
+    } catch (error) {
       toast.error('Failed to copy webhook URL.');
     }
   };
 
-  const hasApiKey = !!settings.configuredCredentials.apiKey;
-  const hasWebhookSecret = !!settings.configuredCredentials.webhookSharedSecret;
-
   return (
-    <PageWrapper className="space-y-5">
-      <div className="space-y-3">
-        <Button asChild variant="outline" size="sm" className="self-start">
-          <Link to="/integrations"><ArrowLeft className="mr-1.5 h-4 w-4" />All integrations</Link>
-        </Button>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600">
-              <Truck className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">Tookan</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Connect your dispatch account and set its business-wide defaults.</p>
-            </div>
-          </div>
-          <Button type="button" size="sm" disabled={saving || loading} onClick={onSave}>
-            <Save className="mr-1.5 h-4 w-4" />{saving ? 'Saving…' : 'Save changes'}
+    <PageWrapper className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-bold">Tookan Settings</h2>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="h-8 text-xs">
+            <Link to="/integrations">
+              <ArrowLeft className="h-3 w-3 mr-1" />
+              Back
+            </Link>
+          </Button>
+          <Button type="button" className="h-8 text-xs" disabled={updating || !selectedBranchId} onClick={onSave}>
+            <Save className="h-3 w-3 mr-1" />
+            Save
           </Button>
         </div>
       </div>
 
-      <Card className="overflow-hidden border-border/70 shadow-sm">
-        <CardHeader className="border-b bg-muted/20 pb-4">
-          <CardTitle className="text-base">Tookan account</CardTitle>
-          <CardDescription className="text-xs">These credentials are encrypted and shared by branches in this business. They are never sent back to the browser.</CardDescription>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Branch Delivery Provider Configuration</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5 p-5">
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors hover:bg-muted/20">
-            <Checkbox checked={settings.enabled} onCheckedChange={checked => setSettings(current => ({ ...current, enabled: checked === true }))} />
-            <span className="space-y-1">
-              <span className="block text-sm font-semibold">Enable Tookan for this business</span>
-              <span className="block text-xs text-muted-foreground">Individual branches can still turn Tookan delivery off in their delivery settings.</span>
-            </span>
-          </label>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="tookan-api-key">API key</Label>
-              <Input id="tookan-api-key" type="password" value={apiKeyInput} onChange={event => setApiKeyInput(event.target.value)} placeholder={hasApiKey ? 'Saved — leave blank to keep it' : 'Enter Tookan API key'} autoComplete="new-password" />
-              <p className="text-xs text-muted-foreground">{hasApiKey ? 'API key is saved.' : 'No API key saved.'}</p>
+        <CardContent className="space-y-4 text-xs">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold">Branch</Label>
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name || branch.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="tookan-webhook-secret">Webhook shared secret</Label>
-              <Input id="tookan-webhook-secret" type="password" value={webhookSecretInput} onChange={event => setWebhookSecretInput(event.target.value)} placeholder={hasWebhookSecret ? 'Saved — leave blank to keep it' : 'Enter webhook shared secret'} autoComplete="new-password" />
-              <p className="text-xs text-muted-foreground">{hasWebhookSecret ? 'Webhook secret is saved.' : 'No webhook secret saved.'}</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 border-t pt-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="tookan-team-id">Default team ID <span className="font-normal text-muted-foreground">(optional)</span></Label>
-              <Input id="tookan-team-id" inputMode="numeric" value={teamIdInput} onChange={event => setTeamIdInput(event.target.value.replace(/[^0-9]/g, ''))} placeholder="Use Tookan's default team" />
-              <p className="text-xs text-muted-foreground">Used when an order does not select a team directly.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                ['autoAssignment', 'Auto assign drivers'],
-                ['notify', 'Notify driver'],
-                ['geofence', 'Use geofence'],
-                ['trackingLink', 'Include tracking link'],
-              ].map(([name, label]) => (
-                <label key={name} className="flex cursor-pointer items-center gap-2 text-sm">
-                  <Checkbox checked={!!options[name]} onCheckedChange={checked => updateOption(name, checked === true)} />
-                  <span>{label}</span>
-                </label>
-              ))}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold">Default Team</Label>
+              <Select
+                value={settingValue.teamId != null ? String(settingValue.teamId) : 'none'}
+                onValueChange={value => updateField('teamId', value === 'none' ? undefined : Number(value))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No default team</SelectItem>
+                  {teams.map(team => (
+                    <SelectItem key={String(team.team_id)} value={String(team.team_id)}>
+                      {team.team_name || `Team ${team.team_id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="space-y-1.5 border-t pt-4">
-            <Label htmlFor="tookan-webhook-url">Webhook URL</Label>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold">API Key</Label>
+              <Input
+                type="password"
+                className="h-8 text-xs"
+                value={apiKeyInput}
+                onChange={e => setApiKeyInput(e.target.value)}
+                placeholder={tookanEntity.hasApiKey ? 'Saved (leave blank to keep current)' : 'Enter API key'}
+              />
+              <p className="text-[11px] text-muted-foreground">{tookanEntity.hasApiKey ? 'API key already configured.' : 'No API key configured yet.'}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold">Webhook Shared Secret</Label>
+              <Input
+                type="password"
+                className="h-8 text-xs"
+                value={webhookSecretInput}
+                onChange={e => setWebhookSecretInput(e.target.value)}
+                placeholder={tookanEntity.hasWebhookSecret ? 'Saved (leave blank to keep current)' : 'Enter webhook shared secret'}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                {tookanEntity.hasWebhookSecret ? 'Webhook secret already configured.' : 'No webhook secret configured yet.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            <label className="flex items-center gap-2">
+              <Checkbox checked={!!settingValue.active} onCheckedChange={checked => updateField('active', !!checked)} />
+              <span>Active</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <Checkbox checked={!!settingValue.autoAssignment} onCheckedChange={checked => updateField('autoAssignment', !!checked)} />
+              <span>Auto Assignment</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <Checkbox checked={!!settingValue.notify} onCheckedChange={checked => updateField('notify', !!checked)} />
+              <span>Notify Driver</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <Checkbox checked={!!settingValue.geofence} onCheckedChange={checked => updateField('geofence', !!checked)} />
+              <span>Enable Geofence</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <Checkbox checked={!!settingValue.trackingLink} onCheckedChange={checked => updateField('trackingLink', !!checked)} />
+              <span>Tracking Link</span>
+            </label>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold">Webhook URL</Label>
             <div className="flex gap-2">
-              <Input id="tookan-webhook-url" className="font-mono text-xs" value={webhookUrl} readOnly />
-              <Button type="button" variant="outline" size="icon" aria-label="Copy webhook URL" onClick={copyWebhookUrl}><Copy className="h-4 w-4" /></Button>
+              <Input className="h-8 text-xs" value={webhookUrl} readOnly />
+              <Button type="button" variant="outline" className="h-8 text-xs" onClick={copyWebhookUrl}>
+                <Copy className="h-3 w-3 mr-1" />
+                Copy
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Add this URL to Tookan notifications. The shared secret is registered with Tookan when credentials are saved.</p>
+            <p className="text-[11px] text-muted-foreground">Configure this URL in Tookan notifications. Append `?task_history=1` if needed.</p>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card className="border-dashed">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-          <div>
-            <p className="text-sm font-semibold">Branch delivery settings</p>
-            <p className="mt-1 text-xs text-muted-foreground">Choose which branches dispatch with Tookan in each branch’s Delivery settings.</p>
+          <div className="text-[11px] text-muted-foreground border-t pt-3 space-y-2">
+            <p>
+              <strong>Customer delivery fee</strong> (distance bands, min charge, free-delivery threshold) is edited on{' '}
+              <Link to="/branches#b0-s2" className="font-medium text-primary underline-offset-2 hover:underline">
+                Branches (delivery pricing)
+              </Link>{' '}
+              <span className="text-muted-foreground">(hash targets branch #0; adjust <code className="text-[10px]">b0</code> if needed)</span>. That data is stored as the{' '}
+              <code className="text-[10px]">DELIVERY_PRICING</code> setting for the branch.
+            </p>
+            <p>
+              <strong>Platform / provider fees</strong> use{' '}
+              <Link
+                to={`/service-charge?query=${tookanPlatformFeeQuery}`}
+                className="font-medium text-primary underline-offset-2 hover:underline"
+              >
+                Service charges
+              </Link>{' '}
+              with key <code className="text-[10px]">PLATFORM_FEE</code> and the same delivery provider (e.g. Tookan).
+            </p>
           </div>
-          <Button asChild variant="outline" size="sm"><Link to="/branches">Manage branches</Link></Button>
+
+          {loading && <p className="text-[11px] text-muted-foreground">Loading Tookan settings...</p>}
         </CardContent>
       </Card>
     </PageWrapper>
   );
 };
-
-function getApiErrorMessage(error: any, fallback: string): string {
-  const data = error?.response?.data;
-  return data?.message || data?.detail || data?.title || error?.message || fallback;
-}
 
 export default TookanSettings;
