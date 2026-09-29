@@ -335,7 +335,7 @@ export const model: MenuItem[] = [
         section: 'Configuration',
       },
       {
-        label: 'Wholesale Customers',
+        label: 'Customers',
         to: '/logistics/customers',
         role: WHOLESALE_PAGE_ROLES.customers,
         type: [BusinessTypeEnum.RETAIL],
@@ -368,6 +368,14 @@ export const model: MenuItem[] = [
         to: '/logistics/order-entry',
         role: WHOLESALE_PAGE_ROLES.orderEntry,
         type: [BusinessTypeEnum.RETAIL],
+        section: 'Order Preparation',
+      },
+      {
+        label: 'Orders',
+        to: '/logistics/orders',
+        role: WHOLESALE_PAGE_ROLES.orders,
+        type: [BusinessTypeEnum.RETAIL],
+        badge: 'wholesaleUnfulfilledOrders',
         section: 'Order Preparation',
       },
       {

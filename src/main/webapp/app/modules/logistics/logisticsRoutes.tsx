@@ -17,6 +17,7 @@ import WholesaleUsers from './users/users';
 import WholesaleSalesmen from './salesmen/salesmen';
 import WholesaleSettings from './settings/settings';
 import OrderEntry from './sales/order-entry';
+import Orders from './sales/orders';
 import CallList from './sales/call-list';
 import CustomerNotes from './sales/customer-notes';
 import OrderSheets from './operations/order-sheets';
@@ -49,6 +50,7 @@ const LogisticsRoutes = () => {
       <Route index element={<WholesaleHome />} />
       <Route path="create-order" element={guard('createOrder', <ChooseRegister />)} />
       <Route path="order-entry" element={guard('orderEntry', <OrderEntry />)} />
+      <Route path="orders" element={guard('orders', <Orders />)} />
       <Route path="call-list" element={guard('callList', <CallList />)} />
       <Route path="customer-notes" element={guard('customerNotes', <CustomerNotes />)} />
       <Route path="wholesale-orders" element={guard('wholesaleOrders', <WholesaleOrders />)} />

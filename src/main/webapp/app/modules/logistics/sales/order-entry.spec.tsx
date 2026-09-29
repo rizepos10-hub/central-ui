@@ -13,6 +13,8 @@ import {
   placeWholesaleOrder,
 } from './sales.api';
 import { fetchRouteDefinitions, fetchWholesaleCustomer } from '../customers/wholesale-customer.api';
+import { cancelOrder, fetchUnfulfilledOrders } from './order-search.api';
+import { IOrderRow } from './order-search.model';
 import { ICatalogItem, IOrderEntryCustomer, buildEntryRows, creditWarning, initialQuantities, toPlacementRequest } from './sales.model';
 
 jest.mock('./sales.api', () => ({
@@ -33,6 +35,7 @@ jest.mock('../customers/wholesale-customer.api', () => ({
 }));
 
 jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('./order-search.api', () => ({ fetchUnfulfilledOrders: jest.fn(), cancelOrder: jest.fn() }));
 
 const catalog: ICatalogItem[] = [
   { itemId: 'bread', name: 'White Bread', categories: [], orderable: true, variants: [{ id: 'loaf', name: 'Loaf', price: 2 }] },
@@ -129,6 +132,21 @@ describe('Order Entry page', () => {
     jest.mocked(fetchItemHistory).mockResolvedValue([{ itemId: 'rolls', variantId: 'six', lastQuantity: 4, timesOrdered: 2 }]);
     jest.mocked(fetchCreditStatus).mockResolvedValue({ customerId: 'c-1', onAccountEnabled: true, unlimited: false, overLimit: true, debitUsed: 150, debitLimit: 100, unpaidOrders: 1 });
     jest.mocked(placeWholesaleOrder).mockReset().mockResolvedValue({ id: 'o-1' });
+    jest.mocked(fetchUnfulfilledOrders).mockReset().mockResolvedValue([]);
+  });
+
+  const openOrder = (id: string, deliveryDate: string, cancellable = true): IOrderRow => ({
+    id,
+    sequenceNumber: Number(id.replace(/\D/g, '')),
+    customerId: 'c-1',
+    customerName: 'Corner Cafe',
+    deliveryDate,
+    stage: 'OPEN',
+    paymentStatus: 'UNPAID',
+    total: 59.2,
+    lines: [{ name: 'White Bread', quantity: 10, price: 2 }],
+    cancellable,
+    cancelBlockedReason: cancellable ? null : 'The order went to the factory. Change it with Amend on Factory Orders.',
   });
 
   const renderPage = (url = '/logistics/order-entry?date=2026-10-06') =>
@@ -178,5 +196,40 @@ describe('Order Entry page', () => {
     expect(screen.queryByLabelText('Quantity White Bread')).toBeNull();
     fireEvent.click(screen.getByText('Save'));
     expect(placeWholesaleOrder).not.toHaveBeenCalled();
+  });
+
+  it('shows unfulfilled orders before placing, lets one be cancelled, then places the new order', async () => {
+    jest.mocked(fetchUnfulfilledOrders).mockResolvedValue([openOrder('o11', '2026-10-06'), openOrder('o12', '2026-10-02', false)]);
+    jest.mocked(cancelOrder).mockResolvedValue({ ...openOrder('o11', '2026-10-06'), stage: 'CANCELLED', cancellable: false });
+    renderPage('/logistics/order-entry?date=2026-10-06&customerId=c-1');
+    await screen.findByLabelText('Quantity White Bread');
+
+    fireEvent.click(screen.getByText('Save'));
+    expect(await screen.findByText('Corner Cafe has 2 unfulfilled orders')).toBeTruthy();
+    expect(placeWholesaleOrder).not.toHaveBeenCalled();
+    expect(screen.getByText('Same day')).toBeTruthy();
+    expect(screen.getByText(/Amend on Factory Orders/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, cancel' }));
+    await waitFor(() => expect(cancelOrder).toHaveBeenCalledWith('o11'));
+    expect(await screen.findByText('Corner Cafe has 1 unfulfilled order')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep them and place the new order' }));
+    await waitFor(() => expect(placeWholesaleOrder).toHaveBeenCalledTimes(1));
+    expect(fetchUnfulfilledOrders).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes back to the order without placing it', async () => {
+    jest.mocked(fetchUnfulfilledOrders).mockResolvedValue([openOrder('o11', '2026-10-03')]);
+    renderPage('/logistics/order-entry?date=2026-10-06&customerId=c-1');
+    await screen.findByLabelText('Quantity White Bread');
+
+    fireEvent.click(screen.getByText('Save'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Back to the order' }));
+
+    await waitFor(() => expect(screen.queryByText(/unfulfilled order/)).toBeNull());
+    expect(placeWholesaleOrder).not.toHaveBeenCalled();
+    expect(screen.getByLabelText<HTMLInputElement>('Quantity White Bread').value).toBe('10');
   });
 });
