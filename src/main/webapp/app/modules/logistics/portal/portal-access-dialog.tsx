@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { Search } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,6 +32,7 @@ export const PortalAccessDialog = ({ customer, readOnly, onClose }: PortalAccess
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [categorySearch, setCategorySearch] = useState('');
   const [sendInvite, setSendInvite] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,7 @@ export const PortalAccessDialog = ({ customer, readOnly, onClose }: PortalAccess
     setAccess(null);
     setSubmitted(false);
     setPassword('');
+    setCategorySearch('');
     Promise.all([fetchPortalAccess(customer.id), fetchAssignableCategories()])
       .then(([current, all]) => {
         setAccess(current);
@@ -59,6 +62,14 @@ export const PortalAccessDialog = ({ customer, readOnly, onClose }: PortalAccess
   const disabled = readOnly || saving || access == null;
 
   const toggleCategory = (id: string) => setCategoryIds(prev => (prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]));
+  const search = categorySearch.trim().toLowerCase();
+  const shownCategories = search ? categories.filter(c => (c.name ?? '').toLowerCase().includes(search)) : categories;
+  const allShownSelected = shownCategories.length > 0 && shownCategories.every(c => categoryIds.includes(c.id));
+  const selectedCount = categories.filter(c => categoryIds.includes(c.id)).length;
+  const toggleAllCategories = () => {
+    const shownIds = shownCategories.map(c => c.id);
+    setCategoryIds(prev => (allShownSelected ? prev.filter(id => !shownIds.includes(id)) : [...prev, ...shownIds.filter(id => !prev.includes(id))]));
+  };
 
   const save = async () => {
     setSubmitted(true);
@@ -87,7 +98,7 @@ export const PortalAccessDialog = ({ customer, readOnly, onClose }: PortalAccess
 
   return (
     <Dialog open={customer != null} onOpenChange={open => !open && !saving && onClose()}>
-      <WsDialogContent className="max-w-2xl">
+      <WsDialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Portal access{customer ? ` for ${customer.name}` : ''}</DialogTitle>
           <DialogDescription>
@@ -144,9 +155,36 @@ export const PortalAccessDialog = ({ customer, readOnly, onClose }: PortalAccess
             <div className="grid content-start gap-2">
               <Label>Categories they can order from</Label>
               <span className="text-xs text-muted-foreground">Their usual items can always be ordered and are shown first.</span>
-              <div className="grid max-h-64 gap-1.5 overflow-y-auto rounded-md border p-2" role="group" aria-label="Portal categories">
+              {categories.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      className="ws-control pl-8"
+                      placeholder="Search categories"
+                      aria-label="Search categories"
+                      value={categorySearch}
+                      onChange={e => setCategorySearch(e.target.value)}
+                    />
+                  </div>
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    {selectedCount} of {categories.length} selected
+                  </span>
+                </div>
+              )}
+              <div className="grid max-h-[45vh] min-h-32 content-start gap-1.5 overflow-y-auto rounded-md border p-2" role="group" aria-label="Portal categories">
                 {categories.length === 0 && <span className="text-xs text-muted-foreground">No categories.</span>}
-                {categories.map(c => (
+                {categories.length > 0 && shownCategories.length === 0 && (
+                  <span className="text-xs text-muted-foreground">No categories match.</span>
+                )}
+                {shownCategories.length > 0 && (
+                  <label className="flex items-center gap-2 border-b pb-1.5 text-[13px] font-medium">
+                    <Checkbox checked={allShownSelected} onCheckedChange={toggleAllCategories} disabled={disabled} />
+                    {categorySearch.trim() ? `All ${shownCategories.length} shown` : 'All'}
+                  </label>
+                )}
+                {shownCategories.map(c => (
                   <label key={c.id} className="flex items-center gap-2 text-[13px]">
                     <Checkbox checked={categoryIds.includes(c.id)} onCheckedChange={() => toggleCategory(c.id)} disabled={disabled} />
                     {c.name}

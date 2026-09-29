@@ -219,4 +219,32 @@ describe('portal access dialog', () => {
     );
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('selects all categories, or all the ones matching the search', async () => {
+    (fetchAssignableCategories as jest.Mock).mockResolvedValue([
+      { id: 'breads', name: 'Breads' },
+      { id: 'buns', name: 'Buns' },
+      { id: 'cakes', name: 'Cakes' },
+    ]);
+    (fetchPortalAccess as jest.Mock).mockResolvedValue({ customerId: 'c1', login: 'cafe', email: 'cafe@example.com', enabled: true, categoryIds: [] });
+    (savePortalAccess as jest.Mock).mockResolvedValue({ customerId: 'c1', enabled: true, email: 'cafe@example.com', categoryIds: [] });
+    render(<PortalAccessDialog customer={{ id: 'c1', name: 'Corner Cafe' }} readOnly={false} onClose={jest.fn()} />);
+    const list = await screen.findByRole('group', { name: 'Portal categories' });
+    const checked = (name: string) => within(list).getByRole('checkbox', { name }).getAttribute('aria-checked');
+
+    fireEvent.click(within(list).getByRole('checkbox', { name: 'All' }));
+    expect(['Breads', 'Buns', 'Cakes'].map(checked)).toEqual(['true', 'true', 'true']);
+    expect(screen.getByText('3 of 3 selected')).toBeTruthy();
+    fireEvent.click(within(list).getByRole('checkbox', { name: 'All' }));
+    expect(screen.getByText('0 of 3 selected')).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Search categories'), { target: { value: 'b' } });
+    expect(within(list).queryByRole('checkbox', { name: 'Cakes' })).toBeNull();
+    fireEvent.click(within(list).getByRole('checkbox', { name: 'All 2 shown' }));
+    fireEvent.change(screen.getByLabelText('Search categories'), { target: { value: '' } });
+    expect(['Breads', 'Buns', 'Cakes'].map(checked)).toEqual(['true', 'true', 'false']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(savePortalAccess).toHaveBeenCalledWith('c1', expect.objectContaining({ categoryIds: ['breads', 'buns'] })));
+  });
 });
