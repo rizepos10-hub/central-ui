@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Loader2, Search } from 'lucide-react';
 
@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverAnchor } from '@/components/ui/popover';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from 'app/modules/logistics/wholesale-ui/wholesale-page';
-import { WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
+import { WsPopoverContent, WsSelectContent } from 'app/modules/logistics/wholesale-ui/wholesale-overlays';
 import { WholesaleStatusBadge } from 'app/modules/logistics/wholesale-ui/wholesale-status-badge';
 import { wholesaleErrorMessage } from 'app/modules/logistics/wholesale-ui/wholesale-error';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
@@ -20,8 +21,10 @@ import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item
 import { IVisibility } from 'app/shared/model/visibility.model';
 import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
+import { formatSkuList } from 'app/shared/util/sku-utils';
+import { formatVariant } from 'app/shared/util/variant-utils';
 
-import { loadOptions, NamedRef, saveRetailProducts, searchRetailProducts } from './retail-bulk-updates.api';
+import { loadOptions, NamedRef, saveRetailProducts, searchNamedOptions, searchRetailProducts } from './retail-bulk-updates.api';
 
 type Tri = 'any' | 'yes' | 'no';
 type SkuFilter = 'any' | 'missing' | 'present' | 'contains';
@@ -121,12 +124,27 @@ const withinCount = (count: number, min: string, max: string) => {
   return true;
 };
 
+const PAGE_SIZES = [10, 20, 30, 40, 50, 100, 200];
+const SCAN_BATCH = 100;
+const SCAN_CAP = 400;
+
+const matchesRetailClient = (product: IProduct, filters: Filters) => {
+  const variants = product.variants ?? [];
+  if (!withinCount(variants.length, filters.variantsMin, filters.variantsMax)) return false;
+  if (filters.sku === 'missing' && variants.every(hasSku)) return false;
+  if (filters.sku === 'present' && variants.some(variant => !hasSku(variant))) return false;
+  return true;
+};
+
 const RetailBulkUpdates = () => {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [searched, setSearched] = useState(false);
-  const [capped, setCapped] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rows, setRows] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [filterNote, setFilterNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -148,8 +166,10 @@ const RetailBulkUpdates = () => {
     loadOptions('api/item-measures').then(setMeasures).catch(() => setMeasures([]));
   }, []);
 
-  const search = async () => {
+  const search = async (nextPage = 0, nextRows = rows) => {
     setLoading(true);
+    setPage(nextPage);
+    setRows(nextRows);
     try {
       const server: Record<string, { value: unknown; matchMode: string }> = {
         isArchived: { value: false, matchMode: 'EQUALS' },
@@ -160,21 +180,36 @@ const RetailBulkUpdates = () => {
       if (filters.taxId !== ANY) server['accountingGroups.id'] = { value: filters.taxId, matchMode: 'EQUALS' };
       if (filters.type !== ANY) server.itemVariantType = { value: filters.type, matchMode: 'EQUALS' };
       if (filters.sku === 'contains' && filters.skuText.trim()) server['variants.skus'] = { value: filters.skuText.trim(), matchMode: 'CONTAINS' };
+      if (filters.byWeight === 'yes') server.isByWeight = { value: true, matchMode: 'EQUALS' };
+      if (filters.byWeight === 'no') server.isByWeight = { value: true, matchMode: 'NOT_EQUALS' };
+      if (filters.askForPrice === 'yes') server.askForPrice = { value: true, matchMode: 'EQUALS' };
+      if (filters.askForPrice === 'no') server.askForPrice = { value: true, matchMode: 'NOT_EQUALS' };
 
-      const result = await searchRetailProducts(server);
-      const filtered = result.items.filter(product => {
-        const variants = product.variants ?? [];
-        if (!withinCount(variants.length, filters.variantsMin, filters.variantsMax)) return false;
-        if (filters.sku === 'missing' && variants.every(hasSku)) return false;
-        if (filters.sku === 'present' && variants.some(variant => !hasSku(variant))) return false;
-        if (filters.byWeight === 'yes' && product.byWeight !== true) return false;
-        if (filters.byWeight === 'no' && product.byWeight === true) return false;
-        if (filters.askForPrice === 'yes' && product.askForPrice !== true) return false;
-        if (filters.askForPrice === 'no' && product.askForPrice === true) return false;
-        return true;
-      });
-      setProducts(filtered);
-      setCapped(result.capped);
+      const needsScan = filters.variantsMin.trim() !== '' || filters.variantsMax.trim() !== '' || filters.sku === 'missing' || filters.sku === 'present';
+      if (!needsScan) {
+        const result = await searchRetailProducts(server, nextPage, nextRows);
+        setProducts(result.items);
+        setTotal(result.total);
+        setFilterNote('');
+      } else {
+        const matched: IProduct[] = [];
+        let serverPage = 0;
+        let scanned = 0;
+        let serverTotal = 0;
+        let finished = false;
+        while (scanned < SCAN_CAP && !finished) {
+          const batch = await searchRetailProducts(server, serverPage, SCAN_BATCH);
+          serverTotal = batch.total;
+          scanned += batch.items.length;
+          matched.push(...batch.items.filter(product => matchesRetailClient(product, filters)));
+          finished = batch.items.length === 0 || scanned >= serverTotal;
+          serverPage += 1;
+        }
+        const start = nextPage * nextRows;
+        setProducts(matched.slice(start, start + nextRows));
+        setTotal(matched.length);
+        setFilterNote(!finished && scanned < serverTotal ? `Checked the first ${SCAN_CAP} products` : '');
+      }
       setSelected(new Set());
       setSearched(true);
     } catch (error) {
@@ -309,7 +344,7 @@ const RetailBulkUpdates = () => {
     try {
       await saveRetailProducts(updated);
       toast.success(`${updated.length} ${updated.length === 1 ? 'product' : 'products'} updated.`);
-      await search();
+      await search(page, rows);
     } catch (error) {
       toast.error(wholesaleErrorMessage(error, 'The update could not be saved.'));
     } finally {
@@ -334,7 +369,7 @@ const RetailBulkUpdates = () => {
           <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', !filtersOpen && '-rotate-90')} />
           <h2 className="m-0 text-sm font-semibold">Filter</h2>
           {searched && !filtersOpen && (
-            <span className="text-xs text-muted-foreground">{products.length} products</span>
+            <span className="text-xs text-muted-foreground">{total} products</span>
           )}
         </button>
         {filtersOpen && <div className="grid gap-3 px-4 pb-4">
@@ -343,9 +378,16 @@ const RetailBulkUpdates = () => {
             <Label htmlFor="bulk-name">Name</Label>
             <Input id="bulk-name" className="ws-control" value={filters.name} placeholder="Contains" onChange={e => setFilters(prev => ({ ...prev, name: e.target.value }))} />
           </div>
-          <OptionFilter label="Category" value={filters.categoryId} options={categories} onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
+          <CategoryFilter value={filters.categoryId} searchUrl="api/_search/retail-categories" onChange={categoryId => setFilters(prev => ({ ...prev, categoryId }))} />
           <OptionFilter label="Brand" value={filters.brandId} options={brands} onChange={brandId => setFilters(prev => ({ ...prev, brandId }))} />
-          <OptionFilter label="Tax group" value={filters.taxId} options={taxes} onChange={taxId => setFilters(prev => ({ ...prev, taxId }))} />
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <OptionFilter label="Tax group" value={filters.taxId} options={taxes} onChange={taxId => setFilters(prev => ({ ...prev, taxId }))} />
+            </div>
+            <div className="w-[9.5rem] shrink-0">
+              <TriFilter label="Ask for price" value={filters.askForPrice} onChange={askForPrice => setFilters(prev => ({ ...prev, askForPrice }))} />
+            </div>
+          </div>
           <div className="grid gap-1.5">
             <Label>Type</Label>
             <Select value={filters.type} onValueChange={type => setFilters(prev => ({ ...prev, type }))}>
@@ -383,17 +425,16 @@ const RetailBulkUpdates = () => {
             </div>
           )}
           <TriFilter label="Sell by weight" value={filters.byWeight} onChange={byWeight => setFilters(prev => ({ ...prev, byWeight }))} />
-          <TriFilter label="Ask for price" value={filters.askForPrice} onChange={askForPrice => setFilters(prev => ({ ...prev, askForPrice }))} />
         </div>
         <div className="flex items-center gap-2">
           <Button className="ws-control" disabled={loading} onClick={() => void search()}>
             {loading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Search className="mr-1 h-4 w-4" />}
             Search
           </Button>
-          <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setProducts([]); setSearched(false); setSelected(new Set()); }}>
+          <Button variant="outline" className="ws-control" onClick={() => { setFilters(emptyFilters()); setProducts([]); setSearched(false); setSelected(new Set()); setPage(0); setTotal(0); setFilterNote(''); }}>
             Clear
           </Button>
-          {searched && <span className="text-xs text-muted-foreground">{products.length} products{capped ? ' (first 2,000 from the server; narrow the filter)' : ''}</span>}
+          {searched && <span className="text-xs text-muted-foreground">{total} products{filterNote ? ` · ${filterNote}` : ''}</span>}
         </div>
         </div>}
       </section>
@@ -496,7 +537,8 @@ const RetailBulkUpdates = () => {
         )}
       </section>
 
-      <div className="ws-card max-h-[60vh] overflow-auto">
+      <div className="ws-card">
+        <div className="max-h-[60vh] overflow-auto">
         <table className="ws-table" aria-label="Retail products">
           <thead>
             <tr>
@@ -510,33 +552,164 @@ const RetailBulkUpdates = () => {
               <th>Name</th>
               <th>Type</th>
               <th className="ws-num">Variants</th>
-              <th>SKU</th>
               <th className="ws-num">Price</th>
             </tr>
           </thead>
           <tbody>
-            {!searched && <tr><td colSpan={6} className="text-center text-muted-foreground">Search to list products.</td></tr>}
-            {searched && products.length === 0 && <tr><td colSpan={6} className="text-center text-muted-foreground">No products match.</td></tr>}
-            {products.map(product => {
-              const skus = (product.variants ?? []).map(skuText).filter(Boolean);
-              const missing = (product.variants ?? []).some(variant => !hasSku(variant));
-              return (
-                <tr key={product.id}>
+            {!searched && <tr><td colSpan={5} className="text-center text-muted-foreground">Search to list products.</td></tr>}
+            {searched && products.length === 0 && <tr><td colSpan={5} className="text-center text-muted-foreground">No products match.</td></tr>}
+            {products.map(product => (
+              <Fragment key={product.id}>
+                <tr>
                   <td>
                     <Checkbox aria-label={`Select ${product.name}`} checked={!!product.id && selected.has(product.id)} onCheckedChange={checked => product.id && toggleProduct(product.id, checked === true)} />
                   </td>
                   <td className="font-medium">{product.name}</td>
                   <td><WholesaleStatusBadge tone={isSimple(product) ? 'neutral' : 'new'}>{isSimple(product) ? 'Simple' : 'Variable'}</WholesaleStatusBadge></td>
                   <td className="ws-num">{product.variants?.length ?? 0}</td>
-                  <td className="ws-mono text-[12.5px]">{skus.length ? skus.join(' · ') : ''}{missing && <span className="ml-1 text-[hsl(var(--ws-returned))]">Missing</span>}</td>
                   <td className="ws-num">{priceRange(product)}</td>
                 </tr>
-              );
-            })}
+                {(product.variants ?? []).length > 0 && (
+                  <tr className="bg-muted/30">
+                    <td colSpan={5} className="p-0">
+                      <div className="ml-10 mr-3 mb-2 border-l-2 border-border">
+                        <table className="ws-table" aria-label={`Variants of ${product.name}`}>
+                          <thead>
+                            <tr>
+                              <th>Variant</th>
+                              <th>SKU</th>
+                              <th className="ws-num">Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(product.variants ?? []).map(variant => (
+                              <tr key={variant.id ?? `${product.id}-${variant.name}`}>
+                                <td>{formatVariant(variant.name, variant.attributeValues) || (isSimple(product) ? 'Simple' : '-')}</td>
+                                <td className="ws-mono text-[12.5px]">{formatSkuList(variant) || <span className="text-[hsl(var(--ws-returned))]">Missing</span>}</td>
+                                <td className="ws-num">{variant.price ?? '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            ))}
           </tbody>
         </table>
+        </div>
+        {searched && (
+          <PageBar
+            page={page}
+            rows={rows}
+            total={total}
+            loading={loading}
+            onPage={nextPage => void search(nextPage, rows)}
+            onRows={nextRows => void search(0, nextRows)}
+          />
+        )}
       </div>
     </WholesalePage>
+  );
+};
+
+const PageBar = ({
+  page,
+  rows,
+  total,
+  loading,
+  onPage,
+  onRows,
+}: {
+  page: number;
+  rows: number;
+  total: number;
+  loading: boolean;
+  onPage: (page: number) => void;
+  onRows: (rows: number) => void;
+}) => {
+  const pageCount = Math.max(1, Math.ceil(total / rows));
+  const from = total === 0 ? 0 : page * rows + 1;
+  const to = total === 0 ? 0 : Math.min(total, (page + 1) * rows);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2">
+      <span className="text-xs text-muted-foreground">{total === 0 ? 'No entries' : `Showing ${from} to ${to} of ${total}`}</span>
+      <div className="flex items-center gap-2">
+        <Select value={String(rows)} onValueChange={value => onRows(Number(value))}>
+          <SelectTrigger className="ws-control w-20" aria-label="Rows per page"><SelectValue /></SelectTrigger>
+          <WsSelectContent>
+            {PAGE_SIZES.map(size => (
+              <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+            ))}
+          </WsSelectContent>
+        </Select>
+        <Button variant="outline" className="ws-control" disabled={loading || page <= 0} onClick={() => onPage(page - 1)}>Previous</Button>
+        <Button variant="outline" className="ws-control" disabled={loading || page + 1 >= pageCount} onClick={() => onPage(page + 1)}>Next</Button>
+      </div>
+    </div>
+  );
+};
+
+const CategoryFilter = ({ value, searchUrl, onChange }: { value: string; searchUrl: string; onChange: (value: string) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [options, setOptions] = useState<NamedRef[]>([]);
+  const [label, setLabel] = useState('');
+
+  useEffect(() => {
+    if (value === ANY) setLabel('');
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let ignore = false;
+    const timeoutId = window.setTimeout(() => {
+      searchNamedOptions(searchUrl, query)
+        .then(next => { if (!ignore) setOptions(next); })
+        .catch(() => { if (!ignore) setOptions([]); });
+    }, 250);
+    return () => {
+      ignore = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [open, query, searchUrl]);
+
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor="bulk-category">Category</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverAnchor asChild>
+          <Input
+            id="bulk-category"
+            className="ws-control"
+            placeholder="Any"
+            value={open ? query : label}
+            onChange={event => {
+              setQuery(event.target.value);
+              setOpen(true);
+              if (!event.target.value.trim()) onChange(ANY);
+            }}
+            onFocus={() => {
+              setQuery('');
+              setOpen(true);
+            }}
+          />
+        </PopoverAnchor>
+        <WsPopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1" onOpenAutoFocus={event => event.preventDefault()}>
+          <div className="max-h-56 overflow-auto">
+            <button type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(ANY); setLabel(''); setQuery(''); setOpen(false); }}>Any</button>
+            {options.map(option => (
+              <button key={option.id} type="button" className="flex w-full rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent" onClick={() => { onChange(option.id); setLabel(option.name); setQuery(''); setOpen(false); }}>
+                {option.name}
+              </button>
+            ))}
+            {options.length === 0 && <div className="px-2 py-1.5 text-[13px] text-muted-foreground">No categories</div>}
+          </div>
+        </WsPopoverContent>
+      </Popover>
+    </div>
   );
 };
 
