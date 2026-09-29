@@ -1,6 +1,6 @@
 import React from "react";
 import { Translate } from "react-jhipster";
-import { IPricingPoint } from "app/shared/model/PRICING-POINT/pricing-point";
+import { IPricingPoint, pricingPointHasDiscount } from "app/shared/model/PRICING-POINT/pricing-point";
 import { IPricingPointBranchPrice } from "app/shared/model/ITEM/retail/variable-item.model";
 import {
   Dialog,
@@ -98,7 +98,7 @@ const PricingPointModal = ({
           <DialogTitle>Pricing Points</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
-          {pricingPoints.map(pricingPoint => {
+          {pricingPoints.filter(pricingPoint => !pricingPointHasDiscount(pricingPoint)).map(pricingPoint => {
             const currentPrice = variant?.pricingPointBranchPrices.find(
               ppbp => ppbp.pricingPoint.id === pricingPoint.id && ppbp.branch?.id === branchId
             )?.price;

@@ -12,7 +12,7 @@ import PricingPointModal from './pricing-point-modal';
 import ScheduledBranchPricesModal from './scheduled-branch-prices-dialog';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { IPricingPoint, pricingPointHasDiscount } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,7 +101,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
   const getFilteredPricingPoints = (branchId) => {
     if (!branchId) return [];
     return pricingPoints.filter(pp =>
-      pp.applicableBranches?.some(b => b.id === branchId)
+      !pricingPointHasDiscount(pp) && pp.applicableBranches?.some(b => b.id === branchId)
     );
   }
 

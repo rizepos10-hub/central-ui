@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -12,9 +12,28 @@ import { getEntity, updateEntity, createEntity, reset, changeEntityField } from 
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { ApplicationTypes, AutomaticType, IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { DiscountType } from 'app/shared/model/ENUMS/discount-type.model';
+import { IDiscount } from 'app/shared/model/discount.model';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import ReactSelect from 'react-select'
 import { IBranch } from 'app/shared/model/branch.model';
+
+const NO_DISCOUNT = 'NONE';
+
+/** A missing type or a non-positive value means the point has no discount. Percentage cannot pass 100. */
+const discountToSave = (discount?: IDiscount | null): { discount: IDiscount | null; error: string | null } => {
+  if (!discount?.type) {
+    return { discount: null, error: null };
+  }
+  const value = Number(discount.value);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { discount: null, error: 'Enter a discount greater than 0, or choose No discount.' };
+  }
+  if (discount.type === DiscountType.PERCENTAGE && value > 100) {
+    return { discount: null, error: 'A percentage discount cannot be more than 100.' };
+  }
+  return { discount: { id: discount.id, type: discount.type, value }, error: null };
+};
 
 export const PricingPointUpdate = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +45,7 @@ export const PricingPointUpdate = () => {
   const loading = useAppSelector(state => state.pricingPoint.loading);
   const updating = useAppSelector(state => state.pricingPoint.updating);
   const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
+  const [discountError, setDiscountError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isNew) {
@@ -43,8 +63,16 @@ export const PricingPointUpdate = () => {
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
+    const { discount, error } = discountToSave(pricingPoint.discount);
+    if (error) {
+      setDiscountError(error);
+      return;
+    }
+    setDiscountError(null);
+
     const entity: IPricingPoint = {
       ...pricingPoint,
+      discount,
       automaticType: pricingPoint.type === PricingPointType.AUTOMATIC ? pricingPoint.automaticType : null,
       orderTypes: (pricingPoint.type === PricingPointType.AUTOMATIC && pricingPoint.automaticType === AutomaticType.ORDER_TYPE) ? pricingPoint.orderTypes : [],
       applicationTypes: (pricingPoint.type === PricingPointType.AUTOMATIC && pricingPoint.automaticType === AutomaticType.APP) ? pricingPoint.applicationTypes : [],
@@ -268,6 +296,63 @@ export const PricingPointUpdate = () => {
                       isMulti
                       className="text-xs"
                     />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="pricing-point-discount-type" className="text-xs font-semibold">
+                    Discount
+                  </Label>
+                  <Select
+                    value={pricingPoint.discount?.type || NO_DISCOUNT}
+                    onValueChange={value => {
+                      setDiscountError(null);
+                      dispatch(changeEntityField({
+                        name: 'discount',
+                        value: value === NO_DISCOUNT ? null : { ...pricingPoint.discount, type: value, value: pricingPoint.discount?.value },
+                      }));
+                    }}
+                  >
+                    <SelectTrigger id="pricing-point-discount-type" className="h-7 text-xs">
+                      <SelectValue placeholder="No discount" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_DISCOUNT} className="text-xs">No discount</SelectItem>
+                      <SelectItem value={DiscountType.PERCENTAGE} className="text-xs">Percentage</SelectItem>
+                      <SelectItem value={DiscountType.FLAT} className="text-xs">Flat amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Used instead of this point&apos;s fixed item prices. No discount keeps those prices.
+                  </p>
+                </div>
+                {pricingPoint.discount?.type && (
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="pricing-point-discount-value" className="text-xs font-semibold">
+                      {pricingPoint.discount.type === DiscountType.PERCENTAGE ? 'Percent off' : 'Amount off'}
+                    </Label>
+                    <Input
+                      id="pricing-point-discount-value"
+                      type="number"
+                      min={0}
+                      max={pricingPoint.discount.type === DiscountType.PERCENTAGE ? 100 : undefined}
+                      step="any"
+                      value={pricingPoint.discount.value ?? ''}
+                      onChange={e => {
+                        setDiscountError(null);
+                        dispatch(changeEntityField({
+                          name: 'discount',
+                          value: {
+                            ...pricingPoint.discount,
+                            value: e.target.value === '' ? null : Number(e.target.value),
+                          },
+                        }));
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    {discountError && <p className="text-xs text-destructive">{discountError}</p>}
                   </div>
                 )}
               </div>
