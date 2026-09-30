@@ -37,7 +37,14 @@ describe('Integrations', () => {
 
   it('lists Senitron, Tookan, EasyPost, ClickShip and Kitchen Hub with their logos', () => {
     renderAt();
-    expect(INTEGRATIONS.map(i => i.id)).toEqual(['senitron', 'tookan', 'easypost', 'clickship', 'kitchenhub']);
+    expect(INTEGRATIONS.map(i => i.id)).toEqual([
+      'senitron',
+      'tookan',
+      'easypost',
+      'clickship',
+      'kitchenhub',
+      'uber_eats',
+    ]);
     expect(screen.getByAltText('EasyPost')).toBeTruthy();
     expect(screen.getByAltText('ClickShip')).toBeTruthy();
     expect(screen.getByAltText('Senitron')).toBeTruthy();

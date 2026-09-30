@@ -20,6 +20,7 @@ export interface IOrder extends IOrderAudit {
     id?: string | null;
     name?: string | null;
     type?: string | null;
+    thirdPartyApp?: string | null;
   } | null;
   branchId?: string | null;
   orderSources?: string | null;

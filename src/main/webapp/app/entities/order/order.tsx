@@ -71,7 +71,16 @@ const formatStatusLabel = (value?: string | null) => {
     .join(' ');
 };
 
-const formatSourceLabel = (value?: string | null) => formatStatusLabel(value);
+const formatSourceLabel = (value?: string | null, thirdPartyApp?: string | null) => {
+  if (value === 'THIRD_PARTY' && thirdPartyApp) {
+    const providerLabels: Record<string, string> = {
+      uber_eats: 'Uber Eats',
+      ai_caller: 'AI Caller',
+    };
+    return providerLabels[thirdPartyApp.toLowerCase()] || thirdPartyApp;
+  }
+  return formatStatusLabel(value);
+};
 const formatPaymentStatusLabel = (value?: string | null) => formatStatusLabel(value);
 
 const getStatusBadgeClassName = (status?: string | null) => {
@@ -1276,7 +1285,7 @@ export const Order = ({
                     {visibleColumns.orderSource && (
                       <TableCell className={cellClass}>
                         <Badge variant="outline" className={cn('rounded-full', getSourceBadgeClassName(order.sourceApp?.type))}>
-                          {formatSourceLabel(order.sourceApp?.type)}
+                          {formatSourceLabel(order.sourceApp?.type, order.sourceApp?.thirdPartyApp)}
                         </Badge>
                       </TableCell>
                     )}

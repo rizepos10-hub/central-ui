@@ -55,6 +55,14 @@ export const INTEGRATIONS: Integration[] = [
     description: 'Receive delivery marketplace orders in one place through Kitchen Hub.',
     logo: '/content/images/integrations/kitchenhub.svg',
   },
+  {
+    id: 'uber_eats',
+    name: 'Uber Eats',
+    category: 'Delivery marketplaces',
+    description: 'Receive Uber Eats orders and keep menu items in sync.',
+    logo: '/content/images/integrations/uber-eats.svg',
+    settingsPath: '/third-party-integrations',
+  },
 ];
 
 const Integrations = () => {

@@ -794,6 +794,11 @@ export const OrderDetail = () => {
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                       Order {formatSourceScopedIdentifier(orderEntity?.sourceApp?.type, orderEntity?.sequenceNumber, orderEntity?.id)}
                     </h1>
+                    {orderEntity?.sourceApp?.type === 'THIRD_PARTY' && orderEntity.sourceApp.thirdPartyApp && (
+                      <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-700">
+                        {orderEntity.sourceApp.thirdPartyApp === 'uber_eats' ? 'Uber Eats' : orderEntity.sourceApp.thirdPartyApp}
+                      </span>
+                    )}
                     {orderEntity?.refund && (
                       <Badge className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700 hover:bg-orange-100">
                         <BanknoteArrowDown className="mr-1 h-3.5 w-3.5" />
