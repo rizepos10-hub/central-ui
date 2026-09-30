@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   ActionChannel,
   IAllocationResult,
+  IConsolidatedSheet,
   IFactoryBoardRow,
   IFactoryOrderDetail,
   IFactoryOrderSummary,
@@ -25,6 +26,9 @@ const factoryOrdersUrl = 'api/wholesale/factory-orders';
 
 export const fetchOrderSheets = async (date: string, factoryId?: string | null) =>
   (await axios.get<IOrderSheetRow[]>(sheetsUrl, { params: { date, factoryId: factoryId || undefined } })).data;
+
+export const fetchConsolidatedSheet = async (date: string, factoryId?: string | null) =>
+  (await axios.get<IConsolidatedSheet>(`${sheetsUrl}/consolidated`, { params: { date, factoryId: factoryId || undefined } })).data;
 
 export const submitOrderSheet = async (routeId: string, date: string, note?: string) =>
   (await axios.post<IOrderSheetRow>(`${sheetsUrl}/${routeId}/${date}/submit`, { note: note || null })).data;

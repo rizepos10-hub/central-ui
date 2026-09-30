@@ -12,6 +12,14 @@ jest.mock('./order-search.api', () => ({
   fetchUnfulfilledCount: jest.fn(),
   fetchUnfulfilledOrders: jest.fn(),
   cancelOrder: jest.fn(),
+  assignOrderRoute: jest.fn(),
+}));
+
+jest.mock('../customers/wholesale-customer.api', () => ({
+  fetchRouteDefinitions: jest.fn().mockResolvedValue([
+    { id: 'r-1', name: 'North' },
+    { id: 'r-2', name: 'Parcel', carrierShipping: true },
+  ]),
 }));
 
 jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
@@ -111,6 +119,20 @@ describe('Orders page', () => {
     fireEvent.click(await screen.findByText('#8'));
     expect(screen.getByText('Amend it')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Cancel order' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Change route' })).toBeNull();
+  });
+
+  it('flags an order without a route and offers to assign one', async () => {
+    jest.mocked(searchOrders).mockResolvedValue({ rows: [row('o9', { routeId: null, routeName: null, routeChangeable: true })], total: 1 });
+    renderPage();
+    expect(await screen.findByText('No route')).toBeTruthy();
+    fireEvent.click(screen.getByText('#9'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assign route' }));
+    expect(screen.getByLabelText('Route for order #9')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Save' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(screen.getByRole('button', { name: 'Assign route' })).toBeTruthy();
   });
 });
 

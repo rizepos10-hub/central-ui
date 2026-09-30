@@ -3,6 +3,7 @@ import { Printer } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/src/main/webapp/app/lib/utils';
 
 import { WholesalePage } from '../wholesale-ui/wholesale-page';
 import { WholesaleStatusBadge } from '../wholesale-ui/wholesale-status-badge';
@@ -14,8 +15,15 @@ import { approveOrderSheet, fetchOrderSheets, reopenOrderSheet, submitOrderSheet
 import { IOrderSheetRow, SHEET_STATUS_LABEL, formatQty, formatTime, sheetTone, tomorrow } from './operations.model';
 import { ALL_FACTORIES, DayToolbar } from './day-toolbar';
 import { NoteDialog } from './note-dialog';
+import { ConsolidatedSheet } from './consolidated-sheet';
 
 type Action = { kind: 'submit' | 'approve' | 'reopen'; row: IOrderSheetRow };
+type SheetView = 'route' | 'consolidated';
+
+const VIEWS: { value: SheetView; label: string }[] = [
+  { value: 'route', label: 'By route' },
+  { value: 'consolidated', label: 'Consolidated' },
+];
 
 const ACTION_TEXT = {
   submit: {
@@ -35,6 +43,7 @@ const OrderSheets = () => {
   const [rows, setRows] = useState<IOrderSheetRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState<Action | null>(null);
+  const [view, setView] = useState<SheetView>('route');
 
   useEffect(() => {
     fetchFactories()
@@ -103,9 +112,25 @@ const OrderSheets = () => {
         </Button>
       }
     >
-      <DayToolbar date={date} onDateChange={setDate} factories={factories} factoryId={factoryId} onFactoryChange={setFactoryId} allowAllFactories />
+      <DayToolbar date={date} onDateChange={setDate} factories={factories} factoryId={factoryId} onFactoryChange={setFactoryId} allowAllFactories>
+        <div className="inline-flex overflow-hidden rounded-full border bg-card" role="group" aria-label="View">
+          {VIEWS.map(v => (
+            <button
+              key={v.value}
+              type="button"
+              aria-pressed={view === v.value}
+              onClick={() => setView(v.value)}
+              className={cn('h-[calc(var(--ws-control-h)-2px)] px-3 text-[13px]', view === v.value && 'bg-accent font-semibold text-accent-foreground')}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      </DayToolbar>
 
-      <div className="ws-card overflow-x-auto">
+      {view === 'consolidated' && <ConsolidatedSheet date={date} factoryId={factoryId === ALL_FACTORIES ? null : factoryId} factoryName={factoryName} />}
+
+      <div className={cn('ws-card overflow-x-auto', view === 'consolidated' && 'hidden')}>
         <table className="ws-table">
           <thead>
             <tr>
