@@ -138,7 +138,7 @@ const StoreCreditSettings = () => {
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         Default expiry applies to new credit; the cashier can override it when issuing. Credit is spent earliest-expiry first.
-        Redeemable online also lets online orders pay with the customer&apos;s linked loyalty card.
+        Paying online with a linked loyalty card is controlled by the branch&apos;s Wallet payment setting.
       </p>
     </WholesalePage>
   );
