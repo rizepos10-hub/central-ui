@@ -23,6 +23,7 @@ import SalesActivitySummaryReport from './reports/sales-activity-summary-report/
 import OptimizedProductSalesReport from './reports/optimized-product-sales-report/optimized-product-sales-report';
 import CashierByTerminalReport from './reports/cashier-by-terminal-report/cashier-by-terminal-report';
 import NonRevenueReport from './reports/non-revenue-report/non-revenue-report';
+import GiftCardSettlementReport from './reports/gift-card-settlement-report/gift-card-settlement-report';
 
 
 
@@ -50,6 +51,7 @@ export default () => {
         <Route path="/optimized-product-sales-report" element={<OptimizedProductSalesReport />} />
         <Route path="/cashier-by-terminal-report" element={<CashierByTerminalReport />} />
         <Route path="non-revenue" element={<NonRevenueReport />} />
+        <Route path="gift-card-settlement" element={<GiftCardSettlementReport />} />
         <Route path="*" element={<PageNotFound />} />
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
