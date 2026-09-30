@@ -16,6 +16,7 @@ import {
   fetchFactoryBoard,
   fetchFactoryInbox,
   fetchFactoryOrder,
+  fetchConsolidatedSheet,
   fetchFactoryOrderCustomers,
   fetchOrderSheets,
   reopenOrderSheet,
@@ -184,6 +185,35 @@ describe('Operations pages', () => {
 
     await waitFor(() => expect(submitOrderSheet).toHaveBeenCalledWith('north', DAY, 'All in'));
     expect(await within(screen.getByTestId('sheet-north')).findByText('Waiting for approval')).toBeTruthy();
+  });
+
+  it('shows every product by route on the consolidated sheet', async () => {
+    jest.mocked(fetchOrderSheets).mockResolvedValue([sheet(), sheet({ routeId: 'south', routeName: 'South', factoryId: 'f-2' })]);
+    jest.mocked(fetchConsolidatedSheet).mockResolvedValue({
+      deliveryDate: DAY,
+      routes: [
+        sheet({ factoryId: 'f-1' }),
+        sheet({ routeId: 'south', routeName: 'South', factoryId: 'f-2', orderCount: 1 }),
+        sheet({ routeId: 'east', routeName: 'East', orderCount: 0 }),
+      ],
+      products: [
+        { key: 'bread|', name: 'White Bread', byRoute: { north: 15, south: 3 }, total: 18 },
+        { key: 'milk|', name: 'Milk', sourcing: 'PURCHASED', byRoute: { north: 2 }, total: 2 },
+      ],
+      total: 20,
+    });
+    renderWith(<OrderSheets />, [AUTHORITIES.WHOLESALE_SALES_MANAGER]);
+    await screen.findByTestId('sheet-north');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Consolidated' }));
+
+    const table = await screen.findByRole('table', { name: 'Consolidated order sheet' });
+    expect(fetchConsolidatedSheet).toHaveBeenCalledWith(DAY, null);
+    expect(within(table).getByTestId('route-south').textContent).toContain('Toronto Bakery');
+    expect(within(table).queryByTestId('route-east')).toBeNull();
+    const bread = within(table).getByText('White Bread').closest('tr');
+    expect(Array.from(bread.querySelectorAll('td')).map(td => td.textContent)).toEqual(['White Bread', '15', '3', '18']);
+    expect(within(table).getByTestId('grand-total').textContent).toContain('20');
   });
 
   it('asks why a route is reopened', async () => {

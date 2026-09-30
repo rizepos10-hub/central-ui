@@ -15,6 +15,9 @@ import { WsSelectContent } from '../wholesale-ui/wholesale-overlays';
 import { WholesaleStatusBadge } from '../wholesale-ui/wholesale-status-badge';
 import { wholesaleErrorMessage } from '../wholesale-ui/wholesale-error';
 import { WHOLESALE_PAGE_ROLES } from '../wholesale-access';
+import { fetchRouteDefinitions } from '../customers/wholesale-customer.api';
+import { IWholesaleRouteDefinition } from '../customers/wholesale-customer.model';
+import { AssignRouteControl } from './assign-route-control';
 import { CancelOrderButton } from './cancel-order-button';
 import { searchOrders } from './order-search.api';
 import {
@@ -47,6 +50,14 @@ const Orders = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [routes, setRoutes] = useState<IWholesaleRouteDefinition[]>([]);
+
+  useEffect(() => {
+    if (!canCancel) return;
+    fetchRouteDefinitions()
+      .then(setRoutes)
+      .catch(() => setRoutes([]));
+  }, [canCancel]);
 
   const update = (change: Partial<IOrderSearch>) => {
     const next = { ...search, page: 0, ...change };
@@ -172,7 +183,10 @@ const Orders = () => {
                       {row.accountNumber && <span className="ws-mono ml-2 text-xs text-muted-foreground">{row.accountNumber}</span>}
                     </td>
                     <td>{row.deliveryDate ? formatDay(row.deliveryDate) : '-'}</td>
-                    <td>{row.routeName ?? '-'}</td>
+                    <td>
+                      {row.routeName ??
+                        (row.stage === 'CANCELLED' ? '-' : <WholesaleStatusBadge tone="amendment">No route</WholesaleStatusBadge>)}
+                    </td>
                     <td>
                       <WholesaleStatusBadge tone={STAGE_TONE[row.stage]}>{STAGE_LABEL[row.stage]}</WholesaleStatusBadge>
                     </td>
@@ -204,6 +218,7 @@ const Orders = () => {
                               </Link>
                             )}
                             <div className="flex-1" />
+                            {canCancel && <AssignRouteControl row={row} routes={routes} onAssigned={replaceRow} />}
                             {canCancel && <CancelOrderButton row={row} onCancelled={replaceRow} />}
                           </div>
                         </div>

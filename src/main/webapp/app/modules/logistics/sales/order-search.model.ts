@@ -29,6 +29,8 @@ export interface IOrderRow {
   lines: IOrderLine[];
   cancellable: boolean;
   cancelBlockedReason?: string | null;
+  /** Open and not locked, so it can be put on a route or moved to another one. */
+  routeChangeable?: boolean;
 }
 
 export interface IOrderPage {

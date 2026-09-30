@@ -37,6 +37,25 @@ export interface IOrderSheetRow {
   canReopen: boolean;
 }
 
+export interface IConsolidatedProduct {
+  key: string;
+  itemId?: string | null;
+  variantId?: string | null;
+  name: string;
+  sourcing?: WholesaleSourcing | null;
+  /** Route id to quantity; routes without the product are left out. */
+  byRoute: Record<string, number>;
+  total: number;
+}
+
+/** Every product ordered for the date, with its quantity on each route of the board. */
+export interface IConsolidatedSheet {
+  deliveryDate: string;
+  routes: IOrderSheetRow[];
+  products: IConsolidatedProduct[];
+  total: number;
+}
+
 // ---------------------------------------------------------------- production and loading lists
 
 export interface IProduct {
