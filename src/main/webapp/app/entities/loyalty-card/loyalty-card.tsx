@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Translate, translate } from 'react-jhipster';
-import { RefreshCw, Plus, ArrowLeftRight, Pencil, DollarSign } from 'lucide-react';
+import { RefreshCw, Plus, ArrowLeftRight, Pencil, DollarSign, Layers } from 'lucide-react';
 
 import { SORT } from 'app/shared/util/pagination.constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -201,6 +201,10 @@ export const GiftCard = () => {
           <Button variant="outline" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
             <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
             {translate('loyaltycard.view.table.buttons.refreshList')}
+          </Button>
+          <Button variant="outline" className="h-8 text-xs" onClick={() => navigate('/loyalty-cards/bulk-create')} disabled={loading}>
+            <Layers className="h-3 w-3" />
+            Bulk Create
           </Button>
           <Button className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
             <Plus className="h-3 w-3" />

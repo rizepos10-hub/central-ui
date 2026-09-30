@@ -19,6 +19,7 @@ const TaxesProfile = React.lazy(() => import('./settings/tax-profile'));
 const ProfileGroups = React.lazy(() => import('./settings/profile-group'));
 const VoidReasons = React.lazy(() => import('./settings/void-reason'));
 const NonRevenueAccounts = React.lazy(() => import('./settings/non-revenue-account/non-revenue-accounts'));
+const StoreCreditSettings = React.lazy(() => import('./settings/store-credit/store-credit-settings'));
 const BranchPosUser = React.lazy(() => import('./branch-pos-user'));
 const BackOfficeUser = React.lazy(() => import('./back-office-user'));
 const BookkeeperUser = React.lazy(() => import('./bookkeeper-user'));
@@ -118,6 +119,7 @@ export default () => {
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
         <Route path="non-revenue-accounts" element={<NonRevenueAccounts />} />
+        <Route path="store-credit-settings" element={<StoreCreditSettings />} />
 
         <Route path="pizza-group/*" element={<PizzaGroup />} />
 

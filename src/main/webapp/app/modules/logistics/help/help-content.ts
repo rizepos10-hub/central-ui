@@ -1436,6 +1436,40 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    id: 'gift-cards',
+    title: 'Gift Cards',
+    group: 'Reference',
+    summary: 'Gift certificates are the cards under Loyalty Cards: your own numbers, the branches they work at, and what branches owe each other.',
+    path: '/loyalty-cards',
+    sections: [
+      {
+        heading: 'Create many cards',
+        steps: [
+          'Open Loyalty Cards and click Bulk Create.',
+          'Choose Number range and enter a prefix, a start number and how many cards, or choose Import from Excel and pick a file with a Number column (PIN and Card holder columns are optional).',
+          'Tick the branches where the cards can be used.',
+          'Enter a PIN for all the cards, or leave it blank to give each card a random PIN.',
+          'Click Create, then Download numbers and PINs to keep the list.',
+        ],
+      },
+      {
+        heading: 'Where a card works',
+        bullets: [
+          'Each card lists its branches. It is refused at any other branch.',
+          'Pick one branch to keep a card to that branch, or several to share it.',
+          'Cards made before this change keep the branch they were created for.',
+        ],
+      },
+      {
+        heading: 'What branches owe each other',
+        text: [
+          'Turn on Share gift cards in Branch Details, Gift Cards, for every branch that settles with the others.',
+          'When a card is spent at one sharing branch with money another sharing branch took in, the spend is split over the branches holding the card’s money in proportion to what each holds. Reports, Gift Card Settlement shows who owes whom.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'troubleshooting',
     title: 'Troubleshooting',
     group: 'Reference',

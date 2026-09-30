@@ -29,14 +29,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { TransactionType } from 'app/shared/model/ENUMS/transaction-type.model';
 import CustomerPayOnAccountDialog from './components/CustomerPayOnAccountDialog';
+import CustomerStoreCreditTab from './components/CustomerStoreCreditTab';
 import { getCustomerOnAccountPaydownValidation } from './customer-pay-by-on-account.utils';
 import LoyaltyPointHistoryTable from 'app/entities/loyalty/components/LoyaltyPointHistoryTable';
-
-const EmptyTabState = ({ title }: { title: string }) => (
-  <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-    {title} content will be added here later.
-  </div>
-);
 
 const DetailRow = ({ label, value }: { label: string; value?: string | null }) => (
   <div className="rounded-md border p-3">
@@ -310,7 +305,7 @@ export const CustomerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="store-credit" className="space-y-3">
-              <EmptyTabState title="Store credit" />
+              {id && <CustomerStoreCreditTab customerId={id} timeZone={businessTimeZone} branchName={getBranchName} />}
             </TabsContent>
 
             <TabsContent value="loyalty" className="space-y-3">

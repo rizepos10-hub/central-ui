@@ -16,6 +16,7 @@ export interface ILoyaltyCard {
     wallet?: ILoyaltyCardWallet | null;
     loyaltyPointId?: string;
     createdByBranchId?: string;
+    branchIds?: string[];
     code?: string;
     printed?: boolean;
     active?: boolean;
@@ -39,6 +40,7 @@ export const defaultValue: Readonly<ILoyaltyCard> = {
     walletId: '',
     loyaltyPointId: '',
     createdByBranchId: '',
+    branchIds: [],
     code: '',
     printed: false,
     active: true,

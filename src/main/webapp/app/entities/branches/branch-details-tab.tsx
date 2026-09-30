@@ -455,6 +455,16 @@ export const BranchDetailsTab = ({
           onChange={v => set('cashbackEnabled', v)}
         />
       </SettingsCard>
+
+      <SettingsCard title="Gift Cards" description="Which branches a card works at is chosen on each card. This setting decides whether this branch settles gift card money with other branches.">
+        <SettingToggle
+          id={id('share-gift-cards')}
+          label="Share gift cards with other branches"
+          description="When a card is spent here with money another sharing branch took in, that branch owes the amount to this branch. See Reports, Gift Card Settlement."
+          checked={!!branch.shareGiftCards}
+          onChange={v => set('shareGiftCards', v)}
+        />
+      </SettingsCard>
     </div>
   );
 };
