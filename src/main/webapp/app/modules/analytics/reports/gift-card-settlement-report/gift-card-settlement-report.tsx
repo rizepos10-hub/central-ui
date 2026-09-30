@@ -74,6 +74,11 @@ const endOfDay = (value: string) => {
   const end = new Date(`${value}T23:59:59.999`);
   return (end.getTime() > Date.now() ? new Date() : end).toISOString();
 };
+const yesterday = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return date.toLocaleDateString('en-CA');
+};
 
 const BranchSettlementReport = () => {
   const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
@@ -86,6 +91,7 @@ const BranchSettlementReport = () => {
   const [loading, setLoading] = useState(false);
 
   const [closeOpen, setCloseOpen] = useState(false);
+  const [closeTo, setCloseTo] = useState('');
   const [closeNote, setCloseNote] = useState('');
   const [closing, setClosing] = useState(false);
 
@@ -116,7 +122,7 @@ const BranchSettlementReport = () => {
   const closePeriod = async () => {
     setClosing(true);
     try {
-      await axios.post('api/branch-settlements/closings', { toDate: endOfDay(to), note: closeNote.trim() || null });
+      await axios.post('api/branch-settlements/closings', { toDate: endOfDay(closeTo), note: closeNote.trim() || null });
       toast.success('Period closed.');
       setCloseOpen(false);
       setCloseNote('');
@@ -143,6 +149,13 @@ const BranchSettlementReport = () => {
     }
   };
 
+  const openClose = () => {
+    setCloseTo(to < today ? to : yesterday());
+    setCloseOpen(true);
+  };
+
+  const alreadyClosed = !!report && !!closeTo && new Date(endOfDay(closeTo)).getTime() <= new Date(report.fromDate).getTime();
+
   const settlements = report?.settlements ?? [];
   const branches = report?.branches ?? [];
   const broughtForward = report?.broughtForward ?? [];
@@ -167,7 +180,7 @@ const BranchSettlementReport = () => {
             Search
           </Button>
           {canClose && (
-            <Button variant="outline" className="ws-control" disabled={loading || !report} onClick={() => setCloseOpen(true)}>
+            <Button variant="outline" className="ws-control" disabled={loading || !report} onClick={openClose}>
               <Lock className="mr-1 h-4 w-4" />
               Close period
             </Button>
@@ -341,16 +354,34 @@ const BranchSettlementReport = () => {
           <DialogHeader>
             <DialogTitle>Close period</DialogTitle>
           </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label htmlFor="branch-settlement-close-to">Close up to the end of</Label>
+            <Input
+              id="branch-settlement-close-to"
+              className="ws-control"
+              type="date"
+              max={today}
+              value={closeTo}
+              onChange={event => setCloseTo(event.target.value)}
+            />
+          </div>
           <p className="m-0 text-sm">
-            Close {report ? periodStartLabel(report.fromDate) : ''} to {to}. The amounts are locked and the next report starts after {to}.
+            {alreadyClosed
+              ? `The period is already closed past ${closeTo}.`
+              : `Close ${report ? periodStartLabel(report.fromDate) : ''} to ${closeTo}. The amounts are locked and the next report starts after ${closeTo}.`}
           </p>
+          {closeTo === today && !alreadyClosed && (
+            <p className="m-0 text-xs text-muted-foreground">
+              Today closes up to 5 minutes ago, so gift card and store credit sales still being saved go to the next period.
+            </p>
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor="branch-settlement-note">Note</Label>
             <Input id="branch-settlement-note" className="ws-control" value={closeNote} onChange={event => setCloseNote(event.target.value)} />
           </div>
           <DialogFooter>
             <Button variant="outline" className="ws-control" onClick={() => setCloseOpen(false)}>Cancel</Button>
-            <Button className="ws-control" disabled={closing} onClick={() => void closePeriod()}>
+            <Button className="ws-control" disabled={closing || !closeTo || alreadyClosed} onClick={() => void closePeriod()}>
               {closing && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
               Close period
             </Button>
